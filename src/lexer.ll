@@ -92,12 +92,12 @@ idchr	[a-zA-Z0-9_$#]
 "!"		{ return T_EXCLAM; }
 
 "->"		{ return T_ARROW; }
-"="		{ if (syntax == SYNTAX_NEW)
+"="		{ if (syntax & SYNTAX_NEW)
 			return T_ASSIGNMENT; 
 		  utap_error("Unknown symbol");
 		  return T_ERROR;
  		}
-":="		{ if (syntax == SYNTAX_OLD)
+":="		{ if (syntax & SYNTAX_OLD)
 			return T_ASSIGNMENT;
 		  utap_error("Unknown symbol");
                   return T_ERROR; 

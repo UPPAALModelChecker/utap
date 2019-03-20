@@ -115,10 +115,10 @@
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a49">YY_DECL</a>&nbsp;&nbsp;&nbsp;int lexer_flex(void)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a50">YY_USER_INIT</a>&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a237">yylloc</a>.reset();</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a50">YY_USER_INIT</a>&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a241">yylloc</a>.reset();</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Location tracking inside scanner, taken from <a href="http://www.lrde.epita.fr/people/akim/compil/gnuprog2/Advanced-Use-of-Flex.html.">http://www.lrde.epita.fr/people/akim/compil/gnuprog2/Advanced-Use-of-Flex.html.</a>  <a href="#a50"></a><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a51">YY_USER_ACTION</a>&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a237">yylloc</a>.step(); <a class="el" href="parser_8cc.html#a237">yylloc</a>.last_column+=<a class="el" href="lexer_8cc.html#a73">utap_leng</a>;</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a51">YY_USER_ACTION</a>&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a241">yylloc</a>.step(); <a class="el" href="parser_8cc.html#a241">yylloc</a>.last_column+=<a class="el" href="lexer_8cc.html#a73">utap_leng</a>;</td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>#define&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="lexer_8cc.html#a52">YY_FATAL_ERROR</a>(msg)&nbsp;&nbsp;&nbsp;{ throw <a class="el" href="classUTAP_1_1TypeException.html">TypeException</a>(msg); }</td></tr>
 
@@ -1704,7 +1704,7 @@
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> #define YY_USER_ACTION&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a237">yylloc</a>.step(); <a class="el" href="parser_8cc.html#a237">yylloc</a>.last_column+=<a class="el" href="lexer_8cc.html#a73">utap_leng</a>;          </td>
+          <td class="md" nowrap valign="top"> #define YY_USER_ACTION&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a241">yylloc</a>.step(); <a class="el" href="parser_8cc.html#a241">yylloc</a>.last_column+=<a class="el" href="lexer_8cc.html#a73">utap_leng</a>;          </td>
         </tr>
       </table>
     </td>
@@ -1727,7 +1727,7 @@
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"> #define YY_USER_INIT&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a237">yylloc</a>.reset();          </td>
+          <td class="md" nowrap valign="top"> #define YY_USER_INIT&nbsp;&nbsp;&nbsp;<a class="el" href="parser_8cc.html#a241">yylloc</a>.reset();          </td>
         </tr>
       </table>
     </td>
@@ -2517,7 +2517,7 @@ Setup the input buffer state to scan directly from a user-specified character bu
 <p>
 Setup the input buffer state to scan the given bytes. 
 <p>
-The next call to <a class="el" href="parser_8cc.html#a343">utap_lex()</a> will scan from a <em>copy</em> of <em>bytes</em>. <dl compact><dt><b>Parameters:</b></dt><dd>
+The next call to <a class="el" href="parser_8cc.html#a350">utap_lex()</a> will scan from a <em>copy</em> of <em>bytes</em>. <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td></td><td valign=top><em>bytes</em>&nbsp;</td><td>the byte buffer to scan </td></tr>
     <tr><td></td><td valign=top><em>len</em>&nbsp;</td><td>the number of bytes in the buffer pointed to by <em>bytes</em>.</td></tr>
@@ -2554,7 +2554,7 @@ The next call to <a class="el" href="parser_8cc.html#a343">utap_lex()</a> will s
 <p>
 Setup the input buffer state to scan a string. 
 <p>
-The next call to <a class="el" href="parser_8cc.html#a343">utap_lex()</a> will scan from a <em>copy</em> of <em>str</em>. <dl compact><dt><b>Parameters:</b></dt><dd>
+The next call to <a class="el" href="parser_8cc.html#a350">utap_lex()</a> will scan from a <em>copy</em> of <em>str</em>. <dl compact><dt><b>Parameters:</b></dt><dd>
   <table border="0" cellspacing="2" cellpadding="0">
     <tr><td></td><td valign=top><em>str</em>&nbsp;</td><td>a NUL-terminated string to scan</td></tr>
   </table>
@@ -3953,7 +3953,7 @@ index of top of stack
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Sat May 15 12:33:41 2004 for libutap by
+<hr size="1"><address style="align: right;"><small>Generated on Thu Jun 17 10:39:55 2004 for libutap by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.7 </small></address>
 </body>

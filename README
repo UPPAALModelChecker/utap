@@ -1,4 +1,4 @@
-libutap, version 0.50
+libutap, version 0.60
 Mini HOWTO
 Gerd Behrmann
 
@@ -28,8 +28,8 @@ libutap is licensed under the LGPL.
 
 libutap uses automake and autoconf to make compilation on various
 platforms easy. You will need gcc 2.95.3 or newer, GNU make and
-libxml2 from http://www.xmlsoft.org (libxml needs to be older than
-2.6). Simply run:
+libxml2 from http://www.xmlsoft.org (libxml needs to be at least
+version 2.6.0). Simply run:
 
 ./configure
 make
@@ -53,7 +53,7 @@ calls one of the top level parsing functions defined in utap/utap.h,
 e.g.
 
 #include <stdio.h>
-#include "utap/utap.hh"
+#include "utap/utap.h"
 
 int main()
 {
@@ -69,11 +69,11 @@ error handler, which keeps track of errors and warnings produced
 during parsing. The third is the output of the parser and the fourth
 is a flag indicating whether we want to use the new or the old syntax
 (the old syntax is the one used in Uppaal 3.4, the new is the one that
-will be used in Uppaal 4.0).
+will be used in Uppaal 3.6/4.0).
 
 After the call to parseXTA, one can access the network of timed
-automata in the system variable. Take a look at utap/system.hh to see
-what kind of structure you can access.
+automata in the system variable. Take a look at utap/system.h to see
+what kind of structures you can access.
 
 4. Architecture
 
@@ -108,20 +108,20 @@ the library.
 The BNF implemented by the bison generated parser is split into
 several sections and to some extend duplicated for the old and new
 syntax. It can read .ta and .xta files directly. XML files are read
-using the libxml2 library. The implementation of the SAX call-back
-interface can be found in the "xmlreader.cc" file. Each text-block in
-the XML file is then parser wrt. the BNF for that block. For this, the
+using the libxml2 library. Each text-block in the XML file is then
+parser wrt. the BNF for that block (see xmlreader.cpp). For this, the
 bison generated parser is reused.
 
 The parser calls methods in the abstract ParserBuilder class. The
 methods in the ParserBuilder class are implemented by the
-SystemBuilder class. The SystemBuilder writes the model to an instance
-of the TimedAutomataSystem (TAS) class.
+SystemBuilder class which is a subclass of ExpressionBuilder which is
+a subclass of AbstractBuilder. The SystemBuilder writes the model to
+an instance of the TimedAutomataSystem (TAS) class.
 
 The design abstracts the differences between the .xml, .xta and .ta
-input formats and also hides the differences between the 3.4 and 4.0
-formats from any implementation of the ParserBuilder interface (for
-equivalent input the parser will call the same methods in the
+input formats and also hides the differences between the 3.4 and
+3.6/4.0 formats from any implementation of the ParserBuilder interface
+(for equivalent input the parser will call the same methods in the
 ParserBuilder class).
 
 

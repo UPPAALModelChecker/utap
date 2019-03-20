@@ -1,3 +1,17 @@
+2004-06-16  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Split SystemBuilder into AbstractBuilder, ExpressionBuilder and 
+	  SystemBuilder.
+	* More work on parsing and type checking UCode.
+	* Reimplemented xmlreader.cpp (now uses reader interface 
+	  of libxml2 2.6)
+	* C++ standard compliance
+	* Added priorities to the language
+	* Fixes in the Interpreter
+	* Moved more type checking code from SystemBuilder to TypeChecker
+	* Lots of bug fixes
+	* Header files now use a .h ending and C++ files .cpp.
+	* More...
+
 2004-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
 	* Removed decl_check debug code
 	* Documentation updates

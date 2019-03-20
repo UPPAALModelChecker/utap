@@ -8,24 +8,28 @@
 <h1>UTAP::RangeChecker Class Reference</h1>A <a class="el" href="classUTAP_1_1RangeChecker.html">RangeChecker</a> object is an oracle for predicting ranges of integer expressions and declared ranges of symbols.  
 <a href="#_details">More...</a>
 <p>
-<code>#include &lt;<a class="el" href="rangechecker_8hh-source.html">rangechecker.hh</a>&gt;</code>
+<code>#include &lt;<a class="el" href="rangechecker_8h-source.html">rangechecker.h</a>&gt;</code>
 <p>
 <a href="classUTAP_1_1RangeChecker-members.html">List of all members.</a><table border=0 cellpadding=0 cellspacing=0>
 <tr><td></td></tr>
 <tr><td colspan=2><br><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a0">RangeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a0">RangeChecker</a> (const std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a1">RangeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *, const <a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a1">RangeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a2">getRange</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>) const</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a2">RangeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *, const <a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of an expression taking the current mapping into account.  <a href="#a2"></a><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a3">getDeclaredRange</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr) const</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a3">getRange</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>) const</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of a variable.  <a href="#a3"></a><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a4">getDeclaredRange</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol) const</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of an expression taking the current mapping into account.  <a href="#a3"></a><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a4">getRange</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a>) const</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of a symbol.  <a href="#a4"></a><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a5">getDeclaredRange</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr) const</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of a variable.  <a href="#a5"></a><br><br></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top><a class="el" href="classUTAP_1_1range__t.html">range_t</a>&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#a6">getDeclaredRange</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol) const</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the range of a symbol.  <a href="#a6"></a><br><br></td></tr>
 <tr><td colspan=2><br><h2>Protected Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align=right valign=top>bool&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1RangeChecker.html#b0">isInteger</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>) const</td></tr>
 
@@ -43,6 +47,34 @@ For constant expressions, the actual value of the expression is returned. If the
 <p>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" name="a0" doxytag="UTAP::RangeChecker::RangeChecker" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> RangeChecker::RangeChecker           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a1" doxytag="UTAP::RangeChecker::RangeChecker" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -70,7 +102,7 @@ For constant expressions, the actual value of the expression is returned. If the
     </td>
   </tr>
 </table>
-<a class="anchor" name="a1" doxytag="UTAP::RangeChecker::RangeChecker" ></a><p>
+<a class="anchor" name="a2" doxytag="UTAP::RangeChecker::RangeChecker" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -145,7 +177,7 @@ For constant expressions, the actual value of the expression is returned. If the
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="UTAP::RangeChecker::getDeclaredRange" ></a><p>
+<a class="anchor" name="a6" doxytag="UTAP::RangeChecker::getDeclaredRange" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -175,7 +207,7 @@ Returns the range of a symbol.
 If the symbol is a constant value, then this value is returned. Otherwise the declared range is returned. The function substitutes formal parameters with actual arguments before computing the range. In case of arrays, the range of the base type is returned.     </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="UTAP::RangeChecker::getDeclaredRange" ></a><p>
+<a class="anchor" name="a5" doxytag="UTAP::RangeChecker::getDeclaredRange" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -205,7 +237,35 @@ Returns the range of a variable.
 The argument must be an expression referring to a variable.     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="UTAP::RangeChecker::getRange" ></a><p>
+<a class="anchor" name="a4" doxytag="UTAP::RangeChecker::getRange" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> <a class="el" href="classUTAP_1_1range__t.html">range_t</a> RangeChecker::getRange           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a3" doxytag="UTAP::RangeChecker::getRange" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -309,8 +369,8 @@ Returns the range of a binary expression.
   </tr>
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
-<li><a class="el" href="rangechecker_8hh-source.html">rangechecker.hh</a><li><a class="el" href="rangechecker_8cc.html">rangechecker.cc</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Sat May 15 12:33:42 2004 for libutap by
+<li><a class="el" href="rangechecker_8h-source.html">rangechecker.h</a><li><a class="el" href="rangechecker_8cpp.html">rangechecker.cpp</a></ul>
+<hr size="1"><address style="align: right;"><small>Generated on Thu Jun 17 10:39:57 2004 for libutap by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.7 </small></address>
 </body>

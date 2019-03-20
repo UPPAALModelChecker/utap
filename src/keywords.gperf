@@ -37,6 +37,8 @@ rate,			T_RATE,		SYNTAX_GUIDING
 before_update,		T_BEFORE,	SYNTAX_GUIDING
 after_update,		T_AFTER,	SYNTAX_GUIDING
 cost,			T_COST,		SYNTAX_GUIDING
+chan_priority,		T_CHAN_PRIORITY, SYNTAX_OLD | SYNTAX_NEW
+proc_priority,		T_PROC_PRIORITY, SYNTAX_OLD | SYNTAX_NEW
 %%
 
 bool isKeyword(const char *id, uint32_t syntax)

@@ -52,7 +52,7 @@
 
 %{
 
-#include "libparser.hh"
+#include "libparser.h"
 
 using namespace std;
 using namespace UTAP;
@@ -61,7 +61,7 @@ using namespace Constants;
 struct Position
 {
     int32_t first_line, first_column, last_line, last_column;
-    char *text;   // Unused - needed for compatibility with bison 1.28
+    char *text;  // Unused - needed for compatibility with bison 1.28
     void reset() {
 	first_column = first_line = 1; 
 	last_column = last_line = 1; 
@@ -93,6 +93,7 @@ static void utap_error(const TypeException& te, int32_t fl, int32_t fc,
 #define REPORT_ERROR(loc, exc) utap_error(exc, loc.first_line, loc.first_column, loc.last_line, loc.last_column);
   
 // List of all parser error messages
+static const char* PE_PRIORITY_ = "priority ordering expected";
 static const char* PE_ALT_TRANS = "alternative transition expected";
 static const char* PE_ARGLIST = "argument expression list expected";
 static const char* PE_ARGLIST_ = "one more argument expression expected";
@@ -197,6 +198,7 @@ static int32_t g_parameter_count;
 /* Special statement keywords: */
 %token T_FOR T_WHILE T_DO T_BREAK T_CONTINUE T_SWITCH T_IF T_ELSE 
 %token T_CASE T_DEFAULT T_RETURN
+%token T_CHAN_PRIORITY T_PROC_PRIORITY
 
 /* Variable type declaration keywords: */
 %token T_TYPEDEF T_STRUCT 
@@ -219,17 +221,17 @@ static int32_t g_parameter_count;
 %token T_NEW_PARAMETERS T_NEW_INVARIANT T_NEW_GUARD T_NEW_SYNC T_NEW_ASSIGN
 %token T_OLD T_OLD_DECLARATION T_OLD_LOCAL_DECL T_OLD_INST 
 %token T_OLD_PARAMETERS T_OLD_INVARIANT T_OLD_GUARD T_OLD_ASSIGN
-%token T_PROPERTY 
+%token T_PROPERTY T_EXPRESSION 
 
 %type <number> ArgList ArrayDecl FieldDeclList FieldDeclIdList FieldDecl
 %type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
 %type <number> OldProcParams OldProcParamList OldProcParam OldProcConstParam
 %type <kind> Quantifier
-%type <number> Type TypePrefix 
+%type <number> Type TypePrefix Range
 %type <string> Id
 %type <number> OldConstDeclIdList
 %type <kind> UnaryOp AssignOp
-%type <flag> VarInit Range
+%type <flag> VarInit 
 
 %left T_KW_OR T_KW_IMPLY
 %left T_KW_AND
@@ -285,6 +287,7 @@ Uppaal:
 	| T_OLD_GUARD OldGuardList { CALL(@2, @2, procGuard()); }
 	| T_OLD_ASSIGN ExprList { CALL(@2, @2, procUpdate()); }
         | T_PROPERTY PropertyList {}
+        | T_EXPRESSION Expression {}
 	;
 
 XTA: 
@@ -312,7 +315,31 @@ Inst:
 	}
 	;
 
-System:
+System: ChanPriorityDecl ProcPriorityDecl SysDecl;
+
+ChanPriorityDecl:
+        /* empty */
+        | T_CHAN_PRIORITY PriorityOrder ';'
+        ;
+
+ProcPriorityDecl:
+        /* empty */
+        | T_PROC_PRIORITY PriorityOrder ';'
+        ;
+
+PriorityOrder:
+	T_ID { CALL(@1, @1, lowPriority($1)); }
+	| PriorityOrder T_EQ T_ID { CALL(@3, @3, samePriority($3)); }
+	| PriorityOrder T_LT T_ID { CALL(@3, @3, higherPriority($3)); }
+	| PriorityOrder T_EQ error {
+	  REPORT_ERROR(last_loc, TypeException(PE_PRIORITY_));
+	}
+	| PriorityOrder T_LT error {
+	  REPORT_ERROR(last_loc, TypeException(PE_PRIORITY_));
+	}
+	;
+
+SysDecl:
 	T_SYSTEM ProcessList ';'
         | T_SYSTEM ProcessList error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
@@ -625,18 +652,10 @@ TypePrefix:
         ;
 
 Range:
-	/* empty */ { $$ = false; }
-	| '[' Expression ',' Expression ']' { $$ = true; }
-	| '[' Expression ',' Expression error ']' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
-	  $$ = true; 
-	}
-	| '[' Expression ',' Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
-	  $$ = true; 
-	}
+	/* empty */ { $$ = 0; }
+	| '[' Expression ',' Expression ']' { $$ = 2; }
         | '[' error ']' {
-	    $$ = false;
+	    $$ = 0;
         }
 	;
 
@@ -651,9 +670,6 @@ ProcDecl:
         ProcBody '}' { 
 	  CALL(@6, @7, procEnd());
 	}
-	| T_PROCESS Id OptionalParameterList error '{' ProcBody '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	} 
 	| T_PROCESS Id '{' {
 	  utap_error(TypeException(PE_LPAREN), 
 		     @3.first_line, @3.first_column, 
@@ -662,13 +678,6 @@ ProcDecl:
 	} ProcBody '}' {
 	  CALL(@4, @5, procEnd());
 	}
-	| T_PROCESS error '{' ProcBody '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PROCID));	  
-	} 
-/*	| error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PROC));
-	} 
-*/
 	;
 
 ProcBody:
@@ -1251,16 +1260,16 @@ ArgList:
 	/* empty */ { $$=0; }
 	| Expression { 
 	    $$=1; 
-	    CALL(@1, @1, exprArg($$));
+	    CALL(@1, @1, exprArg(0));
 	}
         | ArgList ',' Expression { 
 	    $$=$1+1; 
-	    CALL(@3, @3, exprArg($$));
+	    CALL(@3, @3, exprArg($1));
 	}
         | ArgList ',' error { 
 	  $$=$1+1; 
 	  REPORT_ERROR(last_loc, TypeException(PE_ARGLIST_));
-	  CALL(@3, @3, exprArg($$));
+	  CALL(@3, @3, exprArg($1));
 	}
 	;
 
@@ -1340,10 +1349,6 @@ OldProcDecl:
 OldProcParams:
 	'(' ')' { $$ = 0; }
 	| '(' OldProcParamList ')' { $$ = $2; }
-	| '(' OldProcParamList error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));	  
-	  $$ = $2; 
-	}
 	| '(' error ')' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_PARAMETERS));	  
 	  $$ = 0; 
@@ -1355,15 +1360,19 @@ OldProcParamList:
 	  $$ = $1; 
 	  CALL(@1, @1, declParameterEnd());
 	}
-        | OldProcConstParam { 
-	  $$ = $1; 
+        | OldProcConstParam {
+	  $$ = $1;
 	  CALL(@1, @1, declParameterEnd());
-	}
+        }
 	| OldProcParamList ';' OldProcParam { 
 	  $$ = $1 + $3;
 	  CALL(@1, @3, declParameterEnd());
 	}
-	| OldProcParamList ';' error { 
+	| OldProcParamList ';' OldProcConstParam { 
+	  $$ = $1 + $3;
+	  CALL(@1, @3, declParameterEnd());
+	}
+	| OldProcParamList ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_PARAM_DECL_));
           $$ = $1; 
 	}
@@ -1610,228 +1619,130 @@ static void utap_error(
     last_loc = yylloc;
 }
 
-int32_t parseXTA(const char *str, ParserBuilder *aParserBuilder,
-		 ErrorHandler *err, bool newxta)
+static void setStartToken(xta_part_t part, bool newxta)
 {
-  return parseXTA(str, aParserBuilder, err, newxta, S_XTA);
+    switch (part) 
+    {
+    case S_XTA: 
+	syntax_token = newxta ? T_NEW : T_OLD;
+	break;
+    case S_DECLARATION: 
+	syntax_token = newxta ? T_NEW_DECLARATION : T_OLD_DECLARATION;
+	break;
+    case S_LOCAL_DECL: 
+	syntax_token = newxta ? T_NEW_LOCAL_DECL : T_OLD_LOCAL_DECL; 
+	break;
+    case S_INST: 
+	syntax_token = newxta ? T_NEW_INST : T_OLD_INST;
+	break;
+    case S_SYSTEM: 
+	syntax_token = T_NEW_SYSTEM;
+	break;
+    case S_PARAMETERS: 
+	syntax_token = newxta ? T_NEW_PARAMETERS : T_OLD_PARAMETERS;
+	break;
+    case S_INVARIANT: 
+	syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
+	break;
+    case S_GUARD: 
+	syntax_token = newxta ? T_NEW_GUARD : T_OLD_GUARD; 
+	break;
+    case S_SYNC: 
+	syntax_token = T_NEW_SYNC;
+	break;
+    case S_ASSIGN: 
+	syntax_token = newxta ? T_NEW_ASSIGN : T_OLD_ASSIGN;
+	break;
+    case S_EXPRESSION:
+	syntax_token = T_EXPRESSION;
+	break;
+    case S_PROPERTY:
+	syntax_token = T_PROPERTY;
+	break;
+    }
 }
 
-int32_t parseXTA(const char *str, ParserBuilder *aParserBuilder,
+static int32_t parseXTA(ParserBuilder *aParserBuilder,
 		 ErrorHandler *err, bool newxta, xta_part_t part)
 {
-  int res = 0;
-  syntax = (newxta ? SYNTAX_NEW : SYNTAX_OLD);
-  ch = aParserBuilder;
-  ch->setErrorHandler(err);
+    // Select syntax
+    syntax = (syntax_t)(newxta ? SYNTAX_NEW : SYNTAX_OLD);
+    setStartToken(part, newxta);
 
-  yylloc.reset();
-  errorHandler = err;
+    // Set parser builder and error handler
+    ch = aParserBuilder;
+    ch->setErrorHandler(err);
+    errorHandler = err;
+    
+    // Reset position tracking
+    yylloc.reset();
 
-  utap__scan_string(str);
-
-  switch (part) { /* convertion from old to new */
-  case S_XTA: 
-    syntax_token = newxta ? T_NEW : T_OLD;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_DECLARATION: 
-    syntax_token = newxta ? T_NEW_DECLARATION : T_OLD_DECLARATION;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_LOCAL_DECL: 
-    syntax_token = newxta ? T_NEW_LOCAL_DECL : T_OLD_LOCAL_DECL; 
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_INST: 
-    syntax_token = newxta ? T_NEW_INST : T_OLD_INST;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_SYSTEM: 
-    syntax_token = T_NEW_SYSTEM; // the system definition is the same for both
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_PARAMETERS: 
-    syntax_token = newxta ? T_NEW_PARAMETERS : T_OLD_PARAMETERS;
+    // Parse string
+    int res = 0;
     g_parameter_count = 0;
-    if (utap_parse()) {
-      res = -1;
-    } else res = g_parameter_count;
-    break;
-  case S_INVARIANT: 
-    syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_GUARD: 
-    syntax_token = newxta ? T_NEW_GUARD : T_OLD_GUARD; 
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_SYNC: 
-    syntax_token = T_NEW_SYNC; // the system definition is the same for both
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_ASSIGN: 
-    syntax_token = newxta ? T_NEW_ASSIGN : T_OLD_ASSIGN;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  default: 
-    res = -1;
-    break;
-  }
-  utap__delete_buffer(YY_CURRENT_BUFFER);
+    if (utap_parse()) 
+    {
+	res = -1;
+    }
+    else 
+    {
+	res = g_parameter_count;
+    }
 
-  ch = NULL;
-  return res;
+    ch = NULL;
+    errorHandler = NULL;
+    return res;
 }
 
-int32_t parseXTA(FILE *file, ParserBuilder *aParserBuilder, 
+static int32_t parseProperty(ParserBuilder *aParserBuilder, ErrorHandler *err)
+{
+    // Select syntax
+    syntax = SYNTAX_PROPERTY;
+    setStartToken(S_PROPERTY, false);
+
+    // Set parser builder and error handler
+    ch = aParserBuilder;
+    ch->setErrorHandler(err);
+    errorHandler = err;    
+    
+    // Reset position tracking
+    yylloc.reset();
+
+    return utap_parse() ? -1 : 0;
+}
+
+int32_t parseXTA(const char *str, ParserBuilder *builder,
+		 ErrorHandler *err, bool newxta, xta_part_t part)
+{
+    utap__scan_string(str);
+    int32_t res = parseXTA(builder, err, newxta, part);
+    utap__delete_buffer(YY_CURRENT_BUFFER);
+    return res;
+}
+
+int32_t parseXTA(FILE *file, ParserBuilder *builder,
     ErrorHandler *err, bool newxta)
 {
-  return parseXTA(file, aParserBuilder, err, newxta, S_XTA);
-}
-
-int32_t parseXTA(FILE *file, ParserBuilder *aParserBuilder, 
-    ErrorHandler *err, bool newxta, xta_part_t part)
-{
-  int res = 0;
-  utap_in = file;
-  syntax = (newxta ? SYNTAX_NEW : SYNTAX_OLD);
-  ch = aParserBuilder;
-  ch->setErrorHandler(err);
-
-  yylloc.reset();
-  errorHandler = err;
-
-  utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-  
-  switch (part) { /* convertion from old to new */
-  case S_XTA: 
-    syntax_token = newxta ? T_NEW : T_OLD;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_DECLARATION: 
-    syntax_token = newxta ? T_NEW_DECLARATION : T_OLD_DECLARATION;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_LOCAL_DECL: 
-    syntax_token = newxta ? T_NEW_LOCAL_DECL : T_OLD_LOCAL_DECL; 
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_INST: 
-    syntax_token = newxta ? T_NEW_INST : T_OLD_INST;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_SYSTEM: 
-    syntax_token = T_NEW_SYSTEM; // the system definition is the same for both
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_PARAMETERS: 
-    syntax_token = newxta ? T_NEW_PARAMETERS : T_OLD_PARAMETERS;
-    g_parameter_count = 0;
-    if (utap_parse()) {
-      res = -1;
-    } else res = g_parameter_count;
-    break;
-  case S_INVARIANT: 
-    syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_GUARD: 
-    syntax_token = newxta ? T_NEW_GUARD : T_OLD_GUARD; 
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_SYNC: 
-    syntax_token = T_NEW_SYNC; // the system definition is the same for both
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  case S_ASSIGN: 
-    syntax_token = newxta ? T_NEW_ASSIGN : T_OLD_ASSIGN;
-    if (utap_parse()) {
-      res = -1;
-    } else res = 0;
-    break;
-  default: 
-    res = -1;
-    break;
-  }
-
-  utap__delete_buffer(YY_CURRENT_BUFFER);
-  ch = NULL;
-
-  return res;
+    utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
+    int res = parseXTA(builder, err, newxta, S_XTA);
+    utap__delete_buffer(YY_CURRENT_BUFFER);
+    return res;
 }
 
 int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder, 
 		      ErrorHandler *err)
 {
-  syntax = SYNTAX_PROPERTY;
-  ch = aParserBuilder;
-  ch->setErrorHandler(err);
-  errorHandler = err;
-  syntax_token = T_PROPERTY;
-  yylloc.reset();
-
-  utap__scan_string(str);
-
-  int res = utap_parse();
-
-  utap__delete_buffer(YY_CURRENT_BUFFER);
-  ch = NULL;
-
-  return (res ? -1 : 0);
+    utap__scan_string(str);
+    int32_t res = parseProperty(aParserBuilder, err);
+    utap__delete_buffer(YY_CURRENT_BUFFER);
+    return res;
 }
 
 int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder, 
 		      ErrorHandler *err)
 {
-  syntax = SYNTAX_PROPERTY;
-  ch = aParserBuilder;
-  ch->setErrorHandler(err);
-  errorHandler = err;
-  syntax_token = T_PROPERTY;
-  yylloc.reset();
-  utap_in = file;
-
-  utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-
-  int res = utap_parse();
-
-  utap__delete_buffer(YY_CURRENT_BUFFER);
-  ch = NULL;
-
-  return (res ? -1 : 0);
+    utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
+    int32_t res = parseProperty(aParserBuilder, err);
+    utap__delete_buffer(YY_CURRENT_BUFFER);
+    return res;
 }
-

@@ -916,7 +916,7 @@ YY_RULE_SETUP
 case 25:
 YY_RULE_SETUP
 #line 95 "lexer.ll"
-{ if (syntax == SYNTAX_NEW)
+{ if (syntax & SYNTAX_NEW)
 			return T_ASSIGNMENT; 
 		  utap_error("Unknown symbol");
 		  return T_ERROR;
@@ -925,7 +925,7 @@ YY_RULE_SETUP
 case 26:
 YY_RULE_SETUP
 #line 100 "lexer.ll"
-{ if (syntax == SYNTAX_OLD)
+{ if (syntax & SYNTAX_OLD)
 			return T_ASSIGNMENT;
 		  utap_error("Unknown symbol");
                   return T_ERROR; 

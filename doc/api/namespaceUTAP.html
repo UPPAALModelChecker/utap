@@ -10,6 +10,10 @@
 <table border=0 cellpadding=0 cellspacing=0>
 <tr><td></td></tr>
 <tr><td colspan=2><br><h2>Classes</h2></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1NotSupportedException.html">UTAP::NotSupportedException</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1AbstractBuilder.html">UTAP::AbstractBuilder</a></td></tr>
+
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1TypeException.html">UTAP::TypeException</a></td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Exception indicating a type error.  <a href="classUTAP_1_1TypeException.html#_details">More...</a><br><br></td></tr>
@@ -32,6 +36,10 @@
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1InterpreterException.html">UTAP::InterpreterException</a></td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1Interpreter.html">UTAP::Interpreter</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1ExpressionBuilder.html">UTAP::ExpressionBuilder</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">UTAP::ExpressionBuilder::ExpressionFragments</a></td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1UndefinedRangeException.html">UTAP::UndefinedRangeException</a></td></tr>
 
@@ -115,8 +123,6 @@
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1SystemBuilder.html">UTAP::SystemBuilder</a></td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">This class constructs a <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>.  <a href="classUTAP_1_1SystemBuilder.html#_details">More...</a><br><br></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><b>UTAP::SystemBuilder::ExpressionFragments</b></td></tr>
-
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><b>UTAP::SystemBuilder::TypeFragments</b></td></tr>
 
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1PersistentVariables.html">UTAP::PersistentVariables</a></td></tr>
@@ -125,12 +131,86 @@
 <tr><td class="memItemLeft" nowrap align=right valign=top>class &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="classUTAP_1_1TypeChecker.html">UTAP::TypeChecker</a></td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">A visitor which type checks the system it visits.  <a href="classUTAP_1_1TypeChecker.html#_details">More...</a><br><br></td></tr>
+<tr><td colspan=2><br><h2>Enumerations</h2></td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>enum &nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="namespaceUTAP.html#a13">xta_part_t</a> { <br>
+&nbsp;&nbsp;<a class="el" href="namespaceUTAP.html#a13a0">S_XTA</a>, 
+<a class="el" href="namespaceUTAP.html#a13a1">S_DECLARATION</a>, 
+<a class="el" href="namespaceUTAP.html#a13a2">S_LOCAL_DECL</a>, 
+<a class="el" href="namespaceUTAP.html#a13a3">S_INST</a>, 
+<br>
+&nbsp;&nbsp;<a class="el" href="namespaceUTAP.html#a13a4">S_SYSTEM</a>, 
+<a class="el" href="namespaceUTAP.html#a13a5">S_PARAMETERS</a>, 
+<a class="el" href="namespaceUTAP.html#a13a6">S_INVARIANT</a>, 
+<a class="el" href="namespaceUTAP.html#a13a7">S_GUARD</a>, 
+<br>
+&nbsp;&nbsp;<a class="el" href="namespaceUTAP.html#a13a8">S_SYNC</a>, 
+<a class="el" href="namespaceUTAP.html#a13a9">S_ASSIGN</a>, 
+<a class="el" href="namespaceUTAP.html#a13a10">S_EXPRESSION</a>, 
+<a class="el" href="namespaceUTAP.html#a13a11">S_PROPERTY</a>
+<br>
+ }</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Type for specifying which XTA part to parse (syntax switch).  <a href="#a13">More...</a><br><br></td></tr>
 <tr><td colspan=2><br><h2>Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align=right valign=top>std::ostream &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="namespaceUTAP.html#a0">operator&lt;&lt;</a> (std::ostream &amp;out, const <a class="el" href="classUTAP_1_1TypeException.html">TypeException</a> &amp;exc)</td></tr>
+<tr><td class="memItemLeft" nowrap align=right valign=top>std::ostream &amp;&nbsp;</td><td class="memItemRight" valign=bottom><a class="el" href="namespaceUTAP.html#a12">operator&lt;&lt;</a> (std::ostream &amp;out, const <a class="el" href="classUTAP_1_1TypeException.html">TypeException</a> &amp;exc)</td></tr>
 
 </table>
+<hr><h2>Enumeration Type Documentation</h2>
+<a class="anchor" name="a13" doxytag="UTAP::xta_part_t" ></a><p>
+<table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"> enum <a class="el" href="namespaceUTAP.html#a13">UTAP::xta_part_t</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing=5 cellpadding=0 border=0>
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Type for specifying which XTA part to parse (syntax switch). 
+<p>
+<dl compact><dt><b>Enumeration values: </b></dt><dd>
+<table border=0 cellspacing=2 cellpadding=0>
+<tr><td valign=top><em><a class="anchor" name="a13a0" doxytag="S_XTA" ></a>S_XTA</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a1" doxytag="S_DECLARATION" ></a>S_DECLARATION</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a2" doxytag="S_LOCAL_DECL" ></a>S_LOCAL_DECL</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a3" doxytag="S_INST" ></a>S_INST</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a4" doxytag="S_SYSTEM" ></a>S_SYSTEM</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a5" doxytag="S_PARAMETERS" ></a>S_PARAMETERS</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a6" doxytag="S_INVARIANT" ></a>S_INVARIANT</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a7" doxytag="S_GUARD" ></a>S_GUARD</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a8" doxytag="S_SYNC" ></a>S_SYNC</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a9" doxytag="S_ASSIGN" ></a>S_ASSIGN</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a10" doxytag="S_EXPRESSION" ></a>S_EXPRESSION</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign=top><em><a class="anchor" name="a13a11" doxytag="S_PROPERTY" ></a>S_PROPERTY</em>&nbsp;</td><td>
+</td></tr>
+</table>
+</dl>
+    </td>
+  </tr>
+</table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a0" doxytag="UTAP::operator<<" ></a><p>
+<a class="anchor" name="a12" doxytag="UTAP::operator<<" ></a><p>
 <table class="mdTable" width="100%" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -167,7 +247,7 @@
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Sat May 15 12:33:42 2004 for libutap by
+<hr size="1"><address style="align: right;"><small>Generated on Thu Jun 17 10:39:56 2004 for libutap by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 ></a> 1.3.7 </small></address>
 </body>

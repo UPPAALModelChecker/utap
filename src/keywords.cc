@@ -31,7 +31,7 @@
 
 #line 1 "keywords.gperf"
 struct Keyword { char *name; int token; int32_t syntax; };
-/* maximum key range = 42, duplicates = 0 */
+/* maximum key range = 46, duplicates = 0 */
 
 class Keywords
 {
@@ -46,32 +46,32 @@ Keywords::hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45,  5, 15,  0,
-      10, 10,  0, 10,  5, 20, 45, 45, 30,  5,
-      10,  0, 20, 10,  5,  0, 10, 25, 45, 25,
-      45, 20, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45, 45, 45, 45, 45,
-      45, 45, 45, 45, 45, 45
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49,  5, 15,  0,
+      10, 10,  0,  5, 10, 20, 49, 49, 30,  5,
+      10,  0, 30, 10,  5,  0, 10, 25, 49, 25,
+      49, 20, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+      49, 49, 49, 49, 49, 49
     };
   return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
 }
@@ -81,11 +81,11 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 37,
+      TOTAL_KEYWORDS = 39,
       MIN_WORD_LENGTH = 2,
       MAX_WORD_LENGTH = 13,
       MIN_HASH_VALUE = 3,
-      MAX_HASH_VALUE = 44
+      MAX_HASH_VALUE = 48
     };
 
   static const struct Keyword wordlist[] =
@@ -131,7 +131,8 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
       {"return", 		T_RETURN,	SYNTAX_NEW},
 #line 27 "keywords.gperf"
       {"if", 			T_IF,		SYNTAX_NEW},
-      {""},
+#line 40 "keywords.gperf"
+      {"chan_priority",		T_CHAN_PRIORITY, SYNTAX_OLD | SYNTAX_NEW},
 #line 5 "keywords.gperf"
       {"sync",			T_SYNC,		SYNTAX_OLD | SYNTAX_NEW},
 #line 24 "keywords.gperf"
@@ -148,13 +149,11 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
       {"imply",			T_KW_IMPLY,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY},
 #line 26 "keywords.gperf"
       {"switch", 		T_SWITCH,	SYNTAX_NEW},
-#line 7 "keywords.gperf"
-      {"process",		T_PROCESS,	SYNTAX_OLD | SYNTAX_NEW},
-      {""},
+      {""}, {""},
 #line 9 "keywords.gperf"
       {"init",			T_INIT,		SYNTAX_OLD | SYNTAX_NEW},
-#line 22 "keywords.gperf"
-      {"while",			T_WHILE,	SYNTAX_NEW},
+#line 4 "keywords.gperf"
+      {"guard",			T_GUARD,	SYNTAX_OLD | SYNTAX_NEW},
 #line 11 "keywords.gperf"
       {"urgent",			T_URGENT,	SYNTAX_OLD | SYNTAX_NEW},
 #line 32 "keywords.gperf"
@@ -163,11 +162,17 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
       {"before_update",		T_BEFORE,	SYNTAX_GUIDING},
 #line 35 "keywords.gperf"
       {"quit",			T_QUIT,		SYNTAX_PROPERTY},
-#line 4 "keywords.gperf"
-      {"guard",			T_GUARD,	SYNTAX_OLD | SYNTAX_NEW},
-      {""}, {""}, {""},
+#line 22 "keywords.gperf"
+      {"while",			T_WHILE,	SYNTAX_NEW},
+      {""},
+#line 7 "keywords.gperf"
+      {"process",		T_PROCESS,	SYNTAX_OLD | SYNTAX_NEW},
+      {""},
 #line 28 "keywords.gperf"
-      {"else", 			T_ELSE,		SYNTAX_NEW}
+      {"else", 			T_ELSE,		SYNTAX_NEW},
+      {""}, {""}, {""},
+#line 41 "keywords.gperf"
+      {"proc_priority",		T_PROC_PRIORITY, SYNTAX_OLD | SYNTAX_NEW}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -184,7 +189,7 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
     }
   return 0;
 }
-#line 40 "keywords.gperf"
+#line 42 "keywords.gperf"
 
 
 bool isKeyword(const char *id, uint32_t syntax)

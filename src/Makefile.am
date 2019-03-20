@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # libutap - Uppaal Timed Automata Parser.
-# Copyright (C) 2002 Uppsala University and Aalborg University.
+# Copyright (C) 2002-2004 Uppsala University and Aalborg University.
 # 
 # This library is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -23,13 +23,13 @@ VPATH = @srcdir@
 bin_PROGRAMS = pretty tracer
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/builder.hh utap/common.hh utap/expression.hh utap/statement.hh utap/symbols.hh utap/system.hh utap/typechecker.hh utap/utap.hh utap/systembuilder.hh utap/rangechecker.hh utap/collectchangesvisitor.hh
+include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/rangechecker.h utap/collectchangesvisitor.h utap/abstractbuilder.h utap/expressionbuilder.h
 
-pretty_SOURCES = pretty.cc 
+pretty_SOURCES = pretty.cpp
 
-tracer_SOURCES = tracer.cc
+tracer_SOURCES = tracer.cpp
 
-libutap_a_SOURCES = expression.cc system.cc typechecker.cc typeexception.cc symbols.cc xmlreader.cc tags.gperf statement.cc error.cc parser.yy libparser.hh systembuilder.cc rangechecker.cc collectchangesvisitor.cc
+libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp rangechecker.cpp collectchangesvisitor.cpp
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)
