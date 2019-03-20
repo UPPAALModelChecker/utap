@@ -1,4 +1,4 @@
-struct Tag { char *str; tag_t tag; }
+struct Tag { const char *str; tag_t tag; }
 %%
 nta,		TAG_NTA
 imports,	TAG_IMPORTS

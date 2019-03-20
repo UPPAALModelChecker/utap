@@ -19,6 +19,9 @@
    USA
 */
 
+#include "utap/systembuilder.h"
+
+#include <boost/tuple/tuple.hpp>
 #include <vector>
 #include <climits>
 #include <cmath>
@@ -27,9 +30,6 @@
 #include <inttypes.h>
 #include <stdexcept>
 #include <sstream>
-#include <boost/tuple/tuple.hpp>
-
-#include "utap/systembuilder.h"
 
 using namespace UTAP;
 using namespace Constants;
@@ -59,17 +59,17 @@ static void collectDependencies(
     expr.collectPossibleReads(symbols);
     while (!symbols.empty())
     {
-	symbol_t s = *symbols.begin();
-	symbols.erase(s);
-	if (dependencies.find(s) == dependencies.end())
-	{
-	    dependencies.insert(s);
-	    if (s.getData())
-	    {
-		variable_t *v = static_cast<variable_t*>(s.getData());
-		v->expr.collectPossibleReads(symbols);
-	    }
-	}
+		symbol_t s = *symbols.begin();
+		symbols.erase(s);
+		if (dependencies.find(s) == dependencies.end())
+		{
+			dependencies.insert(s);
+			if (s.getData())
+			{
+				variable_t *v = static_cast<variable_t*>(s.getData());
+				v->expr.collectPossibleReads(symbols);
+			}
+		}
     }
 }
 
@@ -78,18 +78,18 @@ static void collectDependencies(
 {
     if (type.getKind() == RANGE)
     {
-	expression_t lower, upper;
-	boost::tie(lower, upper) = type.getRange();
-	collectDependencies(dependencies, lower);
-	collectDependencies(dependencies, upper);
-	collectDependencies(dependencies, type[0]);
+		expression_t lower, upper;
+		boost::tie(lower, upper) = type.getRange();
+		collectDependencies(dependencies, lower);
+		collectDependencies(dependencies, upper);
+		collectDependencies(dependencies, type[0]);
     }
     else
     {
-	for (size_t i = 0; i < type.size(); i++)
-	{
-	    collectDependencies(dependencies, type[i]);
-	}
+		for (size_t i = 0; i < type.size(); i++)
+		{
+			collectDependencies(dependencies, type[i]);
+		}
     }
 }
 
@@ -103,9 +103,9 @@ void SystemBuilder::typeArrayOfSize(size_t n)
     /* Pop array size of fragments stack.
      */
     expression_t expr = fragments[0];
-    position_t pos = expr.getPosition();
-    fragments.pop();   
-    
+    //position_t pos = expr.getPosition();
+    fragments.pop();
+
     /* Create type.
      */
     exprNat(0);
@@ -120,22 +120,22 @@ void SystemBuilder::typeArrayOfType(size_t n)
 {
     type_t size = typeFragments[0];
     typeFragments.pop();
-    typeFragments[n - 1] = 
-	type_t::createArray(typeFragments[n - 1], size, position);
+    typeFragments[n - 1] =
+		type_t::createArray(typeFragments[n - 1], size, position);
 
     /* If template local declaration, then mark all symbols in 'size'
      * and those that they depend on as restricted. Otherwise we would
      * not be able to compute the offset of a process in a set of
      * processes.
-     */	
+     */
     if (currentTemplate)
     {
-	collectDependencies(currentTemplate->restricted, size);
+		collectDependencies(currentTemplate->restricted, size);
     }
 
-    if (!size.isInteger() && !size.isScalar() || !size.is(RANGE))
+    if (!size.isInteger() && !size.isScalar() && !size.is(RANGE))
     {
-	handleError("Array must be defined over an integer range or a scalar set");
+		handleError("Array must be defined over an integer range or a scalar set");
     }
 }
 
@@ -153,7 +153,7 @@ void SystemBuilder::typeStruct(PREFIX prefix, uint32_t n)
     labels.erase(labels.end() - n, labels.end());
 
     typeFragments.push(
-	applyPrefix(prefix, type_t::createRecord(f, l, position)));
+		applyPrefix(prefix, type_t::createRecord(f, l, position)));
 }
 
 /**
@@ -166,9 +166,9 @@ void SystemBuilder::structField(const char* name)
     typeFragments.pop();
 
     // Constant fields are not allowed
-    if (type.is(CONSTANT)) 
+    if (type.is(CONSTANT))
     {
-	handleError("Constant fields not allowed in struct");
+		handleError("Constant fields not allowed in struct");
     }
 
     fields.push_back(type);
@@ -182,7 +182,7 @@ void SystemBuilder::structField(const char* name)
     type_t base = type.stripArray();
     if (!base.isRecord() && !base.isScalar() && !base.isIntegral())
     {
-	handleError("Invalid type in structure");
+		handleError("Invalid type in structure");
     }
 }
 
@@ -201,27 +201,27 @@ void SystemBuilder::declTypeDef(const char* name)
 static bool initialisable(type_t type)
 {
     type = type.strip();
-    switch (type.getKind()) 
+    switch (type.getKind())
     {
     case RECORD:
-	for (size_t i = 0; i < type.size(); i++)
-	{
-	    if (!initialisable(type[i]))
-	    {
-		return false;
-	    }
-	}
-	return true;
+		for (size_t i = 0; i < type.size(); i++)
+		{
+			if (!initialisable(type[i]))
+			{
+				return false;
+			}
+		}
+		return true;
 
     case ARRAY:
-	if (type.getArraySize().isScalar())
-	{
-	    return false;
-	}
-	return initialisable(type.getSub());
+		if (type.getArraySize().isScalar())
+		{
+			return false;
+		}
+		return initialisable(type.getSub());
 
     default:
-	return type.isIntegral();
+		return type.isIntegral();
     }
 }
 
@@ -234,18 +234,18 @@ static bool mustInitialise(type_t type)
     switch (type.getKind())
     {
     case CONSTANT:
-	return true;
-    case RECORD:
-	for (size_t i = 0; i < type.size(); i++)
-	{
-	    if (mustInitialise(type[i]))
-	    {
 		return true;
-	    }
-	}
-	return false;
+    case RECORD:
+		for (size_t i = 0; i < type.size(); i++)
+		{
+			if (mustInitialise(type[i]))
+			{
+				return true;
+			}
+		}
+		return false;
     default:
-	return type.size() > 0 && mustInitialise(type[0]);
+		return type.size() > 0 && mustInitialise(type[0]);
     }
 }
 
@@ -262,8 +262,8 @@ void SystemBuilder::declVar(const char* name, bool hasInit)
     expression_t init;
     if (hasInit)
     {
-	init = fragments[0];
-	fragments.pop();
+		init = fragments[0];
+		fragments.pop();
     }
 
     // Construct type
@@ -273,27 +273,27 @@ void SystemBuilder::declVar(const char* name, bool hasInit)
     // Check whether initialiser is allowed/required
     if (hasInit && !initialisable(type))
     {
-	handleError("Cannot have initialiser");
+		handleError("Cannot have initialiser");
     }
 
     if (!hasInit && mustInitialise(type))
     {
-	handleError("Constants must have an initialiser");	
+		handleError("Constants must have an initialiser");
     }
 
     if (currentFun && !initialisable(type))
     {
-	handleError("Type is not allowed in functions");
+		handleError("Type is not allowed in functions");
     }
 
     // Add variable to system
     if (currentFun)
     {
-	system->addVariableToFunction(currentFun, frames.top(), type, name, init);
+		system->addVariableToFunction(currentFun, frames.top(), type, name, init);
     }
     else
     {
-	system->addVariable(getCurrentDeclarationBlock(), type, name, init);
+		system->addVariable(getCurrentDeclarationBlock(), type, name, init);
     }
 }
 
@@ -337,7 +337,7 @@ void SystemBuilder::declInitialiserList(uint32_t num)
     vector<expression_t> fields(num);
     for (uint32_t i = 0; i < num; i++)
     {
-	fields[i] = fragments[num - 1 - i];
+		fields[i] = fragments[num - 1 - i];
     }
     fragments.pop(num);
 
@@ -346,16 +346,16 @@ void SystemBuilder::declInitialiserList(uint32_t num)
     vector<string> labels;
     for (uint32_t i = 0; i < num; i++)
     {
-	type_t type = fields[i].getType();
-	types.push_back(type[0]);
-	labels.push_back(type.getLabel(0));
-	fields[i].setType(type[0]);
+		type_t type = fields[i].getType();
+		types.push_back(type[0]);
+		labels.push_back(type.getLabel(0));
+		fields[i].setType(type[0]);
     }
 
     // Create list expression
     fragments.push(expression_t::createNary(
-		       LIST, fields, position, 
-		       type_t::createRecord(types, labels, position)));
+					   LIST, fields, position,
+					   type_t::createRecord(types, labels, position)));
 }
 
 /************************************************************
@@ -368,8 +368,8 @@ void SystemBuilder::declProgress(bool hasGuard)
     fragments.pop();
     if (hasGuard)
     {
-	guard = fragments[0];
-	fragments.pop();
+		guard = fragments[0];
+		fragments.pop();
     }
     system->addProgressMeasure(getCurrentDeclarationBlock(), guard, measure);
 }
@@ -384,7 +384,7 @@ void SystemBuilder::declParameter(const char* name, bool ref)
 
     if (ref)
     {
-	type = type.createPrefix(REF);
+		type = type.createPrefix(REF);
     }
 
     params.addSymbol(name, type);
@@ -401,13 +401,13 @@ void SystemBuilder::declFuncBegin(const char* name)
     vector<string> labels;
     for (size_t i = 0; i < params.getSize(); i++)
     {
-	types.push_back(params[i].getType());
-	labels.push_back(params[i].getName());
+		types.push_back(params[i].getType());
+		labels.push_back(params[i].getName());
     }
     type_t type = type_t::createFunction(return_type, types, labels, position);
     if (!getCurrentDeclarationBlock()->addFunction(type, name, currentFun))
     {
-	handleError("Duplicate definition");
+		handleError("Duplicate definition");
     }
 
     /* We maintain a stack of frames. As the function has a local
@@ -431,8 +431,8 @@ void SystemBuilder::declFuncEnd()
      */
     while (blocks.size() > 1)
     {
-	delete blocks.back();
-	blocks.pop_back();
+		delete blocks.back();
+		blocks.pop_back();
     }
 
     /* If function has a non void return type, then check that last
@@ -441,7 +441,7 @@ void SystemBuilder::declFuncEnd()
     BlockStatement *body = currentFun->body;
     if (!currentFun->uid.getType()[0].isVoid() && !body->returns())
     {
-	handleError("Return statement expected");
+		handleError("Return statement expected");
     }
 
     /* Pop outer function block.
@@ -464,7 +464,7 @@ void SystemBuilder::procBegin(const char* name)
 {
     if (frames.top().getIndexOf(name) != -1)
     {
-	handleError("Identifier defined multiple times");
+		handleError("Identifier defined multiple times");
     }
     currentTemplate = &system->addTemplate(name, params);
     pushFrame(currentTemplate->frame);
@@ -487,8 +487,8 @@ void SystemBuilder::procState(const char* name, bool hasInvariant) // 1 expr
     expression_t e;
     if (hasInvariant)
     {
-	e = fragments[0];
-	fragments.pop();
+		e = fragments[0];
+		fragments.pop();
     }
     currentTemplate->addLocation(name, e);
 }
@@ -498,15 +498,15 @@ void SystemBuilder::procStateCommit(const char* name)
     symbol_t uid;
     if (!resolve(name, uid) || !uid.getType().isLocation())
     {
-	handleError("Location expected");
-    } 
-    else if (uid.getType().is(URGENT)) 
+		handleError("Location expected");
+    }
+    else if (uid.getType().is(URGENT))
     {
-	handleError("States cannot be committed and urgent at the same time");
+		handleError("States cannot be committed and urgent at the same time");
     }
     else
     {
-	uid.setType(uid.getType().createPrefix(COMMITTED, position));
+		uid.setType(uid.getType().createPrefix(COMMITTED, position));
     }
 }
 
@@ -516,15 +516,15 @@ void SystemBuilder::procStateUrgent(const char* name)
 
     if (!resolve(name, uid) || !uid.getType().isLocation())
     {
-	handleError("Location expected");
-    } 
-    else if (uid.getType().is(COMMITTED)) 
+		handleError("Location expected");
+    }
+    else if (uid.getType().is(COMMITTED))
     {
-	handleError("States cannot be committed and urgent at the same time");
+		handleError("States cannot be committed and urgent at the same time");
     }
     else
     {
-	uid.setType(uid.getType().createPrefix(URGENT, position));
+		uid.setType(uid.getType().createPrefix(URGENT, position));
     }
 }
 
@@ -534,15 +534,15 @@ void SystemBuilder::procStateWinning(const char* name)
 
     if (!resolve(name, uid) || !uid.getType().isLocation())
     {
-	handleError("Location expected");
-    } 
-    else if (uid.getType().is(LOSING)) 
+		handleError("Location expected");
+    }
+    else if (uid.getType().is(LOSING))
     {
-	handleError("States cannot be winning and losing at the same time");
+		handleError("States cannot be winning and losing at the same time");
     }
     else
     {
-	uid.setType(uid.getType().createPrefix(WINNING));
+		uid.setType(uid.getType().createPrefix(WINNING));
     }
 }
 
@@ -552,15 +552,15 @@ void SystemBuilder::procStateLosing(const char* name)
 
     if (!resolve(name, uid) || !uid.getType().isLocation())
     {
-	handleError("Location expected");
-    } 
-    else if (uid.getType().is(WINNING)) 
+		handleError("Location expected");
+    }
+    else if (uid.getType().is(WINNING))
     {
-	handleError("States cannot be winning and losing at the same time");
+		handleError("States cannot be winning and losing at the same time");
     }
     else
     {
-	uid.setType(uid.getType().createPrefix(LOSING));
+		uid.setType(uid.getType().createPrefix(LOSING));
     }
 }
 
@@ -569,11 +569,11 @@ void SystemBuilder::procStateInit(const char* name)
     symbol_t uid;
     if (!resolve(name, uid) || !uid.getType().isLocation())
     {
-	handleError("Location expected");
+		handleError("Location expected");
     }
     else
     {
-	currentTemplate->init = uid;
+		currentTemplate->init = uid;
     }
 }
 
@@ -583,18 +583,18 @@ void SystemBuilder::procEdgeBegin(const char* from, const char* to, const bool c
 
     if (!resolve(from, fid) || !fid.getType().isLocation())
     {
-	handleError("No such location (source)");
+		handleError("No such location (source)");
     }
     else if (!resolve(to, tid) || !tid.getType().isLocation())
     {
-	handleError("No such location (destination)");
+		handleError("No such location (destination)");
     }
     else
     {
-	currentEdge = &currentTemplate->addEdge(fid, tid, control);
-	currentEdge->guard = makeConstant(1);
-	currentEdge->assign = makeConstant(1);
-	pushFrame(currentEdge->select = frame_t::createFrame(frames.top()));
+		currentEdge = &currentTemplate->addEdge(fid, tid, control);
+		currentEdge->guard = makeConstant(1);
+		currentEdge->assign = makeConstant(1);
+		pushFrame(currentEdge->select = frame_t::createFrame(frames.top()));
     }
 }
 
@@ -610,20 +610,20 @@ void SystemBuilder::procSelect(const char *id)
 
     if (!type.is(CONSTANT))
     {
-	type = type.createPrefix(CONSTANT);
+		type = type.createPrefix(CONSTANT);
     }
 
     if (!type.isScalar() && !type.isInteger())
     {
-	handleError("Scalar set or integer expected");
-    } 
+		handleError("Scalar set or integer expected");
+    }
     else if (!type.is(RANGE))
     {
-	handleError("Range expected");
+		handleError("Range expected");
     }
     else
     {
-	currentEdge->select.addSymbol(id, type);
+		currentEdge->select.addSymbol(id, type);
     }
 }
 
@@ -679,7 +679,7 @@ void SystemBuilder::forEnd()
 { // 3 expr, 1 stat
     Statement* substat = blocks.back()->pop_stat();
     ForStatement* forstat = new ForStatement(fragments[2], fragments[1],
-					     fragments[0], substat);
+											 fragments[0], substat);
     blocks.back()->push_stat(forstat);
 
     fragments.pop(3);
@@ -694,7 +694,7 @@ void SystemBuilder::iterationBegin (const char *name)
      */
     if (!type.is(CONSTANT))
     {
-	type = type.createPrefix(CONSTANT);
+		type = type.createPrefix(CONSTANT);
     }
 
     /* The iteration statement has a local scope for the iterator.
@@ -704,14 +704,14 @@ void SystemBuilder::iterationBegin (const char *name)
     /* Add variable.
      */
     variable_t *variable = system->addVariableToFunction(
-	currentFun, frames.top(), type, name, expression_t());
+		currentFun, frames.top(), type, name, expression_t());
 
     /* Create a new statement for the loop. We need to already create
      * this here as the statement is the only thing that can keep the
      * reference to the frame.
      */
     blocks.back()->push_stat(
-	new IterationStatement(variable->uid, frames.top(), NULL));
+		new IterationStatement(variable->uid, frames.top(), NULL));
 }
 
 void SystemBuilder::iterationEnd (const char *name)
@@ -782,34 +782,34 @@ void SystemBuilder::returnStatement(bool args)
 { // 1 expr if argument is true
     if (!currentFun)
     {
-	handleError("Cannot return outside of function declaration");
+		handleError("Cannot return outside of function declaration");
     }
     else
     {
-	/* Only functions with non-void return type are allowed to have
-	 * arguments on return.
-	 */
-	type_t return_type = currentFun->uid.getType()[0];
-	if (return_type.isVoid() && args)
-	{
-	    handleError("'return' with a value, in function returning void");
-	}
-	else if (!return_type.isVoid() && !args)
-	{
-	    handleError("`return' with no value, in function returning non-void");
-	}
+		/* Only functions with non-void return type are allowed to have
+		 * arguments on return.
+		 */
+		type_t return_type = currentFun->uid.getType()[0];
+		if (return_type.isVoid() && args)
+		{
+			handleError("'return' with a value, in function returning void");
+		}
+		else if (!return_type.isVoid() && !args)
+		{
+			handleError("`return' with no value, in function returning non-void");
+		}
 
-	ReturnStatement* stat;
-	if (args)
-	{
-	    stat = new ReturnStatement(fragments[0]);
-	    fragments.pop();
-	}
-	else
-	{
-	    stat = new ReturnStatement();
-	}
-	blocks.back()->push_stat(stat);
+		ReturnStatement* stat;
+		if (args)
+		{
+			stat = new ReturnStatement(fragments[0]);
+			fragments.pop();
+		}
+		else
+		{
+			stat = new ReturnStatement();
+		}
+		blocks.back()->push_stat(stat);
     }
 }
 
@@ -826,7 +826,7 @@ void SystemBuilder::exprCallBegin()
      */
     if (currentFun != NULL && currentFun->uid == fragments[0].getSymbol())
     {
-	handleError("recursion is not allowed");
+		handleError("recursion is not allowed");
     }
 }
 
@@ -867,59 +867,59 @@ void SystemBuilder::instantiationEnd(
      */
     frame_t params = frames.top();
     popFrame();
-    
+
     /* Lookup symbol. In case of failure, instantiationBegin already
      * reported the problem.
      */
     symbol_t id;
-    if (resolve(templ_name, id) && id.getType().getKind() == INSTANCE) 
+    if (resolve(templ_name, id) && id.getType().getKind() == INSTANCE)
     {
-	instance_t *old_instance = static_cast<instance_t*>(id.getData());
+		instance_t *old_instance = static_cast<instance_t*>(id.getData());
 
-	/* Check number of arguments. If too many arguments, pop the
-	 * rest.
-	 */
-	size_t expected = id.getType().size();
-	if (arguments < expected)
-	{
-	    handleError("Too few arguments");
-	}
-	else if (arguments > expected)
-	{
-	    handleError("Too many arguments");
-	}
-	else
-	{
-	    /* Collect arguments from expression stack.
-	     */
-	    vector<expression_t> exprs(arguments);
-	    while (arguments)
-	    {
-		arguments--;
-		exprs[arguments] = fragments[0];
-		fragments.pop();
-	    }
-
-	    /* Create template composition.
-	     */
-	    instance_t &new_instance = 
-		system->addInstance(name, *old_instance, params, exprs);
-
-	    /* Propagate information about restricted variables. The
-	     * variables used in arguments to restricted parameters of
-	     * old_instance are restricted in new_instance.
-	     *
-	     * REVISIT: Move to system.cpp?
-	     */
-	    std::set<symbol_t> &restricted = old_instance->restricted;
-	    for (size_t i = 0; i < expected; i++)
-	    {
-		if (restricted.find(old_instance->parameters[i]) != restricted.end())
+		/* Check number of arguments. If too many arguments, pop the
+		 * rest.
+		 */
+		size_t expected = id.getType().size();
+		if (arguments < expected)
 		{
-		    collectDependencies(new_instance.restricted, exprs[i]);
+			handleError("Too few arguments");
 		}
-	    }
-	}
+		else if (arguments > expected)
+		{
+			handleError("Too many arguments");
+		}
+		else
+		{
+			/* Collect arguments from expression stack.
+			 */
+			vector<expression_t> exprs(arguments);
+			while (arguments)
+			{
+				arguments--;
+				exprs[arguments] = fragments[0];
+				fragments.pop();
+			}
+
+			/* Create template composition.
+			 */
+			instance_t &new_instance =
+				system->addInstance(name, *old_instance, params, exprs);
+
+			/* Propagate information about restricted variables. The
+			 * variables used in arguments to restricted parameters of
+			 * old_instance are restricted in new_instance.
+			 *
+			 * REVISIT: Move to system.cpp?
+			 */
+			std::set<symbol_t> &restricted = old_instance->restricted;
+			for (size_t i = 0; i < expected; i++)
+			{
+				if (restricted.find(old_instance->parameters[i]) != restricted.end())
+				{
+					collectDependencies(new_instance.restricted, exprs[i]);
+				}
+			}
+		}
     }
     fragments.pop(arguments);
 }
@@ -931,16 +931,16 @@ void SystemBuilder::process(const char* name)
     symbol_t symbol;
     if (!resolve(name, symbol))
     {
-	throw TypeException(boost::format("No such process: %1%") % name);
+		throw TypeException(boost::format("No such process: %1%") % name);
     }
     type_t type = symbol.getType();
     if (type.getKind() != INSTANCE)
     {
-	throw TypeException(boost::format("Not a template: %1%") % symbol.getName());
+		throw TypeException(boost::format("Not a template: %1%") % symbol.getName());
     }
     if (type.size() > 0)
     {
-	// FIXME: Check type of unbound parameters
+		// FIXME: Check type of unbound parameters
     }
     system->addProcess(*static_cast<instance_t*>(symbol.getData()));
     procPriority(name);
@@ -991,7 +991,7 @@ void SystemBuilder::procPriority(const char* name)
     }
     else
     {
-	system->setProcPriority(name, currentProcPriority);
+		system->setProcPriority(name, currentProcPriority);
     }
 }
 

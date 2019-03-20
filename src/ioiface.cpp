@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2003 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -42,16 +42,16 @@ using std::endl;
 void printHelp(const char* binary)
 {
     cout <<
-	"Utility for extracting I/O information from UPPAAL system spec.\n"
-	"Usage:\n     " << binary << " [-bxrcef format] uppaal.spec\n"
-	"Options:\n"
-	"     -b  use old (v. <=3.4) syntax for system specification;\n"
-	"     -f <dot|tron>\n"
-	"         dot:  for DOT (graphviz.org) format (default),\n"
-	"         tron: for UPPAAL TRON format;\n"
-	"     -r  [DOT] rank symbols instead of plain map of system;\n"
-	"     -c  [DOT] put channels on edges between processes;\n"
-	"     -e  [DOT] use entity relationship notation.\n";
+		"Utility for extracting I/O information from UPPAAL system spec.\n"
+		"Usage:\n     " << binary << " [-bxrcef format] uppaal.spec\n"
+		"Options:\n"
+		"     -b  use old (v. <=3.4) syntax for system specification;\n"
+		"     -f <dot|tron>\n"
+		"         dot:  for DOT (graphviz.org) format (default),\n"
+		"         tron: for UPPAAL TRON format;\n"
+		"     -r  [DOT] rank symbols instead of plain map of system;\n"
+		"     -c  [DOT] put channels on edges between processes;\n"
+		"     -e  [DOT] use entity relationship notation.\n";
 }
 
 int main(int argc, char *argv[])
@@ -60,67 +60,67 @@ int main(int argc, char *argv[])
     int format = 2;
     char c;
 
-    while ((c = getopt(argc,argv,"bcef:hrx")) != -1) 
+    while ((c = getopt(argc,argv,"bcef:hrx")) != -1)
     {
-	switch(c) {
-	case 'b':
-	    old = true;
-	    break;
-	case 'c':
-	    chanEdge = true;
-	    break;
-	case 'e':
-	    erd = true;
-	    break;
-	case 'f':
-	    if (strcmp(optarg, "dot")==0) 
-	    {
-		format = 0;
-	    }
-	    else if (strcmp(optarg, "tron")==0) 
-	    {
-		format = 1;
-	    }
-	    else 
-	    {
-		cerr << "-f expects either 'gui' or 'dot' argument.\n";
-		exit(EXIT_FAILURE);
-	    }
-	    break;
-	case 'h':
-	    printHelp(argv[0]); exit(EXIT_FAILURE);
-	    break;
-	case 'r':
-	    ranked = true;
-	    break;
-	default:
-	    cerr << "Unrecognized option: " << c << endl;
-	    exit(EXIT_FAILURE);
-	}
+		switch(c) {
+		case 'b':
+			old = true;
+			break;
+		case 'c':
+			chanEdge = true;
+			break;
+		case 'e':
+			erd = true;
+			break;
+		case 'f':
+			if (strcmp(optarg, "dot")==0)
+			{
+				format = 0;
+			}
+			else if (strcmp(optarg, "tron")==0)
+			{
+				format = 1;
+			}
+			else
+			{
+				cerr << "-f expects either 'gui' or 'dot' argument.\n";
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'h':
+			printHelp(argv[0]); exit(EXIT_FAILURE);
+			break;
+		case 'r':
+			ranked = true;
+			break;
+		default:
+			cerr << "Unrecognized option: " << c << endl;
+			exit(EXIT_FAILURE);
+		}
     }
 
     TimedAutomataSystem system;
 
 //    ParserBuilder *b = new SystemBuilder(&system);
 
-    try 
+    try
     {
-	if (argc - optind != 1)
-	{
-	    printHelp(argv[0]); exit(EXIT_FAILURE); 
-	}
-	if (strcasecmp(".xml", argv[optind] + strlen(argv[optind]) - 4) == 0) 
-	{
-	    parseXMLFile(argv[optind], &system, !old);
-	}
-	else 
-	{
-	    parseXTA(argv[optind], &system, !old);
-	}
-    } 
-    catch (TypeException e) 
+		if (argc - optind != 1)
+		{
+			printHelp(argv[0]); exit(EXIT_FAILURE);
+		}
+		if (strcasecmp(".xml", argv[optind] + strlen(argv[optind]) - 4) == 0)
+		{
+			parseXMLFile(argv[optind], &system, !old);
+		}
+		else
+		{
+			parseXTA(argv[optind], &system, !old);
+		}
+    }
+    catch (TypeException& e)
     {
-	cerr << e.what() << endl;
+		cerr << e.what() << endl;
     }
 
     TypeChecker tc(&system);
@@ -132,23 +132,23 @@ int main(int argc, char *argv[])
 
     for (it = errors.begin(); it != errors.end(); it++)
     {
-   	cerr << *it << endl;
+		cerr << *it << endl;
     }
     for (it = warns.begin(); it != warns.end(); it++)
     {
-   	cerr << *it << endl;
+		cerr << *it << endl;
     }
 
     IOInterface io(argv[optind], system);
-    switch (format) 
+    switch (format)
     {
     case 0:
     default:
-	io.printForDot(std::cout, ranked, erd, chanEdge);
-	break;
+		io.printForDot(std::cout, ranked, erd, chanEdge);
+		break;
     case 1:
-	io.printForTron(std::cout);
-	break;
+		io.printForTron(std::cout);
+		break;
     }
     return 0;
 }

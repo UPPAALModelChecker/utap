@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -19,8 +19,10 @@
    USA
 */
 
-#include <vector>
 #include "utap/utap.h"
+
+#include <vector>
+#include <cstring>
 
 using UTAP::TimedAutomataSystem;
 using std::endl;
@@ -30,68 +32,55 @@ using std::vector;
 
 int main(int argc, char *argv[])
 {
-    try 
+    try
     {
-	bool old = false;
-	
-	if (argc < 2 || argc > 3)
-	{
-	    std::cerr << "Synopsis: check [-b] <filename>" << std::endl;
-	    exit(1);
-	}
-	
-	old = (strcmp(argv[1], "-b") == 0);
-	
-	TimedAutomataSystem system;
-	const char *name = argv[argc - 1];
-	
-	if (strlen(name) > 4 && strcasecmp(".xml", name + strlen(name) - 4) == 0) 
-	{
-	    parseXMLFile(name, &system, !old);
-	}
-	else 
-	{
-	    FILE *file = fopen(name, "r");
-	    if (!file) 
-	    {
-		perror("check");
-		exit(1);
-	    }
-	    parseXTA(file, &system, !old);
-	    fclose(file);
-	} 
-	
-	vector<UTAP::error_t>::const_iterator it;
-	const vector<UTAP::error_t> &errors = system.getErrors();
-	const vector<UTAP::error_t> &warns = system.getWarnings();
-	
-	for (it = errors.begin(); it != errors.end(); it++)
-	{
-	    cerr << *it << endl;
-	}
-	for (it = warns.begin(); it != warns.end(); it++)
-	{
-	    cerr << *it << endl;
-	}
-	
-	return 0;
+		bool old = false;
+
+		if (argc < 2 || argc > 3)
+		{
+			std::cerr << "Synopsis: check [-b] <filename>" << std::endl;
+			exit(1);
+		}
+
+		old = (strcmp(argv[1], "-b") == 0);
+
+		TimedAutomataSystem system;
+		const char *name = argv[argc - 1];
+
+		if (strlen(name) > 4 && strcasecmp(".xml", name + strlen(name) - 4) == 0)
+		{
+			parseXMLFile(name, &system, !old);
+		}
+		else
+		{
+			FILE *file = fopen(name, "r");
+			if (!file)
+			{
+				perror("check");
+				exit(1);
+			}
+			parseXTA(file, &system, !old);
+			fclose(file);
+		}
+
+		vector<UTAP::error_t>::const_iterator it;
+		const vector<UTAP::error_t> &errors = system.getErrors();
+		const vector<UTAP::error_t> &warns = system.getWarnings();
+
+		for (it = errors.begin(); it != errors.end(); it++)
+		{
+			cerr << *it << endl;
+		}
+		for (it = warns.begin(); it != warns.end(); it++)
+		{
+			cerr << *it << endl;
+		}
+
+		return 0;
     }
     catch (std::exception &e)
     {
-	cerr << e.what() << endl;
-	return 1;
+		cerr << e.what() << endl;
+		return 1;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

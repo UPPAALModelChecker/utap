@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -22,67 +22,68 @@
 #ifndef UTAP_SYMBOLS_HH
 #define UTAP_SYMBOLS_HH
 
-#include <inttypes.h>
-#include <exception>
-
 #include "utap/common.h"
 #include "utap/position.h"
 #include "utap/type.h"
+
+#include <inttypes.h>
+#include <exception>
+
 
 namespace UTAP
 {
     class frame_t;
     class expression_t;
-    
+
     class NoParentException : public std::exception {};
 
-    /** An integer range. 
+    /** An integer range.
      */
-    class range_t 
+    class range_t
     {
     public:
-	int lower, upper;
+		int lower, upper;
 
-	/** Constructs the empty range */
-	range_t();
+		/** Constructs the empty range */
+		range_t();
 
-	/** Constructs a range containing a single value */
-	range_t(int);
+		/** Constructs a range containing a single value */
+		range_t(int);
 
-	/** Constructs an interval range */
-	range_t(int,int);
+		/** Constructs an interval range */
+		range_t(int,int);
 
-	/** Constructs an internval range */
-	range_t(const std::pair<int,int> &);
+		/** Constructs an internval range */
+		range_t(const std::pair<int,int> &);
 
-	/** Constructs the intersection of two ranges */
-	range_t intersect(const range_t &) const;
+		/** Constructs the intersection of two ranges */
+		range_t intersect(const range_t &) const;
 
-	/** Constructs the union of two ranges */
-	range_t join(const range_t &) const;
+		/** Constructs the union of two ranges */
+		range_t join(const range_t &) const;
 
-	/** Returns true if the argument is contained in the range */
-	bool contains(const range_t &) const;
+		/** Returns true if the argument is contained in the range */
+		bool contains(const range_t &) const;
 
-	/** Returns true if the argument is contained in the range */
-	bool contains(int32_t) const;
+		/** Returns true if the argument is contained in the range */
+		bool contains(int32_t) const;
 
-	/** Equallity operator */
-	bool operator == (const range_t &) const;
+		/** Equallity operator */
+		bool operator == (const range_t &) const;
 
-	/** Inequallity operator */
-	bool operator != (const range_t &) const;
+		/** Inequallity operator */
+		bool operator != (const range_t &) const;
 
-	/** Constructs the union of two ranges */
-	range_t operator| (const range_t &) const;
+		/** Constructs the union of two ranges */
+		range_t operator| (const range_t &) const;
 
-	/** Constructs the intersection of two ranges */
-	range_t operator& (const range_t &) const;
+		/** Constructs the intersection of two ranges */
+		range_t operator& (const range_t &) const;
 
-	/** Returns true if and only if the range is empty */
-	bool isEmpty() const;
+		/** Returns true if and only if the range is empty */
+		bool isEmpty() const;
 
-	uint32_t size() const;
+		uint32_t size() const;
     };
 
     /**
@@ -99,7 +100,7 @@ namespace UTAP
        getFrame()). However, a symbol does not contain a counted
        reference to its frame so you must maintain at least one
        reference to the frame to avoid to be deallocated.
-       
+
        Notice that it is possible to add the same symbol to several
        frames. In this case, the symbol will only "point back" to the
        first frame it was added to.
@@ -107,53 +108,53 @@ namespace UTAP
     class symbol_t
     {
     private:
-	struct symbol_data;
-	symbol_data *data;
+		struct symbol_data;
+		symbol_data *data;
     protected:
-	friend class frame_t;
-	symbol_t(void *frame, type_t type, std::string name, void *user);
+		friend class frame_t;
+		symbol_t(void *frame, type_t type, std::string name, void *user);
     public:
-	/** Default constructor */
-	symbol_t();
+		/** Default constructor */
+		symbol_t();
 
-	/** Copy constructor */
-	symbol_t(const symbol_t &);
-	
-	/** Destructor */
-	~symbol_t();
+		/** Copy constructor */
+		symbol_t(const symbol_t &);
 
-	/** Assignment operator */
-	const symbol_t &operator = (const symbol_t &);
+		/** Destructor */
+		~symbol_t();
 
-	/** Equality operator */
-	bool operator == (const symbol_t &) const;
+		/** Assignment operator */
+		const symbol_t &operator = (const symbol_t &);
 
-	/** Inequality operator */
-	bool operator != (const symbol_t &) const;
+		/** Equality operator */
+		bool operator == (const symbol_t &) const;
 
-	/** Less-than operator */
-	bool operator < (const symbol_t &) const;
-	
-	/** Get frame this symbol belongs to */
-	frame_t getFrame();
+		/** Inequality operator */
+		bool operator != (const symbol_t &) const;
 
-	/** Returns the type of this symbol. */
-	type_t getType() const;
+		/** Less-than operator */
+		bool operator < (const symbol_t &) const;
 
-	/** Alters the type of this symbol */
-	void setType(type_t);
-	
-	/** Returns the user data of this symbol */
-	void *getData();
+		/** Get frame this symbol belongs to */
+		frame_t getFrame();
 
-	/** Return the user data of this symbol */
-	const void *getData() const;
+		/** Returns the type of this symbol. */
+		type_t getType() const;
 
-	/** Returns the name (identifier) of this symbol */
-	std::string getName() const;
-	
-	/** Sets the user data of this symbol */
-	void setData(void *);
+		/** Alters the type of this symbol */
+		void setType(type_t);
+
+		/** Returns the user data of this symbol */
+		void *getData();
+
+		/** Return the user data of this symbol */
+		const void *getData() const;
+
+		/** Returns the name (identifier) of this symbol */
+		std::string getName() const;
+
+		/** Sets the user data of this symbol */
+		void setData(void *);
     };
 
     /**
@@ -170,7 +171,7 @@ namespace UTAP
        recursively in the parent frame.
 
        Frames are constructed using one of the static factory methods
-       of frame_t. 
+       of frame_t.
 
        In order to avoid cyclic references no counted reference to the
        parent frame is maintained. Hence, the existence of the parent
@@ -180,68 +181,68 @@ namespace UTAP
     class frame_t
     {
     private:
-	struct frame_data;
-	frame_data *data;
+		struct frame_data;
+		frame_data *data;
     protected:
-	friend class symbol_t;
-	frame_t(void *);
+		friend class symbol_t;
+		frame_t(void *);
     public:
-	/** Default constructor */
-	frame_t();
+		/** Default constructor */
+		frame_t();
 
-	/** Copy constructor */
-	frame_t(const frame_t &);
+		/** Copy constructor */
+		frame_t(const frame_t &);
 
-	/** Destructor */
-	~frame_t();
+		/** Destructor */
+		~frame_t();
 
-	/** Assignment operator */
-	const frame_t &operator = (const frame_t &);
+		/** Assignment operator */
+		const frame_t &operator = (const frame_t &);
 
-	/** Equality operator */
-	bool operator == (const frame_t &) const;
+		/** Equality operator */
+		bool operator == (const frame_t &) const;
 
-	/** Inequality operator */
-	bool operator != (const frame_t &) const;
-	
-	/** Returns the number of symbols in this frame */
-	uint32_t getSize() const;
+		/** Inequality operator */
+		bool operator != (const frame_t &) const;
 
-	/** Returns the Nth symbol in this frame. */
-	symbol_t getSymbol(int32_t);
+		/** Returns the number of symbols in this frame */
+		uint32_t getSize() const;
 
-	/** Returns the index of the symbol with the give name. */
-	int32_t getIndexOf(std::string name) const;
+		/** Returns the Nth symbol in this frame. */
+		symbol_t getSymbol(int32_t);
 
-	/** Returns the Nth symbol in this frame. */
-	symbol_t operator[] (int32_t);
+		/** Returns the index of the symbol with the give name. */
+		int32_t getIndexOf(std::string name) const;
 
-	/** Returns the Nth symbol in this frame. */
-	const symbol_t operator[] (int32_t) const;
+		/** Returns the Nth symbol in this frame. */
+		symbol_t operator[] (int32_t);
 
-	/** Adds a symbol of the given name and type to the frame */
-	symbol_t addSymbol(std::string name, type_t, void *user = NULL);
+		/** Returns the Nth symbol in this frame. */
+		const symbol_t operator[] (int32_t) const;
 
-	/** Add all symbols from the given frame */
-	void add(symbol_t);
+		/** Adds a symbol of the given name and type to the frame */
+		symbol_t addSymbol(std::string name, type_t, void *user = NULL);
 
-	/** Add all symbols from the given frame */
-	void add(frame_t);
-	
-	/** Resolves a name in this frame or a parent frame. */
-	bool resolve(std::string name, symbol_t &symbol);
+		/** Add all symbols from the given frame */
+		void add(symbol_t);
 
-	/** Returns the parent frame */
-	frame_t getParent() throw (NoParentException);
+		/** Add all symbols from the given frame */
+		void add(frame_t);
 
-	/** Returns true if this frame has a parent */
-	bool hasParent() const;
+		/** Resolves a name in this frame or a parent frame. */
+		bool resolve(std::string name, symbol_t &symbol);
 
-	/** Creates and returns a new root-frame. */
-	static frame_t createFrame();
+		/** Returns the parent frame */
+		frame_t getParent();
 
-	/** Creates and returns a new sub-frame. */
-	static frame_t createFrame(const frame_t &parent);
+		/** Returns true if this frame has a parent */
+		bool hasParent() const;
+
+		/** Creates and returns a new root-frame. */
+		static frame_t createFrame();
+
+		/** Creates and returns a new sub-frame. */
+		static frame_t createFrame(const frame_t &parent);
     };
 }
 

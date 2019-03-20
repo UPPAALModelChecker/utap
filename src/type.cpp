@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -40,7 +40,7 @@ struct type_t::type_data
     int32_t count;		// Reference count
     kind_t kind;		// Kind of type object
     position_t position;        // Position in the input file
-    expression_t expr;          // 
+    expression_t expr;          //
     size_t size;                // Number of children
     child_t *children;          // The children
 };
@@ -65,38 +65,38 @@ type_t::type_t(const type_t &type)
     data = type.data;
     if (data)
     {
-	data->count++;
+		data->count++;
     }
 }
 
 type_t::~type_t()
 {
-    if (data) 
+    if (data)
     {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete[] data->children;
-	    delete data;
-	}
+		data->count--;
+		if (data->count == 0)
+		{
+			delete[] data->children;
+			delete data;
+		}
     }
 }
 
 const type_t &type_t::operator = (const type_t &type)
 {
-    if (data) 
+    if (data)
     {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete[] data->children;
-	    delete data;
-	}
+		data->count--;
+		if (data->count == 0)
+		{
+			delete[] data->children;
+			delete data;
+		}
     }
     data = type.data;
-    if (data) 
+    if (data)
     {
-	data->count++;
+		data->count++;
     }
     return *this;
 }
@@ -147,10 +147,10 @@ int32_t type_t::findIndexOf(std::string label) const
     size_t n = type.size();
     for (size_t i = 0; i < n; i++)
     {
-	if (type.getLabel(i) == label)
-	{
-	    return i;
-	}
+		if (type.getLabel(i) == label)
+		{
+			return i;
+		}
     }
     return -1;
 }
@@ -160,7 +160,7 @@ kind_t type_t::getKind() const
     return unknown() ? UNKNOWN : data->kind;
 }
 
-bool type_t::isPrefix() const 
+bool type_t::isPrefix() const
 {
     switch (getKind())
     {
@@ -189,10 +189,10 @@ bool type_t::isPrefix() const
     case Constants::TYPEDEF:
     case Constants::LABEL:
     case Constants::RATE:
-	return false;
+		return false;
 
     default:
-	return true;
+		return true;
     }
 }
 
@@ -204,10 +204,10 @@ bool type_t::unknown() const
 bool type_t::is(kind_t kind) const
 {
     return getKind() == kind
-	|| isPrefix() && get(0).is(kind)
-	|| getKind() == RANGE && get(0).is(kind)
-	|| getKind() == REF && get(0).is(kind)
-	|| getKind() == LABEL && get(0).is(kind);
+		|| (isPrefix() && get(0).is(kind))
+		|| (getKind() == RANGE && get(0).is(kind))
+		|| (getKind() == REF && get(0).is(kind))
+		|| (getKind() == LABEL && get(0).is(kind));
 }
 
 type_t type_t::getSub() const
@@ -215,15 +215,15 @@ type_t type_t::getSub() const
     assert(isArray());
     if (getKind() == REF || getKind() == LABEL)
     {
-	return get(0).getSub();
+		return get(0).getSub();
     }
     else if (isPrefix())
     {
-	return get(0).getSub().createPrefix(getKind());
+		return get(0).getSub().createPrefix(getKind());
     }
     else
     {
-	return get(0);
+		return get(0);
     }
 }
 
@@ -232,15 +232,15 @@ type_t type_t::getSub(size_t i) const
     assert(isRecord() || isProcess());
     if (getKind() == REF || getKind() == LABEL)
     {
-	return get(0).getSub(i);
+		return get(0).getSub(i);
     }
     else if (isPrefix())
     {
-	return get(0).getSub(i).createPrefix(getKind());
+		return get(0).getSub(i).createPrefix(getKind());
     }
-    else 
+    else
     {
-	return get(i);
+		return get(i);
     }
 }
 
@@ -248,12 +248,12 @@ type_t type_t::getArraySize() const
 {
     if (isPrefix() || getKind() == REF || getKind() == LABEL)
     {
-	return get(0).getArraySize();
+		return get(0).getArraySize();
     }
     else
     {
-	assert(getKind() == ARRAY);
-	return get(1);
+		assert(getKind() == ARRAY);
+		return get(1);
     }
 }
 
@@ -261,12 +261,12 @@ size_t type_t::getRecordSize() const
 {
     if (isPrefix() || getKind() == REF || getKind() == LABEL)
     {
-	return get(0).getRecordSize();
+		return get(0).getRecordSize();
     }
     else
     {
-	assert(getKind() == RECORD);
-	return size();
+		assert(getKind() == RECORD);
+		return size();
     }
 }
 
@@ -274,12 +274,12 @@ string type_t::getRecordLabel(size_t i) const
 {
     if (isPrefix() || getKind() == REF || getKind() == LABEL)
     {
-	return get(0).getRecordLabel(i);
+		return get(0).getRecordLabel(i);
     }
     else
     {
-	assert(getKind() == RECORD || getKind() == PROCESS);
-	return getLabel(i);
+		assert(getKind() == RECORD || getKind() == PROCESS);
+		return getLabel(i);
     }
 }
 
@@ -288,11 +288,11 @@ std::pair<expression_t, expression_t> type_t::getRange() const
     assert(is(RANGE));
     if (getKind() == RANGE)
     {
-	return std::make_pair(get(1).getExpression(), get(2).getExpression());
+		return std::make_pair(get(1).getExpression(), get(2).getExpression());
     }
     else
     {
-	return get(0).getRange();
+		return get(0).getRange();
     }
 }
 
@@ -306,20 +306,20 @@ type_t type_t::strip() const
 {
     if (isPrefix() || getKind() == RANGE || getKind() == REF || getKind() == LABEL)
     {
-	return get(0).strip();
+		return get(0).strip();
     }
     else
     {
-	return *this;
+		return *this;
     }
 }
 
 type_t type_t::stripArray() const
 {
-    type_t type = strip(); 
+    type_t type = strip();
     while (type.getKind() == ARRAY)
     {
-	type = type.get(0).strip();
+		type = type.get(0).strip();
     }
     return type;
 }
@@ -330,12 +330,12 @@ type_t type_t::rename(std::string from, std::string to) const
     type.data->expr = getExpression();
     for (size_t i = 0; i < size(); i++)
     {
-	type.data->children[i].child = get(i).rename(from, to);
-	type.data->children[i].label = getLabel(i);
+		type.data->children[i].child = get(i).rename(from, to);
+		type.data->children[i].label = getLabel(i);
     }
     if (getKind() == LABEL && getLabel(0) == from)
     {
-	type.data->children[0].label = to;
+		type.data->children[0].label = to;
     }
     return type;
 }
@@ -345,12 +345,12 @@ type_t type_t::subst(symbol_t symbol, expression_t expr) const
     type_t type = type_t(getKind(), getPosition(), size());
     for (size_t i = 0; i < size(); i++)
     {
-	type.data->children[i].label = getLabel(i);
-	type.data->children[i].child = get(i).subst(symbol, expr);
+		type.data->children[i].label = getLabel(i);
+		type.data->children[i].child = get(i).subst(symbol, expr);
     }
     if (!data->expr.empty())
     {
-	type.data->expr = data->expr.subst(symbol, expr);
+		type.data->expr = data->expr.subst(symbol, expr);
     }
     return type;
 }
@@ -381,7 +381,7 @@ bool type_t::isConstraint() const
 }
 
 type_t type_t::createRange(type_t type, expression_t lower, expression_t upper,
-			   position_t pos)
+						   position_t pos)
 {
     type_t t(RANGE, pos, 3);
     t.data->children[0].child = type;
@@ -391,33 +391,33 @@ type_t type_t::createRange(type_t type, expression_t lower, expression_t upper,
     t[2].data->expr = upper;
     return t;
 }
-	
+
 type_t type_t::createRecord(const vector<type_t> &types,
-			    const vector<string> &labels,
-			    position_t pos)
+							const vector<string> &labels,
+							position_t pos)
 {
     assert(types.size() == labels.size());
     type_t type(RECORD, pos, types.size());
     for (size_t i = 0; i < types.size(); i++)
     {
-	type.data->children[i].child = types[i];
-	type.data->children[i].label = labels[i];
+		type.data->children[i].child = types[i];
+		type.data->children[i].label = labels[i];
     }
     return type;
 }
 
-type_t type_t::createFunction(type_t ret, 
-			      const std::vector<type_t> &parameters, 
-			      const std::vector<std::string> &labels,
-			      position_t pos)
+type_t type_t::createFunction(type_t ret,
+							  const std::vector<type_t> &parameters,
+							  const std::vector<std::string> &labels,
+							  position_t pos)
 {
     assert(parameters.size() == labels.size());
     type_t type(FUNCTION, pos, parameters.size() + 1);
     type.data->children[0].child = ret;
     for (size_t i = 0; i < parameters.size(); i++)
     {
-	type.data->children[i + 1].child = parameters[i];
-	type.data->children[i + 1].label = labels[i];
+		type.data->children[i + 1].child = parameters[i];
+		type.data->children[i + 1].label = labels[i];
     }
     return type;
 }
@@ -443,8 +443,8 @@ type_t type_t::createInstance(frame_t parameters, position_t pos)
     type_t type(INSTANCE, pos, parameters.getSize());
     for (size_t i = 0; i < parameters.getSize(); i++)
     {
-	type.data->children[i].child = parameters[i].getType();
-	type.data->children[i].label = parameters[i].getName();
+		type.data->children[i].child = parameters[i].getType();
+		type.data->children[i].label = parameters[i].getName();
     }
     return type;
 }
@@ -454,8 +454,8 @@ type_t type_t::createProcess(frame_t frame, position_t pos)
     type_t type(PROCESS, pos, frame.getSize());
     for (size_t i = 0; i < frame.getSize(); i++)
     {
-	type.data->children[i].child = frame[i].getType();
-	type.data->children[i].label = frame[i].getName();
+		type.data->children[i].child = frame[i].getType();
+		type.data->children[i].label = frame[i].getName();
     }
     return type;
 }
@@ -465,13 +465,13 @@ type_t type_t::createProcessSet(type_t instance, position_t pos)
     type_t type(PROCESSSET, pos, instance.size());
     for (size_t i = 0; i < instance.size(); i++)
     {
-	type.data->children[i].child = instance[i];
-	type.data->children[i].label = instance.getLabel(i);
+		type.data->children[i].child = instance[i];
+		type.data->children[i].label = instance.getLabel(i);
     }
     return type;
 }
 
-type_t type_t::createPrimitive(kind_t kind, position_t pos) 
+type_t type_t::createPrimitive(kind_t kind, position_t pos)
 {
     return type_t(kind, pos, 0);
 }
@@ -498,151 +498,151 @@ string type_t::toString() const
 
     if (data == NULL)
     {
-	return "unknown";
+		return "unknown";
     }
 
     if (!data->expr.empty())
     {
-	return string("\"") + data->expr.toString() + string("\"");
+		return string("\"") + data->expr.toString() + string("\"");
     }
 
     switch (getKind())
     {
     case Constants::UNKNOWN:
-	kind = "unknown";
-	break;
+		kind = "unknown";
+		break;
 
     case Constants::RANGE:
-	kind = "range";
-	break;
-	
+		kind = "range";
+		break;
+
     case Constants::ARRAY:
-	kind = "array";
-	break;
+		kind = "array";
+		break;
 
     case Constants::RECORD:
-	kind = "struct";
-	break;
-	
+		kind = "struct";
+		break;
+
     case Constants::CONSTANT:
-	kind = "const";
-	break;
-	
+		kind = "const";
+		break;
+
     case Constants::REF:
-	kind = "ref";
-	break;
-	
+		kind = "ref";
+		break;
+
     case Constants::URGENT:
-	kind = "urgent";
-	break;
+		kind = "urgent";
+		break;
 
     case Constants::COMMITTED:
-	kind = "committed";
-	break;
+		kind = "committed";
+		break;
 
     case Constants::WINNING:
-	kind = "winning";
-	break;
+		kind = "winning";
+		break;
 
     case Constants::LOSING:
-	kind = "losing";
-	break;
+		kind = "losing";
+		break;
 
     case Constants::BROADCAST:
-	kind = "broadcast";
-	break;
+		kind = "broadcast";
+		break;
 
     case Constants::VOID_TYPE:
-	kind = "void";
-	break;
+		kind = "void";
+		break;
 
     case Constants::CLOCK:
-	kind = "clock";
-	break;
+		kind = "clock";
+		break;
 
     case Constants::INT:
-	kind = "int";
-	break;
+		kind = "int";
+		break;
 
     case Constants::BOOL:
-	kind = "bool";
-	break;
+		kind = "bool";
+		break;
 
     case Constants::SCALAR:
-	kind = "scalar";
-	break;
+		kind = "scalar";
+		break;
 
     case Constants::CHANNEL:
-	kind = "channel";
-	break;
+		kind = "channel";
+		break;
 
     case Constants::INVARIANT:
-	kind = "invariant";
-	break;
+		kind = "invariant";
+		break;
 
     case Constants::GUARD:
-	kind = "guard";
-	break;
+		kind = "guard";
+		break;
 
     case Constants::DIFF:
-	kind = "diff";
-	break;
+		kind = "diff";
+		break;
 
     case Constants::CONSTRAINT:
-	kind = "constraint";
-	break;
+		kind = "constraint";
+		break;
 
     case Constants::COST:
-	kind = "cost";
-	break;
+		kind = "cost";
+		break;
 
     case Constants::RATE:
-	kind = "rate";
-	break;
+		kind = "rate";
+		break;
 
     case Constants::TYPEDEF:
-	kind = "def";
-	break;
+		kind = "def";
+		break;
 
     case Constants::PROCESS:
-	kind = "process";
-	break;
-	
+		kind = "process";
+		break;
+
     case Constants::INSTANCE:
-	kind = "instance";
-	break;
+		kind = "instance";
+		break;
 
     case Constants::LABEL:
-	kind = "label";
-	break;
+		kind = "label";
+		break;
 
     case Constants::FUNCTION:
-	kind = "function";
-	break;
+		kind = "function";
+		break;
 
     case Constants::LOCATION:
-	kind = "location";
-	break;
+		kind = "location";
+		break;
 
     default:
-	kind = (boost::format("type(%1%)") % getKind()).str();
-	break;
+		kind = (boost::format("type(%1%)") % getKind()).str();
+		break;
     }
 
     str = "(";
     str += kind;
     for (uint32_t i = 0; i < size(); i++)
     {
-	str += " ";
-	if (!getLabel(i).empty())
-	{
-	    str += getLabel(i);
-	    str += ":";
-	}
-	str += get(i).toString();
+		str += " ";
+		if (!getLabel(i).empty())
+		{
+			str += getLabel(i);
+			str += ":";
+		}
+		str += get(i).toString();
     }
     str += ")";
-    
+
     return str;
 }
 

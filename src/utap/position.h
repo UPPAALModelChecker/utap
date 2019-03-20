@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -32,9 +32,9 @@ namespace UTAP
 {
     struct position_t
     {
-	uint32_t start, end;
-	position_t() : start(0), end(UINT_MAX) {}
-	position_t(uint32_t start, uint32_t end) : start(start), end(end) {}
+		uint32_t start, end;
+		position_t() : start(0), end(UINT_MAX) {}
+		position_t(uint32_t start, uint32_t end) : start(start), end(end) {}
     };
 
     /**
@@ -58,44 +58,44 @@ namespace UTAP
     class Positions
     {
     public:
-	struct line_t
-	{
-	    uint32_t position;
-	    uint32_t offset;
-	    uint32_t line;    
-	    std::string path;
-	    line_t(uint32_t position, uint32_t offset, uint32_t line, std::string path)
-		: position(position), offset(offset), line(line), path(path) {}
-	};
-	
+		struct line_t
+		{
+			uint32_t position;
+			uint32_t offset;
+			uint32_t line;
+			std::string path;
+			line_t(uint32_t position, uint32_t offset, uint32_t line, std::string path)
+				: position(position), offset(offset), line(line), path(path) {}
+		};
+
     private:
-	std::vector<line_t> elements;
-	const line_t &find(uint32_t, uint32_t, uint32_t) const;
+		std::vector<line_t> elements;
+		const line_t &find(uint32_t, uint32_t, uint32_t) const;
     public:
-	/** Add information about a line to the container. */
-	void add(uint32_t position, uint32_t offset, uint32_t line, std::string path);
-	
-	/**
-	 * Retrieves information about the line containing the given
-	 * position. The last line in the container is considered to
-	 * extend to inifinity (until another line is added).
-	 */
-	const line_t &Positions::find(uint32_t position) const;
-	
-	/** Dump table to stdout. */
-	void dump();
+		/** Add information about a line to the container. */
+		void add(uint32_t position, uint32_t offset, uint32_t line, std::string path);
+
+		/**
+		 * Retrieves information about the line containing the given
+		 * position. The last line in the container is considered to
+		 * extend to inifinity (until another line is added).
+		 */
+		const line_t& find(uint32_t position) const;
+
+		/** Dump table to stdout. */
+		void dump();
     };
-    
-    
+
+
     struct error_t
     {
-	Positions::line_t start;
-	Positions::line_t end;
-	position_t position;
-	std::string msg;
-	error_t(Positions::line_t start, Positions::line_t end, 
-		position_t position, std::string msg)
-	    : start(start), end(end), position(position), msg(msg) {}
+		Positions::line_t start;
+		Positions::line_t end;
+		position_t position;
+		std::string msg;
+		error_t(Positions::line_t start, Positions::line_t end,
+				position_t position, std::string msg)
+			: start(start), end(end), position(position), msg(msg) {}
     };
 }
 

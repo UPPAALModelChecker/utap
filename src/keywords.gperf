@@ -1,4 +1,4 @@
-struct Keyword { char *name; int token; int32_t syntax; }
+struct Keyword { const char *name; int token; int32_t syntax; }
 %%
 const,			T_CONST,	SYNTAX_OLD | SYNTAX_NEW
 select,			T_SELECT,	SYNTAX_NEW
