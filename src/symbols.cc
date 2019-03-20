@@ -20,10 +20,12 @@
 */
 
 #include <cstdlib>
+#include <cassert>
 #include <vector>
 #include <map>
 
 #include "utap/symbols.hh"
+#include "utap/expression.hh"
 
 using std::vector;
 using std::map;
@@ -43,6 +45,7 @@ type_t type_t::INT = type_t::createBase();
 type_t type_t::LOCATION = type_t::createBase();
 type_t type_t::CHANNEL = type_t::createBase();
 type_t type_t::TEMPLATE = type_t::createBase();
+type_t type_t::INSTANCE = type_t::createBase();
 type_t type_t::FUNCTION = type_t::createBase();
 type_t type_t::ARRAY = type_t::createBase();
 type_t type_t::RECORD = type_t::createBase();
@@ -56,6 +59,13 @@ type_t type_t::CONSTRAINT = type_t::createBase();
 //////////////////////////////////////////////////////////////////////////
 
 range_t::range_t()
+{
+    // Default is the empty range
+    lower = INT_MAX;
+    upper = INT_MIN;
+}
+
+range_t::range_t(int value) : lower(value), upper(value)
 {
 
 }
@@ -95,6 +105,11 @@ bool range_t::contains(const range_t &r) const
     return lower <= r.lower && r.upper <= r.upper;
 }
 
+bool range_t::contains(int32_t value) const
+{
+    return lower <= value && value <= upper;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 struct symbol_t::symbol_data
@@ -121,20 +136,13 @@ symbol_t::symbol_t(void *frame, type_t &type, const char *name, void *user)
     data->name = (name ? strcpy(new char[strlen(name) + 1], name) : NULL);
 }
 
-/* Construct symbol from unique id */
-symbol_t::symbol_t(int32_t id)
-{
-    data = (symbol_data*)id;
-    if (data)
-	data->count++;
-}
-
 /* Copy constructor */
 symbol_t::symbol_t(const symbol_t &symbol)
 {
     data = symbol.data;
-    if (data)
+    if (data) {
 	data->count++;
+    }
 }
 
 /* Destructor */
@@ -160,8 +168,9 @@ const symbol_t &symbol_t::operator = (const symbol_t &symbol)
 	}
     }
     data = symbol.data;
-    if (data)
+    if (data) {
 	data->count++;
+    }
     return *this;
 }
 
@@ -174,6 +183,11 @@ bool symbol_t::operator == (const symbol_t &symbol) const
 bool symbol_t::operator != (const symbol_t &symbol) const
 {
     return data != symbol.data;
+}
+
+bool symbol_t::operator < (const symbol_t &symbol) const
+{
+    return data < symbol.data;
 }
 
 /* Get frame this symbol belongs to */
@@ -199,6 +213,12 @@ void *symbol_t::getData()
     return data->user;
 }
 
+/* Returns the user data of this symbol */
+const void *symbol_t::getData() const
+{
+    return data->user;
+}
+
 /* Returns the name (identifier) of this symbol */
 const char *symbol_t::getName() const
 {
@@ -209,11 +229,6 @@ const char *symbol_t::getName() const
 void symbol_t::setData(void *value)
 {
     data->user = value;
-}
-
-int32_t symbol_t::getId()
-{
-    return (int32_t)data;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -228,7 +243,7 @@ struct frame_t::frame_data
 {
     int32_t count;			// Reference count
     bool hasParent;			// True if there is a parent
-    frame_t parent;			// The parent
+    frame_data *parent;			// The parent frame data
     vector<symbol_t> symbols;		// The symbols in the frame
     map<const char *, int32_t, compare_str> mapping; // Mapping from names to indices
 };
@@ -289,7 +304,7 @@ bool frame_t::operator != (const frame_t &frame) const
 }
 
 /* Returns the number of symbols in this frame */
-int32_t frame_t::getSize() const
+uint32_t frame_t::getSize() const
 {
     return data->symbols.size();
 }
@@ -302,6 +317,12 @@ symbol_t frame_t::getSymbol(int32_t n)
 
 /* Returns the Nth symbol in this frame (counting from 0) */
 symbol_t frame_t::operator[](int32_t n)
+{
+    return data->symbols[n];
+}
+
+/* Returns the Nth symbol in this frame (counting from 0) */
+const symbol_t frame_t::operator[](int32_t n) const
 {
     return data->symbols[n];
 }
@@ -322,7 +343,7 @@ symbol_t frame_t::addSymbol(const char *name, type_t type, void *user)
 */
 void frame_t::add(frame_t frame)
 {
-    for (int32_t i = 0; i < frame.getSize(); i++) {
+    for (uint32_t i = 0; i < frame.getSize(); i++) {
 	data->symbols.push_back(frame[i]);
 	if (frame[i].getName())
 	    data->mapping[frame[i].getName()] =  data->symbols.size() - 1;
@@ -345,17 +366,17 @@ bool frame_t::resolve(const char *name, symbol_t &symbol)
 {
     int32_t idx = getIndexOf(name);
     if (idx == -1)
-	return (data->hasParent ? data->parent.resolve(name, symbol) : false);
+	return (data->hasParent ? getParent().resolve(name, symbol) : false);
     symbol = data->symbols[idx];
     return true;
 }
 
 /* Returns the parent frame */
-frame_t frame_t::getParent()
+frame_t frame_t::getParent() throw (NoParentException)
 {
     if (!data->hasParent)
 	throw NoParentException();
-    return data->parent;
+    return frame_t(data->parent);
 }
 
 /* Returns true if this frame has a parent */
@@ -370,6 +391,7 @@ frame_t frame_t::createFrame()
     frame_data *data = new frame_data;
     data->count = 0;
     data->hasParent = false;
+    data->parent = 0;
     return frame_t(data);
 }
 
@@ -379,7 +401,7 @@ frame_t frame_t::createFrame(const frame_t &parent)
     frame_data *data = new frame_data;
     data->count = 0;
     data->hasParent = true;
-    data->parent = parent;
+    data->parent = parent.data;
     return frame_t(data);  
 }
 
@@ -392,11 +414,11 @@ struct type_t::type_data
     type_t base;		// Base type
     type_t sub;			// Sub type
     frame_t frame;		// Frame (fields or parameters)
-    pair<int32_t,int32_t> range;// Range of integers
+    expression_t size;          // Size of array
+    pair<expression_t, expression_t> range;// Range of integers
 
-    type_data(const type_t &base, const frame_t &frame,
-	      const type_t &sub, const pair<int32_t, int32_t> &range)
-	: count(0), prefix(0), base(base), sub(sub), frame(frame), range(range)
+    type_data(const type_t &base, const frame_t &frame, const type_t &sub)
+	: count(0), prefix(0), base(base), sub(sub), frame(frame)
 	{
 
 	}
@@ -415,18 +437,6 @@ type_t::type_t(void *p)
 {
     data = (type_data*)p;
     if (data) 
-	data->count++;
-}
-
-/**
-   Construct from id. The id must have been generated by a previous
-   call to getId(). The original type object must still be alive, i.e.
-   it must be referenced by another type_t instance.
-*/
-type_t::type_t(int32_t id)
-{
-    data = (type_data*)id;
-    if (data)
 	data->count++;
 }
 
@@ -502,7 +512,7 @@ frame_t type_t::getParameters() const
 */
 frame_t type_t::getFrame() const
 {
-    assert(data->base == FUNCTION || data->base == TEMPLATE || data->base == RECORD);
+    assert(data->base == FUNCTION || data->base == TEMPLATE || data->base == RECORD || data->base == PROCESS);
     return data->frame;
 }
 
@@ -518,10 +528,10 @@ type_t type_t::getSub()
 }
 
 /* Returns the size of an array */
-int32_t type_t::getArraySize() const
+expression_t type_t::getArraySize() const
 {
     assert(data->base == ARRAY);
-    return data->range.first;
+    return data->size;
 }
 
 /* Returns the true if this type has the given prefix */
@@ -547,65 +557,59 @@ type_t type_t::setPrefix(bool set, prefix::prefix_t prefix) const
 }
 
 /* Returns the range of an integer type. */
-const pair<int32_t,int32_t> &type_t::getRange() const
+pair<expression_t, expression_t> type_t::getRange() const
 {
     assert(data->base == INT);
     return data->range;
 }
 
-/** Get unique ID for this type. This ID is only unique as long as the
-    underlying type object is referenced. The ID can be used to
-    construct a new reference to the type object.
-*/
-int32_t type_t::getId() const
-{
-    return (int32_t)data;
-}
-
 /* Creates and returns a new integer type with the given range */
-type_t type_t::createInteger(int32_t lower, int32_t upper)
+type_t type_t::createInteger(expression_t lower, expression_t upper)
 {
-    return type_t(new type_data(INT, frame_t(), type_t(),
-				make_pair(lower, upper)));
+    type_t type(new type_data(INT, frame_t(), type_t()));
+    type.data->range = make_pair(lower, upper);
+    return type;
 }
 	
 /* Creates and returns a new record type */
 type_t type_t::createRecord(frame_t frame)
 {
-    return type_t(new type_data(RECORD, frame, type_t(), make_pair(0, 0)));
+    return type_t(new type_data(RECORD, frame, type_t()));
 }
 
 /* Creates and returns a new function type */
 type_t type_t::createFunction(frame_t arguments, type_t ret)
 {
-    return type_t(new type_data(FUNCTION, arguments, ret, make_pair(0, 0)));
+    return type_t(new type_data(FUNCTION, arguments, ret));
 }
 
 /* Creates and returns a new array type */
-type_t type_t::createArray(int32_t size, type_t type)
+type_t type_t::createArray(expression_t size, type_t type)
 {
-    return type_t(new type_data(ARRAY, frame_t(), type, make_pair(size, 0)));
+    type_t t(new type_data(ARRAY, frame_t(), type));
+    t.data->size = size;
+    return t;
 }
 
 /* Creates and returns a new named type */
 type_t type_t::createTypeName(type_t type)
 {
-    return type_t(new type_data(NTYPE, frame_t(), type, make_pair(0, 0)));
+    return type_t(new type_data(NTYPE, frame_t(), type));
 }
 
 type_t type_t::createTemplate(frame_t frame)
 {
-    return type_t(new type_data(TEMPLATE, frame, type_t(), make_pair(0,0)));
+    return type_t(new type_data(TEMPLATE, frame, type_t()));
 }
 
 type_t type_t::createProcess(frame_t frame)
 {
-    return type_t(new type_data(PROCESS, frame, type_t(), make_pair(0,0)));
+    return type_t(new type_data(PROCESS, frame, type_t()));
 }
 
 type_t type_t::createBase()
 {
-    type_data *data = new type_data(type_t(), frame_t(), type_t(), make_pair(0,0));
+    type_data *data = new type_data(type_t(), frame_t(), type_t());
     data->base = type_t(data);
     return type_t(data);
 }

@@ -196,7 +196,8 @@ static int32_t g_parameter_count;
 /* Binary operations: */
 %token T_PLUS T_MINUS T_MULT T_DIV  T_MIN T_MAX
 %token T_MOD T_OR T_XOR T_LSHIFT T_RSHIFT 
-%token T_BOOL_AND T_BOOL_OR T_BOOL_NOT T_IMPLY
+%token T_BOOL_AND T_BOOL_OR 
+%token T_KW_AND T_KW_OR T_KW_IMPLY T_KW_NOT
 
 /* Relation operations:*/
 %token T_LT T_LEQ T_EQ T_NEQ T_GEQ T_GT
@@ -226,20 +227,23 @@ static int32_t g_parameter_count;
 %token T_NEW_PARAMETERS T_NEW_INVARIANT T_NEW_GUARD T_NEW_SYNC T_NEW_ASSIGN
 %token T_OLD T_OLD_DECLARATION T_OLD_LOCAL_DECL T_OLD_INST 
 %token T_OLD_PARAMETERS T_OLD_INVARIANT T_OLD_GUARD T_OLD_ASSIGN
-%token T_PROPERTY
+%token T_PROPERTY 
 
 %type <number> ArgList ArrayDecl FieldDeclList FieldDeclIdList FieldDecl
 %type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
 %type <number> OldProcParams OldProcParamList OldProcParam
-%type <number> UnaryOp Quantifier
-%type <number> Type AssignOp TypePrefix 
+%type <kind> Quantifier
+%type <number> Type TypePrefix 
 %type <string> Id
 %type <number> OldConstDeclIdList
+%type <kind> UnaryOp AssignOp
 %type <flag> VarInit Range
 
+%left T_KW_OR T_KW_IMPLY
+%left T_KW_AND
+%right T_KW_NOT
 %right T_ASSIGNMENT T_ASSPLUS T_ASSMINUS T_ASSMULT T_ASSDIV T_ASSMOD T_ASSAND T_ASSOR T_ASSLSHIFT T_ASSRSHIFT T_ASSXOR
 %right '?' ':'
-%left T_IMPLY
 %left T_BOOL_OR
 %left T_BOOL_AND 
 %left T_OR
@@ -255,9 +259,10 @@ static int32_t g_parameter_count;
 %left '(' ')' '[' ']' '.'
 
 %union {
-  bool flag;
-  int number;
-  char string[MAXLEN];
+    bool flag;
+    int number;
+    kind_t kind;
+    char string[MAXLEN];
 }
 
 /* Expect 1 shift/reduce warning in dangling ELSE part of IF statement */
@@ -766,27 +771,26 @@ StateDeclList:
 
 StateDecl:
 	T_ID { 
-	  CALL(@1, @1, exprTrue());
-	  CALL(@1, @1, procState($1));
+	  CALL(@1, @1, procState($1, false));
 	}
 	| T_ID '{' Expression '}' { 
-	  CALL(@1, @4, procState($1));
+	  CALL(@1, @4, procState($1, true));
 	}
 	| T_ID '{' Expression error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @5, procState($1));
+	  CALL(@1, @5, procState($1, true));
 	}
 	| T_ID '{' Expression error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @4, procState($1));
+	  CALL(@1, @4, procState($1, true));
 	}
 	| T_ID '{' error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_INV));
-	  CALL(@1, @4, procState($1));
+	  CALL(@1, @4, procState($1, false));
 	}
 	| T_ID '{' error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_INV));
-	  CALL(@1, @3, procState($1));
+	  CALL(@1, @3, procState($1, false));
 	}
 	;
 
@@ -1239,11 +1243,12 @@ Expression:
 	}
 	| Expression '[' error ']' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @4, exprArray());
+	  CALL(@1, @4, exprFalse());
 	}
 	| '(' Expression ')'
 	| '(' error ')' {
 	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
+	  CALL(@1, @3, exprFalse());
 	}
 	| Expression T_INCREMENT { 
 	  CALL(@1, @2, exprPostIncrement());
@@ -1323,11 +1328,20 @@ Expression:
         | T_DEADLOCK {
 	  CALL(@$, @$, exprDeadlock());
 	}
-	| Expression T_IMPLY {  
+	| Expression T_KW_IMPLY {  
 	  CALL(@1, @1, exprUnary(NOT));
 	} Expression {
 	  CALL(@3, @3, exprBinary(OR));
 	}
+        | Expression T_KW_AND Expression {
+	  CALL(@1, @3, exprBinary(AND));
+        }
+        | Expression T_KW_OR Expression {
+	  CALL(@1, @3, exprBinary(OR));
+        }
+        | T_KW_NOT Expression {
+	  CALL(@1, @2, exprUnary(NOT));
+        }
         | Expression T_MIN Expression {
 	    CALL(@1, @3, exprBinary(MIN));
         }
@@ -1361,7 +1375,6 @@ UnaryOp:
 	/* - ! ~ */
 	T_MINUS       { $$ = MINUS; }
 	| T_EXCLAM    { $$ = NOT; }
-	| T_BOOL_NOT  { $$ = NOT; }
 	;
 
 ArgList:
@@ -1537,10 +1550,10 @@ OldStateDeclList:
 
 OldStateDecl:
 	T_ID { 
-	  CALL(@1, @1, exprTrue(); ch->procState($1));
+	  CALL(@1, @1, exprTrue(); ch->procState($1, false));
 	}
 	| T_ID '{' OldInvariant '}' { 
-	  CALL(@1, @4, procState($1));
+	  CALL(@1, @4, procState($1, true));
 	}
 	;
 
@@ -1734,7 +1747,7 @@ int32_t parseXTA(const char *str, ParserBuilder *aParserBuilder,
   yylloc.reset();
   errorHandler = err;
 
-  yy_scan_string(str);
+  utap__scan_string(str);
 
   switch (part) { /* convertion from old to new */
   case S_XTA: 
@@ -1802,8 +1815,9 @@ int32_t parseXTA(const char *str, ParserBuilder *aParserBuilder,
     res = -1;
     break;
   }
-  yy_delete_buffer(YY_CURRENT_BUFFER);
+  utap__delete_buffer(YY_CURRENT_BUFFER);
 
+  ch = NULL;
   return res;
 }
 
@@ -1825,7 +1839,7 @@ int32_t parseXTA(FILE *file, ParserBuilder *aParserBuilder,
   yylloc.reset();
   errorHandler = err;
 
-  yy_switch_to_buffer(yy_create_buffer(file, YY_BUF_SIZE));
+  utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
   
   switch (part) { /* convertion from old to new */
   case S_XTA: 
@@ -1894,7 +1908,8 @@ int32_t parseXTA(FILE *file, ParserBuilder *aParserBuilder,
     break;
   }
 
-  yy_delete_buffer(YY_CURRENT_BUFFER);
+  utap__delete_buffer(YY_CURRENT_BUFFER);
+  ch = NULL;
 
   return res;
 }
@@ -1909,11 +1924,12 @@ int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder,
   syntax_token = T_PROPERTY;
   yylloc.reset();
 
-  yy_scan_string(str);
+  utap__scan_string(str);
 
   int res = utap_parse();
 
-  yy_delete_buffer(YY_CURRENT_BUFFER);
+  utap__delete_buffer(YY_CURRENT_BUFFER);
+  ch = NULL;
 
   return (res ? -1 : 0);
 }
@@ -1929,11 +1945,12 @@ int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder,
   yylloc.reset();
   utap_in = file;
 
-  yy_switch_to_buffer(yy_create_buffer(file, YY_BUF_SIZE));
+  utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
 
   int res = utap_parse();
 
-  yy_delete_buffer(YY_CURRENT_BUFFER);
+  utap__delete_buffer(YY_CURRENT_BUFFER);
+  ch = NULL;
 
   return (res ? -1 : 0);
 }

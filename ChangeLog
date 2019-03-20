@@ -1,3 +1,147 @@
+2003-06-24  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Marked expression_t::collectAlwaysChangedSymbols() to const
+	* Removed expression_t::collectAlwaysChanged... method
+
+2003-06-22  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed build problem on windows
+  	* Fixed problem with array arguments to template instantiation
+  	* Added exression_t::collectAlwaysChangedVariables (for active
+	  clock reduction)	
+	
+2003-06-13  Gerd Behrmann  <behrmann@cs.auc.dk>
+  	* Updated README file changes in expression representation
+	
+2003-06-12  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed line counting bug
+	* Added support for DOS style newlines
+
+2003-06-05  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed ::evaluate methods from TimedAutomataSystem (use
+	  Interpreter class instead)
+	* Updated SystemBuilder, TypeChecker and RangeChecker to use new
+	  Interpreter class.
+	* Changed ParserBuilder::property(...) to use a kind_t rather than
+	  an int. 
+	* Fixed a problem in how processes are instantiated. This required
+	  the introduction of a new type 'INSTANCE', which is used for
+	  instances of templates. This more closely resembles the
+	  behaviour of 3.2. 
+	* Added include of cstdarg and cassert header files
+	* Added interpreter class used to interprete expressions.
+	* Added interpreter class used to interprete expressions.
+	* Added default constructor for range s.t. the range is
+	  initialised to the empty range.
+	* Added 'INSTANCE' base type
+	* Removed ::getId() methods and id based constructors
+	* Changed textual representation of an error to include the XPath
+	  (in case of XML input files).
+	* Made 'and', 'or', 'not', and 'imply' keywords available to
+	  expressions used in the model.
+	* Changed precedence of 'and', 'or', 'not, and 'imply' keywords to
+	  be lower than the corresponding symbols (this matches the
+	  behaviour of Perl which also has both symbolic operators and
+	  keyword operators). 
+	* Fixed several crasher bugs triggered by parse errors
+	
+2003-05-21  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* In TimedAutamataSystem; unified list of clocks, constants,
+  	  channels, integer variables, and record variables into one list:
+	  variables. 
+	* Replaced varbase_t, clock_t and channel_t with variable_t
+	* Implemented parameterized array sizes, i.e. the size of a local
+	  array in a template can depend on a template parameter (this is
+	  a 3.2 feature). 
+	
+2003-05-20  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Disabled check for invariants on target of urgent and broadcast 
+	  transitions since it would break many of our examples and would
+	  not fix the problem anyway.
+	* Moved construction of default initialiser out of libutap 
+	* Integer types can now have parameterised ranges (like
+	  in 3.2) 
+	* Added a couple of additional checks for invalid initialisers 
+	* Disallowed invariants on targets of edges synchronising on 
+	  urgent channels or broadcast receiption
+	* Empty invariants are now represented as empty expressions rather  
+	  than the constant 1.
+	* Changed ParserBuilder::procState to take an additional argument 
+	  indicating whether the state has an invariant or not.
+	* Added range_t::contains() method
+	* Replaced constant_t with variable_t
+	* RangeChecker is no longer a visitor - it simply serves as an
+	  oracle to compute the range of an expression in a given
+	  process. 
+	* Added expression_t::equal method for comparing two expressions.
+	
+2003-05-01  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed TimedAutomataStructure. This class was an early attempt
+	  to avoid clutering the common namespace with structs like
+	  state_t and process_t. Later we introduced the UTAP namespace,
+	  thus TimedAutomataStructures is no longer needed.
+	* Updated range checker to better handle constants and structures.
+  	* Removed range information from 'location expressions', i.e. from 
+	  expressions on the form P.l, where P is a process and l is a
+	  location. 
+  	* Made sure that the index of an array expression is within range
+	  in evaluateExpression (actually, a range violation should
+	  generate an error, but at the moment there is no way to report
+	  this error; the fix is compatible with the behaviour of UPPAAL
+	  [which is also broken...]).
+  	* Replaced call to getRecordFields with getFrame (fixes an
+	  assertion violation).
+  	* Fixed bug in visitInstance which caused integer expressions to
+	  be rejected as arguments to constant parameters.
+	* Fixed problem in TimedAutomataSystem::evaluateExpression
+	  introduced by the new expression implementation.
+
+2003-04-30  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Started implementation of RangeMap class to solve the problem
+  	  with computing the range of record fields.
+	* Replaced SubExpression and ExpressionProgram with new
+	  expression_t class 
+	* Updated libutap to use the new expression_t class
+	* Notice: the type of an expression should never contain the range
+	  of the expression; the range might depend on the context and
+	  thus you should always use RangeChecker (an alternative would be
+	  to let the range be defined by a pair of expressions instead of
+	  constants; then the expression would include the references to
+	  the constants the range depends on and would need to be
+	  evaluated in the correct context - on the other hand, this is
+	  exactly what RangeChecker does...). The old implementation
+	  contained some bugs related to this - these have been fixed.
+	* Notice that there is a problem related to record types in
+	  RangeChecker::addRangeOfConstant (the problem is that records
+	  are not handled :-).
+	* Replaced most uses of the getId() methods of symbol_t and type_t
+	  with actual references to the symbols and types (previously, a
+	  number of maps and sets contained the ID of symbols and
+	  types). Also, nodes of expressions previously refered to some
+	  types and symbols by ID - this is no longer the case.
+	* Removed then SYNC_TAU constant. A tau 'synchronisation' is now
+	  'stored' as an emty sync expression in the transition.	
+
+2003-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed bug in isReferenceTo for DOT expressions
+
+2003-04-12  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed problem with utap_ prefix in libutap lexer when using a
+	  recent version of flex.
+
+2003-04-08  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Made sure that yesterdays fix for 3.2 compatible integer
+	  parameters also works for array parameters
+	* Rated channel parameters according to capabilities, i.e. no
+	  clock guards, clock guards on send, clock guards on both send
+	  and receive. The argument must have at least the capabilities as
+	  the parameter. E.g. it is ok to use a channel argument to an
+	  urgent channel parameter, but not the other way arround.
+
+2003-04-07  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed SIDE_EFFECT_FREE type prefix
+	* Changed handling of int parameters - a parameter were the range
+	  is not specificed is now compatible with integer arguments with 
+	  any range (this is ensures compatibility with 3.2)
+
 2003-04-06  Gerd Behrmann  <behrmann@cs.auc.dk>
 
 	* Fixed several crasher bugs related to the parser and

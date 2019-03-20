@@ -1,4 +1,4 @@
-libutap, version 0.30
+libutap, version 0.40
 Mini HOWTO
 Gerd Behrmann
 
@@ -132,18 +132,9 @@ object. Symbols are grouped into frames (represented by frame_t
 objects). Frames are used to represent scopes and other collections of
 symbols such as records or parameters of templates and functions.
 
-All expressions are represented in reverse polish notation by
-ExpressionProgram objects. An expression program is a sequence of
-instructions/operations which when executed compute the result of the
-expression. Sometimes a tree representation of an expression is easier
-to work with. The SubExpression class provides a 'tree view' of any
-expression program. Each SubExpression object represents a single node
-in the parse tree of the expression and provides methods for finding
-the children of this node (which themself are SubExpression
-objects). Using the tree view is more expensive that simply iterating
-the list of instructions in the expression program, but for most
-applications the difference is negligible.
-
+All expressions are represented using a tree structure where the
+leaves represent values or variables and the inner nodes represent
+operations. Each node is referenced using an expression_t object.
 
 5. Contact
 

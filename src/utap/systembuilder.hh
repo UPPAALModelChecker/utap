@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -22,44 +22,55 @@
 #ifndef UTAP_SYSTEMBUILDER_HH
 #define UTAP_SYSTEMBUILDER_HH
 
+#include <cassert>
 #include <vector>
 #include <inttypes.h>
 
 #include "utap/builder.hh"
 #include "utap/utap.hh"
 
-// The SystemBuilder is a ParserBuilder, which can
-//
-//  a) construct an IntermediateSystem
-//  b) ensure that the system is type correct
-//  c) ensure that properties are type correct
-// 
-// It might be operated in one of two modes depending on whether
-// strict ranging checking is turned on or not. If it is on,
-// one might only assign use expression which are guaranteed to
-// be within the range of the variable it is assigned to.
-//
-// Properties are checked, but the SystemBuilder class must be
-// subtyped in order actually get access to the properties as they are
-// not stored by the type check builder.
-//
-// Internally, two stacks are used to keep track of fragments of 
-// the system:
-//
-//   - Expressions are kept on the stack with 
-//     expression fragments.
-//   - Types are kept on the stack with type fragments.
-//
-// These stacks are used while building more complex expressions
-// and types. Each stack is indexed from the top, i.e. the top
-// element is indexed as 0.
-//
-
 namespace UTAP
 {
-    
-    class SystemBuilder : public ParserBuilder, 
-			protected TimedAutomataStructures
+
+    /**
+     * This class constructs a TimedAutomataSystem. It categorizes
+     * declarations into clocks, constants, channels, functions,
+     * processes, variables, type names, states and templates.
+     *
+     * It knows about arrays and structures. It does resolve the scope
+     * of identifiers. It knows about named types.
+     *
+     * It checks that
+     *  - states are not both committed and urgent 
+     *  - the source and target of a transition is a state
+     *  - the array operator is applied to an array
+     *  - the dot operator is applied to a process or a structure.
+     *  - functions are not recursive
+     *  - only declared functions are called
+     *  - functions are called with the correct number of arguments
+     *  - the initial state of a template is actually declared as a state
+     *  - templates in instantiations have been declared
+     *  - identifiers are not declared twice in the same scope
+     *  - type names do exist and are declared as types
+     *  - processes in the system line have been declared
+     *
+     * It does not
+     *  - compute or check the range of integers and integer expressions
+     *  - check the correctness of variable initialisers, nor
+     *    does it complete variable initialisers
+     *  - type check expressions
+     *  - check if arguments to functions or template match the
+     *    formal parameters
+     *  - check if something is a proper left hand side value
+     *  - check if things are assignment compatible
+     *  - check conflicting use of synchronisations and guards on transitions
+     *
+     *
+     * Property expressions are constructed, but the SystemBuilder
+     * class must be subtyped in order actually get access to the
+     * properties as they are not stored otherwise.
+     */
+    class SystemBuilder : public ParserBuilder
     {
     protected:
 	// Error message for unsupported features
@@ -71,9 +82,6 @@ namespace UTAP
 	   system, which reports a warning if there is a potential
 	   overflow. */
 	bool strict_range;
-
-	/* Type used for booleans */
-	type_t BOOL;
 
 	/* Pointer to the intermediate system under construction */
 	TimedAutomataSystem *system;
@@ -90,33 +98,36 @@ namespace UTAP
 	class ExpressionFragments 
 	{
 	private:
-	    std::vector<ExpressionProgram> data;
+	    std::vector<expression_t> data;
 	public:
-	    ExpressionProgram &operator[] (int idx)
+	    expression_t &operator[] (int idx)
 		{ return data[data.size() - idx - 1]; }
-	    void push(const ExpressionProgram &e)
+	    void push(expression_t e)
 		{ data.push_back(e); }
 	    void pop()
 		{ data.pop_back(); }
 	    void pop(int n);
-	    void merge(uint32_t number);
 	    uint32_t size() { return data.size(); }
 	} fragments;
 
 	//
-	// The stack of type fragments.
+	// The stack of type fragments. A type fragment is a pair
+	// consiting of a type and an optional name (the name is 
+	// used for fields of a structure).
 	//
 	class TypeFragments 
 	{
 	private:
-	    std::vector<type_t> data;
+	    std::vector<std::pair<type_t, char *> > data;
 	public:
-	    type_t &operator[] (int idx)
+	    ~TypeFragments() 
+                { while (!data.empty()) pop(); }
+	    std::pair<type_t, char *> &operator[] (int idx)
 		{ return data[data.size() - idx - 1]; }
 	    void push(type_t value)
-		{ data.push_back(value); }
+		{ data.push_back(std::make_pair(value, (char*)NULL)); }
 	    void pop()
-		{ assert(!data.empty()); data.pop_back(); }
+		{ assert(!data.empty()); free(data.back().second); data.pop_back(); }
 	} typeFragments;
 
 	// 
@@ -164,7 +175,7 @@ namespace UTAP
 	// Methods for handling expressions
 	//
 
-	ExpressionProgram::expression_t makeConstant(int value);
+	expression_t makeConstant(int value);
 
     protected:
 
@@ -185,7 +196,7 @@ namespace UTAP
 	// This method is called once for each property, which has
 	// been parsed. The default implementation does nothing, so
 	// you need to override this in a subclass.
-	virtual void property(int kind, int line, ExpressionProgram &) {};
+	virtual void property(Constants::kind_t, int line, expression_t) {};
 
     public:
 
@@ -237,14 +248,14 @@ namespace UTAP
 	 */
 	virtual void procBegin(const char* name, uint32_t n); // n parameters
 	virtual void procEnd(); // 1 ProcBody
-	virtual void procState(const char* name); // 1 expr
+	virtual void procState(const char* name, bool hasInvariant); // 1 expr
 	virtual void procStateCommit(const char* name); // mark previously decl. state
 	virtual void procStateUrgent(const char* name); // mark previously decl. state
 	virtual void procStateInit(const char* name); // mark previously decl. state
 	virtual void procTransition(const char* from, const char* to); 
 	// 1 epxr,1sync,1expr
 	virtual void procGuard();
-	virtual void procSync(uint32_t type); // 1 expr
+	virtual void procSync(Constants::synchronisation_t type); // 1 expr
 	virtual void procUpdate();
     
 	/************************************************************
@@ -288,9 +299,9 @@ namespace UTAP
 	virtual void exprPreIncrement(); // 1 expr
 	virtual void exprPostDecrement(); // 1 expr
 	virtual void exprPreDecrement(); // 1 expr
-	virtual void exprAssignment(uint32_t op); // 2 expr
-	virtual void exprUnary(uint32_t unaryop); // 1 expr
-	virtual void exprBinary(uint32_t binaryop); // 2 expr
+	virtual void exprAssignment(Constants::kind_t op); // 2 expr
+	virtual void exprUnary(Constants::kind_t unaryop); // 1 expr
+	virtual void exprBinary(Constants::kind_t binaryop); // 2 expr
 	virtual void exprInlineIf(); // 3 expr
 	virtual void exprComma(); // 2 expr
 	virtual void exprDot(const char *); // 1 expr
@@ -305,7 +316,7 @@ namespace UTAP
 
 	virtual void done();    
 
-	virtual void property(uint32_t kind, int line);
+	virtual void property(Constants::kind_t, int line);
 
 	/********************************************************************
 	 * Guiding

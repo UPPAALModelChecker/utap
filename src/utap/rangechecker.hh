@@ -24,40 +24,52 @@
 
 #include <exception>
 #include <map>
+#include <list>
 #include "utap/system.hh"
 #include "utap/common.hh"
 
 namespace UTAP
 {
-    /** A visitor which performs range checking. Warnings and errors
-	are produced if assignments or array indices are out of
-	range. */
-    class RangeChecker : public ContextVisitor
-    {
+    class UndefinedRangeException : public std::exception {
     public:
-	class UndefinedRangeException : public std::exception {
-	public:
-	    const char *what() const throw() {
-		return "UndefinedRangeException"; 
-	    }
-	};
+	const char *what() const throw() {
+	    return "UndefinedRangeException"; 
+	}
+    };
+
+    /** A RangeChecker object is an oracle for predicting ranges of
+	integer expressions and declared ranges of symbols. For both
+	situations the result might depend on the process context,
+	e.g. a template parameter might be used in the expression or
+	might have been used in the range declaration of an integer
+	variable. So in these cases it is important to provide the
+	process in which the expression should be evaluated.
+
+	For constant expressions, the actual value of the expression
+	is returned. If the expression cannot be evaluated (it is not
+	constant), then a range is computed based on the declared
+	ranges of variables used in the expression (and on the values
+	of any constants used).
+    */
+    class RangeChecker
+    {
     private:
-	std::map<int, range_t> ranges;
-	ErrorHandler *errorHandler;
+	TimedAutomataSystem *system;
+	Interpreter interpreter;
     protected:
 	range_t getRange(symbol_t symbol) const;
-	range_t rangeOfBinary(SubExpression, uint32_t op, SubExpression) const;
-	void checkRange(SubExpression expr);
-	
-    public:    
-	RangeChecker(ErrorHandler *);
-	RangeChecker(ErrorHandler *, process_t &);
-	
-	range_t getRange(SubExpression) const;
-	static range_t getDeclaredRange(SubExpression expr);
+	range_t rangeOfBinary(expression_t, uint32_t op, expression_t) const;
+//	void checkRange(expression_t expr);
+	bool evaluate(expression_t expr, int32_t &value) const;
 
-	virtual void visitState(state_t &);
-	virtual void visitTransition(transition_t &);
+    public:    
+	RangeChecker(TimedAutomataSystem *);
+	RangeChecker(TimedAutomataSystem *, const process_t &);
+	
+	range_t getRange(expression_t) const;
+	
+	range_t getDeclaredRange(expression_t expr) const;
+	range_t getDeclaredRange(symbol_t symbol) const;
     };
 }
 

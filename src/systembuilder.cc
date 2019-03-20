@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -19,18 +19,15 @@
    USA
 */
 
-// TODO: 
-//      don't copy template when assigning one process to another
+// TODO:
 //      add support for functions
 
-#include <list>
-#include <stack>
 #include <vector>
 #include <climits>
-
+#include <cmath>
+#include <cstdio>
+#include <cassert>
 #include <inttypes.h>
-#include <math.h>
-#include <stdio.h>
 
 #include "utap/systembuilder.hh"
 
@@ -47,59 +44,12 @@ const char *const SystemBuilder::unsupported =
 "Internal error: Feature not supported in this mode.";
 const char *const SystemBuilder::invalid_type = "Invalid type";
 
-/**
-* This class constructs a TimedAutomataSystem. It categorizes
-* declarations into clocks, constants, channels, functions, processes,
-* variables, type names, states and templates.
-*
-* It knows about arrays and structures. It does resolve the scope of
-* identifiers. It knows about named types.
-*
-* It checks that
-*
-*  - that states are not both committed and urgent 
-*  - the source and target of a transition is a state
-*  - the array operator is applied to an array
-*  - the dot operator is applied to a process or a structure.
-*  - functions are not recursive
-*  - that only declared functions are called
-*  - that functions are called with the correct number of arguments
-*  - that the initial state of a template is actually declared as a state
-*  - that templates in instantiations have been declared
-*  - that identifiers are not declared twice in the same scope
-*  - that type names do exist and are declared as types
-*  - that processes in the system line have been declared
-*
-* It does not
-*  - Compute or check the range of integers and integer expressions
-*  - Does not check the correctness of variable initialisers, nor
-*    does it complete variable initialisers
-*  - Does not type check expressions
-*  - Does not check if arguments to functions or template match the
-*    formal parameters
-*  - Does not check if something is a proper left hand side value
-*  - Does not check if things are assignment compatible
-*  - Check conflicting use of synchronisations and guards on transitions
-*/
-
-
+#define defaultIntMin -0x7FFF
+#define defaultIntMax 0x7FFF
 
 void SystemBuilder::ExpressionFragments::pop(int32_t n)
 {
     while (n--) pop();
-}
-
-// Merges 'number' topmost expression fragments by appending the
-// topmost to the end of the lowest of the 'number' fragments. The
-// number - 1 topmost fragments are popped from the expression stack.
-void SystemBuilder::ExpressionFragments::merge(uint32_t number) 
-{
-    for (uint32_t i = data.size() - number + 1; i < data.size(); i++)
-	data[data.size() - number].insert(data[data.size() - number].end(),
-					  data[i].begin(),
-					  data[i].end());
-    for (uint32_t i = 1; i < number; i++)
-	pop();
 }
 
 SystemBuilder::SystemBuilder(TimedAutomataSystem *sys)
@@ -111,8 +61,6 @@ SystemBuilder::SystemBuilder(TimedAutomataSystem *sys)
     guard = sync = update = -1;
     params = frame_t::createFrame();
     frame = system->getGlobals().frame;
-
-    BOOL = type_t::createInteger(0, 1);
 };
 
 void SystemBuilder::setErrorHandler(ErrorHandler *value)
@@ -171,17 +119,18 @@ bool SystemBuilder::isLocation(const char *name)
 // the expression stack.
 type_t SystemBuilder::buildArrayType(type_t type, uint32_t dim)
 {
-    uint32_t i;
+    uint32_t i = 0;
     try {
-	for (i = 0; i < dim; i++) {
-	    int32_t n = 1;
-	    if (!system->evaluateConstantExpression(fragments[0], n))
-		errorHandler->handleError("Array size incomputable at parse time.");
-	    if (n < 1) {
-		errorHandler->handleError("Invalid array size");
-		n = 1;
+	Interpreter interpreter(system->getConstantValuation());
+	for (; i < dim; i++) {
+	    try {
+		if (interpreter.evaluate(fragments[0]) < 1) 
+		    errorHandler->handleError("Invalid array size");
+	    } catch (InterpreterException) {
+		// Array dimension is not computable, i.e. it depends
+		// on a parameter: We ignore it here.
 	    }
-	    type = type_t::createArray(n, type).setPrefix(
+	    type = type_t::createArray(fragments[0], type).setPrefix(
 		type.hasPrefix(prefix::CONSTANT), prefix::CONSTANT);
 	    fragments.pop();
 	}
@@ -236,37 +185,36 @@ void SystemBuilder::declType(uint32_t prefix, const char* name, bool range)
     symbol_t uid;
     assert(frame.resolve(name, uid));
     frame.resolve(name, uid);
-    assert(uid.getType() == type_t::NTYPE);
+    assert(uid.getType().getBase() == type_t::NTYPE);
 
     type_t type = uid.getType().getSub();
     if (range) {
 	try {
+	    expression_t lower = fragments[1];
+	    expression_t upper = fragments[0];
+	    fragments.pop(2);
+
 	    if (type != type_t::INT)
 		throw TypeException("Range is only valid with integer types");
-	    
-	    int32_t lower, upper;
-	    if (!system->evaluateConstantExpression(fragments[1], lower)) 
-		throw TypeException("Lower bound incomputable at parse time");
-	    if (!system->evaluateConstantExpression(fragments[0], upper))
-		throw TypeException("Upper bound incomputable at parse time");
 
-	    // Check if this is a valid range. In fact, equality would
-	    // also be rather useless, but it is semantically well
-	    // defined.
-	    if (lower > upper) {
-		errorHandler->handleError("Invalid integer range");
-		upper = lower;
+	    try {
+		Interpreter interpreter(system->getConstantValuation());
+		int32_t l = interpreter.evaluate(lower);
+		int32_t u = interpreter.evaluate(upper);
+	    
+		// Check if this is a valid range. In fact, equality
+		// would also be rather useless, but it is
+		// semantically well defined.
+		if (l > u) 
+		    errorHandler->handleError("Invalid integer range");
+	    } catch (InterpreterException) {
+		// Range depends on parameter: ignore it
 	    }
 
 	    type = type_t::createInteger(lower, upper);
 	} catch (TypeException &e) {
 	    errorHandler->handleError(e.what());
 	}
-	fragments.pop(2);
-    } else if (prefix == PREFIX_CONST && type == type_t::INT) {
-	type = type_t::createInteger(INT_MIN, INT_MAX);
-    } else if (type == type_t::INT) {
-	type = type_t::createInteger(-32768, 32767);
     }
     typeFragments.push(applyPrefix(prefix, type));
 }
@@ -279,8 +227,7 @@ void SystemBuilder::declStruct(uint32_t prefix, uint32_t n)
     // Compute new type (each field has a singular record type)
     frame_t frame = frame_t::createFrame();
     for (int32_t i = n - 1; i >= 0; i--) {
-	frame_t field = typeFragments[i].getFrame();
-	frame.addSymbol(field[0].getName(), field[0].getType());
+	frame.addSymbol(typeFragments[i].second, typeFragments[0].first);
     }
 
     // Pop fragments
@@ -295,24 +242,45 @@ void SystemBuilder::declStruct(uint32_t prefix, uint32_t n)
 // array field). These will be popped of the stack.
 void SystemBuilder::declField(const char* name, uint32_t dim) 
 {
-    type_t type = buildArrayType(typeFragments[0], dim);
+    type_t type = typeFragments[0].first;
 
     // Constant fields are not allowed
-    if (typeFragments[0].hasPrefix(prefix::CONSTANT)) 
+    if (type.hasPrefix(prefix::CONSTANT)) 
 	throw TypeException("Constant fields not allowed in struct");
 
+    // If no range was specified, use default range
+    if (type.getBase() == type_t::INT && type.getRange().first.empty())
+    {
+	type = type_t::createInteger(
+	    expression_t::createConstant(position_t(), defaultIntMin), 
+	    expression_t::createConstant(position_t(), defaultIntMax));
+    }
+
+    // Construct array type
+    type = buildArrayType(type, dim);
+
+    // Check that all array sizes are computable and find base type
+    type_t basetype = type;
+    Interpreter interpreter(system->getConstantValuation());
+    while (basetype.getBase() == type_t::ARRAY) {
+	try {
+	    interpreter.evaluate(basetype.getArraySize());
+	} catch (InterpreterException) {
+	    errorHandler->handleError("Parameterized array size is not allowed in structs");
+	}
+	basetype = basetype.getSub();
+    }
+    
     // Check base type
-    type_t basetype = getElementTypeOfArray(typeFragments[0]).getBase();
     if (basetype != type_t::INT && basetype != type_t::RECORD)
 	throw TypeException("Invalid type in structure");
 
     // Copy type for next field
-    typeFragments.push(typeFragments[0]);
+    typeFragments.push(typeFragments[0].first);
 
-    // Construct record type to keep track of the field name.
-    frame_t frame = frame_t::createFrame();
-    frame.addSymbol(name, type);
-    typeFragments[1] = type_t::createRecord(frame);
+    // Set type and name of original type fragment 
+    typeFragments[1].first = type;
+    typeFragments[1].second = strdup(name);
 }
 
 // The end of a number of field declarations of the same type. The
@@ -327,7 +295,7 @@ void SystemBuilder::declFieldEnd()
 // are expected on and popped from the expression stack.
 void SystemBuilder::declTypeDef(const char* name, uint32_t dim) 
 {
-    type_t type = buildArrayType(typeFragments[0], dim);
+    type_t type = buildArrayType(typeFragments[0].first, dim);
     frame.addSymbol(name, type_t::createTypeName(type));
 }
 
@@ -351,39 +319,43 @@ void SystemBuilder::declTypeDefEnd()
 void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit) 
 {
     // Pop initial value
-    ExpressionProgram init;
+    expression_t init;
     if (hasInit) {
 	init = fragments[0];
 	fragments.pop();
     }
 
     // Construct type
-    type_t type = buildArrayType(typeFragments[0], dim);
+    type_t type = typeFragments[0].first;
+    if (!type.hasPrefix(prefix::CONSTANT)
+	&& type.getBase() == type_t::INT
+	&& type.getRange().first.empty())
+    {
+	type = type_t::createInteger(
+	    expression_t::createConstant(position_t(), defaultIntMin), 
+	    expression_t::createConstant(position_t(), defaultIntMax));
+    }
+    type = buildArrayType(type, dim);
 
-    if (type.hasPrefix(prefix::CONSTANT) && !hasInit)
-	throw TypeException("Constants must have an initialiser");
-
-    // find base type
+    // Check whether initialiser is allowed/required
     type_t base = getElementTypeOfArray(type).getBase();
-
-    // add variable to system
     if (base == type_t::CLOCK) {
-	system->addClock(type, name);
 	if (hasInit)
-	    throw TypeException("Clocks cannot have initialisers");
+	    errorHandler->handleError("Clocks cannot have initialisers");
     } else if (base == type_t::RECORD || base == type_t::INT) {
-	if (type.hasPrefix(prefix::CONSTANT)) {
-	    system->addConstant(type, name, init);
-	} else {
-	    system->addVariable(type, name, init);
+	if (type.hasPrefix(prefix::CONSTANT) && !hasInit) {
+		errorHandler->handleError("Constants must have an initialiser");
 	}
     } else if (base == type_t::CHANNEL) {
-	system->addChannel(type, name);
 	if (hasInit)
-	    throw TypeException("Channels cannot have initialisers");
+	    errorHandler->handleError("Channels cannot have initialisers");
     } else {
-	throw TypeException("Cannot declare variable of this type");
+	errorHandler->handleError("Cannot declare variable of this type");
+	return;
     }
+
+    // Add variable to system
+    system->addVariable(type, name, init);
 } 
 
 // At the end of a variable declaration, this method is called in
@@ -426,29 +398,28 @@ void SystemBuilder::declFieldInit(const char *name)
     type_t type = fragments[0].getType();
     frame_t frame = frame_t::createFrame();
     frame.addSymbol(name, type);
-    fragments[0].back().type = type_t::createRecord(frame);
+    fragments[0].setType(type_t::createRecord(frame));
 }
 
 void SystemBuilder::declInitialiserList(uint32_t num)
 {
-    bool constant = true;
+    // Pop fields
+    vector<expression_t> fields;
+    for (int i = num - 1; i >= 0; i--)
+	fields.push_back(fragments[i]);
+    fragments.pop(num);
     
     // Compute new type (each fragment has a singular record type)
     frame_t frame = frame_t::createFrame();
-    for (int32_t i = num - 1; i >= 0; i--) {
-	symbol_t field = fragments[i].getType().getFrame()[0];
+    for (uint32_t i = 0; i < num; i++) {
+	symbol_t field = fields[i].getType().getFrame()[0];
 	frame.addSymbol(field.getName(), field.getType());
-	fragments[i].back().type = field.getType(); // Restore type of field
-	constant &= field.getType().hasPrefix(prefix::CONSTANT);
+	fields[i].setType(field.getType()); // Restore type of field expr
     }
 
-    // Merge num topmost fragments
-    fragments.merge(num);
-
-    // Add 'list composition' to the end of the expression
-    fragments[0].append(ExpressionProgram::expression_t(
-			    position, 
-			    LIST, num, type_t::createRecord(frame).setPrefix(constant, prefix::CONSTANT)));
+    // Create list expression
+    fragments.push(expression_t::createNary(
+	position, LIST, fields, type_t::createRecord(frame)));
 }
   
 /********************************************************************
@@ -456,16 +427,30 @@ void SystemBuilder::declInitialiserList(uint32_t num)
  */
 void SystemBuilder::declParameter(const char* name, bool ref, uint32_t dim)
 {
-    type_t type = buildArrayType(typeFragments[0], dim);
+    type_t type = typeFragments[0].first;
 
     // For compatibility with C and C++, array parameters are always
     // reference parameters. Putting an explicit ampersand in the
     // declaration is invalid (at least according to gcc).
-    if (type.getBase() == type_t::ARRAY) {
+    if (type.getBase() == type_t::ARRAY || dim > 0) {
 	if (ref)
 	    errorHandler->handleError("declaration of array of references");
 	ref = true;
     }
+
+    // Non-constant non-reference integer parameters without a range
+    // use the default range of a 16 bit signed integer.
+    if (!ref && !type.hasPrefix(prefix::CONSTANT)
+	&& type.getBase() == type_t::INT
+	&& type.getRange().first.empty())
+    {
+	type = type_t::createInteger(
+	    expression_t::createConstant(position_t(), defaultIntMin), 
+	    expression_t::createConstant(position_t(), defaultIntMax));
+    }
+
+    // Popup array dimensions of expression stack and construct array type
+    type = buildArrayType(type, dim);
 
     // Append parameter to list of parameters
     params.addSymbol(name, type.setPrefix(ref, prefix::REFERENCE));
@@ -491,7 +476,7 @@ void SystemBuilder::declFuncBegin(const char* name, uint32_t n)
 {
     try {
 	assert(currentFun == NULL);
-	type_t result = typeFragments[0];
+	type_t result = typeFragments[0].first;
 	typeFragments.pop(); // pop function result type
     
 	type_t type = type_t::createFunction(params, result);
@@ -565,11 +550,14 @@ void SystemBuilder::procEnd() // 1 ProcBody
 
 // Add a state to the current template. An invariant expression is
 // expected on and popped from the expression stack.
-void SystemBuilder::procState(const char* name) // 1 expr
+void SystemBuilder::procState(const char* name, bool hasInvariant) // 1 expr
 {
-    ExpressionProgram inv = fragments[0];
-    fragments.pop();
-    system->addLocation(name, inv);
+    expression_t e;
+    if (hasInvariant) {
+	e = fragments[0];
+	fragments.pop();
+    }
+    system->addLocation(name, e);
 }
     
 void SystemBuilder::procStateCommit(const char* name) 
@@ -634,10 +622,6 @@ void SystemBuilder::procTransition(const char* from, const char* to)
 	procUpdate();
     }
 
-    if (sync == -1) {
-	procSync(SYNC_TAU);
-    }
-
     if (guard == -1) {
 	exprTrue();
 	procGuard();
@@ -646,9 +630,10 @@ void SystemBuilder::procTransition(const char* from, const char* to)
     // Create transition
     transition_t &tran = system->addTransition(fid, tid);
     tran.assign = fragments[fragments.size() - update];
-    tran.sync = fragments[fragments.size() - sync];
+    if (sync != -1)
+	tran.sync = fragments[fragments.size() - sync];
     tran.guard = fragments[fragments.size() - guard];
-    fragments.pop(3);
+    fragments.pop(sync == -1 ? 2 : 3);
 
     guard = sync = update = -1;
 }
@@ -658,18 +643,13 @@ void SystemBuilder::procGuard()
     guard = fragments.size();
 }
 
-void SystemBuilder::procSync(uint32_t type)
+void SystemBuilder::procSync(synchronisation_t type)
 {
-    if (type != SYNC_TAU) {
-	ExpressionProgram &expr = fragments[0];
-	if (expr.getType().getBase() != type_t::CHANNEL)
-	    throw TypeException("No such channel");
-	    
-	expr.append(position, SYNC, type, expr.getType());
-    } else {
-	fragments.push(ExpressionProgram(
-			   position, SYNC, SYNC_TAU, type_t::CHANNEL));
-    }
+    expression_t expr = fragments[0];
+    if (expr.getType().getBase() != type_t::CHANNEL)
+	throw TypeException("No such channel");
+    
+    fragments[0] = expression_t::createSync(position, expr, type);
     sync = fragments.size();
 }
 
@@ -877,17 +857,13 @@ void SystemBuilder::exprId(const char *name)
     symbol_t uid;
 
     if (!frame.resolve(name, uid)) {
-	fragments.push(ExpressionProgram(
-			   position, IDENTIFIER, -1, type_t::UNKNOWN));
+	fragments.push(expression_t::createIdentifier(position, symbol_t()));
 	throw TypeException("%s: Unknown identifier", name);
     }
 
-    type_t type = uid.getType();
+    fragments.push(expression_t::createIdentifier(position, uid));
 
-    fragments.push(ExpressionProgram(
-		       position, IDENTIFIER, uid.getId(), type));
-
-    type_t base = type.getBase();
+    type_t base = uid.getType().getBase();
 
     if (base == type_t::PROCESS && !allowProcessReferences())
 	throw TypeException("Process references are not allowed");
@@ -903,21 +879,19 @@ void SystemBuilder::exprId(const char *name)
     }    
 }
 
-ExpressionProgram::expression_t SystemBuilder::makeConstant(int value)
+expression_t SystemBuilder::makeConstant(int value)
 {
-    return ExpressionProgram::expression_t(
-	position, CONSTANT, value, type_t::createInteger(value, value));
+    return expression_t::createConstant(position, value);
 }
     
 void SystemBuilder::exprDeadlock()
 {
-    fragments.push(ExpressionProgram(
-		       position, DEADLOCK, 0, type_t::CONSTRAINT));
+    fragments.push(expression_t::createDeadlock(position));
 }
 
 void SystemBuilder::exprNat(int32_t n) 
 {
-    fragments.push(ExpressionProgram(makeConstant(n)));
+    fragments.push(makeConstant(n));
 }
 
 void SystemBuilder::exprCallBegin(const char *functionName) 
@@ -956,8 +930,20 @@ void SystemBuilder::exprCallEnd(uint32_t n)
 	return;
     
     type_t result = id.getType().getSub();
-    fragments.merge(n);
-    fragments[0].append(position, FUNCALL, id.getId(), result);
+
+    // Create vector of sub expressions: The first sub expression
+    // evaluates to the function. The remaining sub expressions
+    // are the arguments.
+    vector<expression_t> sub;
+    sub.push_back(expression_t::createIdentifier(position_t(), id));
+
+    // Pop arguments
+    for (int i = n - 1; i >= 0; i--)
+	sub.push_back(fragments[i]);
+    fragments.pop(n);
+
+    // Push FUNCALL expression
+    fragments.push(expression_t::createNary(position, FUNCALL, sub, result));
 }
 
 // expects 1 expression on the stack
@@ -971,85 +957,96 @@ void SystemBuilder::exprArg(uint32_t n)
 // 2 expr     // array[index]
 void SystemBuilder::exprArray() 
 {
-    type_t type;
-    type_t array = fragments[1].getType();
-    if (array.getBase() == type_t::ARRAY) {
-	type = array.getSub();
+    // Pop sub-expressions
+    expression_t var = fragments[1];
+    expression_t index = fragments[0];
+    fragments.pop(2);
+
+    type_t element;
+    type_t type = var.getType();
+    if (type.getBase() == type_t::ARRAY) {
+	element = type.getSub();
     } else {
-	type = type_t::UNKNOWN;
+	element = type_t::UNKNOWN;
 	errorHandler->handleError("Array expected here");
     }
-    fragments.merge(2);
-    fragments[0].append(position, ARRAY, array.getId(), type);
+
+    fragments.push(expression_t::createBinary(
+	position, ARRAY, var, index, element));
 }
 
 // 1 expr
 void SystemBuilder::exprPostIncrement() 
 {
-    ExpressionProgram &expr = fragments[0];
-    expr.append(position, POSTINCREMENT, 0, expr.getType());
+    fragments[0] = expression_t::createUnary(
+	position, POSTINCREMENT, fragments[0], fragments[0].getType());
 }
     
 void SystemBuilder::exprPreIncrement() 
 {
-    ExpressionProgram &expr = fragments[0];
-    expr.append(position, PREINCREMENT, 0, expr.getType());
+    fragments[0] = expression_t::createUnary(
+	position, PREINCREMENT, fragments[0], fragments[0].getType());
 }
     
 void SystemBuilder::exprPostDecrement() // 1 expr
 {
-    ExpressionProgram &expr = fragments[0];
-    expr.append(position, POSTDECREMENT, 0, expr.getType());
+    fragments[0] = expression_t::createUnary(
+	position, POSTDECREMENT, fragments[0], fragments[0].getType());
 }
     
 void SystemBuilder::exprPreDecrement() 
 {
-    ExpressionProgram &expr = fragments[0];
-    expr.append(position, POSTDECREMENT, 0, expr.getType());
+    fragments[0] = expression_t::createUnary(
+	position, PREDECREMENT, fragments[0], fragments[0].getType());
 }
     
-void SystemBuilder::exprAssignment(uint32_t op) // 2 expr
+void SystemBuilder::exprAssignment(kind_t op) // 2 expr
 {
-    type_t rvalue = fragments[0].getType();
-    type_t lvalue = fragments[1].getType();
-    fragments.merge(2);
-    fragments[0].append(position, op, 0, lvalue);
+    expression_t lvalue = fragments[1];
+    expression_t rvalue = fragments[0];
+    fragments.pop(2);
+    fragments.push(expression_t::createBinary(
+	position, op, lvalue, rvalue, lvalue.getType()));
 }
 
-void SystemBuilder::exprUnary(uint32_t unaryop) // 1 expr
+void SystemBuilder::exprUnary(kind_t unaryop) // 1 expr
 {
-    type_t type = fragments[0].getType();
-
     if (unaryop == MINUS)
 	unaryop = UNARY_MINUS;
-    
-    fragments[0].append(position, unaryop, 0, type_t::UNKNOWN);
+    fragments[0] = expression_t::createUnary(position, unaryop, fragments[0]);
 }
     
-void SystemBuilder::exprBinary(uint32_t binaryop) // 2 expr
+void SystemBuilder::exprBinary(kind_t binaryop) // 2 expr
 {
-    fragments.merge(2);
-    fragments[0].append(position, binaryop, 0, type_t::UNKNOWN);
+    expression_t left = fragments[1];
+    expression_t right = fragments[0];
+    fragments.pop(2);
+    fragments.push(expression_t::createBinary(
+	position, binaryop, left, right));
 }
 
 void SystemBuilder::exprInlineIf()
 {
-    type_t c = fragments[2].getType();
-    type_t t = fragments[1].getType();
-    type_t e = fragments[0].getType();
-    fragments.merge(3);
-    fragments[0].append(position, INLINEIF, 0, t);
+    expression_t c = fragments[2];
+    expression_t t = fragments[1];
+    expression_t e = fragments[0];
+    fragments.pop(3);
+    fragments.push(expression_t::createTernary(
+	position, INLINEIF, c, t, e, t.getType()));    
 }
 
 void SystemBuilder::exprComma()
 {
-    fragments.merge(2);
-    fragments[0].append(position, COMMA, 0, fragments[0].getType());
+    expression_t e1 = fragments[1];
+    expression_t e2 = fragments[0];
+    fragments.pop(2);
+    fragments.push(expression_t::createBinary(
+	position, COMMA, e1, e2, e2.getType()));
 }
 
 void SystemBuilder::exprDot(const char *id)
 {
-    ExpressionProgram &expr = fragments[0];
+    expression_t expr = fragments[0];
     type_t type = expr.getType();
     if (type.getBase() == type_t::RECORD || type.getBase() == type_t::PROCESS)
     {
@@ -1057,16 +1054,18 @@ void SystemBuilder::exprDot(const char *id)
 	int i = fields.getIndexOf(id);
 	if (i == -1) {
 	    errorHandler->handleError("Structure has no such member");
-	    expr.append(position, DOT, -1, type_t::UNKNOWN);
+	    expr = expression_t::createDot(position, expr);
 	} else if (fields[i].getType().getBase() == type_t::LOCATION) {
-	    expr.append(position, DOT, i, BOOL);
+	    expr = expression_t::createDot(position, expr, i, type_t::INT);
 	} else {
-	    expr.append(position, DOT, i, fields[i].getType());
+	    expr = expression_t::createDot(position, expr,
+					   i, fields[i].getType());
 	}
     } else {
-	expr.append(position, DOT, -1, type_t::UNKNOWN);
+	expr = expression_t::createDot(position, expr);
 	errorHandler->handleError("This is not a structure");
     }
+    fragments[0] = expr;
 }
     
 /********************************************************************
@@ -1079,7 +1078,7 @@ void SystemBuilder::instantiationBegin(const char* name, const char* templ_name)
     expectedArguments.push_back(vector<type_t>());
     identifierStack.push_back(symbol_t());
 
-    if (!frame.resolve(templ_name, identifierStack.back()))    
+    if (!frame.resolve(templ_name, identifierStack.back()))
 	throw TypeException("Unknown identifier");
 
     symbol_t id = identifierStack.back();
@@ -1109,19 +1108,18 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 	frame_t parameters = id.getType().getParameters();
 
 	// If two many arguments, pop the rest
-	if ((int32_t)n > parameters.getSize()) {
+	if (n > parameters.getSize()) {
 	    fragments.pop(n - parameters.getSize());
 	    n = parameters.getSize();
 	}
 
-	// Create process
-	process_t &process = system->addInstance(
-	    frame.addSymbol(name, type_t::PROCESS),
-	    *static_cast<template_t*>(id.getData()));
+	// Create template composition
+	template_t *templ = static_cast<template_t*>(id.getData());
+	instance_t &instance = system->addInstance(name, templ);
 	
 	while (n--) {
-	    symbol_t param = process.templ->frame[n];
-	    process.mapping[param.getId()] = fragments[0];
+	    symbol_t param = templ->frame[n];
+	    instance.mapping[param] = fragments[0];
 	    fragments.pop();
 	}
     } catch (const TypeException e) {
@@ -1135,24 +1133,10 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 // Checks for dublicate entries
 void SystemBuilder::process(const char* name)
 {
-    // Check that such a process exists
     symbol_t sym;
     if (!frame.resolve(name, sym))
 	throw TypeException("No such template: %s", name);
-
-    type_t type = sym.getType();
-    if (type.getBase() == type_t::TEMPLATE) {
-	// Convert to process
-	frame_t parameters = type.getParameters();	
-	if (parameters.getSize() > 0) {
-	    throw TypeException("Use of uninstantiated template in system line: %s", name);
-	}
-
-	system->addInstance(sym, *static_cast<template_t*>(sym.getData()));
-    } else if (type.getBase() != type_t::PROCESS) {
-	throw TypeException("Not a process: %s", name);
-    }
-    system->addProcess(*static_cast<process_t*>(sym.getData()));
+    system->addProcess(sym);
 }
     
 void SystemBuilder::done()
@@ -1160,11 +1144,14 @@ void SystemBuilder::done()
 
 }
 
-void SystemBuilder::property(uint32_t kind, int line)
+void SystemBuilder::property(kind_t kind, int line)
 {
     if (kind == LEADSTO) {
-	fragments.merge(2);
-	fragments[0].append(position, LEADSTO, 0, type_t::UNKNOWN);
+	expression_t left = fragments[1];
+	expression_t right = fragments[0];
+	fragments.pop(2);
+	fragments.push(expression_t::createBinary(
+	    position, LEADSTO, left, right));
     }
     property(kind, line, fragments[0]);
     fragments.pop();
@@ -1207,4 +1194,3 @@ void SystemBuilder::afterUpdate()
 //     parseXMLFile(file, &builder, error, newxta);
 //     return !error->hasErrors();
 // }
-

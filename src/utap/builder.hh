@@ -1,3 +1,5 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002 Uppsala University and Aalborg University.
    
@@ -99,13 +101,13 @@ namespace UTAP
      */
     virtual void procBegin(const char* name, uint32_t n) = 0; // n parameters
     virtual void procEnd() = 0; // 1 ProcBody
-    virtual void procState(const char* name) = 0; // 1 expr
+    virtual void procState(const char* name, bool hasInvariant) = 0; // 1 expr
     virtual void procStateCommit(const char* name) = 0; // mark previously decl. state
     virtual void procStateUrgent(const char* name) = 0; // mark previously decl. state
     virtual void procStateInit(const char* name) = 0; // mark previously decl. state
     virtual void procTransition(const char* from, const char* to) = 0; 
     virtual void procGuard() = 0; // 1 expr
-    virtual void procSync(uint32_t type) = 0; // 1 expr
+    virtual void procSync(Constants::synchronisation_t type) = 0; // 1 expr
     virtual void procUpdate() = 0; // 1 expr
 
     /*********************************************************************
@@ -149,9 +151,9 @@ namespace UTAP
     virtual void exprPreIncrement() = 0; // 1 expr
     virtual void exprPostDecrement() = 0; // 1 expr
     virtual void exprPreDecrement() = 0; // 1 expr
-    virtual void exprAssignment(uint32_t op) = 0; // 2 expr
-    virtual void exprUnary(uint32_t unaryop) = 0; // 1 expr
-    virtual void exprBinary(uint32_t binaryop) = 0; // 2 expr
+    virtual void exprAssignment(Constants::kind_t op) = 0; // 2 expr
+    virtual void exprUnary(Constants::kind_t unaryop) = 0; // 1 expr
+    virtual void exprBinary(Constants::kind_t binaryop) = 0; // 2 expr
     virtual void exprInlineIf() = 0; // 3 expr
     virtual void exprComma() = 0; // 2 expr
     virtual void exprDot(const char *) = 0; // 1 expr
@@ -169,7 +171,7 @@ namespace UTAP
      * Properties
      */
     virtual void quit() {}
-    virtual void property(uint32_t kind, int line) {}
+    virtual void property(Constants::kind_t kind, int line) {}
 
     /********************************************************************
      * Guiding

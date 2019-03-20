@@ -29,23 +29,44 @@ namespace UTAP
 {
     class frame_t;
     class type_t;
+    class expression_t;
     
     class NoParentException : public std::exception {};
 
-    /** An integer range. Should be integrated with type_t.
-    */
+    /** An integer range. 
+     */
     class range_t {
     public:
 	int lower, upper;
 
+	/** Constructs the empty range */
 	range_t();
+
+	/** Constructs a range containing a single value */
+	range_t(int);
+
+	/** Constructs an interval range */
 	range_t(int,int);
+
+	/** Constructs an internval range */
 	range_t(const std::pair<int,int> &);
+
+	/** Constructs the intersection of two ranges */
 	range_t intersect(const range_t &) const;
+
+	/** Constructs the union of two ranges */
 	range_t join(const range_t &) const;
+
+	/** Returns true if the argument is contained in the range */
 	bool contains(const range_t &) const;
 
+	/** Returns true if the argument is contained in the range */
+	bool contains(int32_t) const;
+
+	/** Equallity operator */
 	bool operator == (const range_t &) const;
+
+	/** Inequallity operator */
 	bool operator != (const range_t &) const;
     };
 
@@ -81,9 +102,6 @@ namespace UTAP
 	/** Default constructor */
 	symbol_t();
 
-	/** Construct symbol from unique id */
-	explicit symbol_t(int32_t id);
-
 	/** Copy constructor */
 	symbol_t(const symbol_t &);
 	
@@ -98,6 +116,9 @@ namespace UTAP
 
 	/** Inequality operator */
 	bool operator != (const symbol_t &) const;
+
+	/** Less-than operator */
+	bool operator < (const symbol_t &) const;
 	
 	/** Get frame this symbol belongs to */
 	frame_t getFrame();
@@ -111,14 +132,14 @@ namespace UTAP
 	/** Returns the user data of this symbol */
 	void *getData();
 
+	/** Return the user data of this symbol */
+	const void *getData() const;
+
 	/** Returns the name (identifier) of this symbol */
 	const char *getName() const;
 	
 	/** Sets the user data of this symbol */
 	void setData(void *);
-
-	/** Get a unique ID identifying this symbol */
-	int32_t getId();
     };
 
     /**
@@ -136,6 +157,11 @@ namespace UTAP
 
        Frames are constructed using one of the static factory methods
        of frame_t. 
+
+       In order to avoid cyclic references no counted reference to
+       the parent frame is maintained. Hence, the existence of the
+       parent frame must be ensured by other means through out the
+       lifetime of the sub-frame.
     */
     class frame_t
     {
@@ -165,7 +191,7 @@ namespace UTAP
 	bool operator != (const frame_t &) const;
 	
 	/** Returns the number of symbols in this frame */
-	int32_t getSize() const;
+	uint32_t getSize() const;
 
 	/** Returns the Nth symbol in this frame. */
 	symbol_t getSymbol(int32_t);
@@ -175,6 +201,9 @@ namespace UTAP
 
 	/** Returns the Nth symbol in this frame. */
 	symbol_t operator[] (int32_t);
+
+	/** Returns the Nth symbol in this frame. */
+	const symbol_t operator[] (int32_t) const;
 
 	/** Adds a symbol of the given name and type to the frame */
 	symbol_t addSymbol(const char *, type_t, void *user = NULL);
@@ -186,7 +215,7 @@ namespace UTAP
 	bool resolve(const char *name, symbol_t &symbol);
 
 	/** Returns the parent frame */
-	frame_t getParent();
+	frame_t getParent() throw (NoParentException);
 
 	/** Returns true if this frame has a parent */
 	bool hasParent() const;
@@ -204,8 +233,7 @@ namespace UTAP
 	    COMMITTED = 2,
 	    CONSTANT = 4,
 	    BROADCAST = 8,
-	    REFERENCE = 16,
-	    SIDE_EFFECT_FREE = 32
+	    REFERENCE = 16
 	};
     }
 
@@ -215,8 +243,7 @@ namespace UTAP
        Types are represented as type objects. Type objects cannot be
        access directly. You need to use an instance of type_t to
        access a type object. Internally, type objects are reference
-       counted and do not need to be deallocated manually. Type
-       objects are immutable.
+       counted and do not need to be deallocated manually. 
 
        Types are either primitive such as clocks or channels, or
        contructed types such as structs and array.  Primitive types
@@ -229,8 +256,8 @@ namespace UTAP
        is the type itself. For constructed types, the base type
        indicates the type constructor (i.e. if this is an array,
        record, etc.). In addition, all types can have a number of
-       prefixes, such as URGENT, COMMITTED, CONSTANT, BROADCAST,
-       REFERENCE and SIDE_EFFECT_FREE. 
+       prefixes, such as URGENT, COMMITTED, CONSTANT, BROADCAST, and
+       REFERENCE.
 
        Constructed types can have other fields: Integers have a range,
        arrays have a size and a sub-type, records have fields,
@@ -249,9 +276,6 @@ namespace UTAP
 
 	/** Copy constructor */
 	type_t(const type_t &);
-
-	/** Construct from id */
-	explicit type_t(int32_t id);
 
 	/** Destructor */
 	~type_t();
@@ -287,16 +311,13 @@ namespace UTAP
 	type_t setPrefix(bool set, prefix::prefix_t) const;
 
 	/** Returns the size of an array */
-	int32_t getArraySize() const;
+	expression_t getArraySize() const;
 
-	/** Get unique id for this type */
-	int32_t getId() const;
-	
 	/** Returns the range of an integer type. */
-	const std::pair<int32_t,int32_t> &getRange() const;
+	std::pair<expression_t, expression_t> getRange() const;
 
 	/** Creates and returns a new integer type with the given range */
-	static type_t createInteger(int32_t, int32_t);
+	static type_t createInteger(expression_t, expression_t);
 	
 	/** Creates and returns a new record type */
 	static type_t createRecord(frame_t);
@@ -305,7 +326,7 @@ namespace UTAP
 	static type_t createFunction(frame_t, type_t);
 
 	/** Creates and returns a new array type */
-	static type_t createArray(int32_t, type_t);
+	static type_t createArray(expression_t, type_t);
 
 	/** Creates and returns a new named type */
 	static type_t createTypeName(type_t);
@@ -326,6 +347,7 @@ namespace UTAP
 	static type_t LOCATION;
 	static type_t CHANNEL;
 	static type_t TEMPLATE;
+	static type_t INSTANCE;
 	static type_t FUNCTION;
 	static type_t ARRAY;
 	static type_t RECORD;

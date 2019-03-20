@@ -1,4 +1,4 @@
-EXTRA_DIST = @PACKAGE@.doxygen
+EXTRA_DIST = @PACKAGE@.doxygen *.html *.png *.css
 
 CLEANFILES = *.html *.gif *.css *.png
 

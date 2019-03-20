@@ -55,29 +55,29 @@ namespace UTAP
     class ExprStatement: public Statement 
     {
     public:
-	ExpressionProgram expr;
-	ExprStatement(frame_t frame, ExpressionProgram&);
+	expression_t expr;
+	ExprStatement(frame_t frame, expression_t);
 	int32_t accept(StatementVisitor *visitor);
     };
 
     class ForStatement: public Statement 
     {
     public:
-	ExpressionProgram init;
-	ExpressionProgram cond;
-	ExpressionProgram step;
+	expression_t init;
+	expression_t cond;
+	expression_t step;
 	Statement *stat;
-	ForStatement(frame_t frame, ExpressionProgram&, 
-		     ExpressionProgram&, ExpressionProgram&, Statement*);
+	ForStatement(frame_t frame, expression_t, 
+		     expression_t, expression_t, Statement*);
 	int32_t accept(StatementVisitor *visitor);
     };
 
     class WhileStatement: public Statement 
     {
     public:
-	ExpressionProgram cond;
+	expression_t cond;
 	Statement *stat;
-	WhileStatement(frame_t frame, ExpressionProgram&, Statement*);
+	WhileStatement(frame_t frame, expression_t, Statement*);
 	int32_t accept(StatementVisitor *visitor);
     };
 
@@ -85,8 +85,8 @@ namespace UTAP
     {
     public:
 	Statement *stat;
-	ExpressionProgram cond;
-	DoWhileStatement(frame_t frameId, Statement*, ExpressionProgram&);
+	expression_t cond;
+	DoWhileStatement(frame_t frameId, Statement*, expression_t);
 	int32_t accept(StatementVisitor *visitor);
     };
 
@@ -110,16 +110,16 @@ namespace UTAP
     class SwitchStatement: public BlockStatement
     {
     public:
-	ExpressionProgram cond;
-	SwitchStatement(frame_t frame, ExpressionProgram&);
+	expression_t cond;
+	SwitchStatement(frame_t frame, expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);  
     };
 
     class CaseStatement: public BlockStatement 
     {
     public:
-	ExpressionProgram cond;
-	CaseStatement(frame_t frame, ExpressionProgram&);
+	expression_t cond;
+	CaseStatement(frame_t frame, expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);
     };
 
@@ -133,10 +133,10 @@ namespace UTAP
     class IfStatement: public Statement 
     {
     public:
-	ExpressionProgram cond;
+	expression_t cond;
 	Statement *trueCase;
 	Statement *falseCase;
-	IfStatement(frame_t frame, ExpressionProgram&, Statement*, 
+	IfStatement(frame_t frame, expression_t, Statement*, 
 		    Statement* falseStat=NULL);
 	virtual int32_t accept(StatementVisitor *visitor);
     };
@@ -158,9 +158,9 @@ namespace UTAP
     class ReturnStatement: public Statement 
     {
     public:
-	ExpressionProgram value;
+	expression_t value;
 	ReturnStatement(frame_t frame);
-	ReturnStatement(frame_t frame, ExpressionProgram&);
+	ReturnStatement(frame_t frame, expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);
     };
 

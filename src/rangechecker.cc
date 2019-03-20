@@ -1,38 +1,52 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2003 Uppsala University and Aalborg University.
+   
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
 #include <cmath>
 #include "utap/rangechecker.hh"
 
 using std::map;
 using std::min;
 using std::max;
+using std::list;
+using std::vector;
+using std::pair;
 
 using namespace UTAP;
 using namespace Constants;
 
-
-RangeChecker::RangeChecker(ErrorHandler *handler) : ContextVisitor(handler)
+RangeChecker::RangeChecker(TimedAutomataSystem *system)
+    : system(system), interpreter(system->getConstantValuation())
 {
-
+    
 }
 
-RangeChecker::RangeChecker(ErrorHandler *handler, process_t &proc)
-    : ContextVisitor(handler)
+RangeChecker::RangeChecker(TimedAutomataSystem *system, const process_t &proc)
+    : system(system), interpreter(system->getConstantValuation())
 {
-    map<int32_t, ExpressionProgram>::iterator i;
-
-    i = proc.mapping.begin();
-    while (i != proc.mapping.end()) {
-	symbol_t symbol(i->first);
-	if (symbol.getType().hasPrefix(prefix::CONSTANT)
-	    && symbol.getType().getBase() == type_t::INT)
-	{
-	    ranges[i->first] = getRange(i->second);
-	}
-	++i;
-    }
+    interpreter.addValuation(proc.mapping);
 }
 
+/** Returns the range of a binary expression. */
 range_t RangeChecker::rangeOfBinary(
-    SubExpression left, uint32_t op, SubExpression right) const
+    expression_t left, uint32_t op, expression_t right) const
 {
     int32_t t1, t2, t3, t4;
     range_t lrange = getRange(left);
@@ -103,37 +117,57 @@ range_t RangeChecker::rangeOfBinary(
 /**
    Returns the declared range of a variable. The argument must be an
    expression referring to a variable. The range returned is the
-   declared range of that variable.
+   declared range of that variable, which might depend on the current
+   mapping.
 */
-range_t RangeChecker::getDeclaredRange(SubExpression expr) 
+range_t RangeChecker::getDeclaredRange(expression_t expr) const
 {
-    type_t type = expr.getSymbol().getType();
-    while (type.getBase() == type_t::ARRAY)
-	type = type.getSub();
-    if (type.getBase() != type_t::INT) 
-	throw UndefinedRangeException();
-    return range_t(type.getRange());
+    return getDeclaredRange(expr.getSymbol());
 }
 
-range_t RangeChecker::getRange(symbol_t symbol) const
+/**
+   Returns the declared range of a variable. The argument must be the
+   symbol of a variable. The range returned is the declared range of
+   that variable, which might depend on the current mapping.
+*/
+range_t RangeChecker::getDeclaredRange(symbol_t symbol) const
 {
     type_t type = symbol.getType();
-    if (type.getBase() == type_t::LOCATION)
-	return range_t(0,1);
-    map<int, range_t>::const_iterator i = ranges.find(symbol.getId());
-    if (i != ranges.end())
-	return i->second;    
     while (type.getBase() == type_t::ARRAY)
 	type = type.getSub();
+    if (type.getBase() == type_t::LOCATION)
+	return range_t(0, 1);
     if (type.getBase() != type_t::INT) 
 	throw UndefinedRangeException();
-    return range_t(type.getRange());
+
+    try {
+	return interpreter.evaluate(type.getRange());
+    } catch (InterpreterException) {
+	throw UndefinedRangeException();
+    }
 }
 
-range_t RangeChecker::getRange(SubExpression expr) const
+/** Returns the range of a symbol taking the current mapping
+    into account.
+*/
+range_t RangeChecker::getRange(symbol_t symbol) const
+{
+    map<symbol_t, expression_t>::const_iterator i = 
+	interpreter.getValuation().find(symbol);
+    if (i != interpreter.getValuation().end())
+	return getRange(i->second);
+    return getDeclaredRange(symbol);
+}
+
+/** Returns the range of an expression taking the current mapping
+    into account.
+*/
+range_t RangeChecker::getRange(expression_t expr) const
 {
     range_t range;
-    
+    int32_t value;
+
+    // If the evaluation failed, we need to compute the range
     switch (expr.getKind()) {
     case PLUS:
     case MINUS:
@@ -158,7 +192,11 @@ range_t RangeChecker::getRange(SubExpression expr) const
     case GE:
     case GT:
     case NOT:
-	return range_t(0,1);
+	try {
+	    return range_t(interpreter.evaluate(expr));
+	} catch (InterpreterException) {
+	    return range_t(0,1);
+	}
 
     case UNARY_MINUS:
 	range = getRange(expr[0]);
@@ -220,30 +258,57 @@ range_t RangeChecker::getRange(SubExpression expr) const
 	return range_t(range.lower, range.upper - 1);
     
     case INLINEIF:
-	return getRange(expr[1]).join(getRange(expr[2]));
+	try {
+	    return range_t(interpreter.evaluate(expr));
+	} catch (InterpreterException) {
+	    return getRange(expr[1]).join(getRange(expr[2]));
+	}
       
     case COMMA:
 	return getRange(expr[1]);
       
     case FUNCALL:
-	assert(false);
+	throw UndefinedRangeException();
 	// TODO
-	break;
       
     case ARRAY:
-    case IDENTIFIER:
-	return getRange(expr.getSymbol());
-	
-    case CONSTANT:
-	return range_t(expr.getValue(), expr.getValue());
+	if (!expr.getSymbol().getType().hasPrefix(prefix::CONSTANT)) {
+	    return getDeclaredRange(expr);
+	}
 
+	// First try to evaluate the expression.
+	try {
+	    return range_t(interpreter.evaluate(expr));
+	} catch (InterpreterException) {
+	    // In case evaluation fails, we must compute a range based
+	    // on the initialiser of the array. This is because
+	    // constant integers do not have a declared range.
+	    vector<int32_t> result;
+	    interpreter.evaluate(expression_t::createIdentifier(
+				     position_t(), expr.getSymbol()),
+				 result);
+	    for (uint32_t i = 0; i < result.size(); i++)
+		range = range.join(range_t(result[i]));
+	    return range;
+	}
+	
+    case IDENTIFIER:
     case DOT:
-	return getRange(expr.getSymbol());
+	try {
+	    return range_t(interpreter.evaluate(expr));
+	} catch (InterpreterException) {
+	    return getDeclaredRange(expr);
+	}
+
+    case CONSTANT:
+	return range_t(expr.getValue());
+
+    default:
+	throw UndefinedRangeException();
     }
     
-    throw UndefinedRangeException();
 }
-
+#if 0
 /** Check the integer ranges in the given expression. Any warnings and
     errors regarding out of range array indices and assignments are
     produced. NOTE: The worst case complexity of the current
@@ -251,9 +316,9 @@ range_t RangeChecker::getRange(SubExpression expr) const
     it using dynamic programming (i.e. return the range of
     expression). However, I believe this will not be an issue.
 */
-void RangeChecker::checkRange(SubExpression expr) 
+void RangeChecker::checkRange(expression_t expr) 
 {
-    for (int i = 0; i < expr.getSize(); i++) 
+    for (uint32_t i = 0; i < expr.getSize(); i++) 
 	checkRange(expr[i]);
 
     range_t drange, range;
@@ -320,6 +385,8 @@ void RangeChecker::checkRange(SubExpression expr)
 	case ASSRSHIFT:
 	    range = rangeOfBinary(expr[0], BIT_RSHIFT, expr[1]);
 	    break;
+	default:
+	    assert(0);
 	}
 
 	if (range.lower > drange.upper || range.upper < drange.lower)
@@ -352,6 +419,10 @@ void RangeChecker::checkRange(SubExpression expr)
 	else if (range.lower < 0 || range.upper >= size)
 	    handleWarning(expr, "Index possibly out of range");
 	break;
+
+    default:
+	;
+	// do nothing
     }
 }
 
@@ -363,8 +434,16 @@ void RangeChecker::visitState(state_t &state)
 
 void RangeChecker::visitTransition(transition_t &transition)
 {
-    setContextGuard(transition);	checkRange(transition.guard);
-    setContextSync(transition);		checkRange(transition.sync);
-    setContextAssignment(transition);	checkRange(transition.assign);
+    setContextGuard(transition);	
+    checkRange(transition.guard);
+    
+    if (!transition.sync.empty()) {
+ 	setContextSync(transition);		
+ 	checkRange(transition.sync);
+    }
+
+    setContextAssignment(transition);	
+    checkRange(transition.assign);
 }
 
+#endif

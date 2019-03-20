@@ -1,5 +1,7 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -110,13 +112,17 @@ void ErrorHandler::clear()
 ostream &operator <<(ostream &out, const ErrorHandler::error_t &e) 
 {
   out << e.msg << " at ";
-  if (e.fline != e.lline)                      
-    out << e.fline << "." << e.fcolumn << "-" 
-        << e.lline << "." << (e.lcolumn-1);
+
+  if (e.xpath) 
+    out << e.xpath << " ";
+
+  if (e.fline != e.lline) 
+    out << "line " << e.fline << " pos " << e.fcolumn << " to "
+	<< "line " << e.lline << " pos " << e.lcolumn - 1;
   else if (e.fcolumn < e.lcolumn-1)
-    out << e.fline << "." << e.fcolumn << "-" << (e.lcolumn-1);
+    out << "line " << e.fline << " pos " << e.fcolumn << "-" << (e.lcolumn-1);
   else                                                          
-    out << e.fline << "." << e.fcolumn;
+    out << "line " << e.fline << " pos " << e.fcolumn;
   //  out << " (" << e.fchar << "-" << e.lchar << ")";
   return out;
 };

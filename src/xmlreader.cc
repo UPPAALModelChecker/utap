@@ -23,8 +23,9 @@
 #include "libxml/parserInternals.h"
 #include "libparser.hh"
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <ctype.h>
+#include <cassert>
 
 #include <vector>
 #include <map>
@@ -779,17 +780,13 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	    }
 	    s->locations[(char*)s->id] = s->lname;
 	    if (isempty(s->invariant)) {
-		try { s->parser->exprTrue(); }
-		catch(TypeException te) { 
-		    s->errorHandler->handleError(te.what());
-		}
-		try { s->parser->procState(s->lname); }
+		try { s->parser->procState(s->lname, false); }
 		catch(TypeException te) { 
 		    s->errorHandler->handleError(te.what());
 		}
 	    } else {
 		parseXTA(s->invariant, s->parser, s->errorHandler, s->newxta, S_INVARIANT);
-		try { s->parser->procState(s->lname); }
+		try { s->parser->procState(s->lname, true); }
 		catch(TypeException te) { 
 		    s->errorHandler->handleError(te.what());
 		}

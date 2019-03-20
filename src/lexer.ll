@@ -52,7 +52,6 @@ idchr	[a-zA-Z0-9_$#]
   "*/"         { BEGIN(INITIAL); }
   "//"[^\n]*   /* Single line comments take precedence over multilines */;
   <<EOF>>      { yyerror("Unclosed comment."); }
-  [^*/\n]*     /* ignore anything thats not a '*' or '/' to increase speed */;
   .            /* ignore (multiline comments)*/
 }
 
@@ -68,6 +67,12 @@ idchr	[a-zA-Z0-9_$#]
 
 \n+		{
                   yylloc.lines(yyleng); 
+		  if (syntax == SYNTAX_PROPERTY)
+		    return '\n';
+                }
+
+(\r\n)+         {
+                  yylloc.lines(yyleng / 2);
 		  if (syntax == SYNTAX_PROPERTY)
 		    return '\n';
                 }

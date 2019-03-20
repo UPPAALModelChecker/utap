@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -22,286 +22,208 @@
 #ifndef UTAP_EXPRESSION_HH
 #define UTAP_EXPRESSION_HH
 
-#include <list>
 #include <vector>
 #include <set>
+#include <map>
 
 #include "utap/common.hh"
 #include "utap/symbols.hh"
 
 namespace UTAP
 {
-    class SubExpression;
+    /** 
+	A reference to an expression.
 
-    /** Representation of an expression in reverse polish notation.
-	Expressions are represented in revere polish notation as a
-	list of expression_t structures. For instance, the expression
-	3 + (4 * 2) is represented by the instruction sequence [3] [4]
-	[2] [*] [+].
+	An expression is a tree of operations and is identified by the
+	root of the tree. There are many kinds of operations (see kind_t),
+	some are leafs in the tree (identifers, constants), some are
+	unary operations (unary minus, negation), some are binary (plus,
+	minus, etc.), and some are n-ary (lists, function calls).
 
-	You can also think of this a program for a simple stack
-	machine and each element is an instruction. To make any sence,
-	the instructions must be executed/evaluated.
+	Expressions can be annotated with types. The type of an
+	expression should never contain information about whether the
+	expression is a variable reference, a constant value or about
+	the range of the result value. Use the TypeChecker and
+	RangeChecker classes to determine these informations.
 
-	Each 'instruction' contains information of the 'operation'
-        (identifier, number, binary operations, etc; for this entry
-        the constants defined in ParserBuilder are used), a value
-        (number, ID of a symbol or type, etc), and the type of the
-        result of the operation.
+	All nodes have the following attributes: 
 
-	In many ways, an ExpressionProgram simply stores the sequence
-	of calls of the exprXXX methods in the abstract ParserBuilder
-	class.
+	kind     indicates the kind of operation
+	position indicates the position of the expression in the input file.
+	type     the type of the result of evaluating the expression
+	size     the number of subexpressions
+	sub      the subexpressions
+	
+	Some nodes have extra attributes (depending on the kind):
 
-	See also SubExpression.
+	value    the value of a CONSTANT node
+	sync     the synchronisation of a SYNC node
+	index    the index of a DOT node
+	symbol   the symbol of an IDENTIFIER node
+
+	Expressions are created by using the static factory methods.
     */
-    class ExpressionProgram
-    {
-    public:
-	struct expression_t {
-	    uint32_t kind;	/**< The kind of operation */
-	    int32_t value;	/**< A value; interpretation depends on kind */
-	    type_t type;	/**< The type of the result */
-	    position_t position;/**< Textual position (for error reporting) */
-	    expression_t(position_t p, uint32_t k, int32_t v, type_t t) 
-		: kind(k), value(v), type(t), position(p) {}
-	};
-	typedef std::list<expression_t>::iterator iterator;
-	typedef std::list<expression_t>::const_iterator const_iterator;
 
+    class expression_t 
+    {
     private:
-	std::list<expression_t> expr;
-
+	expression_t(Constants::kind_t, const position_t &);
     public:
-	/** Create empty expression program */
-	ExpressionProgram() {}
+	/** Default constructor. Creates an empty expression. */
+	expression_t();
 
-	/** Create expression program containing one operation */
-	ExpressionProgram(const expression_t &e) { append(e); }
+	/** Copy constructor. */
+	expression_t(const expression_t &);
 
-	/** Create expression program. Insert operations between first
-	    and last.
-	*/
-	ExpressionProgram(const_iterator first, const_iterator last)
-	    : expr(first, last) {}
+	/** Destructor. */
+	~expression_t();
 
-	/** Create expression program containing one operation */
-	ExpressionProgram(const position_t &pos, uint32_t kind, int32_t value, type_t type) {
-	    append(pos, kind, value, type);
-	}
+	/** Returns the kind of the expression. */
+	Constants::kind_t getKind() const;
 
-	/** Returns iterator to the beginning of the program */
-	iterator begin() { return expr.begin(); }
+	/** Returns the number of subexpression. */
+	uint32_t getSize() const;
 
-	/** Returns iterator to the end of the program */
-	iterator end()   { return expr.end(); }
-
-	/** Returns iterator to the beginning of the program */
-	const_iterator begin() const { return expr.begin(); }
-
-	/** Returns iterator to the end of the program */
-	const_iterator end() const   { return expr.end(); }
-
-	/** Appends operations of another expression program */
-	void append(ExpressionProgram &e) { append(e.begin(), e.end()); }
-
-	/** Appends operations between first and last */
-	void append(iterator first, iterator last)   { insert(end(), first, last); }
-
-	/** Appends an operation */
-	void append(const expression_t &e)           { insert(end(), e); }
-
-	/** Appends an operation */
-	void append(const position_t &pos, uint32_t kind,
-		    int32_t value, type_t type) {
-	    append(expression_t(pos, kind, value, type));
-	}
-
-	/** Appends another expression */
-	void append(SubExpression op);
-
-	/** Insert operation at position */
-	void insert(iterator pos, const expression_t &e) { expr.insert(pos, e); }
-	/** Insert operations between first and last at position */
-	void insert(iterator pos, const_iterator first, const_iterator last) {
-	    expr.insert(pos, first, last);
-	}
-
-	/** Erase operation at position */
-	void erase(iterator pos)                     { expr.erase(pos); }
-
-	/** Erase operations between first and last */
-	void erase(iterator first, iterator last)    { expr.erase(first, last); }
-
-	/** Erase all operations */
-	void clear()                                 { expr.clear(); }
-
-	/** Returns last operation */
-	expression_t &back() { return expr.back(); }
-
-	/** Returns the result type of the expression */
-	type_t getType() const { return expr.back().type; }
-
-	/** Decompose operation at position into subexpressions.  The
-	    first position of each subexpression is stored in the sub
-	    vector. The number of subexpressions is returned.
-	*/
-	int decompose(const_iterator pos, std::vector<const_iterator> &sub) const;
-
-	/** Decompose operation at position into subexpressions.  The
-	    first position of each subexpression is stored in the sub
-	    vector. The number of subexpressions is returned.
-	*/
-	int decompose(iterator pos, std::vector<iterator> &sub);
-
-	const_iterator findStartOf(const_iterator expr) const;
-	iterator findStartOf(iterator expr);
-
-	/** Returns the arity of an operation */
-	int getNumberOfSubExpressions(const expression_t &expr) const;
-
-	/** Returns true if this is an empty expression */
-	bool empty() const { return expr.empty(); }
-    };
-
-    /** A tree-view of an ExpressionProgram. */
-    class SubExpression
-    {
-    public:
-	SubExpression(ExpressionProgram &);
-
-	uint32_t getKind() const;
-	int32_t getValue() const;
+	/** Returns the position of this expression. */
+	const position_t &getPosition() const;	
+	
+	/** Returns the type of the expression. */
 	type_t getType() const;
-	int32_t getSize() const;
-	const position_t &getPosition() const;
+
+	/** Sets the type of the expression. */
 	void setType(type_t);
-	void setValue(int32_t);
 
-	ExpressionProgram::const_iterator begin() const;
-	ExpressionProgram::const_iterator end() const;
-	ExpressionProgram::iterator begin();
-	ExpressionProgram::iterator end();
+	/** Returns the value field of this expression. This
+	    call is not valid for all expressions. */
+	int32_t getValue() const;
 
-	void move(int32_t, int32_t);
-	void replace(ExpressionProgram &);
+	/** Returns the index field of this expression. */
+	int32_t getIndex() const;
 
-	ExpressionProgram &getExpression();
+	/** Returns true if this is an empty expression. */
+	bool empty() const;
 
-	SubExpression operator[] (uint32_t);
-	const SubExpression operator[] (uint32_t) const;
-	SubExpression get(uint32_t);
-	const SubExpression get(uint32_t) const;
+	/** Returns the synchronisation type of SYNC operations. */
+	Constants::synchronisation_t getSync() const;
 
-	symbol_t getSymbol() const;
-	bool isReferenceTo(const std::set<int> &) const;
-	bool changesVariable(const std::set<int> &) const;
-	bool dependsOn(const std::set<int> &) const;
+	/** Returns a string representation of the expression. */
+	char *toString(bool old = false) const;
+
+	/** Returns the ith subexpression. */
+	expression_t &operator[](uint32_t);
+	
+	/** Returns the ith subexpression. */
+	const expression_t operator[](uint32_t) const;
+
+	/** Returns the ith subexpression. */
+	expression_t &get(uint32_t);
+
+	/** Returns the ith subexpression. */
+	const expression_t &get(uint32_t) const;
+
+	/** Assignment operator. */
+	expression_t &operator=(const expression_t &);
+
+	/** Equallity operator */
+	bool equal(const expression_t &) const;
+
+	/** Returns the symbol this expression evaluates to. Notice
+	    that not all expression evaluate to a symbol. */
+	symbol_t getSymbol();
+
+	/** Returns the symbol this expression evaluates to. Notice
+	    that not all expression evaluate to a symbol. */
+	const symbol_t getSymbol() const;
+
+	/** Returns true if this expression is a reference to a
+	    symbol in the given set. */
+	bool isReferenceTo(const std::set<symbol_t> &) const;
+
+	/** True if this expression can change any of the variables
+	    identified by the given symbols. */
+	bool changesVariable(const std::set<symbol_t> &) const;
+
+	/** True if the evaluation of this expression depends on 
+	    any of the symbols in the given set. */
+	bool dependsOn(const std::set<symbol_t> &) const;
+
+	/** Create a CONSTANT expression. */
+	static expression_t createConstant(const position_t &, int32_t);
+
+	/** Create an IDENTIFIER expression */
+	static expression_t createIdentifier(const position_t &, symbol_t);
+
+	/** Create a unary expression */
+	static expression_t createUnary(const position_t &, Constants::kind_t,
+					expression_t, type_t = type_t::UNKNOWN);
+	/** Create a binary expression */
+	static expression_t createBinary(const position_t &, Constants::kind_t,
+					 expression_t, expression_t,
+					 type_t = type_t::UNKNOWN);
+
+	/** Create a ternary expression */
+	static expression_t createTernary(const position_t &,
+					  Constants::kind_t, expression_t, 
+					  expression_t, expression_t,
+					  type_t = type_t::UNKNOWN);
+
+	/** Create an n-ary expression */
+	static expression_t createNary(const position_t &, Constants::kind_t, 
+				       const std::vector<expression_t> &,
+				       type_t = type_t::UNKNOWN);
+
+	/** Create a DOT expression */
+	static expression_t createDot(const position_t &, expression_t,
+				      int32_t = -1, type_t = type_t::UNKNOWN);
+
+	/** Create a SYNC expression */
+	static expression_t createSync(const position_t &, expression_t, 
+				       Constants::synchronisation_t);
+
+	/** Create a DEADLOCK expression */
+	static expression_t createDeadlock(const position_t &);
+
     private:
-	friend class ExpressionProgram;
-	SubExpression(ExpressionProgram &e, ExpressionProgram::iterator &o);
-	ExpressionProgram &expr;
-	ExpressionProgram::iterator pos;
+	struct expression_data;
+	expression_data *data;
+	int getPrecedence() const;
+	std::pair<int, char*> toString_(bool) const;
     };
 
-    inline SubExpression::SubExpression(ExpressionProgram &e, 
-					ExpressionProgram::iterator &o)
-	: expr(e), pos(o)
+    class InterpreterException : public std::exception
     {
+    public:
+	const char *what() const throw() { return "InterpreterException"; }
+    };
 
-    }
-
-    inline SubExpression::SubExpression(ExpressionProgram &expr)
-	: expr(expr), pos(--expr.end())
+    class Interpreter
     {
+    private:
+	std::map<symbol_t, expression_t> valuation;
+	int32_t evaluateBinary(int32_t left, Constants::kind_t, int32_t right) const;
+    public:
+	Interpreter();
+	Interpreter(const std::map<symbol_t, expression_t> &);
 
-    }
+	void addValuation(const std::map<symbol_t, expression_t> &);
 
-    inline uint32_t SubExpression::getKind() const
-    {
-	return pos->kind; 
-    }
+	const std::map<symbol_t, expression_t> &getValuation() const;
 
-    inline int32_t SubExpression::getValue() const
-    { 
-	return pos->value; 
-    }
+	int32_t evaluate(const expression_t) const
+	    throw (InterpreterException);
+	void evaluate(const expression_t, std::vector<int32_t> &) const
+	    throw (InterpreterException);
+	range_t evaluate(
+	    std::pair<expression_t, expression_t>) const
+	    throw (InterpreterException);
 
-    inline void SubExpression::setValue(int32_t value)
-    {
-	pos->value = value;
-    }
+	int32_t sizeOfType(type_t) const;
 
-    inline type_t SubExpression::getType() const
-    {
-	return pos->type; 
-    }
-
-    inline void SubExpression::setType(type_t value)
-    {
-	pos->type = value;
-    }
-
-    inline int32_t SubExpression::getSize() const
-    {
-	return expr.getNumberOfSubExpressions(*pos); 
-    }
-
-    inline ExpressionProgram::iterator SubExpression::begin()
-    {
-	return expr.findStartOf(pos);
-    }
-
-    inline ExpressionProgram::iterator SubExpression::end() 
-    {
-	ExpressionProgram::iterator result = pos;
-	return ++result;
-    }
-
-    inline ExpressionProgram::const_iterator SubExpression::begin() const
-    {
-	return expr.findStartOf(pos);
-    }
-
-    inline ExpressionProgram::const_iterator SubExpression::end() const
-    {
-	ExpressionProgram::iterator result = pos;
-	return ++result;
-    }
-
-    inline SubExpression SubExpression::operator[] (uint32_t idx)
-    {
-	return get(idx);
-    }
-
-    inline const SubExpression SubExpression::operator[] (uint32_t idx) const
-    {
-	return get(idx);
-    }
-
-    inline void SubExpression::move(int src, int dst)
-    {
-	SubExpression d = get(dst);
-	SubExpression s = get(src);
-	expr.insert(d.begin(), s.begin(), s.end());
-	expr.erase(s.begin(), s.end());
-    }
-
-    inline void SubExpression::replace(ExpressionProgram &e)
-    {
-	ExpressionProgram::iterator first = begin();
-	ExpressionProgram::iterator last = end();
-        expr.insert(first, e.begin(), e.end());
-	pos = first;
-	--pos;
-	expr.erase(first, last);
-    }
-   
-    inline ExpressionProgram &SubExpression::getExpression()
-    {
-	return expr;
-    }
+    };
 
 }
 
 #endif
+
+
+

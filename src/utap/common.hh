@@ -208,8 +208,7 @@ namespace UTAP
 	 */
 	enum synchronisation_t {
 	    SYNC_QUE = 0,
-	    SYNC_BANG = 1,
-	    SYNC_TAU = 2
+	    SYNC_BANG = 1
 	};
     }
 }

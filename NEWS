@@ -1,3 +1,7 @@
+New in 0.40
+* Bug fixes
+* Reimplemented expression representation
+
 New in 0.30
 * Bug fixes
 * Reimplementation of type and symbol handling, see the new

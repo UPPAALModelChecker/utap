@@ -346,18 +346,24 @@ public:
 	level += 1;
     }
 
-    virtual void procState(const char *id) {
+    virtual void procState(const char *id, bool hasInvariant) {
 	if (first) {
 	    first = false;
 	    indent();
-	    *o.top() << "state " << id;
+	    *o.top() << "state\n";
 	} else {
-	    *o.top() << ", " << id;
+	    *o.top() << ",\n";
 	}
 
-	if (st.back() != "true")
+	level++;
+	indent();
+	level--;
+
+	*o.top() << id;
+	if (hasInvariant) {
 	    *o.top() << '{' << st.back() << '}';
-	st.pop_back();
+	    st.pop_back();
+	}
     }
 
     virtual void procStateUrgent(const char *id) {
@@ -403,7 +409,7 @@ public:
 	guard = st.size();
     }
     
-    virtual void procSync(uint32_t type) {
+    virtual void procSync(synchronisation_t type) {
 	switch (type) {
 	case SYNC_QUE:
 	    st.back() += '?';
@@ -411,11 +417,6 @@ public:
 	case SYNC_BANG:
 	    st.back() += '!';
 	    break;
-	case SYNC_TAU:
-	    st.push_back(string());
-	    break;
-	default:
-	    throw TypeException("Invalid synchronisation");
 	}
 	sync = st.size();
     }
@@ -439,47 +440,33 @@ public:
 	indent();
 	*o.top() << source << " -> " << target << " {" << endl;
 
-	// Complete labels
-	if (update == -1) {
-	    exprTrue();
-	    procUpdate();
-	}
-
-	if (sync == -1) {
-	    procSync(SYNC_TAU);
-	}
-
-	if (guard == -1) {
-	    exprTrue();
-	    procGuard();
-	}
-
-	string assign = st[this->update - 1];
-	string sync   = st[this->sync - 1];
-	string guard  = st[this->guard - 1];
-
-	st.pop_back(); st.pop_back(); st.pop_back();
-
-	this->update = this->sync = this->guard = -1;
-
 	level++;
       
-	if (guard != "true") {
+	if (guard != -1) {
+	    string guard  = st[this->guard - 1];
 	    indent();
 	    *o.top() << "guard " << guard << ';' << endl;
 	}
 
-	if (!sync.empty()) {
+	if (sync != -1) {
+	    string sync = st[this->sync - 1];
 	    indent();
 	    *o.top() << "sync " << sync << ';' << endl;
 	}
 
-	if (assign != "true") {
+	if (update != -1) {
+	    string assign = st[this->update - 1];
 	    indent();
 	    *o.top() << "assign " << assign << ';' << endl;
 	}
 
 	level--;
+
+	if (guard != -1) st.pop_back(); 
+	if (sync != -1) st.pop_back();
+	if (update != -1) st.pop_back(); 
+
+	this->update = this->sync = this->guard = -1;
     
 	indent();
 	*o.top() << '}';
@@ -551,7 +538,7 @@ public:
 	st.back() = "--" + st.back();
     }
 
-    virtual void exprAssignment(uint32_t op) {
+    virtual void exprAssignment(kind_t op) {
 	string rhs = st.back(); st.pop_back();
 	string lhs = st.back(); st.pop_back();
 
@@ -595,7 +582,7 @@ public:
 	}
     }
 
-    virtual void exprUnary(uint32_t op) {
+    virtual void exprUnary(kind_t op) {
 	string exp = st.back(); st.pop_back();
 
 	st.push_back(string());
@@ -611,7 +598,7 @@ public:
 	}
     }
 
-    virtual void exprBinary(uint32_t op) {
+    virtual void exprBinary(kind_t op) {
 	string exp2 = st.back(); st.pop_back();
 	string exp1 = st.back(); st.pop_back();
     
@@ -776,39 +763,54 @@ int main(int argc, char *argv[])
 
     TimedAutomataSystem system;
 
-    ParserBuilder *b;
+    ParserBuilder *b = NULL;
     if (check) {
-	b = new SystemBuilder(&system);
+  	b = new SystemBuilder(&system);
     } else {
-	b = new PrettyPrinter(cout);
+  	b = new PrettyPrinter(cout);
     }
     
     ErrorHandler errorHandler;
     try {
-	if (xml) {
-	    if (argc - optind != 1)
-		exit(1);
-	    parseXMLFile(argv[optind], b, &errorHandler, !old);
-	} else {
-	    parseXTA(stdin, b, &errorHandler, !old);
-	}
+  	if (xml) {
+  	    if (argc - optind != 1)
+  		exit(1);
+  	    parseXMLFile(argv[optind], b, &errorHandler, !old);
+  	} else {
+  	    parseXTA(stdin, b, &errorHandler, !old);
+  	}
     } catch (TypeException e) {
-	cerr << e.what() << endl;
+  	cerr << e.what() << endl;
     }
 
     if (check) {
-	TypeChecker tc(&errorHandler);
-	RangeChecker rc(&errorHandler);
-	system.accept(tc);
-	system.accept(rc);
+    	TypeChecker tc(&errorHandler);
+    	system.accept(tc);
     }
     
     vector<ErrorHandler::error_t>::const_iterator it;
     const vector<ErrorHandler::error_t> &errors = errorHandler.getErrors();
     const vector<ErrorHandler::error_t> &warns = errorHandler.getWarnings();
+
     for (it = errors.begin(); it != errors.end(); it++)
-	cerr << *it << endl;
+   	cerr << *it << endl;
     for (it = warns.begin(); it != warns.end(); it++)
-	cerr << *it << endl;
+   	cerr << *it << endl;
+
+    delete b;
+
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

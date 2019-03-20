@@ -21,6 +21,8 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cassert>
+
 #include "utap/typechecker.hh"
 #include "utap/systembuilder.hh"
 
@@ -36,36 +38,39 @@ using std::vector;
 using namespace UTAP;
 using namespace Constants;
 
+std::map<symbol_t, expression_t> TypeChecker::empty;
+
 class InitialiserException : public std::exception
 {
 private:
-    SubExpression expr;
+    expression_t expr;
     char msg[256];
 public:
-    InitialiserException(const SubExpression &expr, const char *m):
+    InitialiserException(expression_t expr, const char *m):
 	expr(expr) { strncpy(msg, m, 256); }
-    SubExpression getExpression() { return expr; }
+    ~InitialiserException() throw() {}
+    expression_t getExpression() { return expr; }
     const char *what() const throw() { return msg; }
 };
 
 void PersistentVariables::visitVariable(variable_t &variable)
 {
-    variables.insert(variable.uid.getId());
-}
-
-void PersistentVariables::visitClock(clock_t &clock)
-{
-    variables.insert(clock.uid.getId());
+    if (!variable.uid.getType().hasPrefix(prefix::CONSTANT))
+	variables.insert(variable.uid);
 }
 
 void PersistentVariables::visitTemplateAfter(template_t &temp)
 {
     frame_t parameters = temp.uid.getType().getFrame();
-    for (int i = 0; i < parameters.getSize(); i++) 
-	variables.insert(parameters[i].getId());
+    for (uint32_t i = 0; i < parameters.getSize(); i++) 
+	if (parameters[i].getType().hasPrefix(prefix::REFERENCE)
+	    || !parameters[i].getType().hasPrefix(prefix::CONSTANT))
+	{
+	    variables.insert(parameters[i]);
+	}
 }
 
-const set<int> &PersistentVariables::get() const
+const set<symbol_t> &PersistentVariables::get() const
 {
     return variables;
 }
@@ -81,58 +86,62 @@ void TypeChecker::visitSystemBefore(TimedAutomataSystem *value)
     system->accept(persistentVariables);
 }
 
-void TypeChecker::visitConstant(constant_t &constant)
+/** Checks that the range of an integer (if it has one) is type correct. */
+void TypeChecker::checkIntegerType(type_t type)
+{
+    assert(type.getBase() == type_t::INT);
+
+    expression_t lower = type.getRange().first;
+    expression_t upper = type.getRange().second;
+
+    // Check if there is a range; if not then return
+    if (lower.empty())
+	return;
+
+    annotate(lower);
+    annotate(upper);
+
+    if (!isInteger(lower))
+	handleError(lower, "Integer expression expected");
+    else if (lower.dependsOn(persistentVariables.get()))
+	handleError(lower, "Constant expression expected");
+
+    if (!isInteger(upper))
+	handleError(upper, "Integer expression expected");
+    else if (upper.dependsOn(persistentVariables.get()))
+	handleError(upper, "Constant expression expected");
+}
+
+void TypeChecker::visitConstant(variable_t &constant)
 {
     setContextDeclaration();
     type_t type = constant.uid.getType();
-    try {
-	annotate(constant.expr);
-	if (!isSideEffectFree(constant.expr)) {
-	    handleError(constant.expr,
-			"Initialiser must not have side effects");
-	} else {
-	    checkInitialiser(type, constant.expr);
-	}
-    } catch (InitialiserException &e) {
-	handleError(e.getExpression(), e.what());
-    }
-    if (type.getBase() == type_t::INT) {
-	pair<int32_t, int32_t> range = constant.expr.getType().getRange();
-	constant.uid.setType(type_t::createInteger(range.first, range.second)
-			     .setPrefix(true, prefix::CONSTANT));
-    }
+    if (type.getBase() == type_t::INT) 
+	checkIntegerType(type);
+    checkInitialiser(constant);
 }
 
 void TypeChecker::visitVariable(variable_t &variable)
 {
     setContextDeclaration();
-    try {
-	if (variable.expr.empty()) {
-	    insertDefault(variable.expr, variable.expr.begin(),
-			  variable.uid.getType());
-	} else {
-	    annotate(variable.expr);
-	    if (!isSideEffectFree(variable.expr)) {
-		handleError(variable.expr,
-			    "Initialiser must not have side effects");
-	    } else {
-		checkInitialiser(variable.uid.getType(), variable.expr);
-	    }
-	}
-    } catch (InitialiserException &e) {
-	handleError(e.getExpression(), e.what());
-    }
+    type_t type = variable.uid.getType();
+    if (type.getBase() == type_t::INT) 
+	checkIntegerType(type);
+
+    checkInitialiser(variable);
 }
 
 void TypeChecker::visitState(state_t &state)
 {
-    setContextInvariant(state);
-    annotate(state.invariant);
-
-    if (!isInvariant(state.invariant))
-	handleError(state.invariant, "Invalid invariant expression");
-    if (!isSideEffectFree(state.invariant))
-	handleError(state.invariant, "Invariant must be side effect free");
+    if (!state.invariant.empty()) {
+	setContextInvariant(state);
+	annotate(state.invariant);
+    
+	if (!isInvariant(state.invariant))
+	    handleError(state.invariant, "Invalid invariant expression");
+	if (!isSideEffectFree(state.invariant))
+	    handleError(state.invariant, "Invariant must be side effect free");
+    }
 }
 
 void TypeChecker::visitTransition(transition_t &transition)
@@ -147,27 +156,45 @@ void TypeChecker::visitTransition(transition_t &transition)
 	handleError(transition.guard, "Guard must be side effect free");
 
     // sync
-    setContextSync(transition);
-    annotate(transition.sync);    
-    if (!isSideEffectFree(transition.sync))
-	handleError(transition.sync,
-		    "Synchronisation must be side effect free");
+    if (!transition.sync.empty()) {
+	setContextSync(transition);
+	annotate(transition.sync);    
 
-    if (!transition.guard.empty()
-	&& transition.guard.getType().getBase() != type_t::INT)
-    {
-	assert(transition.sync.getType() == type_t::CHANNEL);
-	if (transition.sync.getType().hasPrefix(prefix::URGENT))
+	if (!isSideEffectFree(transition.sync))
+	    handleError(transition.sync,
+			"Synchronisation must be side effect free");
+
+	type_t channel = transition.sync.get(0).getType();
+	assert(channel.getBase() == type_t::CHANNEL);
+
+	bool hasClockGuard = !transition.guard.empty()
+	    && transition.guard.getType().getBase() != type_t::INT;
+	bool hasInvariant = !transition.dst->invariant.empty();
+	bool isUrgent = channel.hasPrefix(prefix::URGENT);
+	bool receivesBroadcast = channel.hasPrefix(prefix::BROADCAST) 
+	    && transition.sync.getSync() == SYNC_QUE;
+	
+	if (isUrgent && hasClockGuard) {
 	    handleError(transition.sync,
 			"Clock guards are not allowed on urgent transitions.");
-
-	if (transition.sync.getType().hasPrefix(prefix::BROADCAST)
-	    && transition.sync.back().value == SYNC_QUE)
-	{
+	}
+	
+	if (receivesBroadcast && hasClockGuard) {
 	    handleError(transition.sync,
 			"Clock guards are not allowed on broadcast receivers.");
 	}
-    }    
+#if 0
+	if (receivesBroadcast && hasInvariant) {
+	    handleError(transition.sync,
+			"Broadcast receiption is not supported when the target location has invariants.");
+	}
+
+	if (isUrgent && hasInvariant) {
+	    handleError(transition.sync,
+			"Urgent synchronisations are not supported when the target location has invariants.");
+	}
+#endif	
+    }
     
     // assignment
     setContextAssignment(transition);
@@ -179,8 +206,8 @@ void TypeChecker::visitTransition(transition_t &transition)
 	handleError(transition.assign, "Invalid assignment expression");
     }
 
-    if (!(transition.assign.back().kind == CONSTANT &&
-	  transition.assign.back().value == 1)
+    if (!(transition.assign.getKind() == CONSTANT &&
+	  transition.assign.getValue() == 1)
 	&& isSideEffectFree(transition.assign))
     {
  	handleWarning(transition.assign, "Expression does not have any effect");
@@ -189,16 +216,21 @@ void TypeChecker::visitTransition(transition_t &transition)
 
 void TypeChecker::visitInstance(instance_t &instance)
 {
-    map<int32_t, ExpressionProgram>::iterator i;
+    Interpreter interpreter(system->getConstantValuation());
+    interpreter.addValuation(instance.mapping);
+
     setContextInstantiation();
-    i = instance.mapping.begin();
+
+    map<symbol_t, expression_t>::iterator i = instance.mapping.begin();
     while (i != instance.mapping.end()) {
-	checkParameterCompatible(symbol_t(i->first).getType(), i->second);
+	annotate(i->second);
+	checkParameterCompatible(interpreter,
+				 i->first.getType(), i->second);
 	++i;
     }
 }
 
-void TypeChecker::visitProperty(SubExpression expr)
+void TypeChecker::visitProperty(expression_t expr)
 {
     setContextNone();
     annotate(expr);
@@ -213,22 +245,22 @@ void TypeChecker::visitProperty(SubExpression expr)
     }
 }
 
-bool TypeChecker::isInteger(SubExpression expr) const
+bool TypeChecker::isInteger(expression_t expr) const
 {
     return expr.getType().getBase() == type_t::INT;
 }
 
-bool TypeChecker::isClock(SubExpression expr) const
+bool TypeChecker::isClock(expression_t expr) const
 {
     return expr.getType().getBase() == type_t::CLOCK;
 }
 
-bool TypeChecker::isRecord(SubExpression expr) const
+bool TypeChecker::isRecord(expression_t expr) const
 {
     return expr.getType().getBase() == type_t::RECORD;
 }
 
-bool TypeChecker::isDiff(SubExpression expr) const
+bool TypeChecker::isDiff(expression_t expr) const
 {
     return expr.getType().getBase() == type_t::DIFF;
 }
@@ -237,9 +269,10 @@ bool TypeChecker::isDiff(SubExpression expr) const
    Returns true iff type is a valid invariant. A valid invariant is
    either an invariant expression or an integer expression.
 */
-bool TypeChecker::isInvariant(SubExpression expr) const
+bool TypeChecker::isInvariant(expression_t expr) const
 {
-    return (expr.getType().getBase() == type_t::INVARIANT)
+    return expr.empty()
+	|| (expr.getType().getBase() == type_t::INVARIANT)
 	|| (expr.getType().getBase() == type_t::INT);
 }
 
@@ -247,7 +280,7 @@ bool TypeChecker::isInvariant(SubExpression expr) const
    Returns true iff type is a valid guard. A valid guard is either a
    valid invariant or a guard expression.
 */
-bool TypeChecker::isGuard(SubExpression expr) const
+bool TypeChecker::isGuard(expression_t expr) const
 {
     return (expr.getType().getBase() == type_t::GUARD) || isInvariant(expr);
 }
@@ -256,25 +289,39 @@ bool TypeChecker::isGuard(SubExpression expr) const
    Returns true iff type is a valid constraint. A valid constraint is
    either a valid guard or a constraint expression.
 */
-bool TypeChecker::isConstraint(SubExpression expr) const
+bool TypeChecker::isConstraint(expression_t expr) const
 {
     return (expr.getType().getBase() == type_t::CONSTRAINT) || isGuard(expr);
 }
 
-ExpressionProgram::expression_t TypeChecker::makeConstant(int n)
+expression_t TypeChecker::makeConstant(int n)
 {
-    return ExpressionProgram::expression_t(
-	position_t(0, 0, 0, 0), CONSTANT, n, type_t::INT);
+    return expression_t::createConstant(position_t(), n);
+}
+
+/** Returns a value indicating the capabilities of a channel. For
+    urgent channels this is 0, for non-urgent broadcast channels this
+    is 1, and in all other cases 2. An argument to a channel parameter
+    must have at least the same capability as the parameter. */
+static int channelCapability(type_t type)
+{
+    assert(type.getBase() == type_t::CHANNEL);
+    if (type.hasPrefix(prefix::URGENT))
+	return 0;
+    if (type.hasPrefix(prefix::BROADCAST))
+	return 1;
+    return 2;
 }
 
 // checks whether parameter type is compatible to argument type.
 // REVISIT: This is not correct for function calls.
-void TypeChecker::checkParameterCompatible(type_t param, SubExpression arg)
+void TypeChecker::checkParameterCompatible(
+    const Interpreter &interpreter, type_t param, expression_t arg)
 {
     bool ref = param.hasPrefix(prefix::REFERENCE);
     bool constant = param.hasPrefix(prefix::CONSTANT);
     bool computable = !arg.dependsOn(persistentVariables.get());
-    
+
     // Argument must be side effect free
     if (!isSideEffectFree(arg)) {
 	handleError(arg, "Argument must be side effect free");
@@ -293,258 +340,174 @@ void TypeChecker::checkParameterCompatible(type_t param, SubExpression arg)
 	return;
     }
 
-    assert(lhs || computable);  /* This is a consequence */
+    assert(isLHSValue(arg) || computable);  /* This is a consequence */
 
-    //
-    // The rest depends on the type of the parameters
-    //
+    // Resolve base type of arrays
+    type_t argType = arg.getType();
+    while (param.getBase() == type_t::ARRAY) {
+	if (argType.getBase() != type_t::ARRAY) {
+	    handleError(arg, "Incompatible argument to array parameter");
+	    return;
+	}
 
-    // The parameter and the type must have the same base type
-    if (param.getBase() != arg.getType().getBase()) {
+	try {
+	    int32_t argSize = interpreter.evaluate(argType.getArraySize());
+	    int32_t paramSize = interpreter.evaluate(param.getArraySize());
+	
+	    if (argSize != paramSize)
+		handleError(arg, "Parameter array size does not match argument array size");
+	} catch (InterpreterException) {
+	    assert(0);
+	}
+	    
+	param = param.getSub();
+	argType = argType.getSub();
+    }
+
+    // The parameter and the argument must have the same base type
+    if (param.getBase() != argType.getBase()) {
 	handleError(arg, "Incompatible argument");
 	return;
     }
 
+    // For clocks there is no more to check
     type_t base = param.getBase();
     if (base == type_t::CLOCK)
 	return;
 
+    // For integers we need to consider the range
     if (base == type_t::INT) {
-	// Compute range of argument
-	range_t range;
-	if (computable) {
-	    int value;
-	    system->evaluateConstantExpression(arg, value);
-	    range = range_t(value, value);
-	} else {
-	    // in this case we know that arg is a lhs and thus the 
-	    // range refers to the declared range (which is exact).
-	    range = range_t(arg.getType().getRange());
+	// Special case; if parameter has no range, then everything
+	// is accepted - this ensures compatibility with 3.2
+	if (param.getRange().first.empty())
+	    return;
+	
+	// Compute range of the argument. We have two cases; if the
+	// argument is computable then we simply compute
+	// it. Otherwise, we know we deal with a LHS argument, thus we
+	// compute the symbol and use its declared range.
+	range_t argRange, paramRange;
+	try {
+	    if (computable) {
+		vector<int32_t> value;
+		interpreter.evaluate(arg, value);
+		for (uint32_t i = 0; i < value.size(); i++) {
+		    argRange = argRange.join(range_t(value[i]));
+		}
+	    } else {
+		// In this case we know that arg is a lhs and thus the
+		// range refers to the declared range 
+		argRange = interpreter.evaluate(argType.getRange());
+	    }
+
+	    // Compute range of parameter
+	    paramRange = interpreter.evaluate(param.getRange());
+	} catch (InterpreterException) {
+	    // We couldn't compute the ranges; we can assume that we 
+	    // have already reported an error, so we simply ignore it 
+	    // here.
+	    return;
 	}
 	
 	if (ref && !constant) {
 	    // For non-constant reference parameters, the range of the
 	    // argument and the range of the parameter must be the
 	    // same.
-	    if (range != range_t(param.getRange()))
+	    if (argRange != paramRange)
 		handleError(arg, "Range of argument does not match range of formal parameter");
 	} else {
 	    // Otherwise the range of the argument must be within the
-	    // range of the parameter: We have two cases; if the
-	    // argument is computable then we simply compute
-	    // it. Otherwise, we know we deal with a constant
-	    // reference paramter and a LHS argument, thus we compute
-	    // the symbol and use its declared range.
-	    if (!range_t(param.getRange()).contains(range)) 
+	    // range of the parameter: 
+	    if (!paramRange.contains(argRange)) 
 	    {
 		handleError(arg, "Range of argument is outside of the range of the formal parameter");
 	    }
 	}
     } else if (base == type_t::RECORD) {
-	if (param.getRecordFields() != arg.getType().getRecordFields()) 
+	if (param.getRecordFields() != argType.getRecordFields()) 
 	    handleError(arg, "Argument has incompatible type");
-    } else if (base == type_t::ARRAY) {
-	type_t a = arg.getType();
-	type_t p = param;
-	do {
-	    if (a.getBase() != type_t::ARRAY) {
-		handleError(arg, "Incompatible argument to array parameter");
-		return;
-	    }
-
-	    int asize = a.getArraySize();
-	    int psize = p.getArraySize();
-	    if (asize != psize)
-		handleError(arg, "Parameter array size does not match argument array size");
-	    
-	    p = p.getSub();
-	    a = a.getSub();
-	} while (p.getBase() == type_t::ARRAY);
-
-	if (a.getBase() != p.getBase())
-	    handleError(arg, "Incompatible argument to array parameter");
-
-	if (a.getBase() == type_t::INT && p.getRange() != a.getRange())
-	{
-	    handleError(arg, "Argument has incompatible range");
-	}   
     } else if (base == type_t::CHANNEL) {
-	if (param.hasPrefix(prefix::URGENT) ^ arg.getType().hasPrefix(prefix::URGENT)
-	    || param.hasPrefix(prefix::BROADCAST) ^ arg.getType().hasPrefix(prefix::BROADCAST))
+	if (channelCapability(argType) < channelCapability(param))
 	    handleError(arg, "Incompatible channel type");
     } else {
 	assert(false);
     }
-    
-#if 0
-    if (!param.hasPrefix(prefix::CONSTANT) && argument.hasPrefix(prefix::CONSTANT)) {
-	return "non-constant argument expected here";
-    }
-
-    if (!param.hasPrefix(prefix::REFERENCE) && !argument.hasPrefix(prefix::CONSTANT)) {
-	return "constant argument expected here";
-    }
-    
-    if (param.hasPrefix(prefix::REFERENCE)
-	&& !param.hasPrefix(prefix::CONSTANT)
-	&& !argument.hasPrefix(prefix::REFERENCE)) 
-    {
-	return "reference argument expected here";
-    }
-
-    if (param.getBase() != argument.getBase())
-	return "argument has incompatible type";
-    
-    if (param.getBase() == type_t::CLOCK) {
-	return NULL;
-    } else if (param.getBase() == type_t::INT) {
-	// Check the range of the argument: It must be within the
-	// range of the parameter. For non constant reference parameters
-	// the range must be an exact match, since the process/function
-	// might update the variable referenced in the argument.
-	pair<int32_t,int32_t> prange = param.getRange();
-	pair<int32_t,int32_t> arange = argument.getRange();
-	if (!(prange.first <= arange.first && 
-	      arange.second <= prange.second)) {
-	    return "argument has incompatible range";
-	}
-	if (param.hasPrefix(prefix::REFERENCE) && !param.hasPrefix(prefix::CONSTANT)) {
-	    if (prange != arange) {
-		return "argument has incompatible range";
-	    }
-	}
-    } else if (param.getBase() == type_t::RECORD) {
-	if (param.getRecordFields() != argument.getRecordFields()) 
-	    return "argument value type does not match parameter type";
-    } else if (param.getBase() == type_t::ARRAY) {
-	do {
-	    if (argument.getBase() != type_t::ARRAY) {
-		return "Incompatible argument to array parameter";
-	    }
-
-	    int asize = argument.getArraySize();
-	    int psize = param.getArraySize();
-	    if (asize != psize)
-		return "parameter array size does not match argument array size";
-	    param = param.getSub();
-	    argument = argument.getSub();
-	} while (param.getBase() == type_t::ARRAY);
-
-	if (argument.getBase() != param.getBase())
-	    return "Incompatible argument to array parameter";
-
-	if (argument.getBase() == type_t::INT) {
-	    pair<int32_t, int32_t> prange = param.getRange();
-	    pair<int32_t, int32_t> arange = argument.getRange();
-	    if (prange != arange) {
-		return "Argument has incompatible range";
-	    }
-	}   
-    } else if (param.getBase() == type_t::CHANNEL) {
-	if (param.hasPrefix(prefix::URGENT) ^ argument.hasPrefix(prefix::URGENT)
-	    || param.hasPrefix(prefix::BROADCAST) ^ argument.hasPrefix(prefix::BROADCAST))
-	    return "incompatible channel type";
-    } else {
-	throw TypeException(unsupported);
-    }
-#endif    
 }
 
-void TypeChecker::insertDefault(ExpressionProgram &expr,
-				ExpressionProgram::iterator pos,
-				type_t type)
+/** Checks whether init is a valid initialiser for a variable or
+    constant of the given type. */
+void TypeChecker::checkInitialiser(type_t type, expression_t init)
 {
-    type_t base = type.getBase();
-    if (base == type_t::INT) {
-        const pair<int, int> &range = type.getRange();
-        if (range.first <= 0 && 0 <= range.second)
-            expr.insert(pos, makeConstant(0));
-        else
-            expr.insert(pos, makeConstant(range.first));
-    } else if (base == type_t::ARRAY) {
-        int size = type.getArraySize();
-        while (size--)
-            insertDefault(expr, pos, type.getSub());
-        expr.insert(pos, ExpressionProgram::expression_t(
-			position_t(0, 0, 0, 0),
-                        LIST, type.getArraySize(),
-                        type.setPrefix(true, prefix::CONSTANT)));
-    } else if (base == type_t::RECORD) {
-	frame_t fields = type.getRecordFields();
-        for (int32_t i = 0; i < fields.getSize(); i++)
-            insertDefault(expr, pos, fields[i].getType());
-        expr.insert(pos,
-		    ExpressionProgram::expression_t(
-			position_t(0, 0, 0, 0), LIST, fields.getSize(),
-			type.setPrefix(true, prefix::CONSTANT)));
-    } else {
-	assert(false);
-    }
-}
-
-// Inserts the default initialiser for a variable of 'type' at
-// position 'pos' in 'expr'.
-void TypeChecker::checkInitialiser(type_t type, SubExpression init)
-{
+    Interpreter interpreter(system->getConstantValuation());
     type_t base = type.getBase();
     if (base == type_t::ARRAY) {
         if (init.getKind() != LIST)
             throw InitialiserException(init, "Invalid array initialiser");
-        int dim = type.getArraySize();
-        if (init.getSize() > dim)
+	
+	int32_t dim;
+	try {
+	    dim = interpreter.evaluate(type.getArraySize());
+	} catch (InterpreterException) {
+	    throw InitialiserException(
+		init, "Arrays with parameterized size cannot have an initialiser");
+	}
+
+        if (init.getSize() > (uint32_t)dim)
             throw InitialiserException(init,
 				       "Excess elements in array initialiser");
 
 	type_t subtype = type.getSub();
 	frame_t fields = init.getType().getRecordFields();
-	int i;
-        for (i = 0; i < fields.getSize(); i++) {
+        for (uint32_t i = 0; i < fields.getSize(); i++) {
             if (fields[i].getName() != NULL) 
 		throw InitialiserException(
 		    init[i], "Unknown field specified in initialiser");
             checkInitialiser(subtype, init[i]);
         }
         
-        if (i < dim) 
+        if (fields.getSize() < (uint32_t)dim) 
 	    throw InitialiserException(init, "Missing fields in initialiser");
-
-        init.setType(type);
     } else if (base == type_t::INT) {
 	if (init.getType().getBase() != type_t::INT)
 	    throw InitialiserException(init, "Invalid initialiser");
-	pair<int32_t, int32_t> range = init.getType().getRange();
 
-	// If possible, reduce range of integer to an exact value
-	if (range.first != range.second) {
-	    int n;
-	    if (system->evaluateConstantExpression(init, n)) {
-		range.first = range.second = n;
-		init.setType(type_t::createInteger(range.first, range.second).setPrefix(true, prefix::SIDE_EFFECT_FREE).setPrefix(true, prefix::CONSTANT));
-	    }
-	}
+	// If there is no range (this might be the case when the
+	// variable is a constant), then we cannot do anymore.
+	if (type.getRange().first.empty())
+	    return;
 
-	// Make sure the initialisers range is within that of the variable
-	// being initialised.
-	pair<int32_t, int32_t> target = type.getRange();
-	if (!(target.first <= range.first && range.first <= target.second)) 
-	    throw InitialiserException(init, "Initialiser is out of range");
-    } else if (base == type_t::RECORD) {
-	if (type.getRecordFields() == init.getType().getRecordFields())
-	    return;  // Same type name, so we are happy
+	// In general we cannot assure that the initialiser is within
+	// the range of the variable - what we can do is to check that
+	// if both the range of the variable and the initialiser are
+	// computable, then the initialiser should be within the
+	// range.
 
-	if (init.getKind() != LIST) {
-	    handleError(init, "Invalid initialiser for struct");
+	try {
+	    // If possible, compute value and range
+	    int n = interpreter.evaluate(init);
+	    range_t range = interpreter.evaluate(type.getRange());
+	
+	    // YES! Everything was computable, so make sure that initialiser
+	    // is within range.
+	    if (!range.contains(n))
+		throw InitialiserException(init, "Initialiser is out of range");
+	} catch (InterpreterException) {
+	    // NO! We cannot check more.
 	    return;
 	}
+    } else if (base == type_t::RECORD) {
+	if (type.getRecordFields() == init.getType().getRecordFields())
+	    return;
+
+	if (init.getKind() != LIST) 
+	    throw InitialiserException(init, "Invalid initialiser for struct");
 
 	frame_t fields = type.getRecordFields();
 	frame_t initialisers = init.getType().getRecordFields();
-	vector<int> indices(fields.getSize(), -1);
+	vector<bool> hasInitialiser(fields.getSize(), false);
 
-	// Populate the vector st. indices[i] contains the index of
-	// the initialiser for the ith field.
-	int current = 0;
-	for (int32_t i = 0; i < initialisers.getSize(); i++) {
+	int32_t current = 0;
+	for (uint32_t i = 0; i < initialisers.getSize(); i++, current++) {
 	    if (initialisers[i].getName() != NULL) {
 		current = fields.getIndexOf(initialisers[i].getName());
 		if (current == -1) {
@@ -553,97 +516,51 @@ void TypeChecker::checkInitialiser(type_t type, SubExpression init)
 		}
 	    }
 
-	    if (current >= fields.getSize()) {
+	    if (current >= (int32_t)fields.getSize()) {
 		handleError(init[i], "Excess elements in intialiser");
 		break;
 	    }
 	    
-	    if (indices[current] != -1) {
+	    if (hasInitialiser[current]) {
 		handleError(init[i], "Multiple initialisers for field");
 		continue;
 	    }
 	    
-	    indices[current] = i;
-	    ++current;
+	    hasInitialiser[current] = true;
+	    checkInitialiser(fields[current].getType(), init[i]);
 	}
 
 	// Check the type of each initialiser and that all fields do
 	// have an initialiser.
-	for (int32_t i = 0; i < fields.getSize(); i++) {
-	    if (indices[i] == -1) {
-		handleError(init, "Incomplete initialiser");
-		return;
-	    }
-	    checkInitialiser(fields[i].getType(), init[indices[i]]);
-	}
-
-	// Construct new initialiser
-	ExpressionProgram e;
-	for (int32_t i = 0; i < fields.getSize(); i++) 
-	    e.append(init[indices[i]]);
-	e.append(init.getPosition(), LIST, fields.getSize(), type);
-	init.replace(e);
-#if 0	
-	frame_t fields = init.getType().getRecordFields();
-	frame_t target = type.getRecordFields();
-	frame_t frame = frame_t::createFrame();
-	
-	// Complete field names
 	for (uint32_t i = 0; i < fields.getSize(); i++) {
-	    if (fields[i].getName() == NULL) {
-		int32_t pos = 0;
-		if (i > 0) {
-		    pos = target.getIndexOf(fields[i - 1].getName()) + 1;
-		    assert(pos > 0);
-		    if (pos >= target.getSize())
-			throw TypeException("Excess elements in struct initialiser");
-		}
-		frame.addSymbol(target[pos].getName(), fields[i].getType());
+	    if (!hasInitialiser[i]) {
+		throw InitialiserException(init, "Incomplete initialiser");
+	    }	
+	}
+    }
+    return;
+}
+
+/** Checks the initialiser of a constant or a variable */
+void TypeChecker::checkInitialiser(variable_t &var)
+{
+    try {
+	if (!var.expr.empty()) {
+	    annotate(var.expr);
+	    if (!isSideEffectFree(var.expr)) {
+		handleError(var.expr, "Initialiser must not have side effects");
 	    } else {
-		int idx = target.getIndexOf(fields[i].getName());
-		if (idx == -1)
-		    throw TypeException("Unknown field type");
-		frame.addSymbol(target[i].getName(), target[i].getType());
+		checkInitialiser(var.uid.getType(), var.expr);
 	    }
 	}
-
-	// Check for duplicates
-	for (uint32_t i = 1; i < frame.getSize(); i++) {
-	    for (uint32_t j = 0; j < i; j++)
-		if (strcmp(frame[i].getName(), frame[j].getName()) == 0)
-		    throw TypeException("Multiple initialisers for field '%s'", frame[i].getName());
-	}
-
-	// Construct new initialiser (with correct order and all
-	// missing fields inserted).
-	for (uint32_t i = 0; i < target.getSize(); i++) {
-	    int32_t pos = frame.getIndexOf(target[i].getName());
-	    if (pos == -1) {
-		if (required)
-		    throw TypeException("Missing initialiser for '%s'",
-					target[i].getName());
-		insertDefault(init.getExpression(),
-			      i == 0 ? init.begin() : init[i - 1].end(), 
-			      target[i].getType());
-		init.setValue(init.getSize() + 1);
-	    } else {
-		checkInitialiser(target[i].getType(), init[pos + i]);
-		if (pos > 0)
-		    init.move(pos + i, i);
-		record.erase(record.begin() + pos);
-	    }
-	}
-
-	init.setType(type.setPrefix(true, prefix::CONSTANT)
-		     .setPrefix(false, prefix::REFERENCE)
-		     .setPrefix(true, prefix::SIDE_EFFECT_FREE));
-#endif	
+    } catch (InitialiserException &e) {
+	handleError(e.getExpression(), e.what());
     }
 }
 
 /** Returns the type of a binary operation with non-integer operands. */
 type_t TypeChecker::typeOfBinaryNonInt(
-    SubExpression left, uint32_t binaryop, SubExpression right)
+    expression_t left, uint32_t binaryop, expression_t right)
 {
     type_t type;
     
@@ -758,12 +675,17 @@ bool TypeChecker::areInlineIfCompatible(type_t thenArg, type_t elseArg)
     }
 
     if (base == type_t::ARRAY) {
-	return (thenArg.getArraySize() == elseArg.getArraySize())
+	return (thenArg.getArraySize().equal(elseArg.getArraySize()))
 	    && areInlineIfCompatible(thenArg.getSub(), elseArg.getSub());
     }
 
     if (base == type_t::RECORD) {
-	return (thenArg.getRecordFields() != elseArg.getRecordFields());
+	return (thenArg.getRecordFields() == elseArg.getRecordFields());
+    }
+
+    if (base == type_t::CHANNEL) {
+	return (thenArg.hasPrefix(prefix::URGENT) == elseArg.hasPrefix(prefix::URGENT))
+	    && (thenArg.hasPrefix(prefix::BROADCAST) == elseArg.hasPrefix(prefix::BROADCAST));
     }
 
     return true;
@@ -795,23 +717,44 @@ bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue)
 }
     
 /** Type check and annotate the expression. This function performs
-    basic type checking of the expression given and assigns a type to
+    basic type checking of the given expression and assigns a type to
     every subexpression of the expression. It checks that only
     left-hand side values are updated, checks that functions are
     called with the correct arguments, checks that operators are used
     with the correct operands and checks that operands to assignment
     operators are assignment compatible. Errors are reported by
     calling handleError(). This function does not check/compute the
-    range of integer expressions and thus it does not produce
+    range of integer expressions and thus does not produce
     out-of-range errors or warnings.
 */
-void TypeChecker::annotate(SubExpression expr)
+void TypeChecker::annotate(expression_t expr)
 {
-    for (int i = 0; i < expr.getSize(); i++) 
+    if (expr.empty())
+	return;
+
+    for (uint32_t i = 0; i < expr.getSize(); i++) 
 	annotate(expr[i]);
 
     type_t type, arg1, arg2, arg3;
     switch (expr.getKind()) {
+    case EQ:
+    case NEQ:
+	if (isInteger(expr[0]) && isInteger(expr[1])) {
+	    type = type_t::INT;
+	} else if (expr[0].getType().getBase() == type_t::RECORD
+		   && expr[0].getType().getRecordFields() 
+		   == expr[1].getType().getRecordFields())
+	{
+	    type = type_t::INT;
+	} else {
+	    type = typeOfBinaryNonInt(expr[0], expr.getKind(), expr[1]);
+	    if (type == type_t()) {
+		handleError(expr, "Invalid operands to binary operator");
+		type = type_t::CONSTRAINT;
+	    }
+	}
+	break;
+
     case PLUS:
     case MINUS:
     case MULT:
@@ -828,8 +771,6 @@ void TypeChecker::annotate(SubExpression expr)
     case MAX:
     case LT:
     case LE:
-    case EQ:
-    case NEQ:
     case GE:
     case GT:
 	if (isInteger(expr[0]) && isInteger(expr[1])) {
@@ -934,7 +875,7 @@ void TypeChecker::annotate(SubExpression expr)
     variables local to functions (and thus not part of the variable
     vector).
 */
-bool TypeChecker::isSideEffectFree(SubExpression expr) const
+bool TypeChecker::isSideEffectFree(expression_t expr) const
 {
     return !expr.changesVariable(persistentVariables.get());
 }
@@ -944,12 +885,12 @@ bool TypeChecker::isSideEffectFree(SubExpression expr) const
     variables. Note: An inline if over integers is only a LHS value if
     both results have the same declared range.
 */
-bool TypeChecker::isLHSValue(SubExpression expr) const
+bool TypeChecker::isLHSValue(expression_t expr) const
 {
     type_t t, f;
     switch (expr.getKind()) {
     case IDENTIFIER:
-	return !symbol_t(expr.getValue()).getType().hasPrefix(prefix::CONSTANT);
+	return !expr.getSymbol().getType().hasPrefix(prefix::CONSTANT);
 
     case DOT:
     case ARRAY:
@@ -975,28 +916,39 @@ bool TypeChecker::isLHSValue(SubExpression expr) const
 	if (!isLHSValue(expr[1]) || !isLHSValue(expr[2]))
 	    return false;
 	
+	// The annotate() method ensures that the value of the two
+	// result arguments are compatible; for integers we
+	// additionally require them to have the same (syntactic)
+	// range declaration for them to be usable as LHS values.
+
 	t = expr[1].getSymbol().getType();
 	f = expr[2].getSymbol().getType();
-	return (t.getBase() != type_t::INT || t.getRange() == f.getRange());
+
+	while (t.getBase() == type_t::ARRAY) t = t.getSub();
+	while (f.getBase() == type_t::ARRAY) f = f.getSub();
+
+	return (t.getBase() != type_t::INT 
+		|| (t.getRange().first.equal(f.getRange().first)
+		    && t.getRange().second.equal(f.getRange().second)));
       
     case COMMA:
 	return isLHSValue(expr[1]);
 
     case FUNCALL:
 	// Functions cannot return references (yet!)
-	break;
+
+    default:
+	return false;
     }
-    return false;
 }
 
 /** Returns true if expression is a reference to a unique variable.
     Thus is similar to expr being an LHS value, but in addition we
     require that the reference does not depend on any non-computable
-    (at parse time) expressions. Thus i[v] is a LHS value, but if v is
-    a non-constant variable, then it does not result in a unique
-    reference.
+    expressions. Thus i[v] is a LHS value, but if v is a non-constant
+    variable, then it does not result in a unique reference.
 */
-bool TypeChecker::isUniqueReference(SubExpression expr) const
+bool TypeChecker::isUniqueReference(expression_t expr) const
 {
     switch (expr.getKind()) {
     case IDENTIFIER:
@@ -1031,9 +983,10 @@ bool TypeChecker::isUniqueReference(SubExpression expr) const
 
     case FUNCALL:
 	// Functions cannot return references (yet!)
-	break;
+
+    default:
+	return false;
     }
-    return false;
 }
 
 

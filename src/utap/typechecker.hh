@@ -27,23 +27,25 @@
 #include <set>
 #include "utap/system.hh"
 #include "utap/common.hh"
+#include "utap/expression.hh"
 
 namespace UTAP
 {
 
-    /** Visitor which collects the persistent variables of the system. A
-	persistent variable is one which is stored in a state. I.e. all
-	variables except function local variables are persistent.
+    /** Visitor which collects the persistent variables of the
+	system. A persistent variable is one which is stored in a
+	state. I.e. all non-constant variables except function local
+	variables are persistent. Non-constant template parameters and
+	reference template parameters are also collected.
     */
     class PersistentVariables : public SystemVisitor
     {
     private:
-	std::set<int> variables;
+	std::set<symbol_t> variables;
     public:
 	virtual void visitVariable(variable_t &);
-	virtual void visitClock(clock_t &);
 	virtual void visitTemplateAfter(template_t &);
-	const std::set<int> &get() const;
+	const std::set<symbol_t> &get() const;
     };
 
     /** A visitor which type checks the system it visits. */
@@ -53,40 +55,43 @@ namespace UTAP
 	ErrorHandler *errorHandler;
 	TimedAutomataSystem *system;
 	PersistentVariables persistentVariables;
+	static std::map<symbol_t, expression_t> empty;
     
-	void annotate(SubExpression expr);
-	void checkInitialiser(type_t type, SubExpression init);
-	void insertDefault(ExpressionProgram &expr,
-			   ExpressionProgram::iterator pos,
-			   type_t type);
+	void annotate(expression_t expr);
+	void checkInitialiser(variable_t &var);
+	void checkInitialiser(type_t type, expression_t init);
 	bool areAssignmentCompatible(type_t lvalue, type_t rvalue);
 	bool areInlineIfCompatible(type_t thenArg, type_t elseArg);
-	bool isInteger(SubExpression) const;
-	bool isClock(SubExpression) const;
-	bool isRecord(SubExpression) const;
-	bool isDiff(SubExpression) const;
-	bool isInvariant(SubExpression) const;
-	bool isGuard(SubExpression) const;
-	bool isConstraint(SubExpression) const;
-	bool isSideEffectFree(SubExpression) const;
-	bool isLHSValue(SubExpression) const;
-	bool isUniqueReference(SubExpression expr) const;
-	void checkRange(SubExpression expr);
-	void checkParameterCompatible(type_t param, SubExpression expr);
+	bool isInteger(expression_t) const;
+	bool isClock(expression_t) const;
+	bool isRecord(expression_t) const;
+	bool isDiff(expression_t) const;
+	bool isInvariant(expression_t) const;
+	bool isGuard(expression_t) const;
+	bool isConstraint(expression_t) const;
+	bool isSideEffectFree(expression_t) const;
+	bool isLHSValue(expression_t) const;
+	bool isUniqueReference(expression_t expr) const;
+	void checkRange(expression_t expr);
+	void checkParameterCompatible(const Interpreter &,
+				      type_t param, expression_t expr);
+
+	/** Checks that the range of an integer is type correct. */
+	void checkIntegerType(type_t type);
     
-	ExpressionProgram::expression_t makeConstant(int);
-	type_t typeOfBinaryNonInt(SubExpression, uint32_t binaryop, SubExpression);
+	expression_t makeConstant(int);
+	type_t typeOfBinaryNonInt(expression_t, uint32_t binaryop, expression_t);
     
     public:
 	TypeChecker(ErrorHandler *errorHandler);
 	virtual ~TypeChecker() {}
 	virtual void visitSystemBefore(TimedAutomataSystem *);
 	virtual void visitVariable(variable_t &);
-	virtual void visitConstant(constant_t &);
+	virtual void visitConstant(variable_t &);
 	virtual void visitState(state_t &);
 	virtual void visitTransition(transition_t &);
 	virtual void visitInstance(instance_t &);
-	virtual void visitProperty(SubExpression);
+	virtual void visitProperty(expression_t);
     };
 }
 
