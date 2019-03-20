@@ -1001,7 +1001,7 @@ namespace UTAP {
                 string name = getName(ref);
                 try {
                     parser->procStateInit(name.c_str());
-                } catch (TypeException te) {
+                } catch (TypeException& te) {
                     parser->handleError(te.what());
                 }
             } else {

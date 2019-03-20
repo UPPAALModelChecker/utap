@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
             parseXTA(argv[optind], &system, !old);
         }
     }
-    catch (TypeException e)
+    catch (TypeException& e)
     {
         cerr << e.what() << endl;
     }

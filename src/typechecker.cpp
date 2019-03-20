@@ -144,7 +144,7 @@ static bool isFormula(expression_t expr)
 
 static bool isListOfFormulas(expression_t expr)
 {
-    if (!expr.getKind() == LIST)
+    if (expr.getKind() != LIST)
     {
         return false;
     }
