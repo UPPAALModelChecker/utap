@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2003 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -51,7 +51,7 @@ namespace UTAP
      * of the ParserBuilder interface. Productions in the BNF
      * implemented by the parser correspond to methods in the
      * ParserBuilder interface.
-     * 
+     *
      * Errors (such as type errors) can be reported back to the parser
      * by either throwing a TypeException or by calling an error
      * method in the ErrorHandler that has been set by a call to
@@ -87,11 +87,14 @@ namespace UTAP
                       PREFIX_URGENT = 2,
                       PREFIX_BROADCAST = 4,
                       PREFIX_URGENT_BROADCAST = 6,
-                      PREFIX_META = 8 };
+                      PREFIX_SYSTEM_META = 8,
+                      PREFIX_HYBRID = 16 };
+
+        std::vector<std::string> lscTemplateNames;
 
         virtual ~ParserBuilder() {}
 
-        /** 
+        /**
          * Add mapping from an absolute position to a relative XML
          * element.
          */
@@ -114,7 +117,7 @@ namespace UTAP
         void handleWarning(const char *msg, ...);
 
         void handleError(const char *msg, ...);
-    
+
         /**
          * Must return true if and only if name is registered in the
          * symbol table as a named type, for instance, "int" or "bool" or
@@ -128,38 +131,43 @@ namespace UTAP
         /** Pop type at the topof the type stack. */
         virtual void typePop() = 0;
 
-        /** 
-         * Called whenever a boolean type is parsed. 
+        /**
+         * Called whenever a boolean type is parsed.
          */
         virtual void typeBool(PREFIX) = 0;
-        
-        /** 
+
+        /**
          * Called whenever an integer type is parsed.
          */
         virtual void typeInt(PREFIX) = 0;
 
-        /** 
+        /**
+         * Called whenever a double type is parsed.
+         */
+        virtual void typeDouble(PREFIX) = 0;
+
+        /**
          * Called whenever an integer type with a range is
          * parsed. Expressions for the lower and upper have been
          * pushed before.
          */
         virtual void typeBoundedInt(PREFIX) = 0;
 
-        /** 
+        /**
          * Called whenever a channel type is parsed.
          */
         virtual void typeChannel(PREFIX) = 0;
 
-        /** 
+        /**
          * Called whenever a clock type is parsed.
          */
-        virtual void typeClock() = 0;
+        virtual void typeClock(PREFIX) = 0;
 
-        /** 
+        /**
          * Called whenever a void type is parsed.
          */
         virtual void typeVoid() = 0;
-        
+
         /**
          * Called to create an array type. The size of the array was
          * previously pushed as an expression.
@@ -172,7 +180,7 @@ namespace UTAP
          */
         virtual void typeArrayOfType(size_t) = 0;
 
-        /** 
+        /**
          * Called whenever a scalar type is parsed. The size of the
          * scalar set was pushed as an expression before.
          */
@@ -197,51 +205,78 @@ namespace UTAP
          * call of structField(). In case of array fields, 'dim'
          * expressions indicating the array sizes have been reported.
          */
-        virtual void structField(const char* name) = 0; 
+        virtual void structField(const char* name) = 0;
 
-        /** 
+        /**
          * Used when a typedef declaration was parsed. name is the
          * name of the new type.
          */
-        virtual void declTypeDef(const char* name) = 0; 
+        virtual void declTypeDef(const char* name) = 0;
 
         /**
-         * Called to when a variable declaration has been parsed. 
+         * Called to when a variable declaration has been parsed.
          */
-        virtual void declVar(const char* name, bool init) = 0; 
+        virtual void declVar(const char* name, bool init) = 0;
 
         virtual void declInitialiserList(uint32_t num) = 0; // n initialisers
         virtual void declFieldInit(const char* name) = 0; // 1 initialiser
-        
+
         /**
          * Guard progress measure declaration. Requires two
          * expressions if \a hasGuard is true, otherwise one.
          */
         virtual void declProgress(bool hasGuard) = 0;
-  
+
+        /********************************************************************
+         * Gantt chart declarations
+         */
+        virtual void ganttDeclStart(const char* name) = 0;
+        virtual void ganttDeclSelect(const char *id) = 0;
+        virtual void ganttDeclEnd() = 0;
+        virtual void ganttEntryStart() = 0;
+        virtual void ganttEntrySelect(const char *id) = 0;
+        virtual void ganttEntryEnd() = 0;
+
         /********************************************************************
          * Function declarations
          */
         virtual void declParameter(const char* name, bool ref) = 0;
-  
         virtual void declFuncBegin(const char* name) = 0;
         virtual void declFuncEnd() = 0; // 1 block
 
         /********************************************************************
          * Process declarations
          */
-        virtual void procBegin(const char* name) = 0; // m parameters
+        virtual void procBegin(const char* name, const bool isTA = true,
+        		const std::string type = "", const std::string mode = "") = 0; // m parameters
         virtual void procEnd() = 0; // 1 ProcBody
-        virtual void procState(const char* name, bool hasInvariant) = 0; // 1 expr
+        virtual void procState(const char* name, bool hasInvariant, bool hasER) = 0; // 1 expr
         virtual void procStateCommit(const char* name) = 0; // mark previously decl. state
         virtual void procStateUrgent(const char* name) = 0; // mark previously decl. state
         virtual void procStateInit(const char* name) = 0; // mark previously decl. state
-        virtual void procEdgeBegin(const char* from, const char* to, const bool control) = 0;
-        virtual void procEdgeEnd(const char* from, const char* to) = 0; 
+        virtual void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname = "") = 0;
+        virtual void procEdgeEnd(const char* from, const char* to) = 0;
         virtual void procSelect(const char * id) = 0; // 1 expr
         virtual void procGuard() = 0; // 1 expr
         virtual void procSync(Constants::synchronisation_t type) = 0; // 1 expr
         virtual void procUpdate() = 0; // 1 expr
+        virtual void procProb() = 0;
+        virtual void procBranchpoint(const char* name) = 0;
+        /************************************************************
+         * Process declarations for LSC
+         */
+        virtual void procInstanceLine()= 0;
+        virtual void instanceName(const char* name, bool templ=true)= 0;
+        virtual void instanceNameBegin(const char *name)= 0;
+        virtual void instanceNameEnd(const char *name, size_t arguments)= 0;
+        virtual void procMessage(const char* from, const char* to, const int loc, const bool pch)= 0;
+        virtual void procMessage(Constants::synchronisation_t type) = 0;
+        virtual void procCondition(const std::vector<char*> anchors, const int loc,
+        		const bool pch, const bool hot)= 0;
+        virtual void procCondition()= 0; // 1 expr
+        virtual void procLscUpdate(const char* anchor, const int loc, const bool pch)= 0;
+        virtual void procLscUpdate()= 0; // 1 expr
+        virtual void hasPrechart(const bool pch)= 0;
 
         /*********************************************************************
          * Statements
@@ -277,11 +312,12 @@ namespace UTAP
          */
         virtual void exprFalse() = 0;
         virtual void exprTrue() = 0;
+        virtual void exprDouble(double) = 0;
         virtual void exprId(const char * varName) = 0;
         virtual void exprNat(int32_t) = 0; // natural number
         virtual void exprCallBegin() = 0;
         virtual void exprCallEnd(uint32_t n) = 0; // n exprs as arguments
-        virtual void exprArray() = 0; // 2 expr 
+        virtual void exprArray() = 0; // 2 expr
         virtual void exprPostIncrement() = 0; // 1 expr
         virtual void exprPreIncrement() = 0; // 1 expr
         virtual void exprPostDecrement() = 0; // 1 expr
@@ -289,6 +325,8 @@ namespace UTAP
         virtual void exprAssignment(Constants::kind_t op) = 0; // 2 expr
         virtual void exprUnary(Constants::kind_t unaryop) = 0; // 1 expr
         virtual void exprBinary(Constants::kind_t binaryop) = 0; // 2 expr
+        virtual void exprNary(Constants::kind_t, uint32_t num) = 0; // n expr
+        virtual void exprScenario(const char* name) = 0; //LSC
         virtual void exprTernary(Constants::kind_t ternaryop, bool firstMissing = false) = 0; // 3 expr
         virtual void exprInlineIf() = 0; // 3 expr
         virtual void exprComma() = 0; // 2 expr
@@ -298,6 +336,34 @@ namespace UTAP
         virtual void exprForAllEnd(const char *name) = 0;
         virtual void exprExistsBegin(const char *name) = 0;
         virtual void exprExistsEnd(const char *name) = 0;
+        virtual void exprSumBegin(const char *name) = 0;
+        virtual void exprSumEnd(const char *name) = 0;
+
+        // Extension for ecdar.
+        virtual void exprSync(Constants::synchronisation_t type) = 0;
+        virtual void declIO(const char*,int,int) = 0;
+
+        // Extension for SMC.
+        virtual void exprSMCControl(int) = 0;
+        virtual void exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double) = 0;
+        virtual void exprProbaQuantitative(int,Constants::kind_t,bool=false) = 0;
+        virtual void exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t) = 0;
+        virtual void exprProbaExpected(int,const char*) = 0;
+        virtual void exprBuiltinFunction1(Constants::kind_t) = 0;
+        virtual void exprBuiltinFunction2(Constants::kind_t) = 0;
+
+        //MITL Extensions
+        virtual void exprMitlFormula ( ) = 0;
+        virtual void exprMitlUntil (int,int) = 0;
+        virtual void exprMitlRelease (int,int) = 0;
+        virtual void exprMitlDisj () = 0;
+        virtual void exprMitlConj () = 0;
+        virtual void exprMitlNext () = 0;
+        virtual void exprMitlAtom () = 0;
+        virtual void exprMitlDiamond (int,int) = 0;
+        virtual void exprMitlBox (int,int) = 0;
+
+        virtual void exprSimulate(int,int,int,bool=false,int = 0) = 0;
 
         /********************************************************************
          * System declaration
@@ -307,14 +373,15 @@ namespace UTAP
         virtual void instantiationEnd(
             const char* id, size_t parameters, const char* templ, size_t arguments) = 0;
         virtual void process(const char*) = 0;
+        virtual void processListEnd() = 0;
         virtual void done() = 0; // marks the end of the file
-
+        
         /********************************************************************
          * Properties
          */
         virtual void property() = 0;
-        virtual void paramProperty(size_t, Constants::kind_t) = 0;
-        virtual void declParamId(const char*) = 0;
+        virtual void scenario(const char*) = 0; //LSC
+        virtual void parse(const char*) = 0; //LSC
 
         /********************************************************************
          * Guiding
@@ -325,20 +392,39 @@ namespace UTAP
         /********************************************************************
          * Priority
          */
-        virtual void incProcPriority() = 0;
-        virtual void incChanPriority() = 0;
-        virtual void chanPriority() = 0;
-        virtual void procPriority(const char*) = 0;
+        virtual void beginChanPriority() = 0;
+        virtual void addChanPriority(char separator) = 0;
         virtual void defaultChanPriority() = 0;
+        virtual void incProcPriority() = 0;
+        virtual void procPriority(const char*) = 0;
+        /** Dynamic */
+        virtual void declDynamicTemplate (std::string) = 0;
+        virtual void exprSpawn (int ) = 0;
+        virtual void exprExit () = 0;
+        virtual void exprNumOf () = 0;
+        virtual void exprForAllDynamicBegin (const char* ,const char*)=0;
+        virtual void exprForAllDynamicEnd (const char* name)=0;    
+        virtual void exprExistsDynamicBegin (const char*,const char* )=0;
+        virtual void exprExistsDynamicEnd (const char* name)=0;
+        virtual void exprSumDynamicBegin (const char*,const char* )=0;
+        virtual void exprSumDynamicEnd (const char* name)=0;
+        virtual void exprForeachDynamicBegin (const char*,const char* )=0;
+        virtual void exprForeachDynamicEnd (const char* name)=0;
+        virtual void exprMITLForAllDynamicBegin (const char*,const char* )=0;
+        virtual void exprMITLForAllDynamicEnd (const char* name)=0;    
+        virtual void exprMITLExistsDynamicBegin (const char*,const char*)=0;
+        virtual void exprMITLExistsDynamicEnd (const char* name)=0;
+        virtual void exprDynamicProcessExpr (const char*) = 0;
 
-        /********************************************************************
-         * SSQL
-         */
-        virtual void ssQueryBegin() = 0;
-        virtual void ssQueryEnd() = 0;
+        /** Verification queries */
+        virtual void queryBegin()=0;
+        virtual void queryFormula(const char* formula, const char* location)=0;
+        virtual void queryComment(const char* comment)=0;
+        virtual void queryEnd()=0;
     };
+   
 }
-    
+
 /**
  * Parse a file in the XTA format, reporting the system to the given
  * implementation of the the ParserBuilder interface and reporting
@@ -357,7 +443,7 @@ int32_t parseXTA(const char*, UTAP::ParserBuilder *, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXTA(const char*, UTAP::ParserBuilder *, 
+int32_t parseXTA(const char*, UTAP::ParserBuilder *,
                  bool newxta, UTAP::xta_part_t part, std::string xpath);
 
 
@@ -385,19 +471,15 @@ int32_t parseXMLFile(const char *filename, UTAP::ParserBuilder *, bool newxta);
  * Parse properties from a buffer. The properties are reported using
  * the given ParserBuilder and errors are reported using the
  * ErrorHandler.
- * State space queries can be enabled by passing 'true'
- * for the 'ssql' parameter.
  */
 int32_t parseProperty(const char *str,
-                      UTAP::ParserBuilder *aParserBuilder, bool ssql = false);
+                      UTAP::ParserBuilder *aParserBuilder, const std::string& xpath="");
 
 /**
  * Parse properties from a file. The properties are reported using the
  * given ParserBuilder and errors are reported using the ErrorHandler.
- * State space queries can be enabled by passing 'true'
- * for the 'ssql' parameter.
  */
-int32_t parseProperty(FILE *, UTAP::ParserBuilder *aParserBuilder, bool ssql = false);
+int32_t parseProperty(FILE *, UTAP::ParserBuilder *aParserBuilder);
 
 
 #endif

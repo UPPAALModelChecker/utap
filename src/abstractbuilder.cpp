@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -78,7 +78,7 @@ void AbstractBuilder::typePop()
     throw NotSupportedException("typePop is not supported");
 }
 
-void AbstractBuilder::typeBool(PREFIX) 
+void AbstractBuilder::typeBool(PREFIX)
 {
     throw NotSupportedException("typeBool is not supported");
 }
@@ -86,6 +86,11 @@ void AbstractBuilder::typeBool(PREFIX)
 void AbstractBuilder::typeInt(PREFIX)
 {
     throw NotSupportedException("typeInt is not supported");
+}
+
+void AbstractBuilder::typeDouble(PREFIX)
+{
+    throw NotSupportedException("typeDouble is not supported");
 }
 
 void AbstractBuilder::typeBoundedInt(PREFIX)
@@ -98,7 +103,7 @@ void AbstractBuilder::typeChannel(PREFIX)
     throw NotSupportedException("typeChannel is not supported");
 }
 
-void AbstractBuilder::typeClock()
+void AbstractBuilder::typeClock(PREFIX)
 {
     throw NotSupportedException("typeClock is not supported");
 }
@@ -158,6 +163,36 @@ void AbstractBuilder::declFieldInit(const char* name)
     throw NotSupportedException("declFieldInit is not supported");
 }
 
+void AbstractBuilder::ganttDeclStart(const char* name)
+{
+    throw NotSupportedException("ganttDeclStart is not supported");
+}
+
+void AbstractBuilder::ganttDeclSelect(const char *id)
+{
+    throw NotSupportedException("ganttDeclSelect is not supported");
+}
+
+void AbstractBuilder::ganttDeclEnd()
+{
+    throw NotSupportedException("ganttDeclEnd is not supported");
+}
+
+void AbstractBuilder::ganttEntryStart()
+{
+    throw NotSupportedException("ganttStart is not supported");
+}
+
+void AbstractBuilder::ganttEntrySelect(const char *id)
+{
+    throw NotSupportedException("ganttEntrySelect is not supported");
+}
+
+void AbstractBuilder::ganttEntryEnd()
+{
+    throw NotSupportedException("ganttEntryEnd is not supported");
+}
+
 void AbstractBuilder::declProgress(bool)
 {
     throw NotSupportedException("declProgress is not supported");
@@ -167,7 +202,7 @@ void AbstractBuilder::declParameter(const char* name, bool)
 {
     throw NotSupportedException("declParameter is not supported");
 }
-    
+
 void AbstractBuilder::declFuncBegin(const char* name)
 {
     throw NotSupportedException("declFuncBegin is not supported");
@@ -178,7 +213,8 @@ void AbstractBuilder::declFuncEnd()
     throw NotSupportedException("declFuncEnd is not supported");
 }
 
-void AbstractBuilder::procBegin(const char* name)
+void AbstractBuilder::procBegin(const char* name, const bool isTA,
+        const std::string type, const std::string mode)
 {
     throw NotSupportedException("procBegin is not supported");
 }
@@ -188,7 +224,7 @@ void AbstractBuilder::procEnd()
     throw NotSupportedException("procEnd is not supported");
 }
 
-void AbstractBuilder::procState(const char* name, bool hasInvariant)
+void AbstractBuilder::procState(const char* name, bool hasInvariant, bool hasER)
 {
     throw NotSupportedException("procState is not supported");
 }
@@ -208,8 +244,13 @@ void AbstractBuilder::procStateInit(const char* name)
     throw NotSupportedException("procStateInit is not supported");
 }
 
-void AbstractBuilder::procEdgeBegin(const char* from, const char* to, const bool control)
-    
+void AbstractBuilder::procBranchpoint(const char* name)
+{
+    throw NotSupportedException("procBranchpoint is not supported");
+}
+
+void AbstractBuilder::procEdgeBegin(const char* from, const char* to, const bool control, const char* actname)
+
 {
     throw NotSupportedException("procEdgeBegin is not supported");
 }
@@ -218,7 +259,7 @@ void AbstractBuilder::procEdgeEnd(const char* from, const char* to)
 {
     throw NotSupportedException("procEdgeEnd is not supported");
 }
- 
+
 void AbstractBuilder::procSelect(const char* id)
 {
     throw NotSupportedException("procSelect is not supported");
@@ -238,7 +279,65 @@ void AbstractBuilder::procUpdate()
 {
     throw NotSupportedException("procUpdate is not supported");
 }
-    
+void AbstractBuilder::procProb()
+{
+    throw NotSupportedException("procProb is not supported");
+}
+
+//LSC
+void AbstractBuilder::procMessage(Constants::synchronisation_t type)
+{
+    throw NotSupportedException("procMessage is not supported");
+}
+
+void AbstractBuilder::procInstanceLine()
+{
+    throw NotSupportedException("procInstanceLine is not supported");
+}
+
+void AbstractBuilder::instanceNameBegin(const char *name)
+{
+    throw NotSupportedException("instanceNameBegin is not supported");
+}
+
+void AbstractBuilder::instanceNameEnd(const char *name, size_t arguments)
+{
+    throw NotSupportedException("instancNameEnd is not supported");
+}
+
+void AbstractBuilder::instanceName(const char* name, bool templ)
+{
+    throw NotSupportedException("instanceName is not supported");
+}
+
+void AbstractBuilder::procMessage(const char* from, const char* to,
+        const int loc, const bool pch)
+{
+    throw NotSupportedException("procMessage is not supported");
+}
+void AbstractBuilder::procCondition(const std::vector<char*> anchors, const int loc,
+        const bool pch, const bool hot)
+{
+    throw NotSupportedException("procCondition is not supported");
+}
+void AbstractBuilder::procCondition()
+{
+    throw NotSupportedException("procCondition is not supported");
+}
+void AbstractBuilder::procLscUpdate(const char* anchor, const int loc, const bool pch)
+{
+    throw NotSupportedException("procLscUpdate is not supported");
+}
+void AbstractBuilder::procLscUpdate()
+{
+    throw NotSupportedException("procLscUpdate is not supported");
+}
+void AbstractBuilder::hasPrechart(const bool pch)
+{
+    throw NotSupportedException("hasPrechart is not supported");
+}
+//end LSC
+
 void AbstractBuilder::blockBegin()
 {
     throw NotSupportedException("procBegin is not supported");
@@ -364,7 +463,7 @@ void AbstractBuilder::assertStatement()
 {
     throw NotSupportedException("assertStatement is not supported");
 }
-    
+
 void AbstractBuilder::exprTrue()
 {
     throw NotSupportedException("exprTrue is not supported");
@@ -373,6 +472,11 @@ void AbstractBuilder::exprTrue()
 void AbstractBuilder::exprFalse()
 {
     throw NotSupportedException("exprFalse is not supported");
+}
+
+void AbstractBuilder::exprDouble(double)
+{
+    throw NotSupportedException("exprDouble is not supported");
 }
 
 void AbstractBuilder::exprId(const char * varName)
@@ -435,6 +539,18 @@ void AbstractBuilder::exprBinary(Constants::kind_t binaryop)
     throw NotSupportedException("exprBinary is not supported");
 }
 
+void AbstractBuilder::exprNary(Constants::kind_t kind, uint32_t num)
+{
+    throw NotSupportedException("exprNary is not supported");
+}
+
+//LSC
+void AbstractBuilder::exprScenario(const char* name)
+{
+    throw NotSupportedException("exprScenario is not supported");
+}
+// end LSC
+
 void AbstractBuilder::exprTernary(Constants::kind_t ternaryop, bool firstMissing)
 {
     throw NotSupportedException("exprTernary is not supported");
@@ -470,6 +586,90 @@ void AbstractBuilder::exprForAllEnd(const char *name)
     throw NotSupportedException("exprForAllEnd is not supported");
 }
 
+void AbstractBuilder::exprSumBegin(const char *name)
+{
+    throw NotSupportedException("exprSumBegin is not supported");
+}
+
+void AbstractBuilder::exprSumEnd(const char *name)
+{
+    throw NotSupportedException("exprSumEnd is not supported");
+}
+
+void AbstractBuilder::exprSimulate(int,int,int)
+{
+    throw NotSupportedException("exprSimulate is not supported");
+}
+
+void AbstractBuilder::exprBuiltinFunction1(Constants::kind_t)
+{
+    throw NotSupportedException("exprBuiltinFunction1 is not supported");
+}
+
+void AbstractBuilder::exprBuiltinFunction2(Constants::kind_t)
+{
+    throw NotSupportedException("exprBuiltinFunction2 is not supported");
+}
+
+void AbstractBuilder::exprMitlFormula ( ) 
+{
+    throw NotSupportedException("exprMitlUntil is not supported");
+}
+
+void AbstractBuilder::exprMitlUntil (int,int ) 
+{
+    throw NotSupportedException("exprMitlUntil is not supported");
+}
+
+void AbstractBuilder::exprMitlRelease (int,int ) 
+{
+    throw NotSupportedException("exprMitlRelease is not supported");
+}
+
+void AbstractBuilder::exprMitlDisj () 
+{
+    throw NotSupportedException("exprMitlDisj is not supported");
+}
+
+void AbstractBuilder::exprMitlConj () 
+{
+    throw NotSupportedException("exprMitlConj is not supported");
+}
+
+void AbstractBuilder::exprMitlNext () 
+{
+    throw NotSupportedException("exprMitlNext is not supported");
+}
+
+void AbstractBuilder::exprMitlAtom () {
+    throw NotSupportedException("exprMitlAtom is not supported");
+}
+
+void AbstractBuilder::exprSMCControl(int)
+{
+    throw NotSupportedException("exprSMCControl is not supported");
+}
+
+void AbstractBuilder::exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double)
+{
+    throw NotSupportedException("exprProbaQualitative is not supported");
+}
+
+void AbstractBuilder::exprProbaQuantitative(int,Constants::kind_t)
+{
+    throw NotSupportedException("exprProbaQuantitative is not supported");
+}
+
+void AbstractBuilder::exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t)
+{
+    throw NotSupportedException("exprProbaCompare is not supported");
+}
+
+void AbstractBuilder::exprProbaExpected(int,const char*)
+{
+    throw NotSupportedException("exprProbaExpected is not supported");
+}
+
 void AbstractBuilder::exprExistsBegin(const char *name)
 {
     throw NotSupportedException("exprExistsBegin is not supported");
@@ -494,6 +694,22 @@ void AbstractBuilder::process(const char*)
 {
     throw NotSupportedException("process is not supported");
 }
+void AbstractBuilder::processListEnd()
+{
+    throw NotSupportedException("processListEnd is not supported");
+}
+
+//LSC
+void AbstractBuilder::scenario(const char*)
+{
+    throw NotSupportedException("scenario is not supported");
+}
+
+void AbstractBuilder::parse(const char*)
+{
+    throw NotSupportedException("parse is not supported");
+}
+//end LSC
 
 void AbstractBuilder::done()
 {
@@ -502,16 +718,6 @@ void AbstractBuilder::done()
 void AbstractBuilder::property()
 {
     throw NotSupportedException("property");
-}
-
-void AbstractBuilder::paramProperty(size_t, Constants::kind_t)
-{
-    throw NotSupportedException("paramProperty");
-}
-
-void AbstractBuilder::declParamId(const char *)
-{
-    throw NotSupportedException("declParamId");
 }
 
 void AbstractBuilder::beforeUpdate()
@@ -524,14 +730,14 @@ void AbstractBuilder::afterUpdate()
     throw NotSupportedException("afterUpdate");
 }
 
-void AbstractBuilder::incChanPriority()
+void AbstractBuilder::beginChanPriority()
 {
-    throw NotSupportedException("incChanPriority");
+    throw NotSupportedException("beginChanPriority");
 }
 
-void AbstractBuilder::incProcPriority()
+void AbstractBuilder::addChanPriority(char separator)
 {
-    throw NotSupportedException("incProcPriority");
+    throw NotSupportedException("addChanPriority");
 }
 
 void AbstractBuilder::defaultChanPriority()
@@ -539,22 +745,110 @@ void AbstractBuilder::defaultChanPriority()
     throw NotSupportedException("defaultChanPriority");
 }
 
+void AbstractBuilder::incProcPriority()
+{
+    throw NotSupportedException("incProcPriority");
+}
+
 void AbstractBuilder::procPriority(const char*)
 {
     throw NotSupportedException("procPriority");
 }
 
-void AbstractBuilder::chanPriority()
+void AbstractBuilder::exprSync(Constants::synchronisation_t type)
 {
-    throw NotSupportedException("chanPriority");
+    throw NotSupportedException("exprSync");
 }
 
-void AbstractBuilder::ssQueryBegin()
+void AbstractBuilder::declIO(const char*,int,int)
 {
-    throw NotSupportedException("ssQueryBegin");
+    throw NotSupportedException("declIO");
 }
 
-void AbstractBuilder::ssQueryEnd()
+void AbstractBuilder::declDynamicTemplate(std::string)
 {
-    throw NotSupportedException("ssQueryEnd");
+    throw NotSupportedException("declDynamicTemplate");
+}
+
+void AbstractBuilder::exprSpawn (int ) {
+    throw NotSupportedException("exprSpawn");
+}
+
+void AbstractBuilder::exprExit ( ) {
+    throw NotSupportedException("exprExit");
+}
+
+void AbstractBuilder::exprNumOf ( ) {
+    throw NotSupportedException("exprNumOf");
+}
+
+
+void AbstractBuilder::exprForAllDynamicBegin (const char*,const char* ) 
+{
+    throw NotSupportedException("exprForAllDynamicBegin");
+}
+void AbstractBuilder::exprForAllDynamicEnd (const char* name) 
+{
+    throw NotSupportedException("exprForAllDynamicEnd");
+}
+void AbstractBuilder::exprExistsDynamicBegin (const char* ,const char*) 
+{
+    throw NotSupportedException("exprExistsAllDynamicBegin");
+}
+
+void AbstractBuilder::exprExistsDynamicEnd (const char* name) 
+{
+    throw NotSupportedException("exprExistsAllDynamicEnd");
+}
+void AbstractBuilder::exprSumDynamicBegin (const char* ,const char*) 
+{
+    throw NotSupportedException("exprSumDynamicBegin");
+}
+
+void AbstractBuilder::exprSumDynamicEnd (const char* name) 
+{
+    throw NotSupportedException("exprSumDynamicEnd");
+}
+void AbstractBuilder::exprForeachDynamicBegin (const char* ,const char*) 
+{
+    throw NotSupportedException("exprForeachDynamicBegin");
+}
+
+void AbstractBuilder::exprForeachDynamicEnd (const char* name) 
+{
+    throw NotSupportedException("exprForeachDynamicEnd");
+}
+void AbstractBuilder::exprDynamicProcessExpr (const char*)
+{
+    throw NotSupportedException("exprDynamicProcessExpr");
+}
+
+void AbstractBuilder::exprMITLForAllDynamicBegin (const char*,const char*)
+{
+    throw NotSupportedException("exprMITLDynamicForAllBegin");
+}
+
+void AbstractBuilder::exprMITLForAllDynamicEnd (const char* name)
+{
+    throw NotSupportedException("exprMITLDynamicForAllEnd");
+}
+void AbstractBuilder::exprMITLExistsDynamicBegin (const char*,const char*) 
+{
+    throw NotSupportedException("exprMITLDynamicExistsBegin");
+}
+void AbstractBuilder::exprMITLExistsDynamicEnd (const char* name)
+{
+    throw NotSupportedException("exprMITLDynamicExistsEnd");
+}
+void AbstractBuilder::queryBegin(){
+    throw NotSupportedException("queryBegin");
+}
+void AbstractBuilder::queryEnd(){
+    throw NotSupportedException("queryEnd");
+}
+void AbstractBuilder::queryFormula(const char*, const char*){
+    throw NotSupportedException("queryFormula");
+}
+void AbstractBuilder::queryComment(const char*){
+    throw NotSupportedException("queryComment");
 }

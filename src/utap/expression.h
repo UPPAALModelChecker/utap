@@ -79,8 +79,23 @@ namespace UTAP
         /** Destructor. */
         ~expression_t();
 
+        bool usesFP() const;
+        bool usesClock() const;
+        bool isDynamic() const;
+        bool hasDynamicSub() const;
         /** Make a shallow clone of the expression. */
         expression_t clone() const;
+
+        /** Makes a deep clone of the expression. */
+        expression_t deeperClone() const;
+
+        /** Makes a deep clone of the expression and replaces the symbol
+         * "from" with the symbol "to". */
+        expression_t deeperClone(symbol_t from, symbol_t to) const;
+
+        /** Makes a deep clone of the expression and replaces each symbol
+         * with a symbol from the given frame(s), with the same name */
+        expression_t deeperClone(frame_t frame, frame_t select = frame_t()) const;
 
         /** Returns the kind of the expression. */
         Constants::kind_t getKind() const;
@@ -103,6 +118,10 @@ namespace UTAP
 
         /** Returns the index field of this expression. */
         int32_t getIndex() const;
+
+        /** Returns the value field of this expression. This
+            call is not valid for all expressions. */
+        double getDoubleValue() const;
 
         /** Returns true if this is an empty expression. */
         bool empty() const;
@@ -175,13 +194,13 @@ namespace UTAP
         bool dependsOn(const std::set<symbol_t> &) const;
 
         void collectPossibleWrites(std::set<symbol_t> &) const;
-        void collectPossibleReads(std::set<symbol_t> &) const;
+        void collectPossibleReads(std::set<symbol_t> &, bool collectRandom = false) const;
 
          /** Less-than operator. Makes it possible to put expression_t
              objects into an STL set. */
          bool operator < (const expression_t) const;
  
-         /** Equallity operator. Returns true if the two references point
+         /** Equality operator. Returns true if the two references point
              to the same expression object. */
          bool operator == (const expression_t) const;
 
@@ -192,6 +211,8 @@ namespace UTAP
         /** Create a CONSTANT expression. */
         static expression_t createConstant(int32_t, position_t = position_t());
 
+        static expression_t createDouble(double, position_t = position_t());
+
         /** Create an IDENTIFIER expression */
         static expression_t createIdentifier(symbol_t, position_t = position_t());
 
@@ -199,6 +220,7 @@ namespace UTAP
         static expression_t createUnary(Constants::kind_t, expression_t,
                                         position_t = position_t(),
                                         type_t = type_t());
+
         /** Create a binary expression */
         static expression_t createBinary(Constants::kind_t,
                                          expression_t, expression_t,
@@ -229,12 +251,18 @@ namespace UTAP
 
         /** Create a DEADLOCK expression */
         static expression_t createDeadlock(position_t = position_t());
+        
+        static expression_t createExit(position_t = position_t());
+        
+        // true if empty or equal to 1.
+        bool isTrue() const;
 
     private:
         struct expression_data;
         expression_data *data;
         int getPrecedence() const;
         void toString(bool, char *&str, char *&end, int &size) const;
+        void appendBoundType(char *&str, char*&end, int &size, expression_t e) const;
     };
 }
 

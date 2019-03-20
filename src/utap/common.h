@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -34,158 +34,248 @@ namespace UTAP
 {
     namespace Constants
     {
-        enum kind_t 
+        enum kind_t
         {
-            PLUS = 0,
-            MINUS = 1,
-            MULT = 2,
-            DIV = 3,
-            MOD = 4,
-            BIT_AND = 5,
-            BIT_OR = 6,
-            BIT_XOR = 7,
-            BIT_LSHIFT = 8,
-            BIT_RSHIFT = 9,
-            AND = 10,
-            OR = 11,
-            MIN = 12,
-            MAX = 13,
-            RATE = 14,
+            PLUS,
+            MINUS,
+            MULT,
+            DIV,
+            MOD,
+            BIT_AND,
+            BIT_OR,
+            BIT_XOR,
+            BIT_LSHIFT,
+            BIT_RSHIFT,
+            AND,
+            OR,
+            XOR,
+            MIN,
+            MAX,
+            RATE,
+            FRACTION,
 
             /********************************************************
              * Relational operators
              */
-            LT = 20,
-            LE = 21,
-            EQ = 22,
-            NEQ = 23,
-            GE = 24,
-            GT = 25,
+            LT,
+            LE,
+            EQ,
+            NEQ,
+            GE,
+            GT,
+
+            /********************************************************
+             * TIGA operators in properties.
+             */
+            SIMULATION_LE,
+            SIMULATION_GE,
+            REFINEMENT_LE,
+            REFINEMENT_GE,
+            TIOCOMPOSITION,
+            TIOCONJUNCTION,
+            TIOQUOTIENT,
 
             /********************************************************
              * Unary operators
              */
-            NOT = 30,
-            FORALL = 31,
-            EXISTS = 32,
+            NOT,
+            FORALL,
+            EXISTS,
+            SUM,
+            
+            /********************************************************
+             * Built-in functions
+             */
+            COS_F,
+            SIN_F,
+            LOG_F,
+            EXP_F,
+            SQRT_F,
+            RANDOM_F,
+            FABS_F,
+            LN_F,
+            POW_F,
+            CEIL_F,
+            FLOOR_F,
 
             /********************************************************
              * Assignment operators
              */
-            ASSIGN = 40,
-            ASSPLUS = 41,
-            ASSMINUS = 42,
-            ASSDIV = 43,
-            ASSMOD = 44,
-            ASSMULT = 45,
-            ASSAND = 46,
-            ASSOR = 47,
-            ASSXOR = 48,
-            ASSLSHIFT = 49,
-            ASSRSHIFT = 50,
+            ASSIGN,
+            ASSPLUS,
+            ASSMINUS,
+            ASSDIV,
+            ASSMOD,
+            ASSMULT,
+            ASSAND,
+            ASSOR,
+            ASSXOR,
+            ASSLSHIFT,
+            ASSRSHIFT,
 
             /*******************************************************
              * CTL Quantifiers
              */
-            EF = 60,
-            EG = 61,
-            AF = 62,
-            AG = 63,
-            LEADSTO = 64,
-            A_UNTIL = 65,
-            A_WEAKUNTIL = 66,
-            EF2 = 67,
-            EG2 = 68,
-            AF2 = 69,
-            AG2 = 70,
-            AG_R = 71,
-            EF_R = 72,
+            EF,
+            EG,
+            AF,
+            AG,
+            LEADSTO,
+            A_UNTIL,
+            A_WEAKUNTIL,
+            AG_R_Piotr,
+            EF_R_Piotr,
+            A_BUCHI,
+            PMAX,
+            PROBAMINBOX,
+            PROBAMINDIAMOND,
+            PROBABOX,
+            PROBADIAMOND,
+            PROBACMP,
+            PROBAEXP,
+            SIMULATE,
+            SIMULATEREACH,
+            BOX,
+            DIAMOND,
 
             /*******************************************************
              * Control Synthesis Operator
              */
-            CONTROL = 80,
-            EF_CONTROL = 81,
-            CONTROL_TOPT = 82,
+            CONTROL,
+            PO_CONTROL,
+            EF_CONTROL,
+            CONTROL_TOPT,
+            CONTROL_TOPT_DEF1,
+            CONTROL_TOPT_DEF2,
+            SMC_CONTROL,
+            CONSISTENCY,
+            RESTRICT,
+            IMPLEMENTATION,
+            SPECIFICATION,
+            SYNTAX_COMPOSITION,
 
             /*******************************************************
-             * Parameter generation
+             * Get supremum or infimum of variables/clocks
              */
-            SUP = 83,
-            INF = 84,
-            
+            SUP_VAR, INF_VAR,
+
+            /*******************************************************
+             * Verify a LSC scenario
+             */
+            SCENARIO,  //identifier of the LSC instance
+            SCENARIO2, //scenario property of size 2 "obsTA.lmin --> obsTA.lmax"
+
             /*******************************************************
              * Additional constants used by ExpressionProgram's and
              * the TypeCheckBuilder (but not by the parser, although
              * some of then ought to be used, FIXME).
              */
-            IDENTIFIER = 512,
-            CONSTANT = 513,
-            ARRAY = 514,
-            POSTINCREMENT = 515,
-            PREINCREMENT = 516,
-            POSTDECREMENT = 517,
-            PREDECREMENT = 518,
-            UNARY_MINUS = 519,
-            LIST = 520,
-            DOT = 521,
-            INLINEIF = 522,
-            COMMA = 523,
-            SYNC = 525,
-            DEADLOCK = 526,
-            FUNCALL = 527,
+            IDENTIFIER,
+            CONSTANT,
+            ARRAY,
+            POSTINCREMENT,
+            PREINCREMENT,
+            POSTDECREMENT,
+            PREDECREMENT,
+            UNARY_MINUS,
+            LIST,
+            DOT,
+            INLINEIF,
+            COMMA,
+            SYNC,
+            DEADLOCK,
+            FUNCALL,
 
             /*******************************************************
              * Types
              */
-            UNKNOWN = 600,
-            VOID_TYPE = 601,
-            CLOCK = 602,
-            INT = 603,
-            BOOL = 604,
-            SCALAR = 605,
-            LOCATION = 606,
-            CHANNEL = 607,
-            COST = 608,
-            INVARIANT = 609,
-            INVARIANT_WR = 610,
-            GUARD = 611,
-            DIFF = 612,
-            CONSTRAINT= 613,
-            FORMULA = 614,
+            UNKNOWN,
+            VOID_TYPE,
+            CLOCK,
+            INT,
+            DOUBLE,
+            BOOL,
+            SCALAR,
+            LOCATION,
+            CHANNEL,
+            COST,
+            INVARIANT,
+            INVARIANT_WR,
+            GUARD,
+            DIFF,
+            CONSTRAINT,
+            FORMULA,
+            BRANCHPOINT,
+            PROBABILITY,
+            TIOGRAPH,
+            //LSC
+            INSTANCELINE,
+            MESSAGE,
+            CONDITION,
+            UPDATE,
 
-            RANGE = 650,
-            LABEL = 651,
-            RECORD = 652,
-            REF = 654,
-            URGENT = 655,
-            COMMITTED = 656,
-            BROADCAST = 657,
-            TYPEDEF = 658,
-            PROCESS = 659,
-            PROCESSSET = 660,
-            INSTANCE = 661,
-            META = 662,
-            FUNCTION = 663
+            RANGE,
+            LABEL,
+            RECORD,
+            REF,
+            URGENT,
+            COMMITTED,
+            BROADCAST,
+            HYBRID,
+            TYPEDEF,
+            PROCESS,
+            PROCESSSET,
+            INSTANCE, // TA template (instantiated or not)
+            SYSTEM_META,
+            FUNCTION,
+            LSCINSTANCE, // LSC template (instantiated or not)
+        
+
+            /******************************************************
+             * MITL Extension
+             */
+            MITLFORMULA,
+            MITLRELEASE,
+            MITLUNTIL,
+            MITLCONJ,
+            MITLDISJ,
+            MITLNEXT,
+            MITLATOM,
+            MITLEXISTS,
+            MITLFORALL,
+            /*Dynamic */
+            SPAWN,
+            EXIT,
+            NUMOF,
+            FORALLDYNAMIC,
+            EXISTSDYNAMIC,
+            SUMDYNAMIC,
+            FOREACHDYNAMIC,
+            DYNAMICEVAL,
+            PROCESSVAR,
+            DOUBLEINVGUARD,
+              
         };
 
         /**********************************************************
          * Synchronisations:
          */
-        enum synchronisation_t 
+        enum synchronisation_t
         {
-            SYNC_QUE = 0,
-            SYNC_BANG = 1
+            SYNC_QUE,
+            SYNC_BANG,
+            SYNC_CSP
         };
     }
 
     /** Type for specifying which XTA part to parse (syntax switch) */
-    typedef enum 
-    { 
-        S_XTA, // entire system 
-        S_DECLARATION, S_LOCAL_DECL, S_INST, S_SYSTEM, S_PARAMETERS, 
-        S_INVARIANT, S_SELECT, S_GUARD, S_SYNC, S_ASSIGN, 
-        S_EXPRESSION, S_PROPERTY
+    typedef enum
+    {
+        S_XTA, // entire system
+        S_DECLARATION, S_LOCAL_DECL, S_INST, S_SYSTEM, S_PARAMETERS,
+        S_INVARIANT, S_EXPONENTIALRATE, S_SELECT, S_GUARD, S_SYNC, S_ASSIGN,
+        S_EXPRESSION, S_EXPRESSION_LIST, S_PROPERTY, S_XTA_PROCESS,
+        S_PROBABILITY, /*LSC*/ S_INSTANCELINE, S_MESSAGE, S_UPDATE, S_CONDITION
     } xta_part_t;
 
 }

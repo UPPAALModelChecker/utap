@@ -27,6 +27,9 @@
 #include <iostream>
 #include <map>
 
+#include <string.h>
+#include <stdlib.h>
+
 using namespace std;
 
 /* This utility takes an UPPAAL model in the UPPAAL intermediate
@@ -477,7 +480,7 @@ public:
     Transition(FILE *);
     ~Transition();
 
-    int getEdge(int32_t process) const { return edges[process]; }
+    int getEdge(int process) const { return edges[process]; }
 private:
     int *edges;
 };

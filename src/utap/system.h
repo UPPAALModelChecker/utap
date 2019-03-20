@@ -23,9 +23,11 @@
 #define UTAP_INTERMEDIATE_HH
 
 #include <list>
+#include <deque>
 #include <vector>
 #include <map>
 #include <exception>
+#include <algorithm>
 
 #include "utap/symbols.h"
 #include "utap/expression.h"
@@ -41,6 +43,7 @@ namespace UTAP
     {
         symbol_t uid;      /**< The symbol of the variables */
         expression_t expr; /**< The initialiser */
+        std::string toString() const;
     };
 
     /** Information about a location.
@@ -51,26 +54,51 @@ namespace UTAP
     */
     struct state_t
     {
-        symbol_t uid;                /**< The symbol of the location */
+        symbol_t uid;           /**< The symbol of the location */
         expression_t invariant; /**< The invariant */
-        expression_t costrate;  /**< Rate expression */
-        int32_t locNr;                /**< Location number in template */
+        expression_t exponentialRate;
+        expression_t costRate;  /**< Rate expression */
+        int32_t locNr;          /**< Location number in template */
+        std::string toString() const;
     };
 
+    /** Information about a branchpoint.
+        Branchpoints may be used in construction of edges with the
+        same source, guard and synchronisation channel.
+        They are not present after compilation of a model.
+     */
+    struct branchpoint_t
+    {
+        symbol_t uid;
+        int32_t bpNr;
+    };
+
+
+
     /** Information about an edge.  Edges have a source (src) and a
-        destination (dst) locations. The guard, synchronisation and
-        assignment are stored as expressions.
+        destination (dst), which may be locations or branchpoints.
+        The unused of these pointers should be set to NULL.
+        The guard, synchronisation and assignment are stored as
+        expressions.
     */
     struct edge_t
     {
-        int nr;                        /**< Placement in input file */
+        int nr;                 /**< Placement in input file */
         bool control;           /**< Controllable (true/false) */
-        state_t *src;                /**< Pointer to source location */
-        state_t *dst;                /**< Pointer to destination location */
+        std::string actname;
+        state_t *src;           /**< Pointer to source location */
+        branchpoint_t *srcb;    /**< Pointer to source branchpoint */
+        state_t *dst;           /**< Pointer to destination location */
+        branchpoint_t *dstb;    /**< Pointer to destination branchpoint */
         frame_t select;         /**< Frame for non-deterministic select */
-        expression_t guard;        /**< The guard */
-        expression_t assign;        /**< The assignment */
-        expression_t sync;        /**< The synchronisation */
+        expression_t guard;     /**< The guard */
+        expression_t assign;    /**< The assignment */
+        expression_t sync;      /**< The synchronisation */
+#ifdef ENABLE_PROB
+        expression_t prob;      /**< Probability for probabilistic edges. */
+#endif
+        std::string toString() const;
+        std::list<int32_t> selectValues;  /**<The select values, if any */
     };
 
     class BlockStatement; // Forward declaration
@@ -87,6 +115,7 @@ namespace UTAP
         BlockStatement *body;       /**< Pointer to the block. */
         function_t() : body(NULL) {}
         ~function_t();
+        std::string toString() const; // used to write the XML file
     };
 
     struct progress_t
@@ -95,22 +124,182 @@ namespace UTAP
         expression_t measure;
     };
 
+    struct iodecl_t
+    {
+        std::string instanceName;
+        std::vector<expression_t> param;
+        std::list<expression_t> inputs, outputs, csp;
+    };
+
+    /**
+     * Gantt map bool expr -> int expr that
+     * can be expanded.
+     */
+    struct ganttmap_t
+    {
+        frame_t parameters;
+        expression_t predicate, mapping;
+    };
+
+    /**
+     * Gantt chart entry.
+     */
+    struct gantt_t
+    {
+        gantt_t(const char *s) : name(s) {}
+        gantt_t(const std::string& s) : name(s) {}
+
+        std::string name;    /**< The name */
+        frame_t parameters;  /**< The select parameters */
+        std::list<ganttmap_t> mapping;
+    };
+
     /**
      * Structure holding declarations of various types. Used by
      * templates and block statements.
      */
+    struct template_t;
     struct declarations_t
     {
         frame_t frame;
         std::list<variable_t> variables;        /**< Variables */
         std::list<function_t> functions;        /**< Functions */
         std::list<progress_t> progress;         /**< Progress measures */
+        std::list<iodecl_t> iodecl;
+        std::list<gantt_t> ganttChart;
 
         /** Add function declaration. */
         bool addFunction(type_t type, std::string, function_t *&);
+        /** The following methods are used to write the declarations in an XML file */
+        std::string toString(bool global = false) const;
+        std::string getConstants() const;
+        std::string getTypeDefinitions() const;
+        std::string getVariables(bool global) const;
+        std::string getFunctions() const;
     };
 
-    /** 
+    struct instanceLine_t;  //to be defined later
+
+    /** Information about a message. Messages have a source (src) and a
+     * destination (dst) instance lines. The label is
+     * stored as an expression.
+     */
+    struct message_t
+    {
+        int nr;                        /**< Placement in input file */
+        int location;
+        instanceLine_t *src;           /**< Pointer to source instance line */
+        instanceLine_t *dst;           /**< Pointer to destination instance line */
+        expression_t label;            /**< The label */
+        bool isInPrechart;
+        message_t() : nr(-1) {};
+    };
+    /** Information about a condition. Conditions have an anchor instance lines.
+     * The label is stored as an expression.
+     */
+    struct condition_t
+    {
+        int nr;                        /**< Placement in input file */
+        int location;
+        std::vector<instanceLine_t*> anchors;       /**< Pointer to anchor instance lines *///TODO
+        expression_t label;            /**< The label */
+        bool isInPrechart;
+        bool isHot;
+        condition_t() : nr(-1) {};
+    };
+
+    /** Information about an update. Update have an anchor instance line.
+     * The label is stored as an expression.
+     */
+    struct update_t
+    {
+        int nr;                        /**< Placement in input file */
+        int location;
+        instanceLine_t *anchor;        /**< Pointer to anchor instance line */
+        expression_t label;            /**< The label */
+        bool isInPrechart;
+        update_t() : nr(-1) {};
+    };
+
+    struct simregion_t
+    {
+        int nr;
+        message_t* message;              /** May be empty */
+        condition_t* condition;          /** May be empty */
+        update_t* update;                /** May be empty */
+
+        int getLoc() const;
+        bool isInPrechart() const;
+
+        simregion_t()
+        {
+            message = new message_t();
+            condition = new condition_t();
+            update = new update_t();
+        }
+
+        ~simregion_t()
+        {
+            delete message;
+            delete condition;
+            delete update;
+        }
+
+        std::string toString() const;
+
+        void setMessage(std::deque<message_t>& messages, int nr);
+        void setCondition(std::deque<condition_t>& conditions, int nr);
+        void setUpdate(std::deque<update_t>& updates, int nr);
+    };
+
+    struct compare_simregion
+    {
+        bool operator() (const simregion_t& x, const simregion_t& y) const
+        {
+            return (x.getLoc() < y.getLoc());
+        }
+    };
+
+    struct cut_t
+    {
+        int nr;
+        std::vector<simregion_t> simregions; //unordered
+        cut_t(int number) {
+            simregions.clear();
+            nr = number;
+        };
+        void add(simregion_t s) {
+            simregions.push_back(s);
+        };
+        void erase(simregion_t s);
+        bool contains(simregion_t s);
+
+        /**
+         * returns true if the cut is in the prechart,
+         * given one of the following simregions.
+         * if one of the following simregions is not in the prechart,
+         * then all following simregions aren't in the prechart (because of the
+         * construction of the partial order),
+         * and the cut is not in the prechart (but may contain only simregions
+         * that are in the prechart, if it is the limit between the prechart
+         * and the mainchart)
+         */
+        bool isInPrechart(const simregion_t& fSimregion) const;
+        bool isInPrechart() const;
+
+        bool equals(const cut_t& y) const;
+
+        std::string toString() const {
+            std::string s="CUT(";
+            for (unsigned int i = 0; i < simregions.size(); ++i)
+                s += simregions[i].toString() + " ";
+            s = s.substr(0, s.size()-1);
+            s += ")";
+            return s;
+        };
+    };
+
+    /**
      * Partial instance of a template. Every template is also a
      * partial instance of itself and therefore template_t is derived
      * from instance_t. A complete instance is just a partial instance
@@ -137,47 +326,122 @@ namespace UTAP
      * parameters have restriction on the kind of arguments they
      * accept (they must not depend on any free process parameters).
      *
-     * If i is an instance, then i.uid.getData() == i. 
+     * If i is an instance, then i.uid.getData() == i.
      */
     struct instance_t
     {
-        symbol_t uid;                                   /**< The name */
+        symbol_t uid;                             /**< The name */
         frame_t parameters;                       /**< The parameters */
         std::map<symbol_t, expression_t> mapping; /**< The arguments */
         size_t arguments;
         size_t unbound;
         struct template_t *templ;
-        std::set<symbol_t> restricted;          /**< Restricted variables */
+        std::set<symbol_t> restricted;            /**< Restricted variables */
+
+        std::string writeMapping() const ;
+        std::string writeParameters() const ;
+        std::string writeArguments() const ;
+    };
+
+    /** Information about an instance line.
+     */
+    struct instanceLine_t : public instance_t
+    {
+        int32_t instanceNr;         /**< InstanceLine number in template */
+        std::vector<simregion_t> getSimregions(const std::vector<simregion_t>& simregions);
+        void addParameters(instance_t &inst, frame_t params,
+            const std::vector<expression_t> &arguments);
+    };
+
+    struct template_t : public instance_t, declarations_t
+    {
+        symbol_t init;                           /**< The initial location */
+        frame_t templateset;                     /**< Template set decls */
+        std::deque<state_t> states;              /**< Locations */
+        std::deque<branchpoint_t> branchpoints;  /**< Branchpoints */
+        std::deque<edge_t> edges;                /**< Edges */
+        std::vector<expression_t> dynamicEvals;
+        bool isTA;
+        
+        int addDynamicEval (expression_t t) {
+            dynamicEvals.push_back (t);
+            return dynamicEvals.size()-1;
+        }
+        
+        std::vector<expression_t>& getDynamicEval () {return dynamicEvals;}
+
+        /** Add another location to template. */
+        state_t &addLocation(std::string, expression_t inv, expression_t er);
+
+        /** Add another branchpoint to template. */
+        branchpoint_t &addBranchpoint(std::string);
+
+        /** Add edge to template. */
+        edge_t &addEdge(symbol_t src, symbol_t dst, bool type, std::string actname);
+
+        std::deque<instanceLine_t> instances;    /**< Instance Lines */
+        std::deque<message_t> messages;          /**< Messages */
+        std::deque<update_t> updates;            /**< Updates */
+        std::deque<condition_t> conditions;      /**< Conditions */
+        std::string type;
+        std::string mode;
+        bool hasPrechart;
+        bool dynamic;
+        int dynindex;
+        bool isDefined;
+
+        /** Add another instance line to template. */
+        instanceLine_t &addInstanceLine();
+
+        /** Add message to template. */
+        message_t &addMessage(symbol_t src, symbol_t dst, int loc, bool pch);
+
+        /** Add condition to template. */
+        condition_t &addCondition(std::vector<symbol_t> anchors, int loc,
+                bool pch, bool isHot);
+
+        /** Add update to template. */
+        update_t &addUpdate(symbol_t anchor, int loc, bool pch);
+
+        bool isInvariant(); // type of the LSC
+
+
+        /* gets the simregions from the LSC scenario */
+        const std::vector<simregion_t> getSimregions();
+
+        /* returns the condition on the given instance, at y location */
+        bool getCondition(instanceLine_t* instance, int y, condition_t*& simCondition);
+
+        /* returns the update on the given instance at y location */
+        bool getUpdate(instanceLine_t* instance, int y, update_t*& simUpdate);
+
+        /* returns the first update on one of the given instances, at y location */
+        bool getUpdate(const std::vector<instanceLine_t*>& instances, int y, update_t*& simUpdate);
+       
     };
 
     /**
-     * Information about a template. A template is a parameterised
-     * automaton with local declarations of variables and functions.
-     */
-    struct template_t : public instance_t, declarations_t
-    {
-        symbol_t init;                                /**< The initial location */
-        frame_t templateset;                    /**< Template set decls */
-        std::list<state_t> states;                /**< Locations */
-        std::list<edge_t> edges;                /**< Edges */
-
-        /** Add another location to template. */
-        state_t &addLocation(std::string, expression_t inv);
-
-        /** Add edge to template. */
-        edge_t &addEdge(symbol_t src, symbol_t dst, bool type);
-    };
-
-
-    /** 
-     * Channel priority information. The expression must be a a
-     * channel or an array of channels.
+     * Channel priority information. Expressions must evaluate to
+     * a channel or an array of channels.
      */
     struct chan_priority_t
     {
-        expression_t chanElement;
-        int chanPriority;
+        typedef std::pair<char,expression_t> entry;
+        typedef std::list<entry> tail_t;
+
+        expression_t head; //!< First expression in priority declaration
+        tail_t       tail; //!< Pairs: separator and channel expressions
+
+        std::string toString() const;
     };
+
+    struct query_t {
+        std::string formula;
+        std::string comment;
+        std::string location;
+    };
+    typedef std::vector<query_t> queries_t;
+
 
     class TimedAutomataSystem;
 
@@ -196,13 +460,20 @@ namespace UTAP
         virtual void visitProcess(instance_t &) {}
         virtual void visitFunction(function_t &) {}
         virtual void visitTypeDef(symbol_t) {}
+        virtual void visitIODecl(iodecl_t&) {}
         virtual void visitProgressMeasure(progress_t &) {}
+        virtual void visitGanttChart(gantt_t&) {}
+        virtual void visitInstanceLine(instanceLine_t &) {}
+        virtual void visitMessage(message_t &) {}
+        virtual void visitCondition(condition_t &) {}
+        virtual void visitUpdate(update_t &) {}
     };
 
     class TimedAutomataSystem
     {
     public:
         TimedAutomataSystem();
+        TimedAutomataSystem(const TimedAutomataSystem&);
         virtual ~TimedAutomataSystem();
 
         /** Returns the global declarations of the system. */
@@ -210,9 +481,14 @@ namespace UTAP
 
         /** Returns the templates of the system. */
         std::list<template_t> &getTemplates();
+        std::vector<template_t*> &getDynamicTemplates ();
+        template_t* getDynamicTemplate (const std::string name);
 
         /** Returns the processes of the system. */
         std::list<instance_t> &getProcesses();
+
+        /** Returns the queries enclosed in the model. */
+        queries_t &getQueries();
 
         void addPosition(
             uint32_t position, uint32_t offset, uint32_t line, std::string path);
@@ -223,13 +499,28 @@ namespace UTAP
         variable_t *addVariable(
             declarations_t *, type_t type, std::string, expression_t initial);
         void addProgressMeasure(
-            declarations_t *, expression_t guard, expression_t measure);
+                declarations_t *, expression_t guard, expression_t measure);
 
-        template_t &addTemplate(std::string, frame_t params);
+        template_t &addTemplate(std::string, frame_t params, const bool isTA = true,
+                const std::string type = "", const std::string mode = "");
+        template_t &addDynamicTemplate(std::string, frame_t params);
+        
         instance_t &addInstance(
-            std::string name, instance_t &instance, frame_t params, 
-            const std::vector<expression_t> &arguments);
+                std::string name, instance_t &instance, frame_t params,
+                const std::vector<expression_t> &arguments);
+
+        instance_t &addLscInstance(
+                std::string name, instance_t &instance, frame_t params,
+                const std::vector<expression_t> &arguments);
+        void removeProcess(instance_t &instance); //LSC
+
+        void copyVariablesFromTo(template_t* from, template_t* to) const;
+        void copyFunctionsFromTo(template_t* from, template_t* to) const;
+
+        std::string obsTA; //name of the observer TA instance
+
         void addProcess(instance_t &instance);
+        void addGantt(declarations_t*, gantt_t&);
         void accept(SystemVisitor &);
 
         void setBeforeUpdate(expression_t);
@@ -237,14 +528,16 @@ namespace UTAP
         void setAfterUpdate(expression_t);
         expression_t getAfterUpdate();
 
+        void addQuery(const query_t &query);
+        bool queriesEmpty();
+
         /* The default priority for channels is also used for 'tau
          * transitions' (i.e. non-synchronizing transitions).
          */
-        void setChanPriority(expression_t chan, int priority);
+        void beginChanPriority(expression_t chan);
+        void addChanPriority(char separator, expression_t chan);
         const std::list<chan_priority_t>& getChanPriorities() const;
         std::list<chan_priority_t>& getMutableChanPriorities();
-        void setDefaultChanPriority(int priority);
-        int getTauPriority() const;
 
         /** Sets process priority for process \a name. */
         void setProcPriority(const char* name, int priority);
@@ -255,18 +548,57 @@ namespace UTAP
         /** Returns true if system has some priority declaration. */
         bool hasPriorityDeclaration() const;
 
+        /** Returns true if system has some strict invariant. */
+        bool hasStrictInvariants() const;
+
+        /** Record that the system has some strict invariant. */
+        void recordStrictInvariant();
+
+        /** Returns true if the system stops any clock. */
+        bool hasStopWatch() const;
+
+        /** Record that the system stops a clock. */
+        void recordStopWatch();
+
+        /** Returns true if the system has guards on controllable edges with strict lower bounds. */
+        bool hasStrictLowerBoundOnControllableEdges() const;
+
+        /** Record that the system has guards on controllable edges with strict lower bounds. */
+        void recordStrictLowerBoundOnControllableEdges();
+
+        void clockGuardRecvBroadcast() { hasGuardOnRecvBroadcast = true; }
+        bool hasClockGuardRecvBroadcast() const { return hasGuardOnRecvBroadcast; }
+        void setSyncUsed(int s) { syncUsed = s; }
+        int getSyncUsed() const { return syncUsed; }
+
+        void setUrgentTransition() { hasUrgentTrans = true; }
+        bool hasUrgentTransition() const { return hasUrgentTrans; }
+        bool hasDynamicTemplates () const {return dynamicTemplates.size () != 0;}
+
     protected:
+
+        bool hasUrgentTrans;
         bool hasPriorities;
+        bool hasStrictInv;
+        bool stopsClock;
+        bool hasStrictLowControlledGuards;
+        bool hasGuardOnRecvBroadcast;
         int defaultChanPriority;
         std::list<chan_priority_t> chanPriorities;
         std::map<std::string,int> procPriority;
+        int syncUsed; // see typechecker
 
-    protected:
         // The list of templates.
         std::list<template_t> templates;
+        //List of dynamic template
+        std::list<template_t> dynamicTemplates;
+        std::vector<template_t*> dynamicTemplatesVec;
 
         // The list of template instances.
         std::list<instance_t> instances;
+
+        std::list<instance_t> lscInstances;
+        bool modified;
 
         // List of processes.
         std::list<instance_t> processes;
@@ -276,13 +608,16 @@ namespace UTAP
 
         expression_t beforeUpdate;
         expression_t afterUpdate;
+        queries_t queries;
 
         variable_t *addVariable(
             std::list<variable_t> &variables, frame_t frame,
             type_t type, std::string);
-
+        
+        std::string location;
+        
     public:
-        void addError(position_t, std::string);
+        void addError(position_t, std::string, std::string location="");
         void addWarning(position_t, std::string);
         bool hasErrors() const;
         bool hasWarnings() const;
@@ -290,7 +625,9 @@ namespace UTAP
         const std::vector<error_t> &getWarnings() const;
         void clearErrors();
         void clearWarnings();
-
+        bool isModified() const;
+        void setModified(bool mod);
+        iodecl_t* addIODecl();
     private:
         std::vector<error_t> errors;
         std::vector<error_t> warnings;

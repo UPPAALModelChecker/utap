@@ -22,6 +22,8 @@
 #ifndef UTAP_STATEMENT_H
 #define UTAP_STATEMENT_H
 
+#define INDENT "    "
+
 #include "utap/expression.h"
 #include "utap/symbols.h"
 #include "utap/system.h"
@@ -36,6 +38,7 @@ namespace UTAP
         virtual ~Statement() {};
         virtual int32_t accept(StatementVisitor *visitor) = 0;
         virtual bool returns() = 0;
+        virtual std::string toString(std::string prefix) const = 0;
     protected:
         Statement();
     };
@@ -46,15 +49,17 @@ namespace UTAP
         EmptyStatement();
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class ExprStatement: public Statement 
+    class ExprStatement: public Statement
     {
     public:
         expression_t expr;
         ExprStatement(expression_t);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     class AssertStatement: public Statement 
@@ -64,9 +69,10 @@ namespace UTAP
         AssertStatement(expression_t);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class ForStatement: public Statement 
+    class ForStatement: public Statement
     {
     public:
         expression_t init;
@@ -76,6 +82,7 @@ namespace UTAP
         ForStatement(expression_t, expression_t, expression_t, Statement*);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     /**
@@ -92,6 +99,7 @@ namespace UTAP
          frame_t getFrame() { return frame; }
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
      };
 
     class WhileStatement: public Statement 
@@ -102,9 +110,10 @@ namespace UTAP
         WhileStatement(expression_t, Statement*);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class DoWhileStatement: public Statement 
+    class DoWhileStatement: public Statement
     {
     public:
         Statement *stat;
@@ -112,6 +121,7 @@ namespace UTAP
         DoWhileStatement(Statement*, expression_t);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     class BlockStatement: public Statement, public declarations_t 
@@ -136,6 +146,7 @@ namespace UTAP
         const_iterator end() const;
         iterator begin();
         iterator end();
+        std::string toString(std::string prefix) const;
     };
 
     class SwitchStatement: public BlockStatement
@@ -145,6 +156,7 @@ namespace UTAP
         SwitchStatement(frame_t, expression_t);
         virtual int32_t accept(StatementVisitor *visitor);  
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     class CaseStatement: public BlockStatement 
@@ -154,9 +166,10 @@ namespace UTAP
         CaseStatement(frame_t, expression_t);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class DefaultStatement: public BlockStatement 
+    class DefaultStatement: public BlockStatement
     {
     public:
         DefaultStatement(frame_t);
@@ -174,14 +187,16 @@ namespace UTAP
                     Statement* falseStat=NULL);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class BreakStatement: public Statement 
+    class BreakStatement: public Statement
     {
     public:
         BreakStatement();
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     class ContinueStatement: public Statement 
@@ -190,9 +205,10 @@ namespace UTAP
         ContinueStatement();
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
-    class ReturnStatement: public Statement 
+    class ReturnStatement: public Statement
     {
     public:
         expression_t value;
@@ -200,6 +216,7 @@ namespace UTAP
         ReturnStatement(expression_t);
         virtual int32_t accept(StatementVisitor *visitor);
         virtual bool returns();
+        std::string toString(std::string prefix) const;
     };
 
     class StatementVisitor
@@ -279,6 +296,15 @@ namespace UTAP
         std::set<symbol_t> &dependencies;
     public:
         CollectDependenciesVisitor(std::set<symbol_t> &);
+    };
+    
+    class CollectDynamicExpressions : public ExpressionVisitor 
+    {
+    protected:
+        virtual void visitExpression (expression_t);
+        std::list<expression_t> &expressions;
+    public:
+        CollectDynamicExpressions (std::list<expression_t>& );
     };
 
 }

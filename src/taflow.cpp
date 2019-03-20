@@ -52,6 +52,7 @@ using UTAP::SystemVisitor;
 using UTAP::TimedAutomataSystem;
 using UTAP::SignalFlow;
 using UTAP::Partitioner;
+using UTAP::DistanceCalculator;
 
 using std::vector;
 using std::cerr;
@@ -68,12 +69,15 @@ void printHelp(const char* binary)
         "Usage:\n " << binary << " [-bxrce -f format -i iofile] model.xml\n"
         "Options:\n"
         "     -b  use old (v. <=3.4) syntax for system specification;\n"
+        "     -d  calculate distances from needles rather than partition;\n"
         "     -f <dot|tron>\n"
         "         dot:  for DOT (graphviz.org) format (default),\n"
         "         tron: for UPPAAL TRON format;\n"
         "     -i <filename>\n"
-        "         specify file with input and output channels,\n"
-        "         the format is: \"input\" (chan)* \"output\" (chan)*\n"
+        "         for partitioning provide input and output channels:\n"
+        "              \"input\" (chan)* \"output\" (chan)*\n"
+        "         for calculating distances provide a list of needles, e.g.:\n"
+        "              Process.Location1 Proc.localVariable globalVariable"
         "     -r  [DOT] rank symbols instead of plain map of system;\n"
         "     -c  [DOT] put channels on edges between processes;\n"
         "     -e  [DOT] use entity relationship notation;\n"
@@ -82,12 +86,12 @@ void printHelp(const char* binary)
 
 int main(int argc, char *argv[])
 {
-    bool old=false, ranked=false, erd=false, chanEdge=false;
+    bool old=false, ranked=false, erd=false, chanEdge=false, distances=false;
     int format = 2, verbosity=0;
     char c;
     const char* iofile = NULL;
 
-    while ((c = getopt(argc,argv,"bcef:hi:rxv")) != -1)
+    while ((c = getopt(argc,argv,"bcdef:hi:rxv")) != -1)
     {
         switch(c) {
         case 'b':
@@ -95,6 +99,9 @@ int main(int argc, char *argv[])
             break;
         case 'c':
             chanEdge = true;
+            break;
+        case 'd':
+            distances = true;
             break;
         case 'e':
             erd = true;
@@ -134,8 +141,6 @@ int main(int argc, char *argv[])
 
     TimedAutomataSystem system;
 
-//    ParserBuilder *b = new SystemBuilder(&system);
-
     try
     {
         if (argc - optind != 1)
@@ -173,23 +178,38 @@ int main(int argc, char *argv[])
     }
 
     if (iofile!=NULL) {
-        Partitioner partitioner(argv[optind], system);
-        partitioner.setVerbose(verbosity);
-        istream *f = new ifstream(iofile);
-        if (partitioner.partition(*f)>1)
-            cerr << "Partitioning is inconsistent" << endl;
+        SignalFlow *flow = NULL;
+        if (!distances) {
+            Partitioner *partitioner = new Partitioner(argv[optind], system);
+            partitioner->setVerbose(verbosity);
+            ifstream f(iofile);
+            if (partitioner->partition(f)>1)
+                cerr << "Partitioning is inconsistent" << endl;
+            f.close();
+            flow = partitioner;
+        } else {
+            DistanceCalculator *dcalc = 
+                new DistanceCalculator(argv[optind], system);
+            ifstream f(iofile);
+            string needle;
+            while (f) {
+                f >> needle;
+                dcalc->addProcessNeedle(needle.c_str());
+            }
+            flow = dcalc;
+        }
         switch (format)
         {
         case 0:
         default:
-            partitioner.printForDot(std::cout, ranked, erd, chanEdge);
+            flow->printForDot(std::cout, ranked, erd, chanEdge);
             break;
         case 1:
-            partitioner.printForTron(std::cout);
+            flow->printForTron(std::cout);
             break;
         }
-        delete f;
-        return 0;
+        delete flow;
+        exit(EXIT_SUCCESS);
     }
 
     SignalFlow flow(argv[optind], system);

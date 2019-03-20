@@ -192,6 +192,11 @@ namespace UTAP
         /** Generates string representation of the type. */
         std::string toString() const;
 
+        std::string toDeclarationString() const;
+
+        /** Shortcut for is(RANGE). */
+        bool isRange() const { return is(Constants::RANGE); }
+
         /** Shortcut for is(INT). */
         bool isInteger() const { return is(Constants::INT); }
 
@@ -209,6 +214,12 @@ namespace UTAP
 
         /** Shortcut for is(LOCATION). */
         bool isLocation() const { return is(Constants::LOCATION); }
+
+        /** Shortcut for is(INSTANCELINE). */
+        bool isInstanceLine() const { return is(Constants::INSTANCELINE); }
+
+        /** Shortcut for is(BRANCHPOINT). */
+        bool isBranchpoint() const { return is(Constants::BRANCHPOINT); }
 
         /** Shortcut for is(CHANNEL). */
         bool isChannel() const { return is(Constants::CHANNEL); }
@@ -234,6 +245,9 @@ namespace UTAP
         /** Shortcut for is(COST). */
         bool isCost() const { return is(Constants::COST); }
 
+        /** Shortcut for is(DOUBLE). */
+        bool isDouble() const { return is(Constants::DOUBLE); }
+
         /** 
          * Returns true if this is a boolean or integer. Shortcut for
          * isInt() || isBoolean().
@@ -251,6 +265,14 @@ namespace UTAP
          * integer.  Shortcut for is(GUARD) || isInvariant().
          */
         bool isGuard() const;
+
+#ifdef ENABLE_PROB
+        /** 
+         * Returns true if this is a probability or integer.  Shortcut
+         * for is(PROBABILITY) || isInteger().
+         */
+        bool isProbability() const;
+#endif
 
         /**
          * Returns true if this is a constraint, guard, invariant,
@@ -281,7 +303,7 @@ namespace UTAP
         /**
          * Returns false for non-prefix types and true
          * otherwise. Non-prefix types are PRIMITIVE, ARRAY, RECORD,
-         * PROCESS, TEMPLATE, FUNCTION, INSTANCE, RANGE, REF, TYPEDEF.
+         * PROCESS, TEMPLATE, FUNCTION, INSTANCE, LSCINSTANCE, RANGE, REF, TYPEDEF.
          */
         bool isPrefix() const;
 
@@ -290,7 +312,6 @@ namespace UTAP
          * constant.
          */
         bool isConstant() const;
-
 
         /**
          * Returns true if and only if all elements of the type are
@@ -370,6 +391,8 @@ namespace UTAP
 
         /** Creates a new instance type */
         static type_t createInstance(frame_t, position_t = position_t());
+        /** Creates a new lsc instance type */
+        static type_t createLscInstance(frame_t, position_t = position_t());
     };
 }
 

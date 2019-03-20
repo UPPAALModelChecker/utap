@@ -21,6 +21,7 @@
 
 #include <vector>
 #include "utap/utap.h"
+#include <string.h>
 
 using UTAP::TimedAutomataSystem;
 using std::endl;

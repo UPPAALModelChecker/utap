@@ -27,6 +27,8 @@
 #include "utap/system.h"
 #include "utap/expression.h"
 
+#include <string.h>
+
 using namespace UTAP;
 using namespace Constants;
 
@@ -51,6 +53,7 @@ struct expression_t::expression_data
         int32_t value;          /**< The value of the node */
         int32_t index;
         synchronisation_t sync; /**< The sync value of the node  */
+        double doubleValue;
     };
     symbol_t symbol;            /**< The symbol of the node */
     type_t type;                /**< The type of the expression */
@@ -91,6 +94,72 @@ expression_t expression_t::clone() const
     {
         expr.data->sub = new expression_t[getSize()];
         std::copy(data->sub, data->sub + getSize(), expr.data->sub);
+    }
+    return expr;
+}
+
+expression_t expression_t::deeperClone() const
+{
+    expression_t expr(data->kind, data->position);
+    expr.data->value = data->value;
+    expr.data->type = data->type;
+    expr.data->symbol = data->symbol;
+    if (data->sub)
+    {
+        expr.data->sub = new expression_t[getSize()];
+        for (unsigned int i = 0; i < getSize(); ++i) {
+            expr.data->sub[i] = data->sub[i].deeperClone();
+        }
+    }
+    return expr;
+}
+
+expression_t expression_t::deeperClone(symbol_t from, symbol_t to) const
+{
+    expression_t expr(data->kind, data->position);
+    expr.data->value = data->value;
+    expr.data->type = data->type;
+    if (data->symbol == from) {
+        expr.data->symbol = to;
+    } else {
+    	expr.data->symbol = data->symbol;
+    }
+    if (data->sub)
+    {
+        expr.data->sub = new expression_t[getSize()];
+        for (unsigned int i = 0; i < getSize(); ++i) {
+            expr.data->sub[i] = data->sub[i].deeperClone(from, to);
+        }
+    }
+    return expr;
+}
+
+expression_t expression_t::deeperClone(frame_t frame, frame_t select) const
+{
+    expression_t expr(data->kind, data->position);
+    expr.data->value = data->value;
+    expr.data->type = data->type;
+    symbol_t uid;
+    if (data->symbol != symbol_t())
+    {
+        bool res = frame.resolve(data->symbol.getName(), uid);
+        if (!res && select != frame_t()) {
+            res = select.resolve(data->symbol.getName(), uid);
+        }
+        assert(res);
+        expr.data->symbol = uid;
+    }
+    else
+    {
+        expr.data->symbol = data->symbol;
+    }
+
+    if (data->sub)
+    {
+        expr.data->sub = new expression_t[getSize()];
+        for (unsigned int i = 0; i < getSize(); ++i) {
+            expr.data->sub[i] = data->sub[i].deeperClone(frame, select);
+        }
     }
     return expr;
 }
@@ -145,6 +214,117 @@ const position_t &expression_t::getPosition() const
     return data->position;
 }
 
+bool expression_t::usesFP() const
+{
+    if (empty())
+    {
+        return false;
+    }
+    if (data->type.is(Constants::DOUBLE))
+    {
+        return true;
+    }
+    switch(data->kind)
+    {
+    case COS_F:
+    case SIN_F:
+    case EXP_F:
+    case LOG_F:
+    case SQRT_F:
+    case RANDOM_F:
+    case LN_F:
+    case FABS_F:
+    case CEIL_F:
+    case FLOOR_F:
+    case POW_F:
+        return true;
+
+    default: ;
+    }
+
+    size_t n = getSize();
+    for(size_t i = 0; i < n; ++i)
+    {
+        if (get(i).usesFP())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool expression_t::usesClock() const
+{
+    if (empty())
+    {
+        return false;
+    }
+    if (getType().isClock())
+    {
+        return true;
+    }
+    size_t n = getSize();
+    for(size_t i = 0; i < n; ++i)
+    {
+        if (get(i).usesClock())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool expression_t::isDynamic() const 
+{
+    if (empty())
+    {
+        return false;
+    }
+    else 
+    {
+        switch (data->kind)
+        {
+        case SPAWN:
+        case NUMOF:
+        case EXIT:
+        case SUMDYNAMIC:
+        case EXISTSDYNAMIC:
+        case FORALLDYNAMIC:
+            return true;
+        default:
+            ;
+        }   
+    }
+    return false;   
+}
+
+bool expression_t::hasDynamicSub() const 
+{
+    bool hasIt = false;
+    size_t n = getSize ();
+    if (n <=0)
+    {
+        return false;
+    }
+    else
+    {
+        for (size_t i = 0;i<n;++i) 
+        {
+            if (get(i).isDynamic ())
+            {
+                return true;
+            }
+            else 
+            {
+                hasIt |= get(i).hasDynamicSub ();
+            }
+        }
+    }
+
+    return hasIt;
+}
+
 size_t expression_t::getSize() const
 {
     if (empty())
@@ -166,34 +346,22 @@ size_t expression_t::getSize() const
     case BIT_RSHIFT:
     case AND:
     case OR:
+    case XOR:
     case LT:
     case LE:
     case EQ:
     case NEQ:
     case GE:
     case GT:
+    case SIMULATION_LE:
+    case SIMULATION_GE:
+    case REFINEMENT_LE:
+    case REFINEMENT_GE:
+    case CONSISTENCY:
+    case TIOQUOTIENT:
     case MIN:
     case MAX:
-        return 2;
-    case UNARY_MINUS:
-    case NOT:
-        return 1;
-        break;
-    case IDENTIFIER:
-    case CONSTANT:
-        return 0;
-        break;
-    case LIST:
-        return data->value;
-        break;
     case ARRAY:
-        return 2;
-        break;
-    case INLINEIF:
-        return 3;
-        break;
-    case DOT:
-        return 1;
     case COMMA:
     case ASSIGN:
     case ASSPLUS:
@@ -206,50 +374,123 @@ size_t expression_t::getSize() const
     case ASSXOR:
     case ASSLSHIFT:
     case ASSRSHIFT:
+    case FORALL:
+    case EXISTS:
+    case SUM:
+    case RESTRICT:
+    case SUP_VAR:
+    case INF_VAR:
+    case FRACTION:
+    case POW_F:
         return 2;
+
+    case UNARY_MINUS:
+    case NOT:
+    case DOT:
     case SYNC:
-        return 1;
-    case DEADLOCK:
-        return 0;
     case PREINCREMENT:
     case POSTINCREMENT:
     case PREDECREMENT:
     case POSTDECREMENT:
-        return 1;
     case RATE:
+    case SPECIFICATION:
+    case IMPLEMENTATION:
+    case COS_F:
+    case SIN_F:
+    case EXP_F:
+    case LOG_F:
+    case SQRT_F:
+    case RANDOM_F:
+    case FABS_F:
+    case LN_F:
+    case CEIL_F:
+    case FLOOR_F:
         return 1;
+
+    case IDENTIFIER:
+    case CONSTANT:
+    case DEADLOCK:
+        return 0;
+
+    case INLINEIF:
+        return 3;
+
     case FUNCALL:
+    case LIST:
+    case TIOCOMPOSITION:
+    case TIOCONJUNCTION:
+    case SIMULATE:
+    case SIMULATEREACH:
+    case SYNTAX_COMPOSITION:
+    case SPAWN:
         return data->value;
+    
     case EG:
     case AG:
     case EF:
     case AF:
-    case EF_R:
-    case AG_R:
-        return 1;
-    case EG2:
-    case AG2:
-    case EF2:
-    case AF2:
-        return 2;
-    case LEADSTO:
-        return 2; 
-    case A_UNTIL:
-    case A_WEAKUNTIL:
-        return 3;
-    case FORALL:
-    case EXISTS:
-        return 2;
+    case EF_R_Piotr:
+    case AG_R_Piotr:
     case CONTROL:
     case EF_CONTROL:
+    case CONTROL_TOPT_DEF2:
+    case PMAX:
+    case SCENARIO:
         return 1;
+
+    case LEADSTO:
+    case SCENARIO2:
+    case A_UNTIL:
+    case A_WEAKUNTIL:
+    case A_BUCHI:
+    case PO_CONTROL:
+    case CONTROL_TOPT_DEF1:
+        return 2;
+
     case CONTROL_TOPT:
+    case SMC_CONTROL:
         return 3;
+    case PROBABOX:
+    case PROBADIAMOND:
+        return 4;
+
+    case PROBAMINBOX:
+    case PROBAMINDIAMOND:
+        return 4;
+
+    case PROBAEXP:
+        return 5;
+
+    case PROBACMP:
+
+        return 8;
+    case MITLFORMULA:
+    case MITLATOM:
+    case MITLNEXT:
+        return 1;
+    case MITLDISJ:
+    case MITLCONJ:
+        return 2;
+    case MITLUNTIL:
+    case MITLRELEASE:
+        return 4;
+    case EXIT:
+        return 0;
+    case NUMOF:
+        return 1;
+    case EXISTSDYNAMIC:
+    case FORALLDYNAMIC:
+    case SUMDYNAMIC:
+    case MITLEXISTS:
+    case MITLFORALL:
+    case FOREACHDYNAMIC:
+        return 3;    
+    case DYNAMICEVAL:
+        return 2;
     default:
         assert(0);
         return 0;
     }
-    // FIXME: add INF and SUP
 }
         
 type_t expression_t::getType() const
@@ -266,8 +507,14 @@ void expression_t::setType(type_t type)
 
 int32_t expression_t::getValue() const
 {
-    assert(data && data->kind == CONSTANT);
-    return data->value;
+    assert(data && data->kind == CONSTANT && data->type.isIntegral());
+    return data->type.isInteger() ? data->value : (data->value ? 1 : 0);
+}
+
+double expression_t::getDoubleValue() const
+{
+    assert(data && data->kind == CONSTANT && data->type.is(Constants::DOUBLE));
+    return data->doubleValue;
 }
 
 int32_t expression_t::getIndex() const
@@ -310,6 +557,12 @@ bool expression_t::empty() const
 {
     return data == NULL;
 }
+
+bool expression_t::isTrue() const
+{
+    return data == NULL || (getType().isIntegral() && data->kind == CONSTANT && getValue() == 1);
+}
+
 
 /** Two expressions are identical iff all the sub expressions
     are identical and if the kind, value and symbol of the 
@@ -413,6 +666,9 @@ const symbol_t expression_t::getSymbol() const
         return get(0).getSymbol();
 
     case FUNCALL:
+        return get(0).getSymbol();
+
+    case SCENARIO:
         return get(0).getSymbol();
 
     default:
@@ -547,6 +803,8 @@ int expression_t::getPrecedence(kind_t kind)
     case AND:
         return 25;
     case OR:
+        return 22;
+    case XOR:
         return 20;
 
     case EQ:
@@ -557,10 +815,18 @@ int expression_t::getPrecedence(kind_t kind)
     case MAX:
         return 55;
 
+    case RESTRICT:
+        return 60;
+
     case LT:
     case LE:
     case GE:
     case GT:
+    case SIMULATION_LE:
+    case SIMULATION_GE:
+    case REFINEMENT_LE:
+    case REFINEMENT_GE:
+    case SIMULATE:
         return 50;
             
     case IDENTIFIER:
@@ -578,6 +844,8 @@ int expression_t::getPrecedence(kind_t kind)
     case NOT:
         return 90;
             
+    case FRACTION:
+        return 14;
     case INLINEIF:
         return 15;
 
@@ -596,33 +864,51 @@ int expression_t::getPrecedence(kind_t kind)
 
     case FORALL:
     case EXISTS:
+    case SUM:
         return 8;
 
+    case IMPLEMENTATION:
+    case SPECIFICATION:
+    case CONSISTENCY:
+    case TIOQUOTIENT:
+    case TIOCONJUNCTION:
+    case TIOCOMPOSITION:
+    case SYNTAX_COMPOSITION:
     case A_UNTIL:
     case A_WEAKUNTIL:
+    case A_BUCHI:
         return 7;
 
     case EF:
     case EG:
     case AF:
     case AG:
-    case EF2:
-    case EG2:
-    case AF2:
-    case AG2:
-    case EF_R:
-    case AG_R:
+    case EF_R_Piotr:
+    case AG_R_Piotr:
         return 6;
 
     case LEADSTO:
+    case SCENARIO:
+    case SCENARIO2:
         return 5;
 
     case COMMA:
         return 4;
 
+    case PROBAMINBOX:
+    case PROBAMINDIAMOND:
+    case PROBABOX:
+    case PROBADIAMOND:
+    case PROBAEXP:
+    case PO_CONTROL:
     case CONTROL:
+    case SMC_CONTROL:
     case EF_CONTROL:
     case CONTROL_TOPT:
+    case CONTROL_TOPT_DEF1:
+    case CONTROL_TOPT_DEF2:
+    case SUP_VAR:
+    case INF_VAR:
         return 3;
         
     case SYNC:
@@ -632,17 +918,43 @@ int expression_t::getPrecedence(kind_t kind)
     case POSTDECREMENT:
     case PREINCREMENT:
     case POSTINCREMENT:
+    case COS_F:
+    case SIN_F:
+    case EXP_F:
+    case LOG_F:
+    case SQRT_F:
+    case RANDOM_F:
+    case CEIL_F:
+    case FLOOR_F:
+    case FABS_F:
+    case POW_F:
+    case LN_F:
         return 100;
 
+    case MITLFORMULA:
+    case MITLUNTIL:
+    case MITLRELEASE:
+    case MITLDISJ:
+    case MITLCONJ:
+    case MITLATOM:
+    case MITLNEXT:
     case LIST:
+    case SPAWN:
+    case EXIT:
+    case NUMOF:
+    case FORALLDYNAMIC:
+    case EXISTSDYNAMIC:
+    case FOREACHDYNAMIC:
+    case SUMDYNAMIC:    
+    case PROCESSVAR:
+    case DYNAMICEVAL:
         return -1; // TODO
-
+        
     default:
         throw std::runtime_error("Strange expression");
     }
     assert(0);
     return 0;
-    // FIXME: add SUP and INF
 }
 
 static void ensure(char *&str, char *&end, int &size, int len)
@@ -689,13 +1001,158 @@ static void append(char *&str, char *&end, int &size, char c)
     *end = 0;
 }
 
+void expression_t::appendBoundType(char *&str, char*&end, int &size, expression_t e) const
+{
+    if (e.getKind() == CONSTANT)
+    {
+        assert(e.getType().is(Constants::INT)); // Encoding used here.
+
+        if (e.getValue() == 0)
+        {
+            append(str, end, size, "#");
+        }
+    }
+    else
+    {
+        e.toString(false, str, end, size);
+    }
+    append(str, end, size, "<=");
+}
+
 void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 {
-    char s[12];
+    char s[64];
     int precedence = getPrecedence();
+    bool flag = false;
+    int nb;
 
     switch (data->kind) 
     {
+    case PROBAMINBOX:
+        flag = true;
+    case PROBAMINDIAMOND:
+        append(str,end, size, "Pr[");
+        appendBoundType(str, end, size, get(0));
+        get(1).toString(old, str, end, size);
+        append(str,end, size, flag ? "]([] " : "](<> ");
+        get(2).toString(old, str, end, size);
+        append(str,end, size, ") >= ");
+        snprintf(s,sizeof(s),"%f",get(3).getDoubleValue());
+        append(str,end, size, s);
+        break;
+
+    case PROBABOX:
+        flag = true;
+    case PROBADIAMOND:
+        append(str, end, size, "Pr[");
+        appendBoundType(str, end, size, get(0));
+        get(1).toString(old, str, end, size);
+        append(str, end, size, flag ? "]([] " : "](<> ");
+        get(2).toString(old, str, end, size);
+        append(str, end, size, ") ?");
+        break;
+
+    case PROBAEXP:
+        append(str, end, size, "E[");
+        appendBoundType(str, end, size, get(0));
+        get(1).toString(old, str, end, size);
+        append(str, end, size, "; ");
+        get(2).toString(old, str, end, size);
+        append(str, end, size, "] (");
+        append(str, end, size, get(4).getValue() ? "max: " : "min: ");
+        get(3).toString(old, str, end, size);
+        append(str, end, size, ")");
+        break;
+
+    case SIMULATE:
+        append(str, end, size, "simulate[");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "x ");
+        appendBoundType(str, end, size, get(1));
+        get(2).toString(old, str, end, size);
+        append(str, end, size, "]{");
+        nb = getValue() - 3;
+        for(int i = 0; i < nb; ++i)
+        {
+            if (i > 0) append(str, end, size, ", ");
+            get(3+i).toString(old, str, end, size);
+        }
+        append(str, end, size, "}");
+        break;
+
+    case TIOCONJUNCTION:
+        flag = true;
+    case TIOCOMPOSITION:
+        append(str, end, size, "(");
+        get(0).toString(old, str, end, size);
+        for (uint32_t i = 1; i < getSize(); i++) 
+        {
+            append(str, end, size, flag ? " && " : " || ");
+            get(i).toString(old, str, end, size);
+        }
+        append(str, end, size, ")");
+        break;
+
+    case SYNTAX_COMPOSITION:
+        append(str, end, size, "(");
+        get(0).toString(old, str, end, size);
+        for (uint32_t i = 1; i < getSize(); i++) 
+        {
+            append(str, end, size, " + ");
+            get(i).toString(old, str, end, size);
+        }
+        append(str, end, size, ")");
+        break;
+
+    case IMPLEMENTATION:
+        append(str, end, size, "implementation: ");
+        get(0).toString(old, str, end, size);
+        break;
+
+    case SPECIFICATION:
+        append(str, end, size, "specification: ");
+        get(0).toString(old, str, end, size);
+        break;
+
+    case CONSISTENCY:
+        append(str, end, size, "consistency: ");
+        get(0).toString(old, str, end, size);
+        if (!(get(1).getKind() == AG &&
+              get(1).get(0).getKind() == CONSTANT &&
+              get(1).get(0).getValue() == 1))
+        {
+            append(str, end, size, " : ");
+            get(1).toString(old, str, end, size);
+        }
+        break;
+
+    case SIMULATION_GE:
+        flag = true;
+    case REFINEMENT_GE:
+        append(str, end, size, flag ? "simulation: {" : "refinement: {");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, flag ? "} >= " : " >= ");
+        get(1).toString(old, str, end, size);
+        break;
+
+    case SIMULATION_LE:
+        flag = true;
+    case REFINEMENT_LE:
+        append(str, end, size, flag ? "simulation: " : "refinement: ");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, flag ? " <= {" : " <= ");
+        get(1).toString(old, str, end, size);
+        if (flag) append(str, end, size, "}");
+        break;
+
+    case RESTRICT:
+        append(str, end, size, "{");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "}\{");
+        get(1).toString(old, str, end, size);
+        append(str, end, size, "}");
+        break;
+
     case PLUS:
     case MINUS:
     case MULT:
@@ -727,6 +1184,8 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     case ASSRSHIFT:
     case MIN:
     case MAX:
+    case TIOQUOTIENT:
+    case FRACTION:
 
         if (precedence > get(0).getPrecedence())
         {
@@ -740,6 +1199,9 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         
         switch (data->kind) 
         {
+        case FRACTION:
+            append(str, end, size, " : ");
+            break;
         case PLUS:
             append(str, end, size, " + ");
             break;
@@ -840,6 +1302,9 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         case MAX:
             append(str, end, size, " >? ");
             break;
+        case TIOQUOTIENT:
+            append(str, end, size, " \\ ");
+            break;
         default:
             assert(0);
         }
@@ -860,8 +1325,20 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         break;
                 
     case CONSTANT:
-        snprintf(s, 12, "%d", data->value);
-        append(str, end, size, s);
+        if (getType().is(Constants::DOUBLE))
+        {
+            snprintf(s,sizeof(s),"%f",getDoubleValue());
+        }
+        else if (getType().is(Constants::INT))
+        {
+            snprintf(s,sizeof(s), "%d", data->value);
+        }
+        else
+        {
+            assert(getType().is(Constants::BOOL));
+            snprintf(s, sizeof(s), "%s", data->value ? "true" : "false");
+        }
+        append(str,end,size,s);
         break;
 
     case ARRAY:
@@ -908,7 +1385,83 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         }
         append(str, end, size, getKind() == POSTDECREMENT ? "--" : "++");
         break;
-     
+    
+    case COS_F:
+        append(str, end, size, "cos(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case SIN_F:
+        append(str, end, size, "sin(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case EXP_F:
+        append(str, end, size, "exp(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case LOG_F:
+        append(str, end, size, "log(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case LN_F:
+        append(str, end, size, "ln(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case FABS_F:
+        append(str, end, size, "fabs(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case POW_F:
+        append(str, end, size, "pow(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ',');
+        get(1).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case CEIL_F:
+        append(str, end, size, "ceil(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case FLOOR_F:
+        append(str, end, size, "floor(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case XOR:
+        append(str, end, size, '(');
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ") xor (");
+        get(1).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case SQRT_F:
+        append(str, end, size, "sqrt(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
+    case RANDOM_F:
+        append(str, end, size, "random(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ')');
+        break;
+
     case PREDECREMENT:
     case PREINCREMENT:
         append(str, end, size, getKind() == PREDECREMENT ? "--" : "++");
@@ -1019,6 +1572,9 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         case SYNC_BANG:
             append(str, end, size, '!');
             break;
+        case SYNC_CSP:
+            // no append
+            break;
         }
         break;
 
@@ -1027,14 +1583,12 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         break;
 
     case LIST:
-        append(str, end, size, "{ ");
         get(0).toString(old, str, end, size);
         for (uint32_t i = 1; i < getSize(); i++) 
         {
             append(str, end, size, ", ");
             get(i).toString(old, str, end, size);
         }
-        append(str, end, size, " }");
         break;
 
     case FUNCALL:
@@ -1062,7 +1616,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         get(0).toString(old, str, end, size);
         break;
 
-    case EF_R:
+    case EF_R_Piotr:
         append(str, end, size, "E<>* ");
         get(0).toString(old, str, end, size);
         break;
@@ -1082,28 +1636,8 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         get(0).toString(old, str, end, size);
         break;
 
-    case AG_R:
+    case AG_R_Piotr:
         append(str, end, size, "A[]* ");
-        get(0).toString(old, str, end, size);
-        break;
-
-    case EF2:
-        append(str, end, size, "EF ");
-        get(0).toString(old, str, end, size);
-        break;
-
-    case EG2:
-        append(str, end, size, "EG ");
-        get(0).toString(old, str, end, size);
-        break;
-
-    case AF2:
-        append(str, end, size, "AG ");
-        get(0).toString(old, str, end, size);
-        break;
-
-    case AG2:
-        append(str, end, size, "AG ");
         get(0).toString(old, str, end, size);
         break;
 
@@ -1129,6 +1663,14 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append(str, end, size, "] ");
         break;
 
+    case A_BUCHI:
+        append(str, end, size, "A[] ((");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, ") and A<> ");
+        get(1).toString(old, str, end, size);
+        append(str, end, size, ") ");
+        break;
+
     case FORALL:
         append(str, end, size, "forall (");
         append(str, end, size, get(0).getSymbol().getName().c_str());
@@ -1147,12 +1689,37 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         get(1).toString(old, str, end, size);
         break;
 
+    case SUM:
+        append(str, end, size, "sum (");
+        append(str, end, size, get(0).getSymbol().getName().c_str());
+        append(str, end, size, ":");
+        append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+        append(str, end, size, ") ");
+        get(1).toString(old, str, end, size);
+        break;
+
+    case SMC_CONTROL:
+        append(str, end, size, "control[");
+        appendBoundType(str, end, size, get(0));
+        get(1).toString(old, str, end, size);
+        append(str, end, size, "]: ");
+        get(2).toString(old, str, end, size);
+        break;
+
+    case PO_CONTROL:
+        append(str, end, size, "{ ");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "} control: ");
+        get(1).toString(old, str, end, size);
+        break;
+
     case EF_CONTROL:
         append(str, end, size, "E<> ");
     case CONTROL:
         append(str, end, size, "control: ");
         get(0).toString(old, str, end, size);
         break;
+
     case CONTROL_TOPT:
         append(str, end, size, "control_t*(");
         get(0).toString(old, str, end, size);
@@ -1161,7 +1728,128 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append(str, end, size, "): ");
         get(2).toString(old, str, end, size);
         break;
+
+    case CONTROL_TOPT_DEF1:
+        append(str, end, size, "control_t*(");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "): ");
+        get(1).toString(old, str, end, size);
+        break;
+
+    case CONTROL_TOPT_DEF2:
+        append(str, end, size, "control_t*: ");
+        get(0).toString(old, str, end, size);
+        break;
         
+    case SUP_VAR:
+        append(str, end, size, "sup{");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "}: ");
+        get(1).toString(old, str, end, size);
+        break;
+
+    case INF_VAR:
+        append(str, end, size, "inf{");
+        get(0).toString(old, str, end, size);
+        append(str, end, size, "}: ");
+        get(1).toString(old, str, end, size);
+        break;
+
+    case MITLFORMULA:
+        append (str,end,size,"MITL: ");
+        get(0).toString (old,str,end,size);
+        break;
+    case MITLRELEASE:
+    case MITLUNTIL:
+        get(0).toString (old,str,end,size);
+        append (str,end,size,"U[");
+        get(1).toString (old,str,end,size);
+        append (str,end,size,";");
+        get(2).toString (old,str,end,size);
+        append (str,end,size,"]");
+        get(3).toString (old,str,end,size);
+        break;
+    
+    case MITLDISJ:
+        get(0).toString (old,str,end,size);
+        append (str,end,size,"\\/");
+        get(1).toString (old,str,end,size);
+        break;
+    case MITLCONJ:
+        get(0).toString (old,str,end,size);
+        append (str,end,size,"/\\");
+        get(1).toString (old,str,end,size);
+        break;
+    case MITLATOM:
+        get(0).toString (old,str,end,size);
+        break;
+    case MITLNEXT:
+        append (str,end,size,"X(");
+        get(0).toString (old,str,end,size);
+        append (str,end,size,")");
+        break;
+    case SPAWN:
+        append (str,end,size,"SPAWN");
+
+        break;
+    case EXIT:
+        append (str,end,size,"EXIT");
+
+        break;
+    case NUMOF:
+        
+        append (str,end,size,"numof(");
+        get(0).toString(old,str,end,size);
+        append (str,end,size,")");
+        break;
+    case FORALLDYNAMIC:
+        append (str,end,size,"forall (");
+        get(0).toString (old,str,end,size);
+        append (str,end,size," : ");
+        get(1).toString (old,str,end,size);
+        append (str,end,size," )( ");
+        get(2).toString (old,str,end,size);
+        append (str,end,size,")");
+        break;
+    case SUMDYNAMIC:
+        append (str,end,size,"sum (");
+        get(0).toString (old,str,end,size);
+        append (str,end,size," : ");
+        get(1).toString (old,str,end,size);
+        append (str,end,size," )( ");
+        get(2).toString (old,str,end,size);
+        append (str,end,size,")");
+        break;
+    case FOREACHDYNAMIC:
+        append (str,end,size,"foreach (");
+        get(0).toString (old,str,end,size);
+        append (str,end,size," : ");
+        get(1).toString (old,str,end,size);
+        append (str,end,size," )( ");
+        get(2).toString (old,str,end,size);
+        append (str,end,size,")");
+        break;
+    case DYNAMICEVAL:
+        get(1).toString (old,str,end,size);
+        append (str,end,size,".");
+        get(0).toString (old,str,end,size);
+        break;
+    case PROCESSVAR:
+        get(0).toString (old,str,end,size);
+        break;
+    case MITLEXISTS:
+    case EXISTSDYNAMIC:
+        append (str,end,size,"exists (");
+        get(0).toString (old,str,end,size);
+        append (str,end,size," : ");
+        get(1).toString (old,str,end,size);
+        append (str,end,size," )( ");
+        get(2).toString (old,str,end,size);
+        append (str,end,size,")");
+        break;
+   
+        
+            
     default:
         throw std::runtime_error("Strange exception");
     }
@@ -1192,9 +1880,10 @@ std::string expression_t::toString(bool old) const
          int size = 16;
          char *s, *end;
          s = end = new char[size];
+         *s = 0;
          toString(old, s, end, size);
-        std::string result = s;
-        delete[] s;
+         std::string result(s);
+         delete[] s;
          return result;
     }
 }
@@ -1261,7 +1950,7 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
     }
 }
 
-void expression_t::collectPossibleReads(set<symbol_t> &symbols) const
+void expression_t::collectPossibleReads(set<symbol_t> &symbols, bool collectRandom) const
 {
     function_t *fun;
     frame_t parameters;
@@ -1293,6 +1982,13 @@ void expression_t::collectPossibleReads(set<symbol_t> &symbols) const
         }
         break;
 
+    case RANDOM_F:
+        if (collectRandom)
+        {
+            symbols.insert(symbol_t());
+        }
+        break;
+
     default:
         break;
     }
@@ -1304,6 +2000,22 @@ expression_t expression_t::createConstant(int32_t value, position_t pos)
     expression_t expr(CONSTANT, pos);
     expr.data->value = value;
     expr.data->type = type_t::createPrimitive(Constants::INT);
+    return expr;
+}
+
+expression_t expression_t::createExit(position_t pos)
+{
+    expression_t expr(EXIT, pos);
+    expr.data->value = 0;
+    expr.data->type = type_t::createPrimitive(Constants::VOID_TYPE);
+    return expr;
+}
+
+expression_t expression_t::createDouble(double value, position_t pos)
+{
+    expression_t expr(CONSTANT, pos);
+    expr.data->doubleValue = value;
+    expr.data->type = type_t::createPrimitive(Constants::DOUBLE);
     return expr;
 }
 
@@ -1325,7 +2037,6 @@ expression_t expression_t::createIdentifier(symbol_t symbol, position_t pos)
 expression_t expression_t::createNary(
     kind_t kind, const vector<expression_t> &sub, position_t pos, type_t type)
 {
-    assert(kind == LIST || kind == FUNCALL);
     expression_t expr(kind, pos);
     expr.data->value = sub.size();
     expr.data->sub = new expression_t[sub.size()];

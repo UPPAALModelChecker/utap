@@ -23,26 +23,12 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <string>
+#include <strings.h>
 
-#include "utap/utap.h"
+#include "utap/sbmlconverter.h"
 #include "utap/prettyprinter.h"
 
-#if defined(__MINGW32__) || defined(__CYGWIN32__) || !defined(HAVE_UNISTD_H) 
-extern "C" 
-{
-    extern int getopt(int argc, char * const argv[], const char *optstring);
-    extern char *optarg;
-    extern int optind, opterr, optopt;
-}
-#endif
-
-using UTAP::ParserBuilder;
-using UTAP::TimedAutomataSystem;
-using std::vector;
-using std::endl;
-using std::cout;
-using std::cerr;
-
+using namespace std;
 using namespace UTAP::Constants;
 
 static bool newSyntax = (getenv("UPPAAL_OLD_SYNTAX") == NULL);

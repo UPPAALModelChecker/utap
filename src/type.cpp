@@ -37,7 +37,7 @@ struct type_t::child_t
 
 struct type_t::type_data
 {
-    int32_t count;                // Reference count
+    int32_t count;              // Reference count
     kind_t kind;                // Kind of type object
     position_t position;        // Position in the input file
     expression_t expr;          // 
@@ -164,13 +164,16 @@ bool type_t::isPrefix() const
 {
     switch (getKind())
     {
+    case Constants::FRACTION:
     case Constants::UNKNOWN:
     case Constants::VOID_TYPE:
     case Constants::CLOCK:
     case Constants::INT:
+    case Constants::DOUBLE:
     case Constants::BOOL:
     case Constants::SCALAR:
     case Constants::LOCATION:
+    case Constants::BRANCHPOINT:
     case Constants::CHANNEL:
     case Constants::COST:
     case Constants::INVARIANT:
@@ -179,6 +182,7 @@ bool type_t::isPrefix() const
     case Constants::DIFF:
     case Constants::CONSTRAINT:
     case Constants::FORMULA:
+    case Constants::TIOGRAPH:
     case Constants::ARRAY:
     case Constants::RECORD:
     case Constants::PROCESS:
@@ -190,6 +194,11 @@ bool type_t::isPrefix() const
     case Constants::TYPEDEF:
     case Constants::LABEL:
     case Constants::RATE:
+    case Constants::INSTANCELINE://LSC
+    case Constants::MESSAGE://LSC
+    case Constants::CONDITION://LSC
+    case Constants::UPDATE://LSC
+    case Constants::LSCINSTANCE://LSC
         return false;
 
     default:
@@ -204,11 +213,19 @@ bool type_t::unknown() const
 
 bool type_t::is(kind_t kind) const
 {
-    return getKind() == kind
-        || isPrefix() && get(0).is(kind)
-        || getKind() == RANGE && get(0).is(kind)
-        || getKind() == REF && get(0).is(kind)
-        || getKind() == LABEL && get(0).is(kind);
+    if (getKind () == Constants::PROCESSVAR) 
+    {
+        return kind == Constants::PROCESSVAR;
+    }
+    if (getKind () == Constants::DOUBLEINVGUARD) 
+    {
+        return kind == Constants::DOUBLEINVGUARD;
+    }    
+    return (getKind() == kind)
+        || (isPrefix() && get(0).is(kind))
+        || (getKind() == RANGE && get(0).is(kind))
+        || (getKind() == REF && get(0).is(kind))
+        || (getKind() == LABEL && get(0).is(kind));
 }
 
 type_t type_t::getSub() const
@@ -363,7 +380,7 @@ position_t type_t::getPosition() const
 
 bool type_t::isIntegral() const
 {
-    return is(Constants::INT) || is(Constants::BOOL);
+    return is(Constants::INT) || is(Constants::BOOL) || is(PROCESSVAR);
 }
 
 bool type_t::isInvariant() const
@@ -375,6 +392,13 @@ bool type_t::isGuard() const
 {
     return is(GUARD) || isInvariant();
 }
+
+#ifdef ENABLE_PROB
+bool type_t::isProbability() const
+{
+    return is(PROBABILITY) || isInteger();
+}
+#endif
 
 bool type_t::isConstraint() const
 {
@@ -393,6 +417,7 @@ bool type_t::isConstant() const
     case FUNCTION:
     case PROCESS:
     case INSTANCE:
+    case LSCINSTANCE:
         return false;
     case CONSTANT:
         return true;
@@ -417,6 +442,7 @@ bool type_t::isNonConstant() const
     case FUNCTION:
     case PROCESS:
     case INSTANCE:
+    case LSCINSTANCE:
         return false;
     case CONSTANT:
         return false;
@@ -495,6 +521,17 @@ type_t type_t::createTypeDef(std::string label, type_t type, position_t pos)
 type_t type_t::createInstance(frame_t parameters, position_t pos)
 {
     type_t type(INSTANCE, pos, parameters.getSize());
+    for (size_t i = 0; i < parameters.getSize(); i++)
+    {
+        type.data->children[i].child = parameters[i].getType();
+        type.data->children[i].label = parameters[i].getName();
+    }
+    return type;
+}
+
+type_t type_t::createLscInstance(frame_t parameters, position_t pos)
+{
+    type_t type(LSCINSTANCE, pos, parameters.getSize());
     for (size_t i = 0; i < parameters.getSize(); i++)
     {
         type.data->children[i].child = parameters[i].getType();
@@ -606,8 +643,16 @@ string type_t::toString() const
         kind = "clock";
         break;
 
+    case Constants::FRACTION:
+        kind = "fraction";
+        break;
+
     case Constants::INT:
         kind = "int";
+        break;
+
+    case Constants::DOUBLE:
+        kind = "double";
         break;
 
     case Constants::BOOL:
@@ -674,6 +719,33 @@ string type_t::toString() const
         kind = "location";
         break;
 
+    case Constants::BRANCHPOINT:
+        kind = "branchpoint";
+        break;
+
+    case Constants::TIOGRAPH:
+        kind = "TIgraph";
+        break;
+
+    //LSC
+    case INSTANCELINE:
+        kind = "instance line";
+        break;
+    case MESSAGE:
+        kind = "message";
+        break;
+    case CONDITION:
+        kind = "condition";
+        break;
+    case UPDATE:
+        kind = "update";
+        break;
+    case LSCINSTANCE:
+        kind = "LSC instance";
+        break;
+    case PROCESSVAR:
+        kind ="PROCESSVAR";
+        break;
     default:
         kind = (boost::format("type(%1%)") % getKind()).str();
         break;
@@ -696,6 +768,196 @@ string type_t::toString() const
     return str;
 }
 
+
+string type_t::toDeclarationString() const
+{
+    std::string str;
+    std::string kind;
+    bool range = false;
+    bool array = false;
+    bool label = false;
+    bool typeDef = false;
+
+    if (data == NULL)
+    {
+        return "unknown";
+    }
+
+    if (!data->expr.empty())
+    {
+        return string("");
+    }
+
+    switch (getKind())
+    {
+    case Constants::UNKNOWN:
+        kind = "unknown";
+        break;
+
+    case Constants::RANGE:
+        kind = "";
+        range = true;
+        break;
+
+    case Constants::ARRAY:
+        kind = "";
+        array = true;
+        break;
+
+    case Constants::RECORD:
+        kind = "struct";
+        break;
+
+    case Constants::CONSTANT:
+        kind = "const";
+        break;
+
+    case Constants::REF:
+        kind = "ref";
+        break;
+
+    case Constants::URGENT:
+        kind = "urgent";
+        break;
+
+    case Constants::COMMITTED:
+        kind = "committed";
+        break;
+
+    case Constants::BROADCAST:
+        kind = "broadcast";
+        break;
+
+    case Constants::VOID_TYPE:
+        kind = "void";
+        break;
+
+    case Constants::CLOCK:
+        kind = "clock";
+        break;
+
+    case Constants::INT:
+        kind = "int";
+        break;
+
+    case Constants::DOUBLE:
+        kind = "double";
+        break;
+
+    case Constants::BOOL:
+        kind = "bool";
+        break;
+
+    case Constants::SCALAR:
+        kind = "scalar";
+        break;
+
+    case Constants::CHANNEL:
+        kind = "chan";
+        break;
+
+    case Constants::INVARIANT:
+        kind = "invariant";
+        break;
+
+    case Constants::GUARD:
+        kind = "guard";
+        break;
+
+    case Constants::DIFF:
+        kind = "diff";
+        break;
+
+    case Constants::CONSTRAINT:
+        kind = "constraint";
+        break;
+
+    case Constants::FORMULA:
+        kind = "formula";
+        break;
+
+    case Constants::COST:
+        kind = "cost";
+        break;
+
+    case Constants::RATE:
+        kind = "rate";
+        break;
+
+    case Constants::TYPEDEF:
+        kind = "typedef";
+        typeDef = true;
+        break;
+
+    case Constants::PROCESS:
+        kind = "process";
+        break;
+
+    case Constants::INSTANCE:
+        kind = "instance";
+        break;
+
+    case Constants::LABEL:
+        label = true;
+        break;
+
+    case Constants::FUNCTION:
+        kind = "function";
+        break;
+
+    default:
+        kind = (boost::format("type(%1%)") % getKind()).str();
+        break;
+    }
+
+    str = "";
+    if (range)
+    {
+        str += get(0).toDeclarationString();
+        if (getRange().first.getValue() != -32767)
+        {
+            str += "[";
+            str += getRange().first.toString();
+            str += ",";
+            str += getRange().second.toString();
+            str += "]";
+            str += get(1).toDeclarationString();
+        }
+    }
+    else if (array)
+    {
+        str += get(0).toDeclarationString();
+        str += "[";
+        str += getArraySize().getRange().second.get(0).toString();
+        str += "]";
+    }
+    else if (label)
+    {
+        str += getLabel(0);
+    }
+    else if (typeDef)
+    {
+        str += kind;
+        str += " ";
+        str += get(0).toDeclarationString();
+        str += " ";
+        str += getLabel(0);
+    }
+    else {
+        str += kind;
+        for (uint32_t i = 0; i < size(); i++)
+        {
+            str += " ";
+            if (!getLabel(i).empty())
+            {
+                str += getLabel(i);
+                str += ":";
+            }
+            str += get(i).toDeclarationString();
+        }
+    }
+    return str;
+}
 
 std::ostream &operator << (std::ostream &o, type_t t)
 {

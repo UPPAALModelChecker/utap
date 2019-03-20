@@ -1,3 +1,2419 @@
+2015-03-13 11:26  marius
+
+	* [r5778] statmc/tests/CItest.cpp, utap/typechecker.cpp,
+	  verifier/tests/verifyta.cpp, version.sh: build: added windows
+	  launcher, changed to console executable (hopefully there will
+	  fewer streange crashes on windows) and other small fixes
+
+2015-03-13 11:26  marius
+
+	* [r5777] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/prettyprinter.h, include/utap/querylist.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/utap.h, utap/abstractbuilder.cpp, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/querylist.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/expression_analyser.cpp, verifier/tests/verifyta.cpp:
+	  refactored query parsing enclosed with the model.
+
+2015-02-20 14:14  marius
+
+	* [r5767] utap/typechecker.cpp: UTAP: disabled "it may be needed to
+	  add a guard involving the target invariant"
+
+2014-11-13 10:27  wei
+
+	* [r5742] include/utap/builder.h, include/utap/querylist.h,
+	  include/verifier/property.h, utap/parser.y, utap/querylist.cpp,
+	  utap/typechecker.cpp, utap/xmlreader.cpp, verifier/property.cpp,
+	  verifier/tests/makefile.def, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: GUI: Refactoring and rewriting the
+	  'QueryList', 'QueryListModel' and 'Verifier' classes. Created the
+	  classes 'QueryList', 'QueryData', 'QueryListListener' and
+	  'QueryListListener' into the package 'core2'. Changed the class
+	  'QueryListModel' and 'Verifier'. Create the classes
+	  'QueryListStreamWriter' and 'QueryListURLReader'. Changed the
+	  internal functions (CommandManager, Reading/Writer xml
+	  functions). Changed the xml design.
+	  
+	  Uppaal server: Rewriting some functionalities of 'Verifyta.cpp'.
+	  Added functionalities to show the error message, error X-Path
+	  with error line and position number and error context data.
+
+2014-09-29 13:31  wei
+
+	* [r5702] include/utap/querylist.h, utap/querylist.cpp: Rewrote the
+	  query list
+
+2014-09-23 21:43  wei
+
+	* [r5698] utap/querylist.cpp, verifier/tests/server.cpp: Bug:
+	  Tracing the 'simulate' smc query was showing error 'Floating
+	  point value expected ...'.
+
+2014-09-21 08:57  wei
+
+	* [r5694] statmc/MitlProbaChecker.cpp, statmc/ProbaChecker.cpp,
+	  utap/expressionbuilder.cpp, utap/querylist.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: 1) Added
+	  tracing for 'probaSimulate', 'probaEChecker', 'compareProbaCheck'
+	  and 'MitlProbaChecker'
+	  2) Fixed the bug getting the error location in command line
+	  3) Fixed the bug exporting the queries into the query file
+
+2014-08-21 12:58  marius
+
+	* [r5666] utap/typechecker.cpp: fixed crash on branching input,
+	  also refactored the human-friendly naming of locations and edges,
+	  which also fixed the naming of branchpoints (in the GUI).
+
+2014-08-08 15:23  marius
+
+	* [r5656] include/utap/prettyprinter.h, utap/abstractbuilder.cpp,
+	  utap/prettyprinter.cpp: UTAP: fixed some missing functions for
+	  SMC and MITL features
+
+2014-08-08 15:23  marius
+
+	* [r5654] include/utap/expressionbuilder.h,
+	  include/utap/prettyprinter.h, include/utap/querylist.h,
+	  utap/prettyprinter.cpp, utap/querylist.cpp,
+	  utap/tests/makefile.def, verifier/tests/makefile.def,
+	  verifier/tests/server.cpp: fixed building errors with UTAP and
+	  SBML
+
+2014-07-01 16:24  adavid
+
+	* [r5646] utap/typechecker.cpp: Managed to solve Jin's problem.
+
+2014-06-26 19:27  adavid
+
+	* [r5644] tracer/tests/tracer.cpp, utap/expression.cpp,
+	  utap/typechecker.cpp: Removed ambiguities by explicitly prefixing
+	  Constants for BOOL, INT, and DOUBLE (Windows compilation).
+	  Updated reference test to match the new output ([Ff]ormula).
+
+2014-06-18 14:19  marius
+
+	* [r5638] include/statmc/StatChoiceFilter.h,
+	  statmc/StatChoiceFilter.cpp, utap/xmlreader.cpp: Engine: updated
+	  to libxml2-2.9.1 and added instructions how to cross-compile
+	  boost and libxml2 for win32.
+
+2014-06-13 09:53  marius
+
+	* [r5633] include/utap/position.h, verifier/tests/server.cpp:
+	  Server: fixed error reporting in case of
+	  compilation/initial-state error
+
+2014-05-22 12:37  danny
+
+	* [r5626] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expression.h, include/utap/expressionbuilder.h,
+	  include/utap/statement.h, include/utap/typechecker.h,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y, utap/statement.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Check that dynamic
+	  constructs are only used on edges,
+	  throw type error if a template is referenced in a dynamic
+	  construct before being defined,
+	  ensure to delete the process variables when they go out of scope
+	  i.e. for sum (t:T)(e) t is only bound for the expression e
+
+2014-05-22 12:37  danny
+
+	* [r5623] utap/expressionbuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp: Dynamic Sums now inherit its type from the
+	  sub-expression (instead of always being a double)
+
+2014-05-21 09:44  wei
+
+	* [r5617] include/utap/querylist.h, utap/querylist.cpp,
+	  utap/tags.gperf, utap/xmlreader.cpp, verifier/tests/verifyta.cpp:
+	  The xml format for queries using in command line:
+	  <formula>..</formula> instead of <property> .. </property>
+
+2014-05-20 14:05  adavid
+
+	* [r5612] utap/parser.y, utap/statementbuilder.cpp: Fixed a crash
+	  in the parser.
+
+2014-05-19 09:31  wei
+
+	* [r5609] utap/xmlreader.cpp, verifier/modelchecker.cpp,
+	  verifier/program.cpp, verifier/tests/server.cpp: Get the
+	  functionality of the runtime error for the symbolic simulator. If
+	  a runtime error happens during query verification, the GUI now
+	  understands whether the error happened in the model or in the
+	  query expression. The error message is shown correctly.
+
+2014-05-13 14:26  adavid
+
+	* [r5605] utap/expression.cpp: Fixed isTrue.
+
+2014-04-09 13:09  danny
+
+	* [r5563] include/system/tctlexpr.h, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp: made plotting
+	  of arbitrary clock expressions (guard and invariants) work
+
+2014-04-09 13:09  danny
+
+	* [r5558] include/system/expressions.h, include/utap/common.h,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h,
+	  statmc/prepostdelay.cpp, statmc/prepostdelay.h, utap/type.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: (very) Rough attempt
+	  to handle problem with guard and invariant expressions in the
+	  dynamic sum.
+
+2014-04-09 13:09  danny
+
+	* [r5555] statmc/ConcreteDelay.cpp, statmc/cfilters.h,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Begun changes to fix
+	  problem with the dynamic sum
+
+2014-04-09 13:09  danny
+
+	* [r5554] utap/typechecker.cpp: typecheck SUMDYNAMIC
+
+2014-04-09 13:09  danny
+
+	* [r5553] utap/expressionbuilder.cpp, utap/parser.y: Changed parser
+	  for mitl. No more /\ and \/
+
+2014-04-09 13:09  danny
+
+	* [r5552] utap/typechecker.cpp: check that MITL is only allowed in
+	  forall and exists of MITL formulas (in the typechecker)
+
+2014-04-09 13:09  danny
+
+	* [r5551] include/utap/expressionbuilder.h,
+	  utap/expressionbuilder.cpp, utap/parser.y: removed unused code
+
+2014-04-09 13:09  danny
+
+	* [r5550] include/utap/expressionbuilder.h,
+	  utap/expressionbuilder.cpp, utap/parser.y: removed curly braces
+	  from the MITL forall and MITL exists.
+
+2014-04-09 13:09  danny
+
+	* [r5549] utap/parser.y: ; to , in range of MITL formulas
+
+2014-04-01 16:57  adavid
+
+	* [r5542] statmc/ProbaChecker.h, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp: Made E[..]
+	  accept double types.
+
+2014-04-01 16:07  adavid
+
+	* [r5540] include/system/Location.h, include/system/System.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/type.h, include/verifier/Compiler.h,
+	  system/Process.cpp, system/System.cpp, utap/abstractbuilder.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp: Some cleanups.
+	  Changed use of hybrid.
+	  UPPAAL now works on PTA too.
+	  Fixed pb with extrapolation for PTA.
+
+2014-04-01 10:34  adavid
+
+	* [r5537] include/system/Location.h,
+	  include/system/StateDecorator.h, include/system/System.h,
+	  include/system/Variables.h, include/system/public.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/typechecker.h, include/verifier/Compiler.h,
+	  system/Location.cpp, system/Process.cpp,
+	  system/StateDecorator.cpp, system/SymbolicState.cpp,
+	  system/System.cpp, system/Variables.cpp, tiga/POTigaFilter.cpp,
+	  tiga/TigaFilter.cpp, tiga/TigaPropertyBuilder.cpp,
+	  utap/abstractbuilder.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/system.cpp, utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp,
+	  verifier/program.cpp: Hacked tiga-smc to work on PTA.
+
+2014-03-24 16:29  adavid
+
+	* [r5529] include/utap/expression.h, utap/expression.cpp: Updated
+	  expression_t::isTrue().
+
+2014-03-21 15:47  adavid
+
+	* [r5528] include/utap/expression.h, utap/typechecker.cpp: Added a
+	  warning for bad models.
+
+2014-03-17 15:12  wei
+
+	* [r5524] include/system/error.h, include/utap/position.h,
+	  include/utap/querylist.h, include/utap/system.h,
+	  statmc/ProbaChecker.cpp, system/SymbolicState.cpp,
+	  system/error.cpp, utap/querylist.cpp, utap/system.cpp,
+	  utap/xmlreader.cpp, verifier/modelchecker.cpp,
+	  verifier/program.cpp, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Added new functions to catch the
+	  runtime error for the symbolic simulator and verifier. Changed
+	  the function to print the output line on the terminal for reading
+	  queries from the model xml or the query file. Fixed the bug when
+	  showing the problems in the problem table in the editor of the
+	  GUI.
+
+2014-03-02 13:45  adavid
+
+	* [r5522] base/tests/makefile.def, utap/expression.cpp: Fixed old
+	  makefile.
+	  Added missing return.
+
+2014-02-04 10:13  danny
+
+	* [r5515] include/utap/system.h, include/verifier/property.h,
+	  verifier/property.cpp: Ensure dynamic templates are only used
+	  with SMC properties
+
+2014-02-04 10:13  danny
+
+	* [r5514] include/utap/typechecker.h, utap/typechecker.cpp: handled
+	  error where the type checker did not allow spawn expressions in
+	  updates
+
+2014-02-03 14:38  marius
+
+	* [r5512] utap/keywords.gperf, utap/parser.y: updated keyword
+	  highlighting
+
+2014-01-27 12:22  danny
+
+	* [r5505] utap/expressionbuilder.cpp: Slight change to error
+	  message
+
+2014-01-27 12:22  danny
+
+	* [r5504] utap/expressionbuilder.cpp: removed unused iterator
+
+2014-01-27 12:22  danny
+
+	* [r5503] include/utap/expressionbuilder.h,
+	  utap/expressionbuilder.cpp: commented unused code
+
+2014-01-27 12:22  danny
+
+	* [r5502] utap/expressionbuilder.cpp: Check that dynamic process
+	  variables are indeed known - segfault could occur before if the
+	  Template the process variable was associated to was not a dynamic
+	  template.
+
+2014-01-27 12:22  danny
+
+	* [r5501] utap/typechecker.cpp: cleanup
+
+2014-01-22 16:30  danny
+
+	* [r5495] utap/systembuilder.cpp: corrected typecheck for dynamic
+	  processes
+
+2014-01-14 10:39  wei
+
+	* [r5490] include/utap/builder.h, include/utap/querylist.h,
+	  include/utap/utap.h, utap/querylist.cpp, utap/typechecker.cpp,
+	  utap/xmlreader.cpp, verifier/tests/verifyta.cpp: Revert "Added
+	  comment and remove unuse code"
+	  
+	  This reverts commit 9e99821842aa18795d9759b3bab8f41059ba64b5.
+
+2014-01-09 12:33  wei
+
+	* [r5487] include/utap/builder.h, include/utap/querylist.h,
+	  include/utap/utap.h, utap/querylist.cpp, utap/typechecker.cpp,
+	  utap/xmlreader.cpp, verifier/tests/verifyta.cpp: Added comment
+	  and remove unuse code
+
+2014-01-09 12:33  wei
+
+	* [r5486] include/utap/querylist.h, utap/querylist.cpp,
+	  utap/xmlreader.cpp, verifier/tests/verifyta.cpp: Read query from
+	  query file or model: Output printed on the screen
+
+2014-01-09 12:33  wei
+
+	* [r5485] include/utap/builder.h, include/utap/querylist.h,
+	  include/utap/utap.h, utap/querylist.cpp, utap/tags.gperf,
+	  utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/tests/verifyta.cpp: Changed the verifier in server. It
+	  can read the queries from the xml file (Open: Output printed on
+	  the screen)
+
+2013-12-17 15:40  adavid
+
+	* [r5469] include/base/random.h, include/dbm/partition.h,
+	  include/pipeline/AutoConnectable.h,
+	  include/pipeline/SimpleStop.h, include/statmc/SMCAction.h,
+	  include/statmc/SMCStrategy.h, include/statmc/TigaSMC.h,
+	  include/statmc/ctraces.h, include/system/EdgeEnumerator.h,
+	  include/system/Location.h, include/system/System.h,
+	  include/tiga/PartitionCDD.h, include/tiga/Strategy.h,
+	  include/tiga/TigaModelChecker.h,
+	  include/tiga/TigaPropertyBuilder.h, include/tiga/TigaStateSet.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, proba/GetTransitions.cpp,
+	  statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  statmc/MitlProbaChecker.cpp, statmc/ProbaChecker.cpp,
+	  statmc/ProbaChecker.h, statmc/SMCAction.cpp,
+	  statmc/SMCStrategy.cpp, statmc/SortedTraces.cpp,
+	  statmc/SortedTraces.h, statmc/TigaSMC.cpp, statmc/VCloud.cpp,
+	  statmc/VCloud.h, statmc/cfilters.h, system/ConcreteState.cpp,
+	  system/DiscreteState.cpp, system/System.cpp,
+	  tiga/CDDStrategy.cpp, tiga/CDDStrategy.h, tiga/FedStrategy.cpp,
+	  tiga/FedStrategy.h, tiga/SimulationTransitionFilter.cpp,
+	  tiga/Strategy.cpp, tiga/TigaFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/tests/options.gperf, tiga/tests/server.cpp,
+	  tiga/tests/verifytga.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/typechecker.cpp, verifier/TransitionFilter.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Refactored the code a little bit
+	  (edge enumeration and moved filters).
+	  Changed tiga option for strategy, now distinct from traces.
+	  Added support for playing smc when a strategy has been computed
+	  before (option -X).
+	  Added basic implementation of smc learning (inner loop only).
+
+2013-11-26 10:54  danny
+
+	* [r5457] utap/expressionbuilder.cpp: check that result is not
+	  NULL, and avoid double invocation of getDynamicTemplate
+
+2013-11-15 16:19  adavid
+
+	* [r5453] utap/signalflow.cpp, utap/xmlreader.cpp: Removed more
+	  undefined behaviors.
+
+2013-11-15 16:12  adavid
+
+	* [r5452] include/utap/system.h, utap/signalflow.cpp: Fixed typo.
+	  Avoid undefined behavior.
+
+2013-11-15 15:42  adavid
+
+	* [r5450] include/utap/system.h: Added missing destructor.
+
+2013-11-15 15:33  adavid
+
+	* [r5449] hash/H3HashFunction.cpp, hash/tests/benchmark.cpp,
+	  hash/tests/h3scale.cpp, include/hash/H3HashFunction.h,
+	  include/utap/expression.h, system/SymbolicState.cpp,
+	  utap/expression.cpp, verifier/Compiler.cpp: Removed dead code
+	  (had a mem leak too).
+	  Fixed exception - right one is thrown.
+	  Added a test to guards for cheaper smc.
+
+2013-11-07 14:29  adavid
+
+	* [r5444] utap/keywords.gperf: Stupid typo.
+
+2013-11-06 13:54  adavid
+
+	* [r5438] utap/keywords.gperf, utap/lexer.l: Fixed keywords.
+
+2013-10-28 12:00  danny
+
+	* [r5431] utap/systembuilder.cpp, utap/typechecker.cpp: Typecheck
+	  of parameters to dynamic template
+
+2013-10-24 12:16  danny
+
+	* [r5423] utap/typechecker.cpp: removed commented code
+
+2013-10-24 12:16  danny
+
+	* [r5417] utap/expressionbuilder.cpp, verifier/Compiler.cpp,
+	  verifier/program.cpp: Made sum dynamic work with clocks (also
+	  Sumdynamic now have type double)
+
+2013-10-24 12:16  danny
+
+	* [r5415] utap/expressionbuilder.cpp: check that the templates used
+	  in foreach /forall / exists does exist
+
+2013-10-24 12:15  danny
+
+	* [r5414] include/utap/system.h, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp: Checking that
+	  dynamic templates are in fact defined (and not just declared
+	  using the dynamic keyword)
+
+2013-10-24 12:15  danny
+
+	* [r5399] utap/expressionbuilder.cpp: fix to ensure location han be
+	  handled by Dynamic evaluation expressions
+
+2013-10-24 12:15  danny
+
+	* [r5397] statmc/ProbaChecker.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, verifier/program.cpp: small
+	  modifications
+
+2013-10-24 12:15  danny
+
+	* [r5394] include/statmc/simulation.h,
+	  include/system/expressions.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/expressionbuilder.h, statmc/ProbaChecker.cpp,
+	  system/expressions.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/lexer.l,
+	  utap/parser.y, verifier/Compiler.cpp: Plotting: foreach (...)
+	  added for dynamic templates
+
+2013-10-24 12:15  danny
+
+	* [r5393] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  statmc/MitlProbaChecker.cpp, statmc/mitl.cpp,
+	  system/mitlexpr.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/parser.y,
+	  verifier/Compiler.cpp, verifier/expression_analyser.cpp: Added
+	  sum for dynamic processes
+
+2013-10-24 12:15  danny
+
+	* [r5391] include/system/mitlexpr.h, statmc/MitlProbaChecker.cpp,
+	  statmc/mitl.cpp, statmc/mitl.h, system/VariableVector.cpp,
+	  system/mitlexpr.cpp, utap/expression.cpp, utap/parser.y,
+	  verifier/Compiler.cpp: added forall to MITL,
+	  fixed bugs in dynamic expressions in the probachecker
+
+2013-10-24 12:15  danny
+
+	* [r5390] include/system/mitlexpr.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  statmc/MitlProbaChecker.cpp, statmc/mitl.cpp, statmc/mitl.h,
+	  system/mitlexpr.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/parser.y,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp: added exists operator to MITL.
+
+2013-10-24 12:15  danny
+
+	* [r5384] include/verifier/Compiler.h, system/System.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Allowed use of
+	  references in instantiation of dynamic templates (to
+	  allow channels as parameters).
+
+2013-10-24 12:15  danny
+
+	* [r5383] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/parser.y,
+	  utap/type.cpp, utap/typechecker.cpp: - Enabled nesting of exists
+	  and forall ranging over templates.
+	  - Update string representation of numOf
+
+2013-10-24 12:15  danny
+
+	* [r5381] utap/expression.cpp: proper toString for the dynamic
+	  expressions
+
+2013-10-24 12:15  danny
+
+	* [r5378] utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y,
+	  utap/type.cpp, verifier/Compiler.cpp: More consistent syntax. No
+	  longer need for double colon
+
+2013-10-24 12:15  danny
+
+	* [r5373] utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/parser.y, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp: dynamic exists
+
+2013-10-24 12:15  danny
+
+	* [r5372] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, utap/abstractbuilder.cpp,
+	  utap/expressionbuilder.cpp, verifier/Compiler.cpp,
+	  verifier/program.cpp: modifications to dynamic for all
+
+2013-10-24 12:14  danny
+
+	* [r5371] utap/parser.y: More consistent syntax
+
+2013-10-24 12:14  danny
+
+	* [r5369] include/system/ConcreteState.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, include/utap/system.h,
+	  include/verifier/Compiler.h, include/verifier/program.h,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp, verifier/program.cpp: work on
+	  evaluation of dynamic forall statements
+
+2013-10-24 12:14  danny
+
+	* [r5368] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y: parsing
+	  of forall and exists for process bound variables
+
+2013-10-24 12:14  danny
+
+	* [r5364] utap/typechecker.cpp: check that a spawn indeed tries to
+	  spawn a dynamic template
+
+2013-10-24 12:14  danny
+
+	* [r5363] include/utap/expression.h, statmc/ProbaChecker.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp: made dynamic
+	  systems work with simulate query
+
+2013-10-24 12:14  danny
+
+	* [r5362] include/system/ConcreteState.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/program.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/lexer.l,
+	  utap/parser.y, utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp, verifier/program.cpp: Added
+	  numOf expression (and switched into using Casting functions of
+	  publicstate instead of dynamic_cast)
+
+2013-10-24 12:14  danny
+
+	* [r5357] utap/typechecker.cpp: type check to ensure references are
+	  not passed in parameters of dynamic templates.
+
+2013-10-24 12:14  danny
+
+	* [r5356] utap/systembuilder.cpp: Check for consistency between
+	  dynamic declaration and actual template declaration
+
+2013-10-24 12:14  danny
+
+	* [r5355] include/utap/typechecker.h, utap/expression.cpp,
+	  utap/system.cpp, utap/typechecker.cpp: Typecheck of dynamic
+	  templates
+
+2013-10-24 12:14  danny
+
+	* [r5354] utap/typechecker.cpp: Typechecking of spawn
+
+2013-10-24 12:14  danny
+
+	* [r5351] include/system/ConcreteState.h, include/system/Process.h,
+	  include/system/System.h, include/utap/system.h,
+	  statmc/ConcreteDelay.cpp, statmc/ProbaChecker.cpp,
+	  system/Process.cpp, system/System.cpp, system/VariableVector.cpp,
+	  utap/system.cpp, verifier/Compiler.cpp, verifier/program.cpp: bug
+	  fixes - and moved spawning out of virtual machine
+
+2013-10-24 12:14  danny
+
+	* [r5350] include/system/Process.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/expressionbuilder.h, include/verifier/Compiler.h,
+	  include/verifier/program.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/lexer.l,
+	  utap/parser.y, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp, verifier/program.cpp: Started
+	  implementing exit expression
+
+2013-10-24 12:14  danny
+
+	* [r5349] include/utap/system.h, utap/system.cpp: Fixed problem
+	  with multiple dynamic templates
+
+2013-10-24 12:14  danny
+
+	* [r5348] include/system/System.h, include/utap/system.h,
+	  include/verifier/Compiler.h, include/verifier/program.h,
+	  system/System.cpp, utap/system.cpp, utap/systembuilder.cpp,
+	  verifier/Compiler.cpp, verifier/expression_analyser.cpp,
+	  verifier/program.cpp: Moved the spawning of templates into the
+	  virtual machine
+
+2013-10-24 12:14  danny
+
+	* [r5333] include/verifier/Compiler.h, include/verifier/Symbol.h,
+	  system/System.cpp, system/dynamicExpressions.cpp,
+	  utap/systembuilder.cpp, verifier/Compiler.cpp,
+	  verifier/Symbol.cpp: Begun changes to facilitate compilation of
+	  dynamic templates
+
+2013-10-24 12:14  danny
+
+	* [r5332] include/system/dynamicexpressions.h,
+	  include/utap/system.h, system/dynamicExpressions.cpp,
+	  utap/expression.cpp, utap/system.cpp, verifier/Compiler.cpp:
+	  compilation of spawn expressions
+
+2013-10-24 12:14  danny
+
+	* [r5330] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/parser.y,
+	  utap/typechecker.cpp: creation of spawn expression in utap
+
+2013-10-24 12:13  danny
+
+	* [r5329] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/system.h,
+	  include/utap/systembuilder.h, utap/abstractbuilder.cpp,
+	  utap/lexer.l, utap/parser.y, utap/system.cpp,
+	  utap/systembuilder.cpp: parsing and preliminary check of dynamic
+	  templates in systembuilder. Also added dynamic templates to
+	  system (in utap)
+
+2013-10-24 12:13  danny
+
+	* [r5328] include/utap/system.h, utap/system.cpp: added dynamic
+	  templates to system
+
+2013-10-03 15:50  adavid
+
+	* [r5321] utap/signalflow.cpp: Put back a deleted line.
+
+2013-10-03 15:31  adavid
+
+	* [r5320] base/platform.c, dbm/fed.cpp, dbm/gen.c,
+	  include/utap/signalflow.h, io/Base64Coder.cpp,
+	  statmc/MitlProbaChecker.cpp, utap/signalflow.cpp,
+	  verifier/Compiler.cpp, verifier/Symbol.cpp,
+	  verifier/SymmetryFilter.cpp, verifier/expression_analyser.cpp,
+	  verifier/tests/verifyta.cpp: Fixed some errors found by clang.
+	  Fixed some smc errors linked to double.
+	  Added asserts.
+
+2013-09-25 19:44  adavid
+
+	* [r5318] utap/typechecker.cpp: Fixed wrong assertion.
+
+2013-09-24 13:14  zhzhang
+
+	* [r5317] include/utap/common.h, include/verifier/modelchecker.h,
+	  include/verifier/property.h, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/tests/verifytga.cpp,
+	  utap/expression.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/typechecker.cpp: [TIGA-SMC] compile tigasmc quary and
+	  transport the result expression through the Tiga pipeline
+
+2013-09-06 15:00  adavid
+
+	* [r5314] include/system/ConcreteState.h,
+	  include/system/PolyhedraState.h, include/system/StateDecorator.h,
+	  include/system/SymbolicState.h, include/system/public.h,
+	  include/system/tctlexpr.h, include/system/visitors.h,
+	  statmc/ConcreteDelay.cpp, system/ConcreteState.cpp,
+	  system/PolyhedraState.cpp, system/StateDecorator.cpp,
+	  system/SymbolicState.cpp, system/tctlexpr.cpp,
+	  system/visitors.cpp, tiga/tests/server.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/tests/server.cpp: Hacked
+	  constraints to have doubles inside.
+
+2013-08-31 16:10  adavid
+
+	* [r5304] include/utap/expression.h, include/utap/symbols.h,
+	  utap/expression.cpp, utap/symbols.cpp, utap/typechecker.cpp: The
+	  function random is not computable at compile time.
+
+2013-08-23 14:15  adavid
+
+	* [r5293] include/system/System.h, include/system/Variables.h,
+	  system/ConcreteState.cpp, system/System.cpp,
+	  system/Variables.cpp, utap/statementbuilder.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp, verifier/Symbol.cpp,
+	  verifier/modelchecker.cpp: Added clock initialisers.
+	  Double initialisers have effects now.
+
+2013-08-22 15:30  adavid
+
+	* [r5291] include/system/DiscreteState.h,
+	  include/system/StateDecorator.h, include/system/System.h,
+	  include/system/Variables.h, include/system/public.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/utap/prettyprinter.h, include/utap/type.h,
+	  include/utap/typechecker.h, include/verifier/Compiler.h,
+	  include/verifier/SymmetryFilter.h,
+	  include/verifier/modelchecker.h, include/verifier/program.h,
+	  system/DiscreteState.cpp, system/Location.cpp,
+	  system/StateDecorator.cpp, system/SymbolicState.cpp,
+	  system/System.cpp, system/Variables.cpp, tiga/tests/server.cpp,
+	  tiga/tests/verifytga.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/statementbuilder.cpp, utap/system.cpp, utap/type.cpp,
+	  utap/typechecker.cpp, verifier/CSS.cpp, verifier/Compiler.cpp,
+	  verifier/Symbol.cpp, verifier/SymmetryFilter.cpp,
+	  verifier/WaitingStack.cpp, verifier/WaitingStack.h,
+	  verifier/expression_analyser.cpp, verifier/program.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Added
+	  support for double. EXPERIMENTAL
+	  Changed semantics of meta.
+	  Updated reftests: meta variables are not printed any more,
+	  0,1 printed as false,true when applicable. Some stupid spaces
+	  are also gone.
+
+2013-08-06 11:58  adavid
+
+	* [r5280] include/verifier/program.h, statmc/ConcreteDelay.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/program.cpp: Added opDoubleMin and opDoubleMax.
+
+2013-04-16 11:37  adavid
+
+	* [r5261] utap/typechecker.cpp, verifier/program.cpp: Fixed bug in
+	  VM. Added warning.
+
+2013-03-26 14:45  gianna
+
+	* [r5237] include/system/Edge.h, include/utap/system.h,
+	  system/Edge.cpp, verifier/Compiler.cpp,
+	  verifier/tests/server.cpp: New protocol for concrete simulation:
+	  edges carries select values
+
+2013-03-06 13:17  adavid
+
+	* [r5219] utap/typechecker.cpp, verifier/expression_analyser.cpp:
+	  Fixed a segfault. At least detect and work-around it. The true
+	  source of the bug has not been fixed.
+
+2013-02-15 22:58  adavid
+
+	* [r5212] include/system/Location.h, include/system/System.h,
+	  include/system/expressions.h, include/utap/expression.h,
+	  include/verifier/Compiler.h, include/verifier/program.h,
+	  statmc/ConcreteDelay.cpp, statmc/ProbaChecker.cpp,
+	  statmc/ProbaChecker.h, statmc/SimuError.cpp, statmc/cfilters.h,
+	  system/Location.cpp, system/System.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/lexer.l, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp,
+	  verifier/program.cpp: Upgraded SMC for SBML.
+
+2013-02-14 01:20  adavid
+
+	* [r5211] statmc/ConcreteDelay.cpp, utap/lexer.l: Fixed parsing of
+	  double.
+	  Handle exponential rate <= 0. I did NOT want to do this but
+	  sometimes
+	  it is difficult to write the proper guards (may be arbitrary
+	  expressions).
+
+2013-02-11 23:51  adavid
+
+	* [r5209] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/program.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/expression_analyser.cpp,
+	  verifier/program.cpp: Changed semantics of log -> log10.
+	  Added ln, fabs, ceil, floor, pow, xor.
+
+2012-12-06 12:27  danny
+
+	* [r5177] include/utap/builder.h, include/utap/expressionbuilder.h,
+	  utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y: Changed
+	  Syntax for mitl (MITL keyword has been replaced by Pr).
+	  
+	  Introduced shorthand for box and diamond operator in mitl.
+
+2012-10-11 12:46  adavid
+
+	* [r5141] include/port/PortZoneStorage.h, include/port/fed.h,
+	  port/PortChecker.cpp, port/PortPWList.cpp, port/PortSimTrace.cpp,
+	  port/fed.cpp, port/tests/portsrv.cpp, utap/lexer.l: Added some
+	  old config & changes.
+	  Made port work.
+
+2012-09-24 14:34  adavid
+
+	* [r5133] utap/parser.y: Fixed precedence problem.
+
+2012-08-28 12:26  peter
+
+	* [r5110] utap/parser.y: restored Tiga ability to solve Buchi
+	  properties
+
+2012-08-20 12:59  marius
+
+	* [r5109] base/platform.c, include/dbm/inline_fed.h,
+	  include/dbm/partition.h, statmc/ConcreteTrans.cpp,
+	  statmc/MitlProbaChecker.cpp, statmc/cfilters.h,
+	  utap/systembuilder.cpp, verifier/Compiler.cpp,
+	  verifier/PassedList.cpp, verifier/program.cpp,
+	  verifier/tests/server.cpp, xmltrace/XMLObjects.hpp: fixed some
+	  compiler warnings (and some potential bug about nested function
+	  calls:
+	  when the outer function is void then it did not mark its
+	  beginning,
+	  where its arguments are stored, see program.cpp)
+
+2012-08-13 15:24  adavid
+
+	* [r5106] include/verifier/modelchecker.h,
+	  tiga/TigaModelChecker.cpp, tiga/tests/options.gperf,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp, utap/parser.y,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Added
+	  warning of unspecified I/O (optional).
+	  Fixed broken grammar (introduced rev 4995) for ecdar.
+
+2012-08-08 13:02  adavid
+
+	* [r5099] include/system/Process.h,
+	  include/tiga/TigaModelChecker.h, include/utap/common.h,
+	  system/Process.cpp, tiga/TIProcessTransitionFilter.cpp,
+	  tiga/TIProcessTransitionFilter.h, tiga/TigaModelChecker.cpp,
+	  tiga/tests/verifytga.cpp, utap/expression.cpp, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/typechecker.cpp,
+	  verifier/tests/verifyta.cpp: Added + operator for Ecdar.
+
+2012-06-25 14:50  adavid
+
+	* [r5095] utap/typechecker.cpp: Activated dormant code. :)
+
+2012-05-09 11:39  adavid
+
+	* [r5056] include/verifier/Compiler.h, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/expression_analyser.cpp: Support
+	  for sums of clocks.
+
+2012-04-30 17:12  marius
+
+	* [r5050] include/utap/common.h, include/utap/type.h,
+	  include/verifier/program.h, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/type.cpp, utap/typechecker.cpp,
+	  verifier/expression_analyser.cpp, verifier/program.cpp: ported
+	  drand48 and renamed DOUBLE to DOUBLE_F to to make
+	  gcc-4.2.1/MINGW32 happy
+
+2012-04-26 10:22  danny
+
+	* [r5048] utap/typechecker.cpp: updated type checking of filtered
+	  simulate
+
+2012-04-25 12:43  danny
+
+	* [r5047] include/statmc/simulation.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, statmc/ProbaChecker.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y,
+	  verifier/modelchecker.cpp: Extended the filtered simulate query.
+	  You can now bound the total number of runs that satisfy the
+	  property
+	  
+	  Conflicts:
+	  trunk/server/modules/verifier/modelchecker.cpp
+
+2012-04-24 15:34  adavid
+
+	* [r5046] utap/typechecker.cpp, verifier/modelchecker.cpp: Fixed
+	  pSimulateReach.
+
+2012-04-24 14:33  adavid
+
+	* [r5045] include/system/System.h, statmc/ConcreteDelay.cpp,
+	  statmc/ProbaChecker.cpp, system/System.cpp, utap/keywords.gperf,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/modelchecker.cpp: Enabled (read hacked) more general
+	  expressions in simulate {..}.
+
+2012-04-19 10:42  danny
+
+	* [r5043] include/statmc/simulation.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/property.h, statmc/ConcreteDelay.cpp,
+	  statmc/ProbaChecker.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y,
+	  utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/property.cpp, verifier/tests/server.cpp: Filtered
+	  simulate query added
+
+2012-04-12 14:31  adavid
+
+	* [r5040] include/utap/common.h, include/verifier/program.h,
+	  utap/expression.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp, verifier/program.cpp: Added
+	  sqrt & some checks.
+
+2012-04-12 12:38  adavid
+
+	* [r5037] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/program.h, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/expression_analyser.cpp,
+	  verifier/program.cpp: Added cos, sin, exp, log, and random.
+
+2012-03-27 08:00  danny
+
+	* [r5029] utap/expressionbuilder.cpp: Fixed compiler warning
+	  regarding unused variable in
+	  expressionbuileder::exprProbaQuantitative.
+
+2012-03-14 15:24  danny
+
+	* [r5014] utap/typechecker.cpp: Fixed typechecking of statistical
+	  formulas (Pr[<= ](<>...) and Pr[<=] ([] ...) )- error introduced
+	  while implementing Until for statistical properties
+
+2012-02-29 08:58  adavid
+
+	* [r4996] utap/parser.y: Forgot some calls to property().
+
+2012-02-29 08:00  adavid
+
+	* [r4995] utap/parser.y: Changed the grammar. The new one is
+	  simplified and will not
+	  accept nested tctl formulas any more.
+
+2012-02-28 14:53  adavid
+
+	* [r4994] include/system/System.h, include/system/mitlexpr.h,
+	  include/utap/system.h, include/verifier/modelchecker.h,
+	  include/verifier/properties.h, statmc/ConcreteDelay.cpp,
+	  statmc/ConcreteTrans.cpp, statmc/MitlProbaChecker.cpp,
+	  statmc/cfilters.h, system/Location.cpp, system/System.cpp,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp, utap/parser.y,
+	  utap/system.cpp, utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Fixed
+	  some bug in mitl.
+	  Fixed bad bugs in smc in the decorator. Now it is symmetric +/-
+	  rates.
+	  Removed implicit invariant x>=0 in smc.
+	  Activated 1st order ODE in invariants, added fixed discrete step,
+	  semantics is at most dt.
+	  Fixed pb introduced by mitl with conflict with R keyword.
+	  Deactivated dependency analysis that is wrong anyway.
+	  Deactivated time choice reuse except if there is no global
+	  variable.
+	  Some minor bug fixes here and there.
+
+2012-02-23 16:48  adavid
+
+	* [r4988] include/system/Location.h, include/system/System.h,
+	  statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  statmc/MitlProbaChecker.cpp, statmc/ProbaChecker.cpp,
+	  statmc/ProbaChecker.h, statmc/cfilters.h, statmc/probachecker.h,
+	  system/Location.cpp, system/System.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/modelchecker.cpp,
+	  verifier/tests/server.cpp: Fixed compilation for mitl engine.
+	  Changed type of rates, now floating point.
+	  Desactivated support for ode.
+
+2012-02-23 14:04  danny
+
+	* [r4985] include/statmc/ProbaChecker.h, include/system/mitlexpr.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/Compiler.h, include/verifier/modelchecker.h,
+	  include/verifier/properties.h, include/verifier/property.h,
+	  statmc/ConcreteDelay.cpp, statmc/MitlProbaChecker.cpp,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h, statmc/mitl.cpp,
+	  statmc/mitl.h, statmc/mitltimed.cpp, statmc/probachecker.h,
+	  system/mitlexpr.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/lexer.l,
+	  utap/parser.y, utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp: Merge branch 'mitl'
+
+2012-01-13 15:04  adavid
+
+	* [r4960] utap/typechecker.cpp, verifier/Compiler.cpp: Solved pb
+	  with clocks.
+
+2012-01-06 16:03  adavid
+
+	* [r4951] include/system/Location.h, include/system/expressions.h,
+	  include/system/public.h, include/verifier/Compiler.h,
+	  include/verifier/program.h, statmc/ConcreteDelay.cpp,
+	  system/Location.cpp, system/System.cpp, system/expressions.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/modelchecker.cpp, verifier/program.cpp: Extended VM.
+
+2011-12-23 15:19  adavid
+
+	* [r4938] include/statmc/ProbaChecker.h,
+	  include/statmc/simulation.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/expression.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/property.h,
+	  statmc/ConcreteDelay.cpp, statmc/ProbaChecker.cpp,
+	  statmc/simulation.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp,
+	  verifier/modelchecker.cpp, verifier/property.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Removed
+	  some dead code.
+	  Added the simulate property.
+	  Not working against the GUI, Marius will fix this.
+
+2011-12-02 11:14  danny
+
+	* [r4936] include/utap/builder.h, include/utap/expressionbuilder.h,
+	  include/verifier/properties.h, statmc/ConcreteDelay.cpp,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y,
+	  utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/properties.cpp: Implemented Until for SMC
+
+2011-11-24 13:45  adavid
+
+	* [r4933] statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h, utap/typechecker.cpp,
+	  utap/xmlreader.cpp, verifier/Compiler.cpp, verifier/program.cpp:
+	  Fixed bugs in smc.
+	  Added XML_PARSE_RECOVER.
+
+2011-11-24 13:39  marius
+
+	* [r4932] utap/xmlreader.cpp: added XML_PARSE_HUGE option to enable
+	  huge model files.
+
+2011-10-11 09:26  adavid
+
+	* [r4883] include/utap/position.h: Fixed overflow problem against
+	  the GUI. No clue why
+	  this shows up only in some version of ecdar and not
+	  elsewhere.
+
+2011-09-30 11:13  adavid
+
+	* [r4877] tiga/FedStrategy.cpp, utap/xmlwriter.cpp: Minor fix.
+
+2011-09-30 10:03  elsa
+
+	* [r4875] utap/tests/sbmltest.cpp, utap/xmlreader.cpp: Added
+	  missing ifdef ENABLE_SBML
+	  Done by Elsa Arrou-Vignod
+
+2011-09-29 11:37  elsa
+
+	* [r4873] include/utap/SBMLtoXMLWriter.h,
+	  include/utap/sbmlconverter.h, include/utap/xmlwriter.h,
+	  utap/SBMLtoXMLWriter.cpp, utap/sbmlconverter.cpp,
+	  utap/tests/sbmltest.cpp, utap/xmlreader.cpp: Added #ifdef
+	  ENABLE_SBML for sbml translator.
+	  Done by Elsa Arrou-Vignod
+
+2011-09-27 08:53  elsa
+
+	* [r4871] include/utap/SBMLtoXMLWriter.h,
+	  include/utap/sbmlconverter.h, include/utap/xmlwriter.h,
+	  utap/SBMLtoXMLWriter.cpp, utap/makefile.def,
+	  utap/sbmlconverter.cpp, utap/tags.gperf, utap/tests/makefile.def,
+	  utap/tests/pretty.cpp, utap/tests/sbmltest.cpp,
+	  utap/xmlreader.cpp, utap/xmlwriter.cpp,
+	  verifier/tests/makefile.def: Changes brought to add SBML
+	  translator in utap
+	  Done by Elsa Arrou-Vignod
+
+2011-08-23 10:03  adavid
+
+	* [r4863] include/utap/signalflow.h,
+	  polyhedra/tests/testInitPolyhedron.cpp, setup.sh,
+	  statmc/ConcreteTrans.cpp, statmc/Histogram.cpp,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h: Started to make
+	  uppaal c++0x compliant. Still much work to do.
+
+2011-07-17 15:21  adavid
+
+	* [r4861] include/system/ConcreteState.h,
+	  include/system/StateDecorator.h, include/system/SymbolicState.h,
+	  include/system/System.h, include/system/public.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/utap/type.h, include/verifier/program.h,
+	  statmc/ConcreteDelay.cpp, system/ConcreteState.cpp,
+	  system/StateDecorator.cpp, system/SymbolicState.cpp,
+	  system/System.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y, utap/type.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp, verifier/modelchecker.cpp,
+	  verifier/program.cpp, verifier/tests/server.cpp: Work-in-progress
+	  of an ugly hack to support double -- to some extent.
+
+2011-06-30 15:25  marius
+
+	* [r4835] utap/system.cpp: initialized one minor field that
+	  valgrind complained
+
+2011-06-01 15:05  adavid
+
+	* [r4804] include/system/Process.h, include/system/System.h,
+	  include/utap/common.h, include/utap/system.h,
+	  include/utap/typechecker.h, include/verifier/TransitionFilter.h,
+	  socketserver/tests/socketserver.c, system/Process.cpp,
+	  system/System.cpp, utap/expression.cpp, utap/keywords.gperf,
+	  utap/parser.y, utap/prettyprinter.cpp, utap/signalflow.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/TransitionFilter.cpp,
+	  verifier/Translator.cpp, verifier/modelchecker.cpp: Hacked CSP
+	  sync. Work-in-progress, needs to be fixed.
+
+2011-05-27 18:46  adavid
+
+	* [r4798] include/system/Process.h, include/tiga/TigaStateSet.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/typechecker.h, include/verifier/Compiler.h,
+	  system/Process.cpp, tiga/TIProcessTransitionFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaStateSet.cpp,
+	  utap/abstractbuilder.cpp, utap/parser.y, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp: Work-in-progress on signatures.
+
+2011-05-27 11:09  peter
+
+	* [r4796] utap/keywords.gperf, utap/parser.y: added branches to XTA
+	  format
+
+2011-05-27 08:53  adavid
+
+	* [r4795] statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  utap/systembuilder.cpp: progress on signatures, remove TRACEME.
+
+2011-05-26 16:50  adavid
+
+	* [r4794] statmc/ConcreteTrans.cpp, utap/parser.y: Fixed wrong
+	  non-determinism detection in smc.
+	  Fixed parser rule for rates.
+	  Removed wrong exprTrue in parser.
+
+2011-05-26 15:45  adavid
+
+	* [r4793] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  utap/abstractbuilder.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/system.cpp, utap/systembuilder.cpp: Started to add
+	  signatures to ecdar.
+	  Extended xta to accept rates.
+
+2011-04-26 12:28  marius
+
+	* [r4765] utap/keywords.gperf, utap/lexer.l, utap/parser.y: changed
+	  + to # for the number of steps in probabilistic queries
+
+2011-04-10 13:35  adavid
+
+	* [r4757] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, setup.sh,
+	  utap/abstractbuilder.cpp, utap/expressionbuilder.cpp,
+	  utap/parser.y, utap/typechecker.cpp: MacOS fixes.
+	  Changed syntax for SMC: fixed mess with bound.
+	  Pr[ <= max].. -> timed bound
+	  Pr[+ <= max].. -> step bound
+	  Pr[expr <= max].. -> custom clock bound
+
+2011-01-21 12:28  adavid
+
+	* [r4733] utap/typechecker.cpp: remove assert
+
+2011-01-20 17:46  adavid
+
+	* [r4729] utap/typechecker.cpp: Added case. I have no clue why this
+	  worked before.
+
+2011-01-20 17:42  adavid
+
+	* [r4728] utap/typechecker.cpp: Removed deprecated asserts.
+
+2011-01-20 15:16  adavid
+
+	* [r4725] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, statmc/ConcreteDelay.cpp,
+	  statmc/ProbaChecker.cpp, statmc/cfilters.h,
+	  utap/abstractbuilder.cpp, utap/expressionbuilder.cpp,
+	  utap/parser.y, verifier/modelchecker.cpp: Added a hack to get
+	  cost-bounds.
+
+2011-01-10 14:21  adavid
+
+	* [r4710] include/statmc/ProbaChecker.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, statmc/ProbaChecker.cpp,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/parser.y, utap/typechecker.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Added smc checker for Pr(..) >=
+	  Pr(..)
+
+2010-12-23 12:50  marius
+
+	* [r4703] include/statmc/Histogram.h, statmc/ProbaChecker.cpp,
+	  utap/expression.cpp, verifier/tests/server.cpp: fixed histogram
+	  for probability distributions of expected value
+
+2010-12-20 17:17  adavid
+
+	* [r4700] include/verifier/modelchecker.h,
+	  statmc/ConcreteDelay.cpp, statmc/ProbaChecker.cpp,
+	  system/System.cpp, utap/typechecker.cpp,
+	  verifier/modelchecker.cpp: Implemented int rates.
+
+2010-12-14 14:46  marius
+
+	* [r4692] utap/statementbuilder.cpp: added a check for duplicate
+	  definition of type
+
+2010-12-13 15:47  adavid
+
+	* [r4690] include/statmc/ProbaChecker.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, statmc/ProbaChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/lexer.l,
+	  utap/parser.y, utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/properties.cpp, verifier/property.cpp: Added prop
+	  E[time|steps <= value; max_runs](min|max: expr).
+
+2010-11-10 16:46  adavid
+
+	* [r4657] include/statmc/Histogram.h, utap/tests/pretty.cpp: Fixed
+	  the distribution. We are discretizing so no / stepSize.
+
+2010-11-10 14:40  adavid
+
+	* [r4656] utap/prettyprinter.cpp: Added proper implementations in
+	  PrettyPrinter.
+
+2010-11-10 14:25  adavid
+
+	* [r4655] include/utap/abstractbuilder.h,
+	  include/utap/prettyprinter.h, utap/prettyprinter.cpp: Made utap
+	  tests compile.
+
+2010-11-08 16:50  adavid
+
+	* [r4647] statmc/ProbaChecker.cpp, system/Process.cpp,
+	  utap/expression.cpp, verifier/tests/server.cpp: Added option.
+
+2010-11-08 14:43  adavid
+
+	* [r4639] include/system/Location.h, include/utap/common.h,
+	  statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  system/Location.cpp, tiga/TigaPropertyBuilder.cpp,
+	  utap/expression.cpp, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/signalflow.cpp, utap/type.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp: Added fractions for rates.
+
+2010-11-05 17:12  adavid
+
+	* [r4631] include/statmc/Histogram.h, include/utap/builder.h,
+	  include/utap/expressionbuilder.h, include/utap/system.h,
+	  include/utap/systembuilder.h, include/utap/typechecker.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, statmc/ProbaChecker.cpp,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
+	  utap/expressionbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Activated lsc syntax.
+	  Added histogram generation.
+
+2010-11-04 15:56  adavid
+
+	* [r4628] include/system/Location.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/typechecker.h, include/verifier/property.h,
+	  statmc/ConcreteDelay.cpp, statmc/ConcreteTrans.cpp,
+	  statmc/ProbaChecker.cpp, system/Edge.cpp, system/Location.cpp,
+	  utap/abstractbuilder.cpp, utap/expressionbuilder.cpp,
+	  utap/parser.y, utap/system.cpp, utap/systembuilder.cpp,
+	  utap/typechecker.cpp, utap/xmlreader.cpp, verifier/Compiler.cpp,
+	  verifier/Translator.cpp, verifier/property.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Added
+	  support for exp rate.
+	  Windows version of statmc crashes now, no clue why.
+
+2010-11-01 16:25  adavid
+
+	* [r4623] include/utap/builder.h, include/utap/expressionbuilder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/typechecker.h, include/verifier/property.h,
+	  utap/expressionbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/property.cpp: Enabled some LSC parts by default.
+
+2010-10-22 15:30  adavid
+
+	* [r4606] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, port/tests/verifyta.cpp,
+	  statmc/ConcreteDelay.cpp, statmc/ProbaChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/tests/server.cpp,
+	  tiga/tests/verifytga.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp, utap/parser.y,
+	  utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/properties.cpp, verifier/property.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Added
+	  quantitative stat mc and Pr[..](<>|[] ..) <= proba.
+
+2010-10-20 13:37  adavid
+
+	* [r4599] include/dbm/Valuation.h, include/statmc/ProbaChecker.h,
+	  include/statmc/randgen.h, include/system/ChannelInfo.h,
+	  include/system/ConcreteState.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/expression.h, include/utap/expressionbuilder.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, port/tests/verifyta.cpp,
+	  statmc/ProbaChecker.cpp, statmc/StatChoiceFilter.cpp,
+	  statmc/StatOptionFilter.cpp, statmc/tests/randgen.cpp,
+	  system/ConcreteState.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/keywords.gperf, utap/lexer.l,
+	  utap/parser.y, utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/properties.cpp, verifier/property.cpp,
+	  verifier/tests/lib.dep, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Implemented statistical
+	  model-checker.
+	  Still work to be done to improve and fix some known issues.
+	  See FIXME.
+
+2010-08-10 10:56  adavid
+
+	* [r4568] dbm/partition.cpp, include/tiga/TigaModelChecker.h,
+	  tiga/CDDStrategy.h, tiga/FedStrategy.h, tiga/PartitionCDD.cpp,
+	  utap/expression.cpp: Cosmetics and some leaks plugged.
+
+2010-08-09 14:08  adavid
+
+	* [r4567] tiga/TigaModelChecker.cpp, utap/expression.cpp: Less
+	  verbose debug print.
+
+2010-08-09 11:51  adavid
+
+	* [r4562] dbm/fed.cpp, dbm/fed_dbm.cpp, include/dbm/fed.h,
+	  include/io/License.h, include/system/ExtrapolationInfo.h,
+	  include/system/Process.h, include/system/System.h,
+	  include/system/tctlexpr.h, include/system/visitors.h,
+	  include/tiga/Strategy.h, include/tiga/TigaModelChecker.h,
+	  include/utap/common.h, include/verifier/Compiler.h,
+	  include/verifier/Translator.h, include/verifier/modelchecker.h,
+	  include/verifier/property.h, io/License.cpp,
+	  port/tests/verifyta.cpp, system/ExtrapolationInfo.cpp,
+	  system/Process.cpp, system/System.cpp, system/tctlexpr.cpp,
+	  system/visitors.cpp, tiga/CDDStrategy.cpp, tiga/CDDStrategy.h,
+	  tiga/FedStrategy.cpp, tiga/FedStrategy.h, tiga/Strategy.cpp,
+	  tiga/TIGraphOperators.cpp, tiga/TIGraphOperators.h,
+	  tiga/TIProcessTransitionFilter.cpp,
+	  tiga/TIProcessTransitionFilter.h, tiga/TigaFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/TigaStateSet.cpp, tiga/backward_filter.cpp,
+	  tiga/tests/server.cpp, tiga/tests/tiga-ref/testdelay-01.q,
+	  tiga/tests/verifytga.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/SuccessorFilter.cpp,
+	  verifier/Translator.cpp, verifier/expression_analyser.cpp,
+	  verifier/modelchecker.cpp, verifier/property.cpp,
+	  verifier/reachability.cpp, verifier/tests/server.cpp,
+	  verifier/tests/verifyta.cpp: Improved sup.
+	  Added inf.
+	  Fixed bug in ecdar (wrong formula was extrated from fed).
+	  Added functionality to dbm lib for inf.
+	  Added academic license check.
+	  Added execution of expressions in strategies.
+	  Fixed one leak in tiga.
+
+2010-06-03 13:06  adavid
+
+	* [r4549] utap/lexer.l: Fixed overflow detection to skip 0.
+
+2010-05-25 14:48  adavid
+
+	* [r4536] utap/lexer.l, utap/parser.y: Fixed bug 488.
+
+2010-04-06 16:46  adavid
+
+	* [r4510] utap/statement.cpp: Fixed bug 486.
+
+2010-03-26 11:50  marius
+
+	* [r4508] utap/parser.y: fixed some (not, and, or) operator
+	  procedence rules to be consistent with C++ (bug 485)
+
+2010-03-18 08:50  arild
+
+	* [r4504] CMakeLists.txt, CMakeModules,
+	  CMakeModules/FindBoost.cmake, CMakeModules/Findlp_solve.cmake,
+	  CMakeModules/LibFindMacros.cmake, base/CMakeLists.txt,
+	  base/tests/CMakeLists.txt, cdd/CMakeLists.txt,
+	  cdd/tests/CMakeLists.txt, concurrency/CMakeLists.txt,
+	  concurrency/tests/CMakeLists.txt, cora/CMakeLists.txt,
+	  cora/tests/CMakeLists.txt, dbm/CMakeLists.txt,
+	  dbm/tests/CMakeLists.txt, debug/CMakeLists.txt,
+	  debug/tests/CMakeLists.txt, hash/CMakeLists.txt,
+	  hash/tests/CMakeLists.txt, include/config.h.cmake,
+	  io/CMakeLists.txt, io/tests/CMakeLists.txt,
+	  pipeline/CMakeLists.txt, pipeline/tests/CMakeLists.txt,
+	  prob/CMakeLists.txt, prob/tests/CMakeLists.txt,
+	  proba/CMakeLists.txt, proba/tests/CMakeLists.txt,
+	  protocol/CMakeLists.txt, protocol/tests/CMakeLists.txt,
+	  socketserver/CMakeLists.txt, socketserver/tests/CMakeLists.txt,
+	  storage/CMakeLists.txt, storage/tests/CMakeLists.txt,
+	  system/CMakeLists.txt, system/tests/CMakeLists.txt,
+	  tiga/CMakeLists.txt, tiga/tests/CMakeLists.txt,
+	  tracer/CMakeLists.txt, tracer/tests/CMakeLists.txt,
+	  tron/CMakeLists.txt, tron/tests/CMakeLists.txt,
+	  utap/CMakeLists.txt, utap/tests/CMakeLists.txt,
+	  verifier/CMakeLists.txt, verifier/tests/CMakeLists.txt,
+	  xmltrace/CMakeLists.txt: Experimental CMake-based alternative
+	  build-system for server
+
+2010-01-08 18:29  adavid
+
+	* [r4476] dbm/fed.cpp, dbm/fed_dbm.cpp, include/dbm/fed.h,
+	  include/system/ConcreteState.h, include/system/Edge.h,
+	  include/system/EdgeArray.h, include/system/ExtrapolationInfo.h,
+	  include/system/Process.h, include/system/SymbolicState.h,
+	  include/system/System.h, include/system/tctlexpr.h,
+	  include/system/visitors.h, include/tiga/Strategy.h,
+	  include/tiga/TigaModelChecker.h, include/tiga/TigaStateSet.h,
+	  include/tiga/TurnDelayFilter.h, include/tiga/filters.h,
+	  include/tiga/properties.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/expressionbuilder.h, include/utap/prettyprinter.h,
+	  include/utap/statementbuilder.h, include/verifier/Compiler.h,
+	  include/verifier/filterconfiguration.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, include/verifier/ssql.h,
+	  port/tests/portsrv.cpp, port/tests/verifyta.cpp,
+	  prob/tests/prob_notime_server.cpp,
+	  prob/tests/prob_reachabilityexplore_server.cpp,
+	  prob/tests/prob_server.cpp, prob/tests/verifypta.cpp,
+	  protocol/ServiceHandlers.cpp, protocol/tests/server.cpp,
+	  system/ConcreteState.cpp, system/Edge.cpp, system/EdgeArray.cpp,
+	  system/ExtrapolationInfo.cpp, system/Process.cpp,
+	  system/SymbolicState.cpp, system/System.cpp, system/tctlexpr.cpp,
+	  system/visitors.cpp, tiga/CDDStrategy.cpp, tiga/CDDStrategy.h,
+	  tiga/ConjunctionTransitionFilter.cpp, tiga/FedStrategy.cpp,
+	  tiga/FedStrategy.h, tiga/POActionFilter.cpp,
+	  tiga/SimulationTransitionFilter.cpp, tiga/Strategy.cpp,
+	  tiga/TIGraphOperators.cpp, tiga/TIGraphOperators.h,
+	  tiga/TIProcessTransitionFilter.cpp,
+	  tiga/TIProcessTransitionFilter.h, tiga/TigaFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/TigaStateSet.cpp, tiga/TurnDelayFilter.cpp,
+	  tiga/backward_algorithm.h, tiga/backward_filter.cpp,
+	  tiga/filters.h, tiga/forward_filter.cpp, tiga/properties.cpp,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
+	  tiga/waitinglist_filter.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/libparser.h, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/statementbuilder.cpp, utap/type.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/DelayFilter.cpp, verifier/DelayFilter.h,
+	  verifier/SuccessorFilter.cpp, verifier/filterconfiguration.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/sfilter.cpp, verifier/ssql.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp:
+	  Implemented timed I/O specification checker.. and a lot
+	  of hooks to have it working.
+	  Removed the crappy ssql feature.
+
+2009-12-09 12:54  adavid
+
+	* [r4468] include/system/System.h, include/utap/system.h,
+	  include/verifier/SuccessorFilter.h,
+	  include/verifier/properties.h, system/System.cpp,
+	  tiga/tests/server.cpp,
+	  tiga/tests/tiga-ref/complex_1_positive_model.q,
+	  tiga/tests/tiga-ref/complex_2_negative_model.q,
+	  tiga/tests/tiga-ref/complex_3_negative_model.q,
+	  tiga/tests/tiga-ref/complex_4_positive_model.q,
+	  tiga/tests/tiga-ref/complex_5_negative_model.q,
+	  tiga/tests/tiga-ref/complex_6_negative_model.q,
+	  tiga/tests/tiga-ref/complex_7_positive_model.q,
+	  tiga/tests/tiga-ref/complex_8_positive_model.q,
+	  tiga/tests/tiga-ref/complex_9_positive_model.q,
+	  tiga/tests/tiga-ref/composition_1_positive_model.q,
+	  tiga/tests/tiga-ref/composition_2_positive_model.q,
+	  tiga/tests/tiga-ref/composition_3_negative_model.q,
+	  tiga/tests/tiga-ref/composition_4_negative_model.q,
+	  tiga/tests/tiga-ref/simple_1_positive_model.q,
+	  tiga/tests/tiga-ref/simple_2_negative_model.q,
+	  tiga/tests/tiga-ref/simple_3_negative_model.q,
+	  tiga/tests/tiga-ref/simple_4_positive_model.q,
+	  tiga/tests/tiga-ref/simple_5_negative_model.q,
+	  tiga/tests/tiga-ref/simple_6_negative_model.q,
+	  tiga/tests/tiga-ref/simple_7_positive_model.q,
+	  tiga/tests/tiga-ref/simple_8_positive_model.q,
+	  tiga/tests/tiga-ref/simple_9_positive_model.q,
+	  tiga/tests/tiga-ref/time_1_negative_model.q,
+	  tiga/tests/tiga-ref/time_2_positive_model.q,
+	  tiga/tests/tiga-ref/time_3_negative_model.q,
+	  tiga/tests/tiga-ref/time_4_negative_model.q,
+	  tiga/tests/tiga-ref/time_5_positive_model.q, utap/parser.y,
+	  utap/system.cpp, utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/PriorityFilter.cpp, verifier/SuccessorFilter.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/tests/server.cpp: TIGA: Changed syntax for simulation
+	  properties. Now
+	  it's more a more natural (A || B) <= C ... kind of
+	  syntax.
+	  UPPAAL: Added support for clock constraints on receiving
+	  broadcast synchronizations. The simulators (server) had
+	  to be fixed too. The GUIs are not affected.
+
+2009-11-13 13:35  adavid
+
+	* [r4457] include/system/Process.h, include/system/System.h,
+	  include/tiga/SimulationTransitionFilter.h,
+	  include/tiga/SyncAction.h, include/tiga/TigaModelChecker.h,
+	  include/tiga/filters.h, include/tiga/properties.h,
+	  system/Process.cpp, system/System.cpp,
+	  tiga/SimulationTransitionFilter.cpp, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/backward_filter.cpp,
+	  tiga/properties.cpp, tiga/tests/server.cpp, utap/expression.cpp,
+	  utap/parser.y, utap/typechecker.cpp: Extended the consistency
+	  checker to handle conjunctions.
+	  Fixed consistency checker.
+
+2009-11-13 13:35  adavid
+
+	* [r4456] include/utap/common.h: Removed explicit enumeration.
+
+2009-11-03 16:12  adavid
+
+	* [r4453] include/utap/system.h, verifier/Translator.cpp: Code
+	  cosmetics and hopeless bug found.
+
+2009-11-03 13:53  adavid
+
+	* [r4452] utap/expressionbuilder.cpp, verifier/Translator.cpp:
+	  Fixed side-effect asserts.
+	  Fixed compilation for Windows.
+
+2009-11-02 17:02  adavid
+
+	* [r4451] dbm/fed.cpp, dbm/fed_dbm.cpp, include/dbm/fed.h,
+	  include/dbm/inline_fed.h, tiga/TigaModelChecker.cpp,
+	  tiga/tests/server.cpp, utap/typechecker.cpp: Fixed concrete
+	  simulator with stop-watches are used.
+	  Added a fixme comment for costs.
+	  Fixed feedback message.
+
+2009-10-20 14:30  adavid
+
+	* [r4446] dbm/fed.cpp, include/dbm/fed.h, include/system/System.h,
+	  include/tiga/SimulationSuccessorFilter.h,
+	  include/tiga/SimulationTransitionFilter.h,
+	  include/tiga/SyncAction.h, include/tiga/filters.h,
+	  include/utap/common.h, include/utap/typechecker.h,
+	  include/verifier/SuccessorFilter.h, include/verifier/property.h,
+	  system/SymbolicState.cpp, system/System.cpp,
+	  tiga/CDDStrategy.cpp, tiga/FedStrategy.cpp,
+	  tiga/SimulationSuccessorFilter.cpp,
+	  tiga/SimulationTransitionFilter.cpp, tiga/Strategy.cpp,
+	  tiga/TigaFilter.cpp, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/TigaStateSet.cpp,
+	  tiga/backward_algorithm.h, tiga/backward_filter.cpp,
+	  tiga/tests/server.cpp, utap/expression.cpp, utap/keywords.gperf,
+	  utap/parser.y, utap/prettyprinter.cpp, utap/typechecker.cpp,
+	  verifier/SuccessorFilter.cpp: Implemented consistency checking.
+	  Updated transition filter for open systems.
+	  Added fed_t::getBounded().
+
+2009-10-06 15:54  adavid
+
+	* [r4434] include/system/Location.h, include/system/System.h,
+	  include/tiga/TigaModelChecker.h, include/utap/common.h,
+	  include/verifier/property.h, system/Location.cpp,
+	  system/SymbolicState.cpp, system/System.cpp,
+	  tiga/SimulationTransitionFilter.cpp, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/tests/server.cpp,
+	  tiga/tests/verifytga.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/lexer.l, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/typechecker.cpp: Started support for
+	  "refinement:" properties.
+	  Added restrictions on channels for simulation of open systems.
+
+2009-10-05 14:09  adavid
+
+	* [r4431] include/system/EdgeArray.h, include/utap/common.h,
+	  include/utap/system.h, include/verifier/SuccessorFilter.h,
+	  include/verifier/TransitionFilter.h, system/EdgeArray.cpp,
+	  system/SymbolicState.cpp, system/System.cpp,
+	  tiga/CDDStrategy.cpp, tiga/FedStrategy.cpp, tiga/Strategy.cpp,
+	  tiga/TigaFilter.cpp, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, tiga/TigaStateSet.cpp,
+	  tiga/TurnDelayFilter.cpp, tiga/backward_filter.cpp,
+	  tiga/forward_filter.cpp, tiga/tests/server.cpp,
+	  tiga/tests/tiga-ref/complex_1_positive_model.q,
+	  tiga/tests/tiga-ref/complex_1_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_2_negative_model.q,
+	  tiga/tests/tiga-ref/complex_2_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_3_negative_model.q,
+	  tiga/tests/tiga-ref/complex_4_positive_model.q,
+	  tiga/tests/tiga-ref/complex_5_negative_model.q,
+	  tiga/tests/tiga-ref/complex_5_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_6_negative_model.q,
+	  tiga/tests/tiga-ref/complex_6_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_7_positive_model.q,
+	  tiga/tests/tiga-ref/complex_7_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_8_positive_model.q,
+	  tiga/tests/tiga-ref/complex_8_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_9_positive_model.q,
+	  tiga/tests/tiga-ref/complex_9_positive_model.xml,
+	  tiga/tests/tiga-ref/composition_1_positive_model.q,
+	  tiga/tests/tiga-ref/composition_2_positive_model.q,
+	  tiga/tests/tiga-ref/composition_3_negative_model.q,
+	  tiga/tests/tiga-ref/composition_4_negative_model.q,
+	  tiga/tests/tiga-ref/simple_1_positive_model.q,
+	  tiga/tests/tiga-ref/simple_1_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_2_negative_model.q,
+	  tiga/tests/tiga-ref/simple_2_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_3_negative_model.q,
+	  tiga/tests/tiga-ref/simple_3_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_4_positive_model.q,
+	  tiga/tests/tiga-ref/simple_4_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_5_negative_model.q,
+	  tiga/tests/tiga-ref/simple_5_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_6_negative_model.q,
+	  tiga/tests/tiga-ref/simple_6_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_7_positive_model.q,
+	  tiga/tests/tiga-ref/simple_7_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_8_positive_model.q,
+	  tiga/tests/tiga-ref/simple_8_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_9_positive_model.q,
+	  tiga/tests/tiga-ref/simple_9_positive_model.xml,
+	  tiga/tests/tiga-ref/time_1_negative_model.q,
+	  tiga/tests/tiga-ref/time_1_negative_model.xml,
+	  tiga/tests/tiga-ref/time_2_positive_model.q,
+	  tiga/tests/tiga-ref/time_3_negative_model.q,
+	  tiga/tests/tiga-ref/time_4_negative_model.q,
+	  tiga/tests/tiga-ref/time_5_positive_model.q,
+	  tiga/tests/verifytga.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/lexer.l, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/system.cpp, utap/typechecker.cpp,
+	  verifier/SuccessorFilter.cpp, verifier/TransitionFilter.cpp,
+	  verifier/sfilter.cpp, version.sh: Changed the semantics of
+	  simulation games. Now UPPAAL considers simulation
+	  of open systems. When there is a synchronization, it is typed in
+	  the sense
+	  that a broadcast sync is different from a binary sync, which is
+	  different
+	  from a "half" sync.
+	  Simulation is using the sync label now, taking full advantage of
+	  the syntax.
+	  The action label is ignored for simulation checking.
+	  Updated test suite to reflect the syntax change.
+	  Bumped version number.
+	  Changed internal coding of the turned-based variable for
+	  simulation checking.
+	  Changed syntax of the property, it is now prefixed by
+	  "simulation:". I will
+	  add "refinement:" soon.
+	  Separated code for the transitions+successors from the
+	  Transition/Successor-Filter
+	  files. The change is now more significant.
+	  Added a place holder for a future copy constructor of TA systems
+	  (utap).
+
+2009-09-29 07:00  sandie
+
+	* [r4425] include/utap/abstractbuilder.h, include/utap/builder.h:
+
+2009-09-28 21:40  sandie
+
+	* [r4420] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expression.h,
+	  include/utap/expressionbuilder.h, include/utap/prettyprinter.h,
+	  include/utap/statement.h, include/utap/symbols.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/type.h, include/utap/typechecker.h,
+	  include/utap/utap.h, include/verifier/Translator.h,
+	  include/verifier/modelchecker.h, include/verifier/property.h,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/statement.cpp,
+	  utap/statementbuilder.cpp, utap/symbols.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/tags.gperf, utap/type.cpp,
+	  utap/typechecker.cpp, utap/xmlreader.cpp, utap/xmlwriter.cpp,
+	  verifier/Compiler.cpp, verifier/Symbol.cpp,
+	  verifier/Translator.cpp, verifier/expression_analyser.cpp,
+	  verifier/modelchecker.cpp, verifier/property.cpp,
+	  verifier/tests/verifyta.cpp:
+
+2009-09-02 12:41  adavid
+
+	* [r4408] utap/typechecker.cpp: Fixed typo.
+
+2009-08-26 13:37  adavid
+
+	* [r4395] include/system/HashTable.h, include/system/System.h,
+	  include/utap/systembuilder.h, include/verifier/PriorityFilter.h,
+	  utap/systembuilder.cpp, verifier/PriorityFilter.cpp: Added a
+	  comment in HashTable.
+	  Removed dead code and useless variables.
+
+2009-08-21 22:36  arild
+
+	* [r4386] utap/signalflow.cpp: fixed minor const-correctness-error;
+	  it prevented compilation with GCC 4.4
+
+2009-08-11 09:46  adavid
+
+	* [r4376] utap/systembuilder.cpp: Fixed bug 469.
+
+2009-06-29 08:35  adavid
+
+	* [r4368] utap/typechecker.cpp: Commented code that type-checks for
+	  nested quantifiers for TIGA
+	  properties. Buchi properties use nested quantifiers.
+
+2009-06-25 16:09  adavid
+
+	* [r4366] include/utap/symbols.h, utap/symbols.cpp,
+	  utap/systembuilder.cpp, verifier/Symbol.cpp: Fixed bug 474.
+
+2009-05-14 15:43  adavid
+
+	* [r4320] dbm/fed_dbm.cpp, include/dbm/fed.h,
+	  include/dbm/inline_fed.h, include/system/SymbolicState.h,
+	  include/system/System.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/system.h,
+	  include/utap/systembuilder.h, include/utap/typechecker.h,
+	  include/verifier/Compiler.h, include/verifier/SuccessorFilter.h,
+	  system/SymbolicState.cpp, system/System.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/TurnDelayFilter.cpp, tiga/forward_filter.cpp,
+	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
+	  utap/abstractbuilder.cpp, utap/expressionbuilder.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/SuccessorFilter.cpp,
+	  verifier/TransitionFilter.cpp: Added support for Gantt charts in
+	  the server.
+	  Fixed simulation game:
+	  * distinguish (un)controllable actions to duplicate
+	  * take into account forced actions
+
+2009-05-11 20:20  marius
+
+	* [r4314] include/utap/signalflow.h, utap/signalflow.cpp: added
+	  limited support for arrays in observable channels
+
+2009-04-25 20:53  arild
+
+	* [r4303] include/utap/common.h, include/verifier/property.h,
+	  prob/ModelChecker.cpp, prob/tests/prob_server.cpp,
+	  protocol/DataFormat.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/lexer.l, utap/libparser.h,
+	  utap/parser.y, utap/typechecker.cpp, verifier/modelchecker.cpp,
+	  verifier/property.cpp: prob: new query property; Pmax
+
+2009-04-18 08:13  adavid
+
+	* [r4296] include/system/EdgeArray.h, include/system/Process.h,
+	  include/system/SymbolicState.h, include/system/System.h,
+	  include/tiga/Strategy.h, include/tiga/TigaModelChecker.h,
+	  include/tiga/TigaStateSet.h, include/tiga/TurnDelayFilter.h,
+	  include/tiga/filters.h, include/verifier/TransitionFilter.h,
+	  include/verifier/properties.h, system/Edge.cpp,
+	  system/EdgeArray.cpp, system/Process.cpp,
+	  system/SymbolicState.cpp, system/System.cpp,
+	  tiga/CDDStrategy.cpp, tiga/CDDStrategy.h, tiga/FedStrategy.cpp,
+	  tiga/FedStrategy.h, tiga/Strategy.cpp, tiga/TigaFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/TigaStateSet.cpp, tiga/TurnDelayFilter.cpp,
+	  tiga/backward_filter.cpp, tiga/forward_filter.cpp,
+	  tiga/tests/server.cpp, tiga/tests/services.gperf,
+	  tiga/tests/tiga-ref/complex_1_positive_model.q,
+	  tiga/tests/tiga-ref/complex_1_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_2_negative_model.q,
+	  tiga/tests/tiga-ref/complex_2_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_3_negative_model.q,
+	  tiga/tests/tiga-ref/complex_3_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_4_positive_model.q,
+	  tiga/tests/tiga-ref/complex_4_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_5_negative_model.q,
+	  tiga/tests/tiga-ref/complex_5_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_6_negative_model.q,
+	  tiga/tests/tiga-ref/complex_6_negative_model.xml,
+	  tiga/tests/tiga-ref/complex_7_positive_model.q,
+	  tiga/tests/tiga-ref/complex_7_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_8_positive_model.q,
+	  tiga/tests/tiga-ref/complex_8_positive_model.xml,
+	  tiga/tests/tiga-ref/complex_9_positive_model.q,
+	  tiga/tests/tiga-ref/complex_9_positive_model.xml,
+	  tiga/tests/tiga-ref/composition_1_positive_model.q,
+	  tiga/tests/tiga-ref/composition_1_positive_model.xml,
+	  tiga/tests/tiga-ref/composition_2_positive_model.q,
+	  tiga/tests/tiga-ref/composition_2_positive_model.xml,
+	  tiga/tests/tiga-ref/composition_3_negative_model.q,
+	  tiga/tests/tiga-ref/composition_3_negative_model.xml,
+	  tiga/tests/tiga-ref/composition_4_negative_model.q,
+	  tiga/tests/tiga-ref/composition_4_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_1_positive_model.q,
+	  tiga/tests/tiga-ref/simple_1_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_2_negative_model.q,
+	  tiga/tests/tiga-ref/simple_2_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_3_negative_model.q,
+	  tiga/tests/tiga-ref/simple_3_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_4_positive_model.q,
+	  tiga/tests/tiga-ref/simple_4_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_5_negative_model.q,
+	  tiga/tests/tiga-ref/simple_5_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_6_negative_model.q,
+	  tiga/tests/tiga-ref/simple_6_negative_model.xml,
+	  tiga/tests/tiga-ref/simple_7_positive_model.q,
+	  tiga/tests/tiga-ref/simple_7_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_8_positive_model.q,
+	  tiga/tests/tiga-ref/simple_8_positive_model.xml,
+	  tiga/tests/tiga-ref/simple_9_positive_model.q,
+	  tiga/tests/tiga-ref/simple_9_positive_model.xml,
+	  tiga/tests/tiga-ref/time_1_negative_model.q,
+	  tiga/tests/tiga-ref/time_1_negative_model.xml,
+	  tiga/tests/tiga-ref/time_2_positive_model.q,
+	  tiga/tests/tiga-ref/time_2_positive_model.xml,
+	  tiga/tests/tiga-ref/time_3_negative_model.q,
+	  tiga/tests/tiga-ref/time_3_negative_model.xml,
+	  tiga/tests/tiga-ref/time_4_negative_model.q,
+	  tiga/tests/tiga-ref/time_4_negative_model.xml,
+	  tiga/tests/tiga-ref/time_5_positive_model.q,
+	  tiga/tests/tiga-ref/time_5_positive_model.xml,
+	  tiga/tests/verifytga.cpp, tiga/waitinglist_filter.cpp,
+	  utap/parser.y, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/Compiler.cpp, verifier/TransitionFilter.cpp,
+	  verifier/properties.cpp: Implemented simulation checking.
+
+2009-03-19 14:16  adavid
+
+	* [r4274] utap/system.cpp: Fixed assert.
+
+2009-03-19 12:41  adavid
+
+	* [r4271] utap/system.cpp, verifier/Compiler.cpp: Fixed bug 458.
+
+2009-03-18 17:17  adavid
+
+	* [r4267] include/utap/type.h, utap/typechecker.cpp: Fixed bug 465.
+
+2009-03-17 18:26  adavid
+
+	* [r4266] dbm/fed.cpp, include/system/tctlexpr.h,
+	  system/System.cpp, system/tctlexpr.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp: Fixed the mess with stop-watches.
+
+2009-03-16 17:27  adavid
+
+	* [r4261] dbm/fed.cpp, include/dbm/fed.h,
+	  include/system/ConcreteState.h,
+	  include/system/ExtrapolationInfo.h,
+	  include/system/StateDecorator.h, include/system/SymbolicState.h,
+	  include/system/public.h, include/system/tctlexpr.h,
+	  include/system/visitors.h, include/verifier/Compiler.h,
+	  include/verifier/JobProgressFilter.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  port/tests/verifyta.cpp, system/ConcreteState.cpp,
+	  system/ExtrapolationInfo.cpp, system/StateDecorator.cpp,
+	  system/tctlexpr.cpp, system/visitors.cpp, tiga/tests/server.cpp,
+	  tiga/tests/verifytga.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/leadsto.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/reachability.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp: Added
+	  functionality to AbstractJob to store expressions.
+	  Added functionality to ModelChecker to return feedbacks.
+	  Added handling of "sup: list of expr" property (with expr
+	  being state predicate without side-effect or clock constraints
+	  or clock names).
+	  Fixed traces for leadsto. This is a theoretical fix since
+	  the bug has not appeared yet.
+	  Somewhat updated other checkers to handle the changes, they may
+	  be broken.
+	  Added a functionality to the DBM lib to handle sup properties
+	  easily.
+
+2009-03-11 16:59  adavid
+
+	* [r4250] include/system/ConcreteState.h, utap/typechecker.cpp:
+	  Repaired stop-watches.
+	  Added const on a method.
+
+2009-03-10 13:47  adavid
+
+	* [r4248] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/verifier/property.h,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/keywords.gperf, utap/parser.y, utap/typechecker.cpp: Removed
+	  previous inf & sup.
+	  Started to add support for (new) sup.
+
+2009-03-03 14:40  adavid
+
+	* [r4233] utap/typechecker.cpp: Removed unreachable code.
+
+2009-03-03 13:15  adavid
+
+	* [r4232] include/system/SymbolicState.h,
+	  include/system/tctlexpr.h, include/system/visitors.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/expressionbuilder.h,
+	  include/utap/prettyprinter.h, system/SymbolicState.cpp,
+	  system/tctlexpr.cpp, system/visitors.cpp,
+	  utap/abstractbuilder.cpp, utap/expression.cpp,
+	  utap/expressionbuilder.cpp, utap/keywords.gperf, utap/parser.y,
+	  utap/prettyprinter.cpp, utap/signalflow.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/expression_analyser.cpp: Made possible to print states
+	  with federations.
+	  Added 'sum' to the language, same syntax as exists
+	  & forall but limited to integer expressions only.
+	  It's very useful in tctl expressions when ranging
+	  over processes.
+
+2009-03-02 20:41  adavid
+
+	* [r4230] include/utap/system.h, include/verifier/Compiler.h,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Added support for
+	  forall with stop-watches.
+
+2009-03-02 17:06  adavid
+
+	* [r4225] include/utap/common.h, include/verifier/modelchecker.h,
+	  utap/expression.cpp, utap/parser.y, utap/typechecker.cpp,
+	  verifier/DelayFilter.cpp, verifier/DelayFilter.h,
+	  verifier/filterconfiguration.cpp, verifier/modelchecker.cpp,
+	  verifier/property.cpp, verifier/reachability.cpp: Removed
+	  implementation for Mani's robust reachability algorithm.
+
+2009-01-29 13:19  adavid
+
+	* [r4184] include/utap/common.h, tiga/TigaPropertyBuilder.cpp,
+	  utap/expression.cpp, utap/lexer.l, utap/parser.y,
+	  utap/typechecker.cpp: Changed syntax for Buchi control
+	  objectives.
+
+2009-01-26 15:21  marius
+
+	* [r4181] utap/tests/pretty.cpp, utap/tests/syntaxcheck.cpp: fixed
+	  C string library header inclusion problem (GCC 4.3 complains)
+
+2008-12-19 22:15  marius
+
+	* [r4170] include/utap/system.h: forgot to add this to last commit,
+	  sorry.
+
+2008-12-19 17:46  marius
+
+	* [r4169] include/verifier/Compiler.h, utap/signalflow.cpp,
+	  verifier/Compiler.cpp: fixed partially poor performance with many
+	  locations in the model.
+	  Fix is trivial, but the parsing performance gain is more than 2x
+	  (according to gprof).
+	  This is due to stupid std::list::size implementation which should
+	  be avoided as plague.
+	  Next, Symbol::add in system/Symbol.cpp should be redesigned,
+	  which now naively seeks
+	  to the end of the linked list just to add a new sibling.
+
+2008-11-27 10:15  adavid
+
+	* [r4148] utap/lexer.l: Removed mis-feature with comments.
+
+2008-10-20 12:12  adavid
+
+	* [r4027] utap/typechecker.cpp: Extended the typechecker to accept
+	  x'==integral
+	  instead of x'==integer. It is a natural extension
+	  when considering that bool and x' expressions
+	  have the same range.
+
+2008-10-13 12:45  arild
+
+	* [r4001] include/system/Edge.h, include/utap/abstractbuilder.h,
+	  include/utap/builder.h, include/utap/common.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/utap/type.h, prob/PredecessorGraph.cpp,
+	  prob/PredecessorGraph.h, system/Edge.cpp,
+	  utap/abstractbuilder.cpp, utap/parser.y, utap/systembuilder.cpp,
+	  utap/type.cpp, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/Compiler.cpp: probability labels support in
+	  parser/compiler
+
+2008-10-03 13:03  arild
+
+	* [r3986] include/system/Edge.h, prob/SymstateInternal.h,
+	  utap/systembuilder.cpp, utap/type.cpp, verifier/Compiler.cpp,
+	  verifier/tests/server.cpp: branching edges partially supported in
+	  server (with ENABLE_BRANCHING)
+	  
+	  Combination with select will not currently work,
+	  support for simulator is missing,
+	  and there is a bug in the dot-formatting when replying to
+	  getTransitions.
+	  
+	  (while the problem with getTransitions is related to the previous
+	  point --- simulator support not yet considerd/implemented --- the
+	  GUI
+	  will also call getTransitions at various other points, notably
+	  right
+	  after calling modelCheck...)
+
+2008-09-30 12:13  adavid
+
+	* [r3967] utap/parser.y: Fixed parser.
+
+2008-09-26 13:53  adavid
+
+	* [r3961] include/utap/common.h, include/verifier/property.h,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  utap/expression.cpp, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/typechecker.cpp: Extended control_t* to work with default
+	  parameters.
+
+2008-09-25 15:52  adavid
+
+	* [r3958] dbm/fed.cpp, include/dbm/fed.h,
+	  include/tiga/TigaStateSet.h, include/tiga/filters.h,
+	  include/tiga/properties.h, include/utap/common.h,
+	  include/verifier/property.h, tiga/TigaFilter.cpp,
+	  tiga/TigaModelChecker.cpp, tiga/TigaPropertyBuilder.cpp,
+	  tiga/TigaStateSet.cpp, tiga/backward_algorithm.h,
+	  tiga/backward_filter.cpp, tiga/forward_filter.cpp,
+	  tiga/properties.cpp, utap/expression.cpp, utap/lexer.l,
+	  utap/parser.y, utap/prettyprinter.cpp, utap/typechecker.cpp:
+	  Added control with Buchi conditions.
+
+2008-09-09 15:09  marius
+
+	* [r3926] utap/parser.y: removed redundant typedef (warned by
+	  g++-4.3.1)
+
+2008-09-08 09:40  adavid
+
+	* [r3912] utap/lexer.l, utap/libparser.h: Updates on localization.
+
+2008-09-05 14:46  adavid
+
+	* [r3909] utap/system.cpp, utap/typechecker.cpp,
+	  verifier/Extrapolation.cpp, verifier/TransitionFilter.cpp,
+	  verifier/modelchecker.cpp: Updated localization.
+
+2008-09-04 09:51  adavid
+
+	* [r3899] utap/parser.y: Translation support of bison error
+	  messages.
+
+2008-09-03 17:27  adavid
+
+	* [r3897] include/tiga/TigaPropertyBuilder.h,
+	  tiga/TigaPropertyBuilder.cpp, utap/expressionbuilder.cpp,
+	  utap/statementbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp, utap/xmlreader.cpp,
+	  verifier/property.cpp: Starting to localize parser errors.
+	  Still need to do some replacements for parser.cc.
+
+2008-08-19 08:02  arild
+
+	* [r3853] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/common.h, include/utap/system.h,
+	  include/utap/systembuilder.h, include/utap/type.h,
+	  utap/abstractbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/tags.gperf, utap/type.cpp,
+	  utap/xmlreader.cpp: Branchpoints understood by server parser.
+	  
+	  Compiler not yet updated, though models without branchpoints
+	  works as before.
+
+2008-08-01 10:02  adavid
+
+	* [r3818] utap/lexer.l, utap/libparser.h: Fixed compilation with
+	  i586-mingw32msvc-g++.
+
+2008-07-31 14:39  adavid
+
+	* [r3814] include/system/System.h, include/utap/system.h,
+	  include/utap/typechecker.h, system/System.cpp,
+	  tiga/TigaPropertyBuilder.cpp, utap/system.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Added detection of
+	  guards with lower bounds on controllable
+	  edges. This is is not supported for POTIGA.
+
+2008-07-31 12:17  adavid
+
+	* [r3813] utap/typechecker.cpp: Reject clock differences too.
+
+2008-07-31 12:02  adavid
+
+	* [r3812] include/utap/typechecker.h, utap/typechecker.cpp: Added
+	  check for observations on clock constraints.
+
+2008-07-31 08:52  aymie
+
+	* [r3810] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/verifier/Compiler.h, tiga/POBackPropagateFilter.cpp,
+	  tiga/POBuildSetFilter.cpp, tiga/POBuildSetFilter.h,
+	  tiga/POLocalFilters.cpp, tiga/POLocalFilters.h,
+	  utap/abstractbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/xmlreader.cpp,
+	  verifier/Compiler.cpp: Changed the location of the mapping of PO
+	  Tiga actions to the compiler and solved some segfault issues.
+
+2008-07-30 16:03  adavid
+
+	* [r3809] include/system/Edge.h, include/system/SymbolicState.h,
+	  include/system/System.h, include/tiga/POTigaHashTables.h,
+	  include/tiga/POfilters.h, include/tiga/properties.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/verifier/Compiler.h, system/SymbolicState.cpp,
+	  tiga/POBackPropagateFilter.cpp, tiga/POBuildSetFilter.cpp,
+	  tiga/POBuildSetFilter.h, tiga/POLocalFilters.cpp,
+	  tiga/POLocalFilters.h, tiga/POLocalReachabilityFilter.cpp,
+	  tiga/POLocalReachabilityFilter.h, tiga/POSetWaitingList.cpp,
+	  tiga/POTigaFilter.cpp, tiga/POTigaHashTables.cpp,
+	  tiga/POTigaPWList.h, tiga/TigaModelChecker.cpp,
+	  tiga/properties.cpp, utap/abstractbuilder.cpp, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/xmlreader.cpp,
+	  verifier/Compiler.cpp: Work-in-progress on PO TIGA.
+
+2008-07-30 14:01  adavid
+
+	* [r3807] include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/prettyprinter.h, include/utap/statementbuilder.h,
+	  tiga/TigaModelChecker.cpp, utap/abstractbuilder.cpp,
+	  utap/expression.cpp, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/statementbuilder.cpp, utap/typechecker.cpp,
+	  verifier/modelchecker.cpp: Fixed a warning in modelchecker.cpp.
+	  Fixed parsing of observations.
+
+2008-07-30 12:32  marius
+
+	* [r3806] dbm/infimum.cpp, dbm/priced.cpp,
+	  include/system/ChannelInfo.h, include/tron/TronCodec.h,
+	  include/tron/VirtualClock.h, include/tron/choice.h,
+	  include/tron/interface.h, include/tron/timing.h,
+	  include/utap/signalflow.h,
+	  include/verifier/filterconfiguration.h, system/ConcreteState.cpp,
+	  system/System.cpp, tron/Executable.cpp, tron/SocketAdapter.cpp,
+	  tron/VirtualClock.cpp, tron/interface.cpp, tron/sockets.cpp,
+	  tron/tests/ClockClient.cpp, tron/tests/ClockServer.cpp,
+	  tron/tests/SockClient.cpp, tron/tests/examples/Makefile,
+	  tron/tests/examples/button/button.cpp,
+	  tron/tests/examples/include/console.h,
+	  tron/tests/examples/include/sampleadapter.h,
+	  tron/tests/examples/latency/pingpong.cpp,
+	  tron/tests/examples/latency/ticking.cpp,
+	  tron/tests/examples/shared/Makefile,
+	  tron/tests/examples/shared/console.cpp,
+	  tron/tests/examples/shared/dialog.cpp,
+	  tron/tests/examples/shared/sampleadapter.cpp,
+	  tron/tests/examples/tracer/Makefile,
+	  tron/tests/examples/train-gate/timedgate.cpp,
+	  tron/tests/makefile.def, tron/tests/vclocktest.cpp,
+	  tron/timing.cpp, tron/timingsim.cpp, tron/timingsocket.cpp,
+	  utap/expression.cpp, utap/parser.y, utap/prettyprinter.cpp,
+	  utap/statementbuilder.cpp, utap/type.cpp, utap/typechecker.cpp,
+	  utap/xmlreader.cpp, verifier/modelchecker.cpp,
+	  verifier/tests/server.cpp: cosmetic changes for C/C++ conformance
+	  (since GCC-4.0).
+	  aparently GCC-4.3 started enforcing actively some constraints
+	  on source code which results in many warnings and even errors.
+	  This patch fixes almost all of them, changes are trivial
+	  (like including additional headers), except some parts of TRON.
+	  I checked only verifier and tron, others may need a touch too.
+
+2008-07-16 15:27  adavid
+
+	* [r3803] include/tiga/TigaModelChecker.h, include/tiga/filters.h,
+	  include/utap/common.h, include/verifier/property.h,
+	  tiga/POTigaFilter.cpp, tiga/TigaModelChecker.cpp,
+	  tiga/TigaPropertyBuilder.cpp, utap/expression.cpp, utap/lexer.l,
+	  utap/parser.y, utap/prettyprinter.cpp, utap/typechecker.cpp:
+	  Removed AF2, AG2, EG2, and EF2 types of quantifiers.
+	  They were work-in-progress that have been there for
+	  too long.
+	  Fixed minor printing bug for control properties.
+	  Added properties for PO Tiga.
+	  Added bootstrap code for PO Tiga.
+
+2008-06-12 15:56  adavid
+
+	* [r3780] utap/lexer.l, utap/libparser.h: Fixed bug 421.
+	  The max is larger and an error message is returned
+	  if identifiers are longer than the max.
+
+2008-06-11 16:43  adavid
+
+	* [r3778] utap/systembuilder.cpp: Improved warning message.
+
+2008-06-11 14:43  adavid
+
+	* [r3777] utap/systembuilder.cpp: Fixed bug 443. It was in fact a
+	  mis-reported bug.
+
+2008-04-25 09:29  marius
+
+	* [r3546] utap/typechecker.cpp: attempt to fix bug 428: allow
+	  typechecker to accept (guard || integral)
+	  expressions as (integral || guard) are accepted. Same applies to
+	  invariants.
+
+2008-03-07 09:55  adavid
+
+	* [r3436] utap/signalflow.cpp: Cosmetic changes.
+
+2008-02-21 15:15  marius
+
+	* [r3424] utap/signalflow.cpp: compilation fix for gcc-3.4.5
+	  (workaround for strchrnul, since it is not in 3.4.5)
+
+2008-02-19 16:37  marius
+
+	* [r3420] include/utap/signalflow.h, utap/signalflow.cpp,
+	  utap/tests/taflow.cpp: added sample distance analysis on parser
+	  structures
+
+2007-12-12 18:07  adavid
+
+	* [r3389] include/utap/system.h, include/verifier/Compiler.h,
+	  tiga/TigaPropertyBuilder.cpp, utap/system.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp: Cleaned-up stop
+	  watch detection.
+	  Added detection of more unsupported features in TIGA
+	  (priorities + stop watches).
+
+2007-12-12 17:52  adavid
+
+	* [r3388] include/system/System.h, include/utap/system.h,
+	  tiga/TigaPropertyBuilder.cpp, tiga/tests/server.cpp,
+	  utap/system.cpp, utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/modelchecker.cpp: Added detection of strict invariants,
+	  which is useful for TIGA.
+	  Improved stopwatch over-approx detection.
+
+2007-11-29 18:06  adavid
+
+	* [r3352] games/tests/makefile.def, port/makefile.def,
+	  port/tests/makefile.def, tiga/tests/makefile.def,
+	  tron/tests/makefile.def, utap/makefile.def,
+	  utap/tests/makefile.def, verifier/tests/makefile.def: Makefile
+	  now uses the xml2-config found by configure.
+
+2007-11-08 17:24  john
+
+	* [r3336] include/system/System.h, include/verifier/Compiler.h,
+	  system/System.cpp, utap/typechecker.cpp, verifier/Compiler.cpp:
+	  Fixed detection of partial priority orders. Semantics of
+	  priorities have changed slightly (for channels that are not
+	  mentioned in the priority declaration). Set the environment
+	  variable UPPAAL_FORCE_FULL_PRIORITY_ORDER to get the old
+	  behaviour.
+
+2007-10-29 18:10  adavid
+
+	* [r3321] include/system/Location.h, include/system/System.h,
+	  include/utap/system.h, include/verifier/Compiler.h,
+	  system/Location.cpp, system/SymbolicState.cpp, system/System.cpp,
+	  utap/typechecker.cpp, verifier/Compiler.cpp,
+	  verifier/DelayFilter.h: Added stop watches.
+	  Moved mis-used inline declarations in System.h.
+	  The server still needs to be updated for the
+	  concrete simulator. The rest should be fine.
+
+2007-10-29 17:00  john
+
+	* [r3320] include/system/ChannelInfo.h, include/system/System.h,
+	  include/utap/abstractbuilder.h, include/utap/builder.h,
+	  include/utap/system.h, include/utap/systembuilder.h,
+	  include/verifier/Compiler.h, include/verifier/PriorityFilter.h,
+	  system/ChannelInfo.cpp, system/System.cpp,
+	  utap/abstractbuilder.cpp, utap/parser.y, utap/system.cpp,
+	  utap/systembuilder.cpp, utap/typechecker.cpp,
+	  verifier/Compiler.cpp, verifier/PriorityFilter.cpp: Channel
+	  priorities can now be specified as a partial order (by specifying
+	  'chan priority' on multiple lines)
+
+2007-10-04 15:16  marius
+
+	* [r3291] include/base/platform.h, include/tron/action.h,
+	  include/tron/driver.h, include/tron/timeutil.h,
+	  include/tron/timing.h, tron/SampleAdapter.cpp, tron/action.cpp,
+	  tron/driver.cpp, utap/keywords.gperf, utap/signalflow.cpp,
+	  utap/tags.gperf, verifier/tests/options.gperf,
+	  verifier/tests/services.gperf: fixed signalflow analyzer for
+	  forall and exists expressions
+	  fixed some pedantic C++ warning issues
+
+2007-05-03 17:16  adavid
+
+	* [r3050] utap/expression.cpp, utap/lexer.l, utap/parser.y:
+	  Repaired broken E<>* & A[]* properties.
+
+2007-05-03 12:56  adavid
+
+	* [r3045] include/utap/common.h,
+	  include/verifier/filterconfiguration.h,
+	  include/verifier/modelchecker.h, include/verifier/properties.h,
+	  include/verifier/property.h, utap/expression.cpp, utap/lexer.l,
+	  utap/parser.y, utap/typechecker.cpp, verifier/DelayFilter.cpp,
+	  verifier/DelayFilter.h, verifier/filterconfiguration.cpp,
+	  verifier/modelchecker.cpp, verifier/properties.cpp,
+	  verifier/property.cpp, verifier/reachability.cpp,
+	  verifier/tests/server.cpp, verifier/tests/verifyta.cpp:
+	  Implemented Mani's robust reachability algorithm.
+
+2007-04-27 16:47  marius
+
+	* [r3037] utap/signalflow.cpp: fixed segfault on
+	  std::set.erase(begin, end) abuse.
+
+2007-04-03 09:29  marius
+
+	* [r3003] tron/interface.cpp, tron/tests/SockClient.cpp,
+	  tron/tests/tron.cpp, utap/signalflow.cpp: fixed signal flow for
+	  incompletely partitioned specifications
+	  fixed some gcc-4.1.2 compiler warnings
+
+2007-03-29 16:58  marius
+
+	* [r2999] include/utap/signalflow.h, include/utap/symbols.h,
+	  utap/signalflow.cpp, utap/statementbuilder.cpp, utap/symbols.cpp,
+	  utap/tests/taflow.cpp: added function call and reference
+	  parameter analysis to signalflow
+	  which also resulted in fixing symbol frames for function
+	  parameters.
+
+2007-03-01 13:53  john
+
+	* [r2984] include/utap/common.h, utap/parser.y: Added
+	  syntax-switches for parsing expression-lists and XTA processes
+
+2007-02-22 13:57  behrmann
+
+	* [r2977] utap/release/release.sh: Updated comment.
+
 2007-02-22 13:31  behrmann
 
 	* [r2976] utap/release/release.sh: Added 'mkdir src/utap', since
@@ -85,9 +2501,7 @@
 	  tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
 	  utap/abstractbuilder.cpp, utap/expression.cpp,
 	  utap/expressionbuilder.cpp, utap/lexer.l, utap/parser.y,
-	  utap/typechecker.cpp, trunk/server/scripts/cflags.txt,
-	  trunk/server/tests/validation/bin/run-test: Added color to uppaal
-	  test script.
+	  utap/typechecker.cpp: Added color to uppaal test script.
 	  Removed the TIGA_TEST flag switch, it is always on now.
 	  Added an extension for inf: and sup: properties. Only
 	  the parser supports it. Tiga accepts more formulas but
@@ -117,9 +2531,8 @@
 	  tiga/TigaStateSet.cpp, tiga/TigaStrategy.cpp,
 	  tiga/backward_algorithm.h, tiga/backward_filter.cpp,
 	  tiga/forward_filter.cpp, utap/abstractbuilder.cpp,
-	  utap/keywords.gperf, utap/libparser.h, utap/parser.y,
-	  trunk/server/scripts/cflags.txt: - Added option for no option in
-	  the setup.
+	  utap/keywords.gperf, utap/libparser.h, utap/parser.y: - Added
+	  option for no option in the setup.
 	  - Added syntax extension to support inf & sup
 	  parameter: formula.
 	  - Fixed SystemClockAccessor to depend on the state
@@ -176,794 +2589,7 @@
 	  utap/keywords.gperf, utap/parser.y, utap/signalflow.cpp,
 	  utap/statement.cpp, utap/system.cpp, utap/systembuilder.cpp,
 	  utap/typechecker.cpp, verifier/Compiler.cpp,
-	  verifier/program.cpp, verifier/tests/verifyta.cpp,
-	  trunk/server/tests/validation/reftest/2doors.bC.time,
-	  trunk/server/tests/validation/reftest/2doors.bW.time,
-	  trunk/server/tests/validation/reftest/2doors.bWA.time,
-	  trunk/server/tests/validation/reftest/2doors.bWC.time,
-	  trunk/server/tests/validation/reftest/2doors.bWCS0.time,
-	  trunk/server/tests/validation/reftest/2doors.bWCS1.time,
-	  trunk/server/tests/validation/reftest/2doors.bWCS2.time,
-	  trunk/server/tests/validation/reftest/2doors.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/2doors.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/2doors.bWZ.time,
-	  trunk/server/tests/validation/reftest/2doors.dC.time,
-	  trunk/server/tests/validation/reftest/2doors.dCW.time,
-	  trunk/server/tests/validation/reftest/2doors.t0.time,
-	  trunk/server/tests/validation/reftest/2doors.yt0.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bC.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bW.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWA.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWC.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWCS0.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWCS1.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWCS2.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.bWZ.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.dC.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.dCW.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.t0.time,
-	  trunk/server/tests/validation/reftest/MarbleSorter.yt0.time,
-	  trunk/server/tests/validation/reftest/audio.bC.time,
-	  trunk/server/tests/validation/reftest/audio.bW.time,
-	  trunk/server/tests/validation/reftest/audio.bWA.time,
-	  trunk/server/tests/validation/reftest/audio.bWC.time,
-	  trunk/server/tests/validation/reftest/audio.bWCS0.time,
-	  trunk/server/tests/validation/reftest/audio.bWCS1.time,
-	  trunk/server/tests/validation/reftest/audio.bWCS2.time,
-	  trunk/server/tests/validation/reftest/audio.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/audio.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/audio.bWZ.time,
-	  trunk/server/tests/validation/reftest/audio.dC.time,
-	  trunk/server/tests/validation/reftest/audio.dCW.time,
-	  trunk/server/tests/validation/reftest/audio.t0.time,
-	  trunk/server/tests/validation/reftest/audio.yt0.time,
-	  trunk/server/tests/validation/reftest/boxes.bC.time,
-	  trunk/server/tests/validation/reftest/boxes.bW.time,
-	  trunk/server/tests/validation/reftest/boxes.bWA.time,
-	  trunk/server/tests/validation/reftest/boxes.bWC.time,
-	  trunk/server/tests/validation/reftest/boxes.bWCS0.time,
-	  trunk/server/tests/validation/reftest/boxes.bWCS1.time,
-	  trunk/server/tests/validation/reftest/boxes.bWCS2.time,
-	  trunk/server/tests/validation/reftest/boxes.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/boxes.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/boxes.bWZ.time,
-	  trunk/server/tests/validation/reftest/boxes.dC.time,
-	  trunk/server/tests/validation/reftest/boxes.dCW.time,
-	  trunk/server/tests/validation/reftest/boxes.t0.time,
-	  trunk/server/tests/validation/reftest/boxes.yt0.time,
-	  trunk/server/tests/validation/reftest/brp.bC.time,
-	  trunk/server/tests/validation/reftest/brp.bW.time,
-	  trunk/server/tests/validation/reftest/brp.bWA.time,
-	  trunk/server/tests/validation/reftest/brp.bWC.time,
-	  trunk/server/tests/validation/reftest/brp.bWCS0.time,
-	  trunk/server/tests/validation/reftest/brp.bWCS1.time,
-	  trunk/server/tests/validation/reftest/brp.bWCS2.time,
-	  trunk/server/tests/validation/reftest/brp.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/brp.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/brp.bWZ.time,
-	  trunk/server/tests/validation/reftest/brp.dC.time,
-	  trunk/server/tests/validation/reftest/brp.dCW.time,
-	  trunk/server/tests/validation/reftest/brp.t0.time,
-	  trunk/server/tests/validation/reftest/brp.yt0.time,
-	  trunk/server/tests/validation/reftest/bug114.bC.time,
-	  trunk/server/tests/validation/reftest/bug114.bW.time,
-	  trunk/server/tests/validation/reftest/bug114.bWA.time,
-	  trunk/server/tests/validation/reftest/bug114.bWC.time,
-	  trunk/server/tests/validation/reftest/bug114.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug114.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug114.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug114.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug114.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug114.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug114.dC.time,
-	  trunk/server/tests/validation/reftest/bug114.dCW.time,
-	  trunk/server/tests/validation/reftest/bug114.t0.time,
-	  trunk/server/tests/validation/reftest/bug114.yt0.time,
-	  trunk/server/tests/validation/reftest/bug116.bC.time,
-	  trunk/server/tests/validation/reftest/bug116.bW.time,
-	  trunk/server/tests/validation/reftest/bug116.bWA.time,
-	  trunk/server/tests/validation/reftest/bug116.bWC.time,
-	  trunk/server/tests/validation/reftest/bug116.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug116.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug116.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug116.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug116.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug116.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug116.dC.time,
-	  trunk/server/tests/validation/reftest/bug116.dCW.time,
-	  trunk/server/tests/validation/reftest/bug116.t0.time,
-	  trunk/server/tests/validation/reftest/bug116.yt0.time,
-	  trunk/server/tests/validation/reftest/bug118.bC.time,
-	  trunk/server/tests/validation/reftest/bug118.bW.time,
-	  trunk/server/tests/validation/reftest/bug118.bWA.time,
-	  trunk/server/tests/validation/reftest/bug118.bWC.time,
-	  trunk/server/tests/validation/reftest/bug118.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug118.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug118.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug118.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug118.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug118.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug118.dC.time,
-	  trunk/server/tests/validation/reftest/bug118.dCW.time,
-	  trunk/server/tests/validation/reftest/bug118.t0.time,
-	  trunk/server/tests/validation/reftest/bug118.yt0.time,
-	  trunk/server/tests/validation/reftest/bug140.bC.time,
-	  trunk/server/tests/validation/reftest/bug140.bW.time,
-	  trunk/server/tests/validation/reftest/bug140.bWA.time,
-	  trunk/server/tests/validation/reftest/bug140.bWC.time,
-	  trunk/server/tests/validation/reftest/bug140.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug140.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug140.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug140.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug140.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug140.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug140.dC.time,
-	  trunk/server/tests/validation/reftest/bug140.dCW.time,
-	  trunk/server/tests/validation/reftest/bug140.t0.time,
-	  trunk/server/tests/validation/reftest/bug140.yt0.time,
-	  trunk/server/tests/validation/reftest/bug151.bC.time,
-	  trunk/server/tests/validation/reftest/bug151.bW.time,
-	  trunk/server/tests/validation/reftest/bug151.bWA.time,
-	  trunk/server/tests/validation/reftest/bug151.bWC.time,
-	  trunk/server/tests/validation/reftest/bug151.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug151.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug151.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug151.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug151.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug151.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug151.dC.time,
-	  trunk/server/tests/validation/reftest/bug151.dCW.time,
-	  trunk/server/tests/validation/reftest/bug151.t0.time,
-	  trunk/server/tests/validation/reftest/bug151.yt0.time,
-	  trunk/server/tests/validation/reftest/bug184.bC.time,
-	  trunk/server/tests/validation/reftest/bug184.bW.time,
-	  trunk/server/tests/validation/reftest/bug184.bWA.time,
-	  trunk/server/tests/validation/reftest/bug184.bWC.time,
-	  trunk/server/tests/validation/reftest/bug184.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug184.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug184.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug184.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug184.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug184.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug184.dC.time,
-	  trunk/server/tests/validation/reftest/bug184.dCW.time,
-	  trunk/server/tests/validation/reftest/bug184.t0.time,
-	  trunk/server/tests/validation/reftest/bug184.yt0.time,
-	  trunk/server/tests/validation/reftest/bug185.bC.time,
-	  trunk/server/tests/validation/reftest/bug185.bW.time,
-	  trunk/server/tests/validation/reftest/bug185.bWC.time,
-	  trunk/server/tests/validation/reftest/bug185.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug185.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug185.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug185.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug185.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug185.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug185.dC.time,
-	  trunk/server/tests/validation/reftest/bug185.dCW.time,
-	  trunk/server/tests/validation/reftest/bug185.t0.time,
-	  trunk/server/tests/validation/reftest/bug185.yt0.time,
-	  trunk/server/tests/validation/reftest/bug187.bC.time,
-	  trunk/server/tests/validation/reftest/bug187.bW.time,
-	  trunk/server/tests/validation/reftest/bug187.bWA.time,
-	  trunk/server/tests/validation/reftest/bug187.bWC.time,
-	  trunk/server/tests/validation/reftest/bug187.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug187.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug187.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug187.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug187.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug187.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug187.dC.time,
-	  trunk/server/tests/validation/reftest/bug187.dCW.time,
-	  trunk/server/tests/validation/reftest/bug187.t0.time,
-	  trunk/server/tests/validation/reftest/bug187.yt0.time,
-	  trunk/server/tests/validation/reftest/bug189.bC.time,
-	  trunk/server/tests/validation/reftest/bug189.bW.time,
-	  trunk/server/tests/validation/reftest/bug189.bWA.time,
-	  trunk/server/tests/validation/reftest/bug189.bWC.time,
-	  trunk/server/tests/validation/reftest/bug189.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug189.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug189.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug189.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug189.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug189.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug189.dC.time,
-	  trunk/server/tests/validation/reftest/bug189.dCW.time,
-	  trunk/server/tests/validation/reftest/bug189.t0.time,
-	  trunk/server/tests/validation/reftest/bug189.yt0.time,
-	  trunk/server/tests/validation/reftest/bug197.bC.time,
-	  trunk/server/tests/validation/reftest/bug197.bW.time,
-	  trunk/server/tests/validation/reftest/bug197.bWA.time,
-	  trunk/server/tests/validation/reftest/bug197.bWC.time,
-	  trunk/server/tests/validation/reftest/bug197.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug197.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug197.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug197.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug197.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug197.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug197.dC.time,
-	  trunk/server/tests/validation/reftest/bug197.dCW.time,
-	  trunk/server/tests/validation/reftest/bug197.t0.time,
-	  trunk/server/tests/validation/reftest/bug197.yt0.time,
-	  trunk/server/tests/validation/reftest/bug218.bC.time,
-	  trunk/server/tests/validation/reftest/bug218.bW.time,
-	  trunk/server/tests/validation/reftest/bug218.bWA.time,
-	  trunk/server/tests/validation/reftest/bug218.bWC.time,
-	  trunk/server/tests/validation/reftest/bug218.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug218.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug218.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug218.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug218.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug218.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug218.dC.time,
-	  trunk/server/tests/validation/reftest/bug218.dCW.time,
-	  trunk/server/tests/validation/reftest/bug218.t0.time,
-	  trunk/server/tests/validation/reftest/bug218.yt0.time,
-	  trunk/server/tests/validation/reftest/bug223.bC.time,
-	  trunk/server/tests/validation/reftest/bug223.bW.time,
-	  trunk/server/tests/validation/reftest/bug223.bWA.time,
-	  trunk/server/tests/validation/reftest/bug223.bWC.time,
-	  trunk/server/tests/validation/reftest/bug223.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug223.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug223.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug223.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug223.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug223.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug223.dC.time,
-	  trunk/server/tests/validation/reftest/bug223.dCW.time,
-	  trunk/server/tests/validation/reftest/bug223.t0.time,
-	  trunk/server/tests/validation/reftest/bug223.yt0.time,
-	  trunk/server/tests/validation/reftest/bug227.bC.time,
-	  trunk/server/tests/validation/reftest/bug227.bW.time,
-	  trunk/server/tests/validation/reftest/bug227.bWA.time,
-	  trunk/server/tests/validation/reftest/bug227.bWC.time,
-	  trunk/server/tests/validation/reftest/bug227.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug227.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug227.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug227.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug227.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug227.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug227.dCW.time,
-	  trunk/server/tests/validation/reftest/bug227.t0.time,
-	  trunk/server/tests/validation/reftest/bug227.yt0.time,
-	  trunk/server/tests/validation/reftest/bug228.bC,
-	  trunk/server/tests/validation/reftest/bug228.bC.time,
-	  trunk/server/tests/validation/reftest/bug228.bW,
-	  trunk/server/tests/validation/reftest/bug228.bWA,
-	  trunk/server/tests/validation/reftest/bug228.bWA.time,
-	  trunk/server/tests/validation/reftest/bug228.bWC,
-	  trunk/server/tests/validation/reftest/bug228.bWC.time,
-	  trunk/server/tests/validation/reftest/bug228.bWCS0,
-	  trunk/server/tests/validation/reftest/bug228.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug228.bWCS1,
-	  trunk/server/tests/validation/reftest/bug228.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug228.bWCS2,
-	  trunk/server/tests/validation/reftest/bug228.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug228.bWCTS0,
-	  trunk/server/tests/validation/reftest/bug228.bWCTS1,
-	  trunk/server/tests/validation/reftest/bug228.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug228.bWZ,
-	  trunk/server/tests/validation/reftest/bug228.dC,
-	  trunk/server/tests/validation/reftest/bug228.dCW,
-	  trunk/server/tests/validation/reftest/bug228.dCW.time,
-	  trunk/server/tests/validation/reftest/bug228.t0,
-	  trunk/server/tests/validation/reftest/bug228.t0.time,
-	  trunk/server/tests/validation/reftest/bug228.yt0,
-	  trunk/server/tests/validation/reftest/bug228.yt0.time,
-	  trunk/server/tests/validation/reftest/bug229.bC.time,
-	  trunk/server/tests/validation/reftest/bug229.bW.time,
-	  trunk/server/tests/validation/reftest/bug229.bWA.time,
-	  trunk/server/tests/validation/reftest/bug229.bWC.time,
-	  trunk/server/tests/validation/reftest/bug229.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug229.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug229.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug229.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug229.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug229.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug229.dC.time,
-	  trunk/server/tests/validation/reftest/bug229.dCW.time,
-	  trunk/server/tests/validation/reftest/bug229.t0.time,
-	  trunk/server/tests/validation/reftest/bug229.yt0.time,
-	  trunk/server/tests/validation/reftest/bug230.bC.time,
-	  trunk/server/tests/validation/reftest/bug230.bWA.time,
-	  trunk/server/tests/validation/reftest/bug230.bWC.time,
-	  trunk/server/tests/validation/reftest/bug230.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug230.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug230.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug230.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug230.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug230.dC.time,
-	  trunk/server/tests/validation/reftest/bug230.dCW.time,
-	  trunk/server/tests/validation/reftest/bug230.t0.time,
-	  trunk/server/tests/validation/reftest/bug232.bC,
-	  trunk/server/tests/validation/reftest/bug232.bC.time,
-	  trunk/server/tests/validation/reftest/bug232.bW,
-	  trunk/server/tests/validation/reftest/bug232.bW.time,
-	  trunk/server/tests/validation/reftest/bug232.bWA,
-	  trunk/server/tests/validation/reftest/bug232.bWA.time,
-	  trunk/server/tests/validation/reftest/bug232.bWC,
-	  trunk/server/tests/validation/reftest/bug232.bWCS0,
-	  trunk/server/tests/validation/reftest/bug232.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug232.bWCS1,
-	  trunk/server/tests/validation/reftest/bug232.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug232.bWCS2,
-	  trunk/server/tests/validation/reftest/bug232.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug232.bWCTS0,
-	  trunk/server/tests/validation/reftest/bug232.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug232.bWCTS1,
-	  trunk/server/tests/validation/reftest/bug232.bWZ,
-	  trunk/server/tests/validation/reftest/bug232.dC,
-	  trunk/server/tests/validation/reftest/bug232.dCW,
-	  trunk/server/tests/validation/reftest/bug232.dCW.time,
-	  trunk/server/tests/validation/reftest/bug232.t0,
-	  trunk/server/tests/validation/reftest/bug232.yt0,
-	  trunk/server/tests/validation/reftest/bug232.yt0.time,
-	  trunk/server/tests/validation/reftest/bug233.bW.time,
-	  trunk/server/tests/validation/reftest/bug233.bWA.time,
-	  trunk/server/tests/validation/reftest/bug233.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug233.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug233.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug233.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug233.dC.time,
-	  trunk/server/tests/validation/reftest/bug233.dCW.time,
-	  trunk/server/tests/validation/reftest/bug233.t0.time,
-	  trunk/server/tests/validation/reftest/bug233.yt0.time,
-	  trunk/server/tests/validation/reftest/bug234.bC.time,
-	  trunk/server/tests/validation/reftest/bug234.bW.time,
-	  trunk/server/tests/validation/reftest/bug234.bWA.time,
-	  trunk/server/tests/validation/reftest/bug234.bWC.time,
-	  trunk/server/tests/validation/reftest/bug234.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug234.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug234.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug234.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug234.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug234.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug234.dC.time,
-	  trunk/server/tests/validation/reftest/bug234.dCW.time,
-	  trunk/server/tests/validation/reftest/bug234.t0.time,
-	  trunk/server/tests/validation/reftest/bug234.yt0.time,
-	  trunk/server/tests/validation/reftest/bug235.bC.time,
-	  trunk/server/tests/validation/reftest/bug235.bWA.time,
-	  trunk/server/tests/validation/reftest/bug235.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug235.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug235.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug235.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug235.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug235.dCW.time,
-	  trunk/server/tests/validation/reftest/bug235.t0.time,
-	  trunk/server/tests/validation/reftest/bug235.yt0.time,
-	  trunk/server/tests/validation/reftest/bug241.bC,
-	  trunk/server/tests/validation/reftest/bug241.bC.time,
-	  trunk/server/tests/validation/reftest/bug241.bW,
-	  trunk/server/tests/validation/reftest/bug241.bW.time,
-	  trunk/server/tests/validation/reftest/bug241.bWA,
-	  trunk/server/tests/validation/reftest/bug241.bWA.time,
-	  trunk/server/tests/validation/reftest/bug241.bWC,
-	  trunk/server/tests/validation/reftest/bug241.bWC.time,
-	  trunk/server/tests/validation/reftest/bug241.bWCS0,
-	  trunk/server/tests/validation/reftest/bug241.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug241.bWCS1,
-	  trunk/server/tests/validation/reftest/bug241.bWCS2,
-	  trunk/server/tests/validation/reftest/bug241.bWCTS0,
-	  trunk/server/tests/validation/reftest/bug241.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug241.bWCTS1,
-	  trunk/server/tests/validation/reftest/bug241.bWZ,
-	  trunk/server/tests/validation/reftest/bug241.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug241.dC,
-	  trunk/server/tests/validation/reftest/bug241.dC.time,
-	  trunk/server/tests/validation/reftest/bug241.dCW,
-	  trunk/server/tests/validation/reftest/bug241.dCW.time,
-	  trunk/server/tests/validation/reftest/bug241.t0,
-	  trunk/server/tests/validation/reftest/bug241.yt0,
-	  trunk/server/tests/validation/reftest/bug244.bC.time,
-	  trunk/server/tests/validation/reftest/bug244.bW.time,
-	  trunk/server/tests/validation/reftest/bug244.bWA.time,
-	  trunk/server/tests/validation/reftest/bug244.bWC.time,
-	  trunk/server/tests/validation/reftest/bug244.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug244.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug244.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug244.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug244.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug244.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug244.dC.time,
-	  trunk/server/tests/validation/reftest/bug244.dCW.time,
-	  trunk/server/tests/validation/reftest/bug244.t0.time,
-	  trunk/server/tests/validation/reftest/bug244.yt0.time,
-	  trunk/server/tests/validation/reftest/bug248.bWA.time,
-	  trunk/server/tests/validation/reftest/bug248.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug248.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug248.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug248.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug248.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug248.dC.time,
-	  trunk/server/tests/validation/reftest/bug248.dCW.time,
-	  trunk/server/tests/validation/reftest/bug248.t0.time,
-	  trunk/server/tests/validation/reftest/bug248.yt0.time,
-	  trunk/server/tests/validation/reftest/bug252.bC.time,
-	  trunk/server/tests/validation/reftest/bug252.bW.time,
-	  trunk/server/tests/validation/reftest/bug252.bWA.time,
-	  trunk/server/tests/validation/reftest/bug252.bWC.time,
-	  trunk/server/tests/validation/reftest/bug252.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug252.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug252.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug252.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug252.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug252.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug252.dC.time,
-	  trunk/server/tests/validation/reftest/bug252.dCW.time,
-	  trunk/server/tests/validation/reftest/bug252.t0.time,
-	  trunk/server/tests/validation/reftest/bug252.yt0.time,
-	  trunk/server/tests/validation/reftest/bug253.bC,
-	  trunk/server/tests/validation/reftest/bug253.bC.time,
-	  trunk/server/tests/validation/reftest/bug253.bW,
-	  trunk/server/tests/validation/reftest/bug253.bWA,
-	  trunk/server/tests/validation/reftest/bug253.bWC,
-	  trunk/server/tests/validation/reftest/bug253.bWC.time,
-	  trunk/server/tests/validation/reftest/bug253.bWCS0,
-	  trunk/server/tests/validation/reftest/bug253.bWCS1,
-	  trunk/server/tests/validation/reftest/bug253.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug253.bWCS2,
-	  trunk/server/tests/validation/reftest/bug253.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug253.bWCTS0,
-	  trunk/server/tests/validation/reftest/bug253.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug253.bWCTS1,
-	  trunk/server/tests/validation/reftest/bug253.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug253.bWZ,
-	  trunk/server/tests/validation/reftest/bug253.dC,
-	  trunk/server/tests/validation/reftest/bug253.dCW,
-	  trunk/server/tests/validation/reftest/bug253.dCW.time,
-	  trunk/server/tests/validation/reftest/bug253.t0,
-	  trunk/server/tests/validation/reftest/bug253.yt0,
-	  trunk/server/tests/validation/reftest/bug253.yt0.time,
-	  trunk/server/tests/validation/reftest/bug262.bC.time,
-	  trunk/server/tests/validation/reftest/bug262.bW.time,
-	  trunk/server/tests/validation/reftest/bug262.bWA.time,
-	  trunk/server/tests/validation/reftest/bug262.bWC.time,
-	  trunk/server/tests/validation/reftest/bug262.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug262.bWCS1.time,
-	  trunk/server/tests/validation/reftest/bug262.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug262.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug262.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug262.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug262.dC.time,
-	  trunk/server/tests/validation/reftest/bug262.t0.time,
-	  trunk/server/tests/validation/reftest/bug262.yt0.time,
-	  trunk/server/tests/validation/reftest/bug32.bC.time,
-	  trunk/server/tests/validation/reftest/bug32.bW.time,
-	  trunk/server/tests/validation/reftest/bug32.bWA.time,
-	  trunk/server/tests/validation/reftest/bug32.bWC.time,
-	  trunk/server/tests/validation/reftest/bug32.bWCS0.time,
-	  trunk/server/tests/validation/reftest/bug32.bWCS2.time,
-	  trunk/server/tests/validation/reftest/bug32.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/bug32.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/bug32.bWZ.time,
-	  trunk/server/tests/validation/reftest/bug32.dC.time,
-	  trunk/server/tests/validation/reftest/bug32.dCW.time,
-	  trunk/server/tests/validation/reftest/bug32.t0.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bC.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bW.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWA.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWC.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWCS0.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWCS1.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWCS2.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.bWZ.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.dC.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.dCW.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.t0.time,
-	  trunk/server/tests/validation/reftest/dacapo_sim.yt0.time,
-	  trunk/server/tests/validation/reftest/engine.bC.time,
-	  trunk/server/tests/validation/reftest/engine.bW.time,
-	  trunk/server/tests/validation/reftest/engine.bWA.time,
-	  trunk/server/tests/validation/reftest/engine.bWC.time,
-	  trunk/server/tests/validation/reftest/engine.bWCS0.time,
-	  trunk/server/tests/validation/reftest/engine.bWCS1.time,
-	  trunk/server/tests/validation/reftest/engine.bWCS2.time,
-	  trunk/server/tests/validation/reftest/engine.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/engine.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/engine.bWZ.time,
-	  trunk/server/tests/validation/reftest/engine.dC.time,
-	  trunk/server/tests/validation/reftest/engine.dCW.time,
-	  trunk/server/tests/validation/reftest/engine.t0.time,
-	  trunk/server/tests/validation/reftest/engine.yt0.time,
-	  trunk/server/tests/validation/reftest/fischer.bC.time,
-	  trunk/server/tests/validation/reftest/fischer.bW.time,
-	  trunk/server/tests/validation/reftest/fischer.bWA.time,
-	  trunk/server/tests/validation/reftest/fischer.bWC.time,
-	  trunk/server/tests/validation/reftest/fischer.bWCS0.time,
-	  trunk/server/tests/validation/reftest/fischer.bWCS1.time,
-	  trunk/server/tests/validation/reftest/fischer.bWCS2.time,
-	  trunk/server/tests/validation/reftest/fischer.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/fischer.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/fischer.bWZ.time,
-	  trunk/server/tests/validation/reftest/fischer.dC.time,
-	  trunk/server/tests/validation/reftest/fischer.dCW.time,
-	  trunk/server/tests/validation/reftest/fischer.t0.time,
-	  trunk/server/tests/validation/reftest/fischer.yt0.time,
-	  trunk/server/tests/validation/reftest/gerd.bC.time,
-	  trunk/server/tests/validation/reftest/gerd.bW.time,
-	  trunk/server/tests/validation/reftest/gerd.bWA.time,
-	  trunk/server/tests/validation/reftest/gerd.bWC.time,
-	  trunk/server/tests/validation/reftest/gerd.bWCS0.time,
-	  trunk/server/tests/validation/reftest/gerd.bWCS1.time,
-	  trunk/server/tests/validation/reftest/gerd.bWCS2.time,
-	  trunk/server/tests/validation/reftest/gerd.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/gerd.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/gerd.bWZ.time,
-	  trunk/server/tests/validation/reftest/gerd.dCW.time,
-	  trunk/server/tests/validation/reftest/gerd.t0.time,
-	  trunk/server/tests/validation/reftest/gerd.yt0.time,
-	  trunk/server/tests/validation/reftest/gerd2.bC.time,
-	  trunk/server/tests/validation/reftest/gerd2.bW.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWA.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWC.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWCS0.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWCS1.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWCS2.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/gerd2.bWZ.time,
-	  trunk/server/tests/validation/reftest/gerd2.dC.time,
-	  trunk/server/tests/validation/reftest/gerd2.dCW.time,
-	  trunk/server/tests/validation/reftest/gerd2.t0.time,
-	  trunk/server/tests/validation/reftest/gerd2.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness1.bC.time,
-	  trunk/server/tests/validation/reftest/liveness1.bW.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWA.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness1.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness1.dC.time,
-	  trunk/server/tests/validation/reftest/liveness1.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness1.t0.time,
-	  trunk/server/tests/validation/reftest/liveness1.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness2.bC.time,
-	  trunk/server/tests/validation/reftest/liveness2.bW.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWA.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness2.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness2.dC.time,
-	  trunk/server/tests/validation/reftest/liveness2.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness2.t0.time,
-	  trunk/server/tests/validation/reftest/liveness2.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness3.bC.time,
-	  trunk/server/tests/validation/reftest/liveness3.bW.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWA.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness3.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness3.dC.time,
-	  trunk/server/tests/validation/reftest/liveness3.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness3.t0.time,
-	  trunk/server/tests/validation/reftest/liveness3.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness4.bW.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness4.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness4.dC.time,
-	  trunk/server/tests/validation/reftest/liveness4.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness4.t0.time,
-	  trunk/server/tests/validation/reftest/liveness4.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness5.bC.time,
-	  trunk/server/tests/validation/reftest/liveness5.bW.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWA.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness5.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness5.dC.time,
-	  trunk/server/tests/validation/reftest/liveness5.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness5.t0.time,
-	  trunk/server/tests/validation/reftest/liveness5.yt0.time,
-	  trunk/server/tests/validation/reftest/liveness6.bC.time,
-	  trunk/server/tests/validation/reftest/liveness6.bW.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWA.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWC.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWCS0.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWCS1.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWCS2.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/liveness6.bWZ.time,
-	  trunk/server/tests/validation/reftest/liveness6.dC.time,
-	  trunk/server/tests/validation/reftest/liveness6.dCW.time,
-	  trunk/server/tests/validation/reftest/liveness6.t0.time,
-	  trunk/server/tests/validation/reftest/liveness6.yt0.time,
-	  trunk/server/tests/validation/reftest/max1.bC.time,
-	  trunk/server/tests/validation/reftest/max1.bW.time,
-	  trunk/server/tests/validation/reftest/max1.bWA.time,
-	  trunk/server/tests/validation/reftest/max1.bWC.time,
-	  trunk/server/tests/validation/reftest/max1.bWCS0.time,
-	  trunk/server/tests/validation/reftest/max1.bWCS1.time,
-	  trunk/server/tests/validation/reftest/max1.bWCS2.time,
-	  trunk/server/tests/validation/reftest/max1.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/max1.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/max1.bWZ.time,
-	  trunk/server/tests/validation/reftest/max1.dC.time,
-	  trunk/server/tests/validation/reftest/max1.dCW.time,
-	  trunk/server/tests/validation/reftest/max1.t0.time,
-	  trunk/server/tests/validation/reftest/max1.yt0.time,
-	  trunk/server/tests/validation/reftest/max2.bC.time,
-	  trunk/server/tests/validation/reftest/max2.bW.time,
-	  trunk/server/tests/validation/reftest/max2.bWA.time,
-	  trunk/server/tests/validation/reftest/max2.bWC.time,
-	  trunk/server/tests/validation/reftest/max2.bWCS0.time,
-	  trunk/server/tests/validation/reftest/max2.bWCS1.time,
-	  trunk/server/tests/validation/reftest/max2.bWCS2.time,
-	  trunk/server/tests/validation/reftest/max2.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/max2.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/max2.bWZ.time,
-	  trunk/server/tests/validation/reftest/max2.dC.time,
-	  trunk/server/tests/validation/reftest/max2.dCW.time,
-	  trunk/server/tests/validation/reftest/max2.t0.time,
-	  trunk/server/tests/validation/reftest/max2.yt0.time,
-	  trunk/server/tests/validation/reftest/max3.bC.time,
-	  trunk/server/tests/validation/reftest/max3.bW.time,
-	  trunk/server/tests/validation/reftest/max3.bWA.time,
-	  trunk/server/tests/validation/reftest/max3.bWC.time,
-	  trunk/server/tests/validation/reftest/max3.bWCS0.time,
-	  trunk/server/tests/validation/reftest/max3.bWCS1.time,
-	  trunk/server/tests/validation/reftest/max3.bWCS2.time,
-	  trunk/server/tests/validation/reftest/max3.bWZ.time,
-	  trunk/server/tests/validation/reftest/max3.dC.time,
-	  trunk/server/tests/validation/reftest/max3.dCW.time,
-	  trunk/server/tests/validation/reftest/max4.bC.time,
-	  trunk/server/tests/validation/reftest/max4.bW.time,
-	  trunk/server/tests/validation/reftest/max4.bWA.time,
-	  trunk/server/tests/validation/reftest/max4.bWC.time,
-	  trunk/server/tests/validation/reftest/max4.bWCS0.time,
-	  trunk/server/tests/validation/reftest/max4.bWCS1.time,
-	  trunk/server/tests/validation/reftest/max4.bWCS2.time,
-	  trunk/server/tests/validation/reftest/max4.bWZ.time,
-	  trunk/server/tests/validation/reftest/max4.dC.time,
-	  trunk/server/tests/validation/reftest/max4.dCW.time,
-	  trunk/server/tests/validation/reftest/or.bC.time,
-	  trunk/server/tests/validation/reftest/or.bW.time,
-	  trunk/server/tests/validation/reftest/or.bWA.time,
-	  trunk/server/tests/validation/reftest/or.bWC.time,
-	  trunk/server/tests/validation/reftest/or.bWCS0.time,
-	  trunk/server/tests/validation/reftest/or.bWCS1.time,
-	  trunk/server/tests/validation/reftest/or.bWCS2.time,
-	  trunk/server/tests/validation/reftest/or.bWZ.time,
-	  trunk/server/tests/validation/reftest/or.dC.time,
-	  trunk/server/tests/validation/reftest/or.dCW.time,
-	  trunk/server/tests/validation/reftest/patricia.bC.time,
-	  trunk/server/tests/validation/reftest/patricia.bW.time,
-	  trunk/server/tests/validation/reftest/patricia.bWA.time,
-	  trunk/server/tests/validation/reftest/patricia.bWC.time,
-	  trunk/server/tests/validation/reftest/patricia.bWCS0.time,
-	  trunk/server/tests/validation/reftest/patricia.bWCS1.time,
-	  trunk/server/tests/validation/reftest/patricia.bWCS2.time,
-	  trunk/server/tests/validation/reftest/patricia.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/patricia.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/patricia.bWZ.time,
-	  trunk/server/tests/validation/reftest/patricia.dC.time,
-	  trunk/server/tests/validation/reftest/patricia.dCW.time,
-	  trunk/server/tests/validation/reftest/patricia.t0.time,
-	  trunk/server/tests/validation/reftest/patricia.yt0.time,
-	  trunk/server/tests/validation/reftest/test.bC.time,
-	  trunk/server/tests/validation/reftest/test.bW.time,
-	  trunk/server/tests/validation/reftest/test.bWA.time,
-	  trunk/server/tests/validation/reftest/test.bWC.time,
-	  trunk/server/tests/validation/reftest/test.bWCS0.time,
-	  trunk/server/tests/validation/reftest/test.bWCS1.time,
-	  trunk/server/tests/validation/reftest/test.bWCS2.time,
-	  trunk/server/tests/validation/reftest/test.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/test.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/test.bWZ.time,
-	  trunk/server/tests/validation/reftest/test.dC.time,
-	  trunk/server/tests/validation/reftest/test.dCW.time,
-	  trunk/server/tests/validation/reftest/test.t0.time,
-	  trunk/server/tests/validation/reftest/test.yt0.time,
-	  trunk/server/tests/validation/reftest/test_warn.bC.time,
-	  trunk/server/tests/validation/reftest/test_warn.bW.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWA.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWC.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWCS0.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWCS1.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWCS2.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/test_warn.bWZ.time,
-	  trunk/server/tests/validation/reftest/test_warn.dC.time,
-	  trunk/server/tests/validation/reftest/test_warn.dCW.time,
-	  trunk/server/tests/validation/reftest/test_warn.t0.time,
-	  trunk/server/tests/validation/reftest/test_warn.yt0.time,
-	  trunk/server/tests/validation/reftest/timestamp,
-	  trunk/server/tests/validation/reftest/trace1.bC.time,
-	  trunk/server/tests/validation/reftest/trace1.bW.time,
-	  trunk/server/tests/validation/reftest/trace1.bWA.time,
-	  trunk/server/tests/validation/reftest/trace1.bWC.time,
-	  trunk/server/tests/validation/reftest/trace1.bWCS0.time,
-	  trunk/server/tests/validation/reftest/trace1.bWCS1.time,
-	  trunk/server/tests/validation/reftest/trace1.bWCS2.time,
-	  trunk/server/tests/validation/reftest/trace1.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/trace1.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/trace1.bWZ.time,
-	  trunk/server/tests/validation/reftest/trace1.dC.time,
-	  trunk/server/tests/validation/reftest/trace1.dCW.time,
-	  trunk/server/tests/validation/reftest/trace1.t0.time,
-	  trunk/server/tests/validation/reftest/trace1.yt0.time,
-	  trunk/server/tests/validation/reftest/train-gate.bC.time,
-	  trunk/server/tests/validation/reftest/train-gate.bW.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWA.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWC.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWCS0.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWCS1.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWCS2.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/train-gate.bWZ.time,
-	  trunk/server/tests/validation/reftest/train-gate.dC.time,
-	  trunk/server/tests/validation/reftest/train-gate.dCW.time,
-	  trunk/server/tests/validation/reftest/train-gate.t0.time,
-	  trunk/server/tests/validation/reftest/train-gate.yt0.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bC.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bW.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWA.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWC.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWCS0.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWCS1.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWCS2.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/train-gate2.bWZ.time,
-	  trunk/server/tests/validation/reftest/train-gate2.dC.time,
-	  trunk/server/tests/validation/reftest/train-gate2.dCW.time,
-	  trunk/server/tests/validation/reftest/train-gate2.t0.time,
-	  trunk/server/tests/validation/reftest/train-gate2.yt0.time,
-	  trunk/server/tests/validation/reftest/train.bC.time,
-	  trunk/server/tests/validation/reftest/train.bW.time,
-	  trunk/server/tests/validation/reftest/train.bWA.time,
-	  trunk/server/tests/validation/reftest/train.bWC.time,
-	  trunk/server/tests/validation/reftest/train.bWCS0.time,
-	  trunk/server/tests/validation/reftest/train.bWCS1.time,
-	  trunk/server/tests/validation/reftest/train.bWCS2.time,
-	  trunk/server/tests/validation/reftest/train.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/train.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/train.bWZ.time,
-	  trunk/server/tests/validation/reftest/train.dC.time,
-	  trunk/server/tests/validation/reftest/train.dCW.time,
-	  trunk/server/tests/validation/reftest/train.t0.time,
-	  trunk/server/tests/validation/reftest/train.yt0.time,
-	  trunk/server/tests/validation/reftest/version,
-	  trunk/server/tests/validation/reftest/wang.bC.time,
-	  trunk/server/tests/validation/reftest/wang.bW.time,
-	  trunk/server/tests/validation/reftest/wang.bWA.time,
-	  trunk/server/tests/validation/reftest/wang.bWC.time,
-	  trunk/server/tests/validation/reftest/wang.bWCS0.time,
-	  trunk/server/tests/validation/reftest/wang.bWCS1.time,
-	  trunk/server/tests/validation/reftest/wang.bWCS2.time,
-	  trunk/server/tests/validation/reftest/wang.bWCTS0.time,
-	  trunk/server/tests/validation/reftest/wang.bWCTS1.time,
-	  trunk/server/tests/validation/reftest/wang.bWZ.time,
-	  trunk/server/tests/validation/reftest/wang.dC.time,
-	  trunk/server/tests/validation/reftest/wang.dCW.time,
-	  trunk/server/tests/validation/reftest/wang.t0.time,
-	  trunk/server/tests/validation/reftest/wang.yt0.time: Added assert
+	  verifier/program.cpp, verifier/tests/verifyta.cpp: Added assert
 	  statement to UPPAAL.
 	  
 	  Made minor adjustments in verifyta output (that is why the
@@ -1120,8 +2746,7 @@
 2006-06-27 17:53  fleury
 
 	* [r2294] include/system/System.h, include/utap/common.h,
-	  utap/expression.cpp, utap/lexer.l,
-	  trunk/server/scripts/cflags.txt: Changed the flag ENABLE_GAMES
+	  utap/expression.cpp, utap/lexer.l: Changed the flag ENABLE_GAMES
 	  into ENABLE_TIGA
 
 2006-06-23 17:05  fleury
@@ -1696,94 +3321,19 @@
 
 2006-05-08 15:34  adavid
 
-	* [r1786] branches/air-prototype/GUI/dist/.cvsignore,
-	  branches/air-prototype/GUI/src/com/uppaal/gui/.cvsignore,
-	  branches/air-prototype/GUI/src/com/uppaal/gui/verifier/.cvsignore,
-	  branches/air-prototype/GUI/src/com/uppaal/model/io/.cvsignore,
-	  branches/air-prototype/server/.cvsignore,
-	  branches/air-prototype/server/compilers/cl/.cvsignore,
-	  branches/air-prototype/server/compilers/g++/.cvsignore,
-	  branches/air-prototype/server/compilers/icc/.cvsignore,
-	  branches/air-prototype/server/documentation/.cvsignore,
-	  branches/air-prototype/server/modules/.cvsignore,
-	  branches/air-prototype/server/modules/games/tests/examples/.cvsignore,
-	  branches/air-prototype/server/tests/validation/.cvsignore,
-	  branches/tk/GUI/dist/.cvsignore,
-	  branches/tk/GUI/src/com/uppaal/gui/.cvsignore,
-	  branches/tk/GUI/src/com/uppaal/gui/verifier/.cvsignore,
-	  branches/tk/GUI/src/com/uppaal/model/io/.cvsignore,
-	  branches/tk/server/.cvsignore,
-	  branches/tk/server/compilers/cl/.cvsignore,
-	  branches/tk/server/compilers/g++/.cvsignore,
-	  branches/tk/server/compilers/icc/.cvsignore,
-	  branches/tk/server/documentation/.cvsignore,
-	  branches/tk/server/modules/.cvsignore,
-	  branches/tk/server/modules/base/.cvsignore,
-	  branches/tk/server/modules/base/tests/.cvsignore,
-	  branches/tk/server/modules/cdd/.cvsignore,
-	  branches/tk/server/modules/cdd/tests/.cvsignore,
-	  branches/tk/server/modules/dbm/.cvsignore,
-	  branches/tk/server/modules/dbm/ruby/.cvsignore,
-	  branches/tk/server/modules/dbm/tests/.cvsignore,
-	  branches/tk/server/modules/debug/.cvsignore,
-	  branches/tk/server/modules/debug/tests/.cvsignore,
-	  branches/tk/server/modules/games/.cvsignore,
-	  branches/tk/server/modules/games/tests/.cvsignore,
-	  branches/tk/server/modules/games/tests/examples/.cvsignore,
-	  branches/tk/server/modules/games/tests/tacas06/.cvsignore,
-	  branches/tk/server/modules/hash/.cvsignore,
-	  branches/tk/server/modules/hash/tests/.cvsignore,
-	  branches/tk/server/modules/include/.cvsignore,
-	  branches/tk/server/modules/io/.cvsignore,
-	  branches/tk/server/modules/io/tests/.cvsignore,
-	  branches/tk/server/modules/model/.cvsignore,
-	  branches/tk/server/modules/model/tests/.cvsignore,
-	  branches/tk/server/modules/old-verifyta/.cvsignore,
-	  branches/tk/server/modules/old-verifyta/tests/.cvsignore,
-	  branches/tk/server/modules/pipeline/.cvsignore,
-	  branches/tk/server/modules/pipeline/tests/.cvsignore,
-	  branches/tk/server/modules/pwlist/.cvsignore,
-	  branches/tk/server/modules/pwlist/tests/.cvsignore,
-	  branches/tk/server/modules/state/.cvsignore,
-	  branches/tk/server/modules/state/tests/.cvsignore,
-	  branches/tk/server/modules/storage/.cvsignore,
-	  branches/tk/server/modules/storage/tests/.cvsignore,
-	  branches/tk/server/modules/utap/.cvsignore,
-	  branches/tk/server/modules/utap/tests/.cvsignore,
-	  branches/tk/server/tests/validation/.cvsignore,
-	  tags/Root_air-prototype/GUI/dist/.cvsignore,
-	  tags/Root_air-prototype/GUI/src/com/uppaal/gui/.cvsignore,
-	  tags/Root_air-prototype/GUI/src/com/uppaal/gui/verifier/.cvsignore,
-	  tags/Root_air-prototype/GUI/src/com/uppaal/model/io/.cvsignore,
-	  tags/Root_air-prototype/server/.cvsignore,
-	  tags/Root_air-prototype/server/compilers/cl/.cvsignore,
-	  tags/Root_air-prototype/server/compilers/g++/.cvsignore,
-	  tags/Root_air-prototype/server/compilers/icc/.cvsignore,
-	  tags/Root_air-prototype/server/documentation/.cvsignore,
-	  tags/Root_air-prototype/server/modules/.cvsignore,
-	  tags/Root_air-prototype/server/modules/games/tests/examples/.cvsignore,
-	  tags/Root_air-prototype/server/tests/validation/.cvsignore,
-	  trunk/GUI/dist/.cvsignore,
-	  trunk/GUI/src/com/uppaal/gui/.cvsignore,
-	  trunk/GUI/src/com/uppaal/gui/verifier/.cvsignore,
-	  trunk/GUI/src/com/uppaal/model/io/.cvsignore,
-	  trunk/server/.cvsignore, trunk/server/compilers/g++/.cvsignore,
-	  trunk/server/compilers/icc/.cvsignore,
-	  trunk/server/documentation/.cvsignore, .cvsignore,
-	  base/.cvsignore, base/tests/.cvsignore, cdd/.cvsignore,
-	  cdd/tests/.cvsignore, dbm/.cvsignore, dbm/ruby/.cvsignore,
-	  debug/.cvsignore, debug/tests/.cvsignore, games/.cvsignore,
-	  games/tests/examples/.cvsignore, games/tests/tacas06/.cvsignore,
-	  hash/.cvsignore, hash/tests/.cvsignore, include/.cvsignore,
-	  io/.cvsignore, io/tests/.cvsignore, model/.cvsignore,
-	  model/tests/.cvsignore, old-verifyta/.cvsignore,
-	  old-verifyta/tests/.cvsignore, pipeline/.cvsignore,
-	  pipeline/tests/.cvsignore, pwlist/.cvsignore,
-	  pwlist/tests/.cvsignore, state/.cvsignore,
+	* [r1786] .cvsignore, base/.cvsignore, base/tests/.cvsignore,
+	  cdd/.cvsignore, cdd/tests/.cvsignore, dbm/.cvsignore,
+	  dbm/ruby/.cvsignore, debug/.cvsignore, debug/tests/.cvsignore,
+	  games/.cvsignore, games/tests/examples/.cvsignore,
+	  games/tests/tacas06/.cvsignore, hash/.cvsignore,
+	  hash/tests/.cvsignore, include/.cvsignore, io/.cvsignore,
+	  io/tests/.cvsignore, model/.cvsignore, model/tests/.cvsignore,
+	  old-verifyta/.cvsignore, old-verifyta/tests/.cvsignore,
+	  pipeline/.cvsignore, pipeline/tests/.cvsignore,
+	  pwlist/.cvsignore, pwlist/tests/.cvsignore, state/.cvsignore,
 	  state/tests/.cvsignore, storage/.cvsignore,
-	  storage/tests/.cvsignore, utap/.cvsignore, utap/tests/.cvsignore,
-	  trunk/server/tests/validation/.cvsignore: Remove seemingly
-	  useless files :).
+	  storage/tests/.cvsignore, utap/.cvsignore, utap/tests/.cvsignore:
+	  Remove seemingly useless files :).
 
 2006-04-29 17:56  behrmann
 
@@ -1879,13 +3429,8 @@
 
 2006-03-10 11:49  behrmann
 
-	* [r1630] utap/expressionbuilder.cpp, utap/systembuilder.cpp,
-	  trunk/server/tests/validation/reftest/bug106.sum,
-	  trunk/server/tests/validation/reftest/bug227.sum,
-	  trunk/server/tests/validation/reftest/bug229.sum,
-	  trunk/server/tests/validation/ta/bug106.xta,
-	  trunk/server/tests/validation/ta/bug227.xta,
-	  trunk/server/tests/validation/ta/bug229.xml: Fixes bug 288.
+	* [r1630] utap/expressionbuilder.cpp, utap/systembuilder.cpp: Fixes
+	  bug 288.
 	  
 	  Changed semantics of array parameters: ambersand is now required
 	  to make it a call-by-reference parameter.
@@ -1937,20 +3482,8 @@
 	  old-verifyta/Compiler.cpp, old-verifyta/Symbol.cpp,
 	  utap/abstractbuilder.cpp, utap/expressionbuilder.cpp,
 	  utap/parser.y, utap/prettyprinter.cpp, utap/system.cpp,
-	  utap/systembuilder.cpp, utap/typechecker.cpp,
-	  trunk/server/tests/validation/reftest/bug116.sum,
-	  trunk/server/tests/validation/reftest/bug116.t0,
-	  trunk/server/tests/validation/reftest/bug116.yt0,
-	  trunk/server/tests/validation/reftest/bug218.sum,
-	  trunk/server/tests/validation/reftest/bug218.t0,
-	  trunk/server/tests/validation/reftest/bug218.yt0,
-	  trunk/server/tests/validation/ta/bug116.q,
-	  trunk/server/tests/validation/ta/bug116.xta,
-	  trunk/server/tests/validation/ta/bug117.q,
-	  trunk/server/tests/validation/ta/bug117.xta,
-	  trunk/server/tests/validation/ta/bug218.q,
-	  trunk/server/tests/validation/ta/bug218.xta: Removed template set
-	  mechanism.
+	  utap/systembuilder.cpp, utap/typechecker.cpp: Removed template
+	  set mechanism.
 	  
 	  Added partial instantiation of templates (bug 278). Type checking
 	  is not
@@ -2490,8 +4023,7 @@
 
 2005-11-22 19:06  behrmann
 
-	* [r1297] trunk/server/documentation/FAQ,
-	  include/old-utap/typechecker.h, old-utap/parser.y,
+	* [r1297] include/old-utap/typechecker.h, old-utap/parser.y,
 	  old-utap/systembuilder.cpp, old-utap/typechecker.cpp: Fixed bug
 	  226.
 
@@ -2685,15 +4217,14 @@
 
 2005-09-08 09:51  fleury
 
-	* [r1110] trunk/GUI/src/com/uppaal/resource/uppaal-tiga.dtd,
-	  include/old-utap/abstractbuilder.h, include/old-utap/builder.h,
-	  include/old-utap/prettyprinter.h, include/old-utap/symbols.h,
-	  include/old-utap/systembuilder.h, old-utap/abstractbuilder.cpp,
-	  old-utap/keywords.gperf, old-utap/parser.y,
-	  old-utap/prettyprinter.cpp, old-utap/systembuilder.cpp,
-	  old-utap/tags.gperf, old-utap/xmlreader.cpp,
-	  trunk/server/scripts/configure.ac.in: Added support for
-	  winning/losing states in UTAP.
+	* [r1110] include/old-utap/abstractbuilder.h,
+	  include/old-utap/builder.h, include/old-utap/prettyprinter.h,
+	  include/old-utap/symbols.h, include/old-utap/systembuilder.h,
+	  old-utap/abstractbuilder.cpp, old-utap/keywords.gperf,
+	  old-utap/parser.y, old-utap/prettyprinter.cpp,
+	  old-utap/systembuilder.cpp, old-utap/tags.gperf,
+	  old-utap/xmlreader.cpp: Added support for winning/losing states
+	  in UTAP.
 
 2005-09-04 11:16  behrmann
 
@@ -2759,14 +4290,14 @@
 
 2005-08-30 15:31  fleury
 
-	* [r1087] trunk/GUI/src/com/uppaal/resource/uppaal-tiga.dtd,
-	  include/old-utap/abstractbuilder.h, include/old-utap/builder.h,
-	  include/old-utap/prettyprinter.h, include/old-utap/system.h,
-	  include/old-utap/systembuilder.h, old-utap/abstractbuilder.cpp,
-	  old-utap/lexer.l, old-utap/parser.y, old-utap/prettyprinter.cpp,
+	* [r1087] include/old-utap/abstractbuilder.h,
+	  include/old-utap/builder.h, include/old-utap/prettyprinter.h,
+	  include/old-utap/system.h, include/old-utap/systembuilder.h,
+	  old-utap/abstractbuilder.cpp, old-utap/lexer.l,
+	  old-utap/parser.y, old-utap/prettyprinter.cpp,
 	  old-utap/system.cpp, old-utap/systembuilder.cpp,
-	  old-utap/xmlreader.cpp, trunk/server/scripts/cflags.txt: o Add an
-	  "uncontrollable" transition to the lexer/parser (utap)
+	  old-utap/xmlreader.cpp: o Add an "uncontrollable" transition to
+	  the lexer/parser (utap)
 	  o Add a bool "controllable" to the transition data-structures
 	  o Add a flag ENABLE_GAMES in the building system
 	  
@@ -2915,11 +4446,11 @@
 
 2005-07-09 18:37  adavid
 
-	* [r956] trunk/server/compilers/Makefile.tests, ., .cvsignore,
-	  acinclude.m4, autogen.sh, base, base/.cvsignore, base/tests,
-	  base/tests/.cvsignore, base/tests/lib.dep, dbm, dbm/.cvsignore,
-	  dbm/tests, dbm/tests/.cvsignore, debug, debug/.cvsignore,
-	  debug/tests, debug/tests/.cvsignore, debug/tests/lib.dep, games,
+	* [r956] ., .cvsignore, acinclude.m4, autogen.sh, base,
+	  base/.cvsignore, base/tests, base/tests/.cvsignore,
+	  base/tests/lib.dep, dbm, dbm/.cvsignore, dbm/tests,
+	  dbm/tests/.cvsignore, debug, debug/.cvsignore, debug/tests,
+	  debug/tests/.cvsignore, debug/tests/lib.dep, games,
 	  games/.cvsignore, games/tests, games/tests/.cvsignore,
 	  games/tests/makefile.rules, hash, hash/.cvsignore, hash/tests,
 	  hash/tests/.cvsignore, hash/tests/lib.dep, include,
@@ -2934,20 +4465,8 @@
 	  pipeline/tests/lib.dep, pwlist, pwlist/.cvsignore, pwlist/tests,
 	  pwlist/tests/.cvsignore, setup.sh, state, state/.cvsignore,
 	  state/tests, state/tests/.cvsignore, storage, storage/.cvsignore,
-	  storage/tests, storage/tests/.cvsignore, version.sh,
-	  trunk/server/scripts/Makefile.module.in,
-	  trunk/server/scripts/Makefile.tests.in,
-	  trunk/server/scripts/config.guess,
-	  trunk/server/scripts/config.in, trunk/server/scripts/config.sub,
-	  trunk/server/scripts/configure.ac.in,
-	  trunk/server/scripts/getmodules.sh,
-	  trunk/server/scripts/gsoap-config,
-	  trunk/server/scripts/install-sh,
-	  trunk/server/scripts/makefile.in,
-	  trunk/server/scripts/openssl-config,
-	  trunk/server/scripts/setup.sh, trunk/server/scripts/uname.sh:
-	  Attempt to update the build system -- hopefully not everything
-	  will
+	  storage/tests, storage/tests/.cvsignore, version.sh: Attempt to
+	  update the build system -- hopefully not everything will
 	  explode at once. :)
 
 2005-07-04 13:53  behrmann
@@ -3180,8 +4699,8 @@
 2004-07-28 11:06  behrmann
 
 	* [r476] dbm/debug.cpp, old-cdd/cddop.c, old-utap/lexer.l,
-	  old-verifyta/pw.cpp, trunk/version.sh: Fixed compilation problems
-	  detected under Windows.
+	  old-verifyta/pw.cpp: Fixed compilation problems detected under
+	  Windows.
 
 2004-06-27 12:00  behrmann
 
@@ -3521,33 +5040,8 @@
 
 2004-05-19 10:58  behrmann
 
-	* [r417] trunk/GUI/README,
-	  trunk/GUI/src/com/uppaal/engine/RequestQuery.java,
-	  trunk/GUI/src/com/uppaal/gui/Main.java.in,
-	  trunk/GUI/src/com/uppaal/gui/SystemInspector.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/AbstractLabelViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/DomTextArea.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/PTEditorControl.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/PTEditorTrimmer.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/JMSCLog.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/PTDisplayPanel.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/Simulator.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/SystemStatePanel.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/VerificationTask.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/Verifier.java,
-	  trunk/GUI/src/com/uppaal/model/io/LocationInfo.java,
-	  trunk/GUI/src/com/uppaal/model/io/UgiJavaCCParser.jj,
-	  trunk/GUI/src/com/uppaal/model/io/XTAParserConfiguration.java,
-	  trunk/GUI/src/com/uppaal/model/io/XtaJavaCCParser.jj,
-	  trunk/GUI/src/com/uppaal/model/io/XtaParser.java,
-	  trunk/GUI/src/com/uppaal/model/system/Polyhedron.java,
-	  trunk/GUI/src/com/uppaal/resource/help/Requirements.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Variables_Window.html,
-	  trunk/GUI/src/com/uppaal/util/MultiChooser.java,
-	  trunk/GUI/src/com/uppaal/util/MultiChooser2.java,
-	  trunk/GUI/src/com/uppaal/util/files/FileHandle.java,
-	  include/old-cdd/kernel.h, include/old-utap/expressionbuilder.h,
+	* [r417] include/old-cdd/kernel.h,
+	  include/old-utap/expressionbuilder.h,
 	  include/old-utap/systembuilder.h, include/old-utap/typechecker.h,
 	  include/old-verifyta/deadlock.h, old-cdd/kernel.c,
 	  old-utap/expressionbuilder.cpp, old-utap/lexer.l,
@@ -3704,11 +5198,7 @@
 
 	* [r102] dbm/tests/testdbm.c, include/dbm/dbm.h,
 	  include/dbm/mingraph.h, makefile, old-utap/xmlreader.cpp,
-	  old-verifyta/sfilter.cpp, trunk/server/scripts/Doxyfile.in,
-	  trunk/server/scripts/compiler.sh, trunk/server/scripts/export.sh,
-	  trunk/server/scripts/gendoc.sh,
-	  trunk/server/scripts/index.html.in, trunk/version.sh: - updated
-	  comments in mingraph.h
+	  old-verifyta/sfilter.cpp: - updated comments in mingraph.h
 	  - added assertion in testdbm.c
 	  - made visible a function in dbm.h
 	  - changed #include "libxml/.." to #include <libxml/..> in
@@ -3718,12 +5208,8 @@
 
 2003-12-09 20:08  adavid
 
-	* [r84] trunk/server/compilers/Makefile.module,
-	  trunk/server/compilers/Makefile.tests,
-	  trunk/server/compilers/cl/debug.opt,
-	  trunk/server/compilers/cl/optimized.opt,
-	  trunk/server/documentation/FAQ, base/platform.c, dbm/dbm.c,
-	  dbm/debug.c, dbm/ext.c, dbm/mingraph.c, dbm/tests/testdbm.c,
+	* [r84] base/platform.c, dbm/dbm.c, dbm/debug.c, dbm/ext.c,
+	  dbm/mingraph.c, dbm/tests/testdbm.c,
 	  dbm/tests/testextrapolation.c, debug/utils.c,
 	  include/base/inttypes.h, include/dbm/dbm.h, include/dbm/debug.h,
 	  include/dbm/ext.h, include/dbm/mingraph.h,
@@ -3732,8 +5218,8 @@
 	  include/old-verifyta/modelchecker.h,
 	  include/old-verifyta/normalisation.h, include/old-verifyta/pw.h,
 	  include/old-verifyta/verify.h, old-cdd/cddop.c,
-	  old-utap/makefile.def, trunk/server/scripts/compiler.sh: -
-	  hopefully restored my lost modifications (due to unsync cvs
+	  old-utap/makefile.def: - hopefully restored my lost modifications
+	  (due to unsync cvs
 	  after the crash)
 	  - fixed isUnbounded
 	  - simplified API of constrainN
@@ -3784,31 +5270,22 @@
 
 2003-11-14 19:39  adavid
 
-	* [r9] trunk/server/compilers/Makefile.module,
-	  trunk/server/compilers/Makefile.tests,
-	  trunk/server/documentation/FAQ, base/platform.c,
-	  base/tests/testtimer.cpp, makefile, old-utap/makefile.def,
-	  old-utap/makefile.rules, old-utap/tests/makefile.def,
-	  old-verifyta/makefile.def, old-verifyta/tests/makefile.def,
-	  old-verifyta/tests/makefile.rules,
-	  trunk/server/scripts/acinclude.m4,
-	  trunk/server/scripts/compiler.sh,
-	  trunk/server/scripts/configure.ac.in,
-	  trunk/server/scripts/download.sh, trunk/server/scripts/uname.sh:
-	  - cleanup
+	* [r9] base/platform.c, base/tests/testtimer.cpp, makefile,
+	  old-utap/makefile.def, old-utap/makefile.rules,
+	  old-utap/tests/makefile.def, old-verifyta/makefile.def,
+	  old-verifyta/tests/makefile.def,
+	  old-verifyta/tests/makefile.rules: - cleanup
 	  - windows compilation
 	  - more flexible customization for the build system
 	  - FAQ update for windows
 
 2003-11-14 11:13  adavid
 
-	* [r8] trunk/server/compilers/Makefile.module,
-	  trunk/server/compilers/Makefile.tests, base/Timer.cpp,
-	  base/platform.c, base/tests/testtimer.cpp, include/base/Timer.h,
-	  include/base/bitstring.h, include/base/inttypes.h,
-	  include/base/platform.h, include/dbm/constraints.h,
-	  old-utap/makefile.rules, old-verifyta/tests/makefile.rules,
-	  trunk/server/scripts/download.sh: - code reviewed by Ulrik
+	* [r8] base/Timer.cpp, base/platform.c, base/tests/testtimer.cpp,
+	  include/base/Timer.h, include/base/bitstring.h,
+	  include/base/inttypes.h, include/base/platform.h,
+	  include/dbm/constraints.h, old-utap/makefile.rules,
+	  old-verifyta/tests/makefile.rules: - code reviewed by Ulrik
 	  - marked file versions that were reviewed.
 	  - added the script to download, compile, and install libxml2
 	  (sun+cygwin)
@@ -3820,319 +5297,8 @@
 
 2003-11-12 16:35  adavid
 
-	* [r4] trunk/GUI, trunk/GUI/Makefile, trunk/GUI/Makefile.in,
-	  trunk/GUI/README, trunk/GUI/build.xml, trunk/GUI/dist,
-	  trunk/GUI/dist/License-ASF, trunk/GUI/dist/README,
-	  trunk/GUI/dist/readme.txt, trunk/GUI/dist/uppaal2k,
-	  trunk/GUI/manifest, trunk/GUI/manual.tex, trunk/GUI/src,
-	  trunk/GUI/src/com, trunk/GUI/src/com/uppaal,
-	  trunk/GUI/src/com/uppaal/debug,
-	  trunk/GUI/src/com/uppaal/debug/MemoryMonitor.java,
-	  trunk/GUI/src/com/uppaal/debug/UTron.java,
-	  trunk/GUI/src/com/uppaal/engine,
-	  trunk/GUI/src/com/uppaal/engine/AbstractEngineRequest.java,
-	  trunk/GUI/src/com/uppaal/engine/ConnectionListener.java,
-	  trunk/GUI/src/com/uppaal/engine/Engine.java,
-	  trunk/GUI/src/com/uppaal/engine/EngineException.java,
-	  trunk/GUI/src/com/uppaal/engine/EngineRequest.java,
-	  trunk/GUI/src/com/uppaal/engine/ErrorListener.java,
-	  trunk/GUI/src/com/uppaal/engine/LexicalAnalyser.java,
-	  trunk/GUI/src/com/uppaal/engine/Problem.java,
-	  trunk/GUI/src/com/uppaal/engine/ProtocolException.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestEnabledTransitions.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestHandshake.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestInitial.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestQuery.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestQuit.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestSetOptions.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestSuccessor.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestSyntaxCheck.java,
-	  trunk/GUI/src/com/uppaal/engine/RequestUpload2.java,
-	  trunk/GUI/src/com/uppaal/gui,
-	  trunk/GUI/src/com/uppaal/gui/GUIAction.java,
-	  trunk/GUI/src/com/uppaal/gui/Main.java.in,
-	  trunk/GUI/src/com/uppaal/gui/ModePanel.java,
-	  trunk/GUI/src/com/uppaal/gui/PsOptions.java,
-	  trunk/GUI/src/com/uppaal/gui/SplashScreen.java,
-	  trunk/GUI/src/com/uppaal/gui/SystemInspector.java,
-	  trunk/GUI/src/com/uppaal/gui/TemplateMenuManager.java,
-	  trunk/GUI/src/com/uppaal/gui/ToggleAction.java,
-	  trunk/GUI/src/com/uppaal/gui/UToggleButton.java,
-	  trunk/GUI/src/com/uppaal/gui/UppaalOptions.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas,
-	  trunk/GUI/src/com/uppaal/gui/canvas/AbstractLabelViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/AbstractNailViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/AbstractViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/EndNailViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/GraphicsContext.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/GraphicsDataListener.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/GraphicsElement.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/GraphicsElementModel.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/LocationViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/NailViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/ParameterViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/PartialTransitionPointEnumeration.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/PartialTransitionViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/SimulationLabelViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/SimulationLocationViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/SimulationTransitionViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/StartNailViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/StateNameViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TemplateNameViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TemplateView.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TemplateViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TemplateViewRegistry.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TransitionPointEnumeration.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TransitionViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/TypeDisplayCanvas.java,
-	  trunk/GUI/src/com/uppaal/gui/canvas/UniversalLabelViewHandler.java,
-	  trunk/GUI/src/com/uppaal/gui/editor,
-	  trunk/GUI/src/com/uppaal/gui/editor/ControlMode.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/DomTextArea.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/DomTextField.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/EditorBase.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/LineEditor.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/LocationEditor.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/LocationPopupMenu.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/MultiLineEditor.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/PTEditorControl.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/PTEditorTrimmer.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/PopupMenuBase.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/SnapVisitor.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/SystemSpecBuilderException.java,
-	  trunk/GUI/src/com/uppaal/gui/editor/TransitionEditor.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator,
-	  trunk/GUI/src/com/uppaal/gui/simulator/ChoiceModel.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/GridFlowLayout.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/JMSCLog.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/JMSCLogHeader.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/JMSCLogTimeLine.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/JMSCLogView.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/LineFlowLayout.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/Message.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/PTDisplayPanel.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/PeriodicCaller.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/Simulator.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/SystemStatePanel.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/Trace.java,
-	  trunk/GUI/src/com/uppaal/gui/simulator/TraceModel.java,
-	  trunk/GUI/src/com/uppaal/gui/tree,
-	  trunk/GUI/src/com/uppaal/gui/tree/AdapterNode.java,
-	  trunk/GUI/src/com/uppaal/gui/tree/DomToTreeModelAdapter.java,
-	  trunk/GUI/src/com/uppaal/gui/tree/DomTree.java,
-	  trunk/GUI/src/com/uppaal/gui/tree/RootAdapterNode.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier,
-	  trunk/GUI/src/com/uppaal/gui/verifier/Options.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/OptionsChangedEvent.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/OptionsChangedListener.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/Property.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/QueryFileParser.jj,
-	  trunk/GUI/src/com/uppaal/gui/verifier/VerificationDialog.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/VerificationListener.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/VerificationTask.java,
-	  trunk/GUI/src/com/uppaal/gui/verifier/Verifier.java,
-	  trunk/GUI/src/com/uppaal/model,
-	  trunk/GUI/src/com/uppaal/model/CompleteDomVisitor.java,
-	  trunk/GUI/src/com/uppaal/model/LayoutVisitor.java,
-	  trunk/GUI/src/com/uppaal/model/ReferenceChecker.java,
-	  trunk/GUI/src/com/uppaal/model/core,
-	  trunk/GUI/src/com/uppaal/model/core/ElementCommitted.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementDeclaration.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementImports.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementInit.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementInstantiation.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementLabel.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementLocation.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementNail.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementName.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementNta.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementParameter.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementSource.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementSystem.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementTarget.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementTemplate.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementTransition.java,
-	  trunk/GUI/src/com/uppaal/model/core/ElementUrgent.java,
-	  trunk/GUI/src/com/uppaal/model/core/IdentifierCollector.java,
-	  trunk/GUI/src/com/uppaal/model/core/LabelElement.java,
-	  trunk/GUI/src/com/uppaal/model/core/PropertyConstants.java,
-	  trunk/GUI/src/com/uppaal/model/core/UppaalDocument.java,
-	  trunk/GUI/src/com/uppaal/model/core/UppaalElement.java,
-	  trunk/GUI/src/com/uppaal/model/core/Visitable.java,
-	  trunk/GUI/src/com/uppaal/model/core/Visitor.java,
-	  trunk/GUI/src/com/uppaal/model/core/VisitorSafe.java,
-	  trunk/GUI/src/com/uppaal/model/core/XMLConstants.java,
-	  trunk/GUI/src/com/uppaal/model/io,
-	  trunk/GUI/src/com/uppaal/model/io/IdAttributeConstants.java,
-	  trunk/GUI/src/com/uppaal/model/io/LocationInfo.java,
-	  trunk/GUI/src/com/uppaal/model/io/PostScriptGenerator.java,
-	  trunk/GUI/src/com/uppaal/model/io/RelToAbsVisitor.java,
-	  trunk/GUI/src/com/uppaal/model/io/TaWriter.java,
-	  trunk/GUI/src/com/uppaal/model/io/TransitionId.java,
-	  trunk/GUI/src/com/uppaal/model/io/UgiJavaCCParser.jj,
-	  trunk/GUI/src/com/uppaal/model/io/UgiWriter.java,
-	  trunk/GUI/src/com/uppaal/model/io/XTAParserConfiguration.java,
-	  trunk/GUI/src/com/uppaal/model/io/XtaJavaCCParser.jj,
-	  trunk/GUI/src/com/uppaal/model/io/XtaParser.java,
-	  trunk/GUI/src/com/uppaal/model/io/XtaWriter.java,
-	  trunk/GUI/src/com/uppaal/model/system,
-	  trunk/GUI/src/com/uppaal/model/system/EmptyTranslator.java,
-	  trunk/GUI/src/com/uppaal/model/system/IdentifierTranslator.java,
-	  trunk/GUI/src/com/uppaal/model/system/IntegerPair.java,
-	  trunk/GUI/src/com/uppaal/model/system/LocationVector.java,
-	  trunk/GUI/src/com/uppaal/model/system/Polyhedron.java,
-	  trunk/GUI/src/com/uppaal/model/system/Pts.java,
-	  trunk/GUI/src/com/uppaal/model/system/SystemState.java,
-	  trunk/GUI/src/com/uppaal/model/system/SystemTransition.java,
-	  trunk/GUI/src/com/uppaal/model/system/Translator.java,
-	  trunk/GUI/src/com/uppaal/model/system/UnFoldVisitor.java,
-	  trunk/GUI/src/com/uppaal/model/system/UnFolder.java,
-	  trunk/GUI/src/com/uppaal/model/system/UppaalSystem.java,
-	  trunk/GUI/src/com/uppaal/resource,
-	  trunk/GUI/src/com/uppaal/resource/default.xml,
-	  trunk/GUI/src/com/uppaal/resource/help,
-	  trunk/GUI/src/com/uppaal/resource/help/CL_Options.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/File.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/Help.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/Options.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/Queries.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/Templates.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Menu_Bar/View.html,
-	  trunk/GUI/src/com/uppaal/resource/help/RSL-Semantics.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Requirements.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/MSC_Window.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Process_Window.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Simulation_Control.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Simulator/Variables_Window.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Assignments.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Declarations.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Expressions.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Guards.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Identifiers.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Process_Assignments.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Reserved_Keywords.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Scope_Rules.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Semantics.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Synchronisations.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Syntax.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/System_Definition.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Descriptions/Template_Parameters.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Editor,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Editor/Declaring.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Editor/Drawing.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Editor/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/System_Editor/Navigation_Tree.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Toolbar,
-	  trunk/GUI/src/com/uppaal/resource/help/Toolbar/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Verifier,
-	  trunk/GUI/src/com/uppaal/resource/help/Verifier/Introduction.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Verifier/Specifying.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Verifier/Verifying.html,
-	  trunk/GUI/src/com/uppaal/resource/help/Whats_New.html,
-	  trunk/GUI/src/com/uppaal/resource/help/fatal_help.html,
-	  trunk/GUI/src/com/uppaal/resource/help/help.hs,
-	  trunk/GUI/src/com/uppaal/resource/help/index.xml,
-	  trunk/GUI/src/com/uppaal/resource/help/map.xml,
-	  trunk/GUI/src/com/uppaal/resource/help/toc.xml,
-	  trunk/GUI/src/com/uppaal/resource/help/url_error.html,
-	  trunk/GUI/src/com/uppaal/resource/images,
-	  trunk/GUI/src/com/uppaal/resource/images/location.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/location.png,
-	  trunk/GUI/src/com/uppaal/resource/images/location.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/nail.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/nail.png,
-	  trunk/GUI/src/com/uppaal/resource/images/nail.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/queryNotOkay.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/queryOkay.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/queryUnknown.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/select.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/select2.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/select3.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/select3.png,
-	  trunk/GUI/src/com/uppaal/resource/images/select3.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/selectedQuery.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/show.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/simulate.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/splash2.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/splash3.png,
-	  trunk/GUI/src/com/uppaal/resource/images/splash3.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/splash4.png,
-	  trunk/GUI/src/com/uppaal/resource/images/state.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/state2.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/templateicon.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/transition.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/transition2.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/transition3.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/transition3.png,
-	  trunk/GUI/src/com/uppaal/resource/images/transition3.xcf,
-	  trunk/GUI/src/com/uppaal/resource/images/undo.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/uppaal.big.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/uppaal.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/uppaal.gif-red,
-	  trunk/GUI/src/com/uppaal/resource/images/uppaal.normal.gif,
-	  trunk/GUI/src/com/uppaal/resource/images/verify.gif,
-	  trunk/GUI/src/com/uppaal/resource/options.xml,
-	  trunk/GUI/src/com/uppaal/resource/uppaal.dtd,
-	  trunk/GUI/src/com/uppaal/resource/uppaal.properties,
-	  trunk/GUI/src/com/uppaal/syntax,
-	  trunk/GUI/src/com/uppaal/syntax/core,
-	  trunk/GUI/src/com/uppaal/syntax/core/ParseError.java,
-	  trunk/GUI/src/com/uppaal/util,
-	  trunk/GUI/src/com/uppaal/util/ArrayUtils.java,
-	  trunk/GUI/src/com/uppaal/util/DomUtils.java,
-	  trunk/GUI/src/com/uppaal/util/FloatPoint.java,
-	  trunk/GUI/src/com/uppaal/util/IntPoint.java,
-	  trunk/GUI/src/com/uppaal/util/IntRect.java,
-	  trunk/GUI/src/com/uppaal/util/MultiChooser.java,
-	  trunk/GUI/src/com/uppaal/util/ObjectPair.java,
-	  trunk/GUI/src/com/uppaal/util/ObservablePointer.java,
-	  trunk/GUI/src/com/uppaal/util/StringUtils.java,
-	  trunk/GUI/src/com/uppaal/util/error,
-	  trunk/GUI/src/com/uppaal/util/error/AbstractError.java,
-	  trunk/GUI/src/com/uppaal/util/error/ChoiceError.java,
-	  trunk/GUI/src/com/uppaal/util/error/InfoError.java,
-	  trunk/GUI/src/com/uppaal/util/files,
-	  trunk/GUI/src/com/uppaal/util/files/FileHandle.java,
-	  trunk/GUI/src/com/uppaal/util/files/GUIFileFilter.java,
-	  trunk/GUI/todo.txt, trunk/GUI/uppaal.cdp, trunk/misc,
-	  trunk/misc/algorithms, trunk/misc/algorithms/copy.cpp,
-	  trunk/misc/algorithms/equal.cpp,
-	  trunk/misc/algorithms/initdbm.cpp,
-	  trunk/misc/algorithms/reset.cpp, trunk/misc/scripts,
-	  trunk/misc/scripts/resetmodes.sh, trunk/misc/scripts/wc.sh,
-	  trunk/misc/utils, trunk/misc/utils/cstat.c, trunk/server,
-	  trunk/server/compilers, trunk/server/compilers/Makefile.module,
-	  trunk/server/compilers/Makefile.tests, trunk/server/compilers/cl,
-	  trunk/server/compilers/cl/debug.opt,
-	  trunk/server/compilers/cl/optimized.opt,
-	  trunk/server/compilers/g++,
-	  trunk/server/compilers/g++/athlon.opt,
-	  trunk/server/compilers/g++/debug.opt,
-	  trunk/server/compilers/g++/optimized.opt,
-	  trunk/server/compilers/g++/ppro.opt,
-	  trunk/server/compilers/g++/profiling.opt,
-	  trunk/server/compilers/icc, trunk/server/compilers/icc/debug.opt,
-	  trunk/server/compilers/icc/p2-ip.opt,
-	  trunk/server/compilers/icc/p2.opt,
-	  trunk/server/compilers/icc/p3-ip.opt,
-	  trunk/server/compilers/icc/p3.opt,
-	  trunk/server/compilers/icc/p4-ip.opt,
-	  trunk/server/compilers/icc/p4.opt,
-	  trunk/server/compilers/icc/pentium-ip.opt,
-	  trunk/server/compilers/icc/pentium.opt,
-	  trunk/server/compilers/icc/ppro-ip.opt,
-	  trunk/server/compilers/icc/ppro.opt, trunk/server/documentation,
-	  trunk/server/documentation/FAQ,
-	  trunk/server/documentation/emacsheader,
-	  trunk/server/documentation/test.cpp, ., include, include/old-cdd,
-	  include/old-cdd/cdd.h, include/old-cdd/kernel.h, include/old-dbm,
+	* [r4] ., include, include/old-cdd, include/old-cdd/cdd.h,
+	  include/old-cdd/kernel.h, include/old-dbm,
 	  include/old-dbm/bound.h, include/old-dbm/dbm.h,
 	  include/old-dbm/hash.h, include/old-dbm/kernel.h,
 	  include/old-dbm/util.h, include/old-utap,
@@ -4209,13 +5375,8 @@
 	  old-verifyta/tests/verifyta.cpp, old-verifyta/thread.h,
 	  old-verifyta/trace.cpp, old-verifyta/trans.cpp,
 	  old-verifyta/util.cpp, old-verifyta/visitors.cpp,
-	  old-verifyta/zone_interface.cpp, trunk/server/scripts,
-	  trunk/server/scripts/acinclude.m4,
-	  trunk/server/scripts/compiler.sh,
-	  trunk/server/scripts/configure.ac.in,
-	  trunk/server/scripts/getmodules.sh,
-	  trunk/server/scripts/readconfig.sh, trunk/version.sh: ** Moved
-	  UPPAAL-3.4 to a new fresh repository **
+	  old-verifyta/zone_interface.cpp: ** Moved UPPAAL-3.4 to a new
+	  fresh repository **
 	  
 	  - new build system based on make for compilation, and on
 	  configure

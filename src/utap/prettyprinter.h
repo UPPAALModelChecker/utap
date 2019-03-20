@@ -37,6 +37,7 @@ namespace UTAP
         std::vector<std::string> st;
         std::stack<std::string> type;
         std::stack<std::string> array;
+        std::vector<std::string> fields;
         std::stack<std::ostream *> o;
         std::set<std::string> types;
         std::string urgent;
@@ -44,10 +45,10 @@ namespace UTAP
         std::string param;
         std::string templateset;
         int select, guard, sync, update;
-        
+
         bool first;
         uint32_t level;
-        
+
         void indent();
         void indent(std::string &s);
 
@@ -63,9 +64,11 @@ namespace UTAP
         virtual bool isType(const char *);
         virtual void typeBool(PREFIX);
         virtual void typeInt(PREFIX);
+        virtual void typeDouble(PREFIX);
         virtual void typeBoundedInt(PREFIX);
         virtual void typeChannel(PREFIX);
         virtual void typeClock();
+        virtual void typeClock(PREFIX);
         virtual void typeVoid();
         virtual void typeScalar(PREFIX);
         virtual void typeName(PREFIX, const char *type);
@@ -73,7 +76,9 @@ namespace UTAP
         virtual void typeDuplicate();
         virtual void typeArrayOfSize(size_t n);
         virtual void typeArrayOfType(size_t n);
-        virtual void declTypeDef(const char* name); 
+        virtual void typeStruct(PREFIX prefix, uint32_t n);
+        virtual void structField(const char* name);
+        virtual void declTypeDef(const char* name);
         virtual void declVar(const char *id, bool init);
         virtual void declInitialiserList(uint32_t num);
         virtual void declFieldInit(const char* name);
@@ -98,8 +103,10 @@ namespace UTAP
         virtual void continueStatement();
         virtual void exprStatement();
         virtual void returnStatement(bool hasValue);
-        virtual void procBegin(const char* name);
+        virtual void procBegin(const char* name, const bool isTA = true,
+        		const std::string type = "", const std::string mode = "");
         virtual void procState(const char *id, bool hasInvariant);
+        virtual void procState(const char *id, bool hasInvariant, bool hasExpRate);
         virtual void procStateUrgent(const char *id);
         virtual void procStateCommit(const char *id);
         virtual void procStateInit(const char *id);
@@ -108,6 +115,7 @@ namespace UTAP
         virtual void procSync(Constants::synchronisation_t type);
         virtual void procUpdate();
         virtual void procEdgeBegin(const char *source, const char *target, const bool control);
+        virtual void procEdgeBegin(const char *source, const char *target, const bool control, const char* actname);
         virtual void procEdgeEnd(const char *source, const char *target);
         virtual void procEnd();
         virtual void exprId(const char *id);
@@ -124,6 +132,8 @@ namespace UTAP
         virtual void exprAssignment(Constants::kind_t op);
         virtual void exprUnary(Constants::kind_t op);
         virtual void exprBinary(Constants::kind_t op);
+        virtual void exprNary(Constants::kind_t op, uint32_t num);
+        virtual void exprScenario(const char* name);
         virtual void exprTernary(Constants::kind_t op);
         virtual void exprInlineIf();
         virtual void exprComma();
@@ -133,13 +143,27 @@ namespace UTAP
         virtual void exprForAllEnd(const char *name);
         virtual void exprExistsBegin(const char *name);
         virtual void exprExistsEnd(const char *name);
+        virtual void exprSumBegin(const char *name);
+        virtual void exprSumEnd(const char *name);
+        virtual void exprProba(bool,int,double,int);
+        virtual void exprProba2(bool,int);
+        virtual void exprProbaQuantitative(int,Constants::kind_t,bool);
+        virtual void exprMitlDiamond (int,int);
+        virtual void exprMitlBox (int,int);
+        virtual void exprSimulate(int,int,int,bool,int);
         virtual void beforeUpdate();
         virtual void afterUpdate();
         virtual void instantiationBegin(const char *, size_t, const char *);
-        virtual void instantiationEnd(
-            const char *, size_t, const char *, size_t);
+        virtual void instantiationEnd(const char *, size_t, const char *, size_t);
         virtual void process(const char *id);
+        virtual void processListEnd();
         virtual void done();
+
+        /** Verification queries */
+        virtual void queryBegin();
+        virtual void queryFormula(const char*);
+        virtual void queryComment(const char*);
+        virtual void queryEnd();
     };
 }
 

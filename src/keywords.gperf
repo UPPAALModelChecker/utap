@@ -1,53 +1,85 @@
-struct Keyword { char *name; int token; int32_t syntax; }
+struct Keyword { const char *name; int token; int32_t syntax; }
 %%
-const,			T_CONST,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
+const,			T_CONST,	SYNTAX_OLD | SYNTAX_NEW
 select,			T_SELECT,	SYNTAX_NEW
 guard,			T_GUARD,	SYNTAX_OLD | SYNTAX_NEW
 sync,			T_SYNC,		SYNTAX_OLD | SYNTAX_NEW
 assign,			T_ASSIGN,	SYNTAX_OLD | SYNTAX_NEW
 process,		T_PROCESS,	SYNTAX_OLD | SYNTAX_NEW
 state,			T_STATE,	SYNTAX_OLD | SYNTAX_NEW
-init,			T_INIT,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
-trans,			T_TRANS,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
+branch,			T_BRANCH,	SYNTAX_OLD | SYNTAX_NEW
+init,			T_INIT,		SYNTAX_OLD | SYNTAX_NEW
+trans,			T_TRANS,	SYNTAX_OLD | SYNTAX_NEW
 urgent,			T_URGENT,	SYNTAX_OLD | SYNTAX_NEW
 commit,			T_COMMIT,	SYNTAX_OLD | SYNTAX_NEW
-broadcast,       	T_BROADCAST,	SYNTAX_OLD | SYNTAX_NEW
-system,			T_SYSTEM,	SYNTAX_OLD | SYNTAX_NEW
+broadcast,              T_BROADCAST,    SYNTAX_OLD | SYNTAX_NEW
+system,			T_SYSTEM,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 true,			T_TRUE,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 false,			T_FALSE,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 and,			T_KW_AND,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 or,			T_KW_OR,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
+xor,                    T_KW_XOR,       SYNTAX_NEW
 not,			T_KW_NOT,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 imply,			T_KW_IMPLY,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
-for,			T_FOR,		SYNTAX_NEW | SYNTAX_SSQL
-while,			T_WHILE,	SYNTAX_NEW | SYNTAX_SSQL
-do, 			T_DO,		SYNTAX_NEW | SYNTAX_SSQL
-if, 			T_IF,		SYNTAX_NEW | SYNTAX_SSQL
-else, 			T_ELSE,		SYNTAX_NEW | SYNTAX_SSQL
-default, 		T_DEFAULT,	SYNTAX_NEW | SYNTAX_SSQL
-return, 		T_RETURN,	SYNTAX_NEW | SYNTAX_SSQL
-typedef,		T_TYPEDEF,	SYNTAX_NEW | SYNTAX_SSQL
-struct,			T_STRUCT,	SYNTAX_NEW | SYNTAX_SSQL
-meta,			T_META,		SYNTAX_NEW | SYNTAX_SSQL
-before_update,		T_BEFORE,	SYNTAX_NEW
-after_update,		T_AFTER,	SYNTAX_NEW
+for,			T_FOR,		SYNTAX_NEW
+while,			T_WHILE,	SYNTAX_NEW
+do, 			T_DO,		SYNTAX_NEW
+if, 			T_IF,		SYNTAX_NEW
+else, 			T_ELSE,		SYNTAX_NEW
+default, 		T_DEFAULT,	SYNTAX_NEW
+return, 		T_RETURN,	SYNTAX_NEW
+typedef,		T_TYPEDEF,	SYNTAX_NEW
+struct,			T_STRUCT,	SYNTAX_NEW
+meta,			T_META,		SYNTAX_NEW
+before_update,	        T_BEFORE,	SYNTAX_NEW
+after_update,	        T_AFTER,	SYNTAX_NEW
 progress,		T_PROGRESS,	SYNTAX_NEW
+gantt,                  T_GANTT,        SYNTAX_NEW
 assert,			T_ASSERT,	SYNTAX_NEW
+IO,			T_IO,		SYNTAX_NEW
 forall, 		T_FORALL,	SYNTAX_NEW | SYNTAX_PROPERTY
 exists, 		T_EXISTS,	SYNTAX_NEW | SYNTAX_PROPERTY
+sum,			T_SUM,		SYNTAX_NEW | SYNTAX_PROPERTY
 deadlock,		T_DEADLOCK,	SYNTAX_PROPERTY
 priority,		T_PRIORITY,	SYNTAX_OLD | SYNTAX_NEW
-bool,			T_BOOL,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
+bool,			T_BOOL,		SYNTAX_OLD | SYNTAX_NEW
 int,			T_INT,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
-chan,			T_CHAN,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
-clock,			T_CLOCK,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
-void,			T_VOID,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_SSQL
+double,                 T_DOUBLE,       SYNTAX_OLD | SYNTAX_NEW
+chan,			T_CHAN,		SYNTAX_OLD | SYNTAX_NEW
+clock,			T_CLOCK,	SYNTAX_OLD | SYNTAX_NEW
+void,			T_VOID,		SYNTAX_OLD | SYNTAX_NEW
 scalar,			T_SCALAR,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 control,                T_CONTROL,      SYNTAX_PROPERTY | SYNTAX_TIGA
 control_t,              T_CONTROL_T,    SYNTAX_PROPERTY | SYNTAX_TIGA
-inf,                    T_INF,          SYNTAX_PROPERTY | SYNTAX_TIGA
-sup,                    T_SUP,          SYNTAX_PROPERTY | SYNTAX_TIGA
-resultset,              T_RESULTSET,    SYNTAX_SSQL
+simulation,             T_SIMULATION,   SYNTAX_PROPERTY | SYNTAX_TIGA
+simulate,               T_SIMULATE,     SYNTAX_PROPERTY
+refinement,             T_REFINEMENT,   SYNTAX_PROPERTY | SYNTAX_TIGA
+consistency,            T_CONSISTENCY,  SYNTAX_PROPERTY | SYNTAX_TIGA
+specification,          T_SPECIFICATION,SYNTAX_PROPERTY | SYNTAX_TIGA
+implementation,         T_IMPLEMENTATION,SYNTAX_PROPERTY | SYNTAX_TIGA
+sat,                    T_SCENARIO,     SYNTAX_PROPERTY
+inf,                    T_INF,          SYNTAX_PROPERTY
+sup,                    T_SUP,          SYNTAX_PROPERTY
+Pmax,			T_PMAX,		SYNTAX_PROPERTY | SYNTAX_PROB
+Pr,                     T_PROBA,        SYNTAX_PROPERTY
+X,                      T_MITL_NEXT,    SYNTAX_PROPERTY
+cos,                    T_COS,          SYNTAX_PROPERTY | SYNTAX_NEW
+sin,                    T_SIN,          SYNTAX_PROPERTY | SYNTAX_NEW
+exp,                    T_EXP,          SYNTAX_PROPERTY | SYNTAX_NEW
+ln,                     T_LN,           SYNTAX_PROPERTY | SYNTAX_NEW
+log,                    T_LOG,          SYNTAX_PROPERTY | SYNTAX_NEW
+sqrt,                   T_SQRT,         SYNTAX_PROPERTY | SYNTAX_NEW
+random,                 T_RANDOM,       SYNTAX_PROPERTY | SYNTAX_NEW
+fabs,                   T_FABS,         SYNTAX_PROPERTY | SYNTAX_NEW
+pow,                    T_POW,          SYNTAX_PROPERTY | SYNTAX_NEW
+ceil,                   T_CEIL,         SYNTAX_PROPERTY | SYNTAX_NEW
+floor,                  T_FLOOR,        SYNTAX_PROPERTY | SYNTAX_NEW
+hybrid,                 T_HYBRID,	SYNTAX_NEW
+dynamic,                T_DYNAMIC,      SYNTAX_NEW
+spawn,                  T_SPAWN,        SYNTAX_NEW
+exit,                   T_EXIT,         SYNTAX_NEW
+numOf,                  T_NUMOF,        SYNTAX_PROPERTY
+foreach,                T_FOREACH,      SYNTAX_PROPERTY
 %%
 
 bool isKeyword(const char *id, uint32_t syntax)

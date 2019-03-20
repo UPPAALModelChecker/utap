@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -25,6 +25,8 @@
 
 #include "utap/prettyprinter.h"
 
+#include <string.h>
+
 using namespace UTAP;
 using namespace UTAP::Constants;
 
@@ -33,22 +35,23 @@ using std::string;
 using std::ostream;
 using std::endl;
 using std::ostringstream;
+using std::stringstream;
 
-static const char *const prefix_label[] = 
+static const char *const prefix_label[] =
 {
     "", "const ", "urgent ", "", "broadcast ", "", "urgent broadcast ", "",
     "meta "
 };
 
-void PrettyPrinter::indent() 
+void PrettyPrinter::indent()
 {
-    for (uint32_t i = 0; i < level; i++) 
+    for (uint32_t i = 0; i < level; i++)
     {
         *o.top() << "    ";
     }
 }
 
-void PrettyPrinter::indent(string &s) 
+void PrettyPrinter::indent(string &s)
 {
     for (uint32_t i = 0; i < level; i++)
     {
@@ -56,10 +59,10 @@ void PrettyPrinter::indent(string &s)
     }
 }
 
-PrettyPrinter::PrettyPrinter(ostream &stream) 
+PrettyPrinter::PrettyPrinter(ostream &stream)
 {
     o.push(&stream);
-    
+
     first = true;
     level = 0;
     select = guard = sync = update = -1;
@@ -95,9 +98,9 @@ void PrettyPrinter::typeDuplicate()
 void PrettyPrinter::typePop()
 {
     type.pop();
-}    
-    
-void PrettyPrinter::typeBool(PREFIX prefix) 
+}
+
+void PrettyPrinter::typeBool(PREFIX prefix)
 {
     string res;
     res += prefix_label[prefix];
@@ -113,15 +116,23 @@ void PrettyPrinter::typeInt(PREFIX prefix)
     type.push(res);
 }
 
+void PrettyPrinter::typeDouble(PREFIX prefix)
+{
+    string res;
+    res += prefix_label[prefix];
+    res += "double";
+    type.push(res);
+}
+
 void PrettyPrinter::typeBoundedInt(PREFIX prefix)
-{    
+{
     string l, u;
     u = st.back();
     st.pop_back();
     l = st.back();
     st.pop_back();
 
-    string res;    
+    string res;
     res += prefix_label[prefix];
     res += "int[" + l + "," + u + "]";
     type.push(res);
@@ -129,15 +140,17 @@ void PrettyPrinter::typeBoundedInt(PREFIX prefix)
 
 void PrettyPrinter::typeChannel(PREFIX prefix)
 {
-    string res;
-    res += prefix_label[prefix];
-    res += "chan";
-    type.push(res);
+    type.push(string(prefix_label[prefix])+"chan");
 }
 
 void PrettyPrinter::typeClock()
 {
     type.push("clock");
+}
+
+void PrettyPrinter::typeClock(PREFIX prefix)
+{
+    type.push(string(prefix_label[prefix])+"clock");
 }
 
 void PrettyPrinter::typeVoid()
@@ -155,9 +168,9 @@ void PrettyPrinter::typeScalar(PREFIX prefix)
     type.push(res);
 }
 
-void PrettyPrinter::typeName(PREFIX prefix, const char *name) 
+void PrettyPrinter::typeName(PREFIX prefix, const char *name)
 {
-    string res;   
+    string res;
     res += prefix_label[prefix];
     res += name;
     type.push(res);
@@ -174,6 +187,34 @@ void PrettyPrinter::typeArrayOfType(size_t n)
     array.push(type.top());
     type.pop();
 }
+void PrettyPrinter::typeStruct(PREFIX prefix, uint32_t n)
+{
+    stringstream ss;
+    ss << prefix_label[prefix];
+    ss << "struct {\n";
+    assert(fields.size()>=n);
+    for (std::vector<string>::const_iterator
+             i = fields.begin()+(fields.size()-n),
+             e = fields.end(); i != e; ++i)
+    {
+        ss << "    " << (*i) << ";\n";
+    }
+    ss << "}";
+    fields.erase(fields.begin()+(fields.size()-n), fields.end());
+    type.push(ss.str());
+}
+
+void PrettyPrinter::structField(const char* name)
+{
+    stringstream ss;
+    ss << type.top() << " " << name;
+    type.pop();
+    while (!array.empty()) {
+        ss << "[" << array.top() << "]";
+        array.pop();
+    }
+    fields.push_back(ss.str());
+}
 
 void PrettyPrinter::declTypeDef(const char* name)
 {
@@ -181,7 +222,7 @@ void PrettyPrinter::declTypeDef(const char* name)
     *o.top() << "typedef " << type.top() << " " << name;
     type.pop();
 
-    while (!array.empty()) 
+    while (!array.empty())
     {
         *o.top() << '[' << array.top() << ']';
         array.pop();
@@ -192,27 +233,27 @@ void PrettyPrinter::declTypeDef(const char* name)
     types.insert(name);
 }
 
-void PrettyPrinter::declVar(const char *id, bool init) 
+void PrettyPrinter::declVar(const char *id, bool init)
 {
     string i;
-    
-    if (init) 
+
+    if (init)
     {
         i = st.back();
         st.pop_back();
     }
-    
+
     indent();
     *o.top() << type.top() << ' ' << id;
     type.pop();
-    
-    while (!array.empty()) 
+
+    while (!array.empty())
     {
         *o.top() << '[' << array.top() << ']';
         array.pop();
     }
-    
-    if (init) 
+
+    if (init)
     {
         *o.top() << " = " << i;
     }
@@ -220,11 +261,11 @@ void PrettyPrinter::declVar(const char *id, bool init)
     *o.top() << ';' << endl;
 }
 
-void PrettyPrinter::declInitialiserList(uint32_t num) 
+void PrettyPrinter::declInitialiserList(uint32_t num)
 {
     string s = st.back();
     st.pop_back();
-    while (--num) 
+    while (--num)
     {
         s = st.back() + ", " + s;
         st.pop_back();
@@ -232,21 +273,58 @@ void PrettyPrinter::declInitialiserList(uint32_t num)
     st.push_back("{ " + s + " }");
 }
 
-void PrettyPrinter::declFieldInit(const char* name) 
+void PrettyPrinter::exprScenario(const char *name)
 {
-    if (name && strlen(name)) 
+    string s = "scenario:";
+    s += name;
+    st.push_back(s);
+}
+
+void PrettyPrinter::exprNary(kind_t kind, uint32_t num)
+{
+    const char *opString = NULL;
+    switch(kind) {
+    case LIST:
+        opString = ", ";
+        break;
+    case TIOCONJUNCTION:
+        opString = " && ";
+        break;
+    case TIOCOMPOSITION:
+        opString = " || ";
+        break;
+    case SYNTAX_COMPOSITION:
+        opString = " + ";
+        break;
+    default:
+        throw TypeException("Invalid operator");
+    }
+
+    string s = st.back();
+    st.pop_back();
+    while (--num)
+    {
+        s = st.back() + opString + s;
+        st.pop_back();
+    }
+    st.push_back("{ " + s + " }");
+}
+
+void PrettyPrinter::declFieldInit(const char* name)
+{
+    if (name && strlen(name))
     {
         st.back() = string(name) + ": " + st.back();
     }
 }
 
-void PrettyPrinter::declParameter(const char* name, bool ref) 
+void PrettyPrinter::declParameter(const char* name, bool ref)
 {
-    if (!array.empty()) 
+    if (!array.empty())
     {
         throw TypeException("Array parameters are not supported");
     }
-    
+
     if (!param.empty())
     {
         param += ", ";
@@ -263,7 +341,7 @@ void PrettyPrinter::declParameter(const char* name, bool ref)
     type.pop();
 }
 
-void PrettyPrinter::declFuncBegin(const char* name) 
+void PrettyPrinter::declFuncBegin(const char* name)
 {
     indent();
     *o.top() << type.top() << " " << name << "(" << param << ")" << endl;
@@ -274,22 +352,22 @@ void PrettyPrinter::declFuncBegin(const char* name)
     type.pop();
 }
 
-void PrettyPrinter::declFuncEnd() 
+void PrettyPrinter::declFuncEnd()
 {
     level--;
     indent();
     *o.top() << "}" << endl;
 }
 
-void PrettyPrinter::blockBegin()  
+void PrettyPrinter::blockBegin()
 {
     level--;
     indent();
-    *o.top() << "{" << endl;    
+    *o.top() << "{" << endl;
     level++;
 }
 
-void PrettyPrinter::blockEnd()  
+void PrettyPrinter::blockEnd()
 {
     level--;  // The level delimiters are indented one level less
     indent();
@@ -297,7 +375,7 @@ void PrettyPrinter::blockEnd()
     *o.top() << "}" << endl;
 }
 
-void PrettyPrinter::emptyStatement() 
+void PrettyPrinter::emptyStatement()
 {
     indent();
     *o.top() << ';' << endl;
@@ -317,12 +395,12 @@ void PrettyPrinter::iterationEnd (const char *id)
     level--;
 }
 
-void PrettyPrinter::forBegin()  
+void PrettyPrinter::forBegin()
 {
     level++;
     o.push(new ostringstream());
 }
-  
+
 void PrettyPrinter::forEnd()  // 3 expr, 1 stat
 {
     string expr3 = st.back(); st.pop_back();
@@ -330,7 +408,7 @@ void PrettyPrinter::forEnd()  // 3 expr, 1 stat
     string expr1 = st.back(); st.pop_back();
     ostringstream *s = (ostringstream*)o.top();
     o.pop();
-    
+
     level--;
     indent();
     *o.top() << "for ( " << expr1 << "; " << expr2 << "; "
@@ -338,52 +416,52 @@ void PrettyPrinter::forEnd()  // 3 expr, 1 stat
              << s->str() << endl;
     delete s;
 }
-  
+
 void PrettyPrinter::whileBegin()
 {
     level++;
     o.push(new ostringstream());
 }
-  
+
 void PrettyPrinter::whileEnd()  // 1 expr, 1 stat
-{ 
+{
     string expr = st.back(); st.pop_back();
     ostringstream *s = (ostringstream*)o.top();
     o.pop();
-    
+
     level--;
     indent();
-    
+
     *o.top() << "while (" << expr << ")" << endl
              << s->str() << endl;
     delete s;
 }
 
-void PrettyPrinter::doWhileBegin()  
+void PrettyPrinter::doWhileBegin()
 {
 
 }
 
-void PrettyPrinter::doWhileEnd()  
+void PrettyPrinter::doWhileEnd()
 {
 
 }
 
-void PrettyPrinter::ifBegin() 
+void PrettyPrinter::ifBegin()
 {
     level++;
     o.push(new ostringstream());
 }
 
-void PrettyPrinter::ifElse() 
+void PrettyPrinter::ifElse()
 {
     o.push(new ostringstream());
 }
 
-void PrettyPrinter::ifEnd(bool hasElse)  // 1 expr, n statements 
-{ 
+void PrettyPrinter::ifEnd(bool hasElse)  // 1 expr, n statements
+{
     ostringstream *t, *e = NULL;
-    if (hasElse) 
+    if (hasElse)
     {
         e = (ostringstream*)o.top();
         o.pop();
@@ -396,7 +474,7 @@ void PrettyPrinter::ifEnd(bool hasElse)  // 1 expr, n statements
     *o.top() << "if (" << st.back() << ")" << endl
              << t->str();
     delete t;
-    if (hasElse) 
+    if (hasElse)
     {
         indent();
         *o.top() << "else" << endl
@@ -405,40 +483,41 @@ void PrettyPrinter::ifEnd(bool hasElse)  // 1 expr, n statements
     }
 }
 
-void PrettyPrinter::breakStatement() 
+void PrettyPrinter::breakStatement()
 {
     indent();
     *o.top() << "break;" << endl;
 }
 
-void PrettyPrinter::continueStatement() 
+void PrettyPrinter::continueStatement()
 {
     indent();
     *o.top() << "continue;" << endl;
 }
 
-void PrettyPrinter::exprStatement() 
+void PrettyPrinter::exprStatement()
 {
     indent();
     *o.top() << st.back() << ';' << endl;
     st.pop_back();
 }
 
-void PrettyPrinter::returnStatement(bool hasValue) 
+void PrettyPrinter::returnStatement(bool hasValue)
 {
     indent();
-    if (hasValue) 
+    if (hasValue)
     {
         *o.top() << "return " << st.back() << ";" << endl;
         st.pop_back();
     }
-    else 
+    else
     {
         *o.top() << "return;" << endl;
     }
 }
 
-void PrettyPrinter::procBegin(const char *id) 
+void PrettyPrinter::procBegin(const char *id, const bool isTA,
+		const string type, const string mode)
 {
     *o.top() << "process " << (id ? id : "")
              << templateset
@@ -446,80 +525,110 @@ void PrettyPrinter::procBegin(const char *id)
              << "{" << endl;
     param = "";
     templateset = "" ;
-    
+
     level += 1;
 }
 
-void PrettyPrinter::procState(const char *id, bool hasInvariant) 
+void PrettyPrinter::procState(const char *id, bool hasInvariant)
 {
-    if (first) 
+    if (first)
     {
         first = false;
         indent();
         *o.top() << "state\n";
     }
-    else 
+    else
     {
         *o.top() << ",\n";
     }
-    
+
     level++;
     indent();
     level--;
-    
+
     *o.top() << id;
-    if (hasInvariant) 
+    if (hasInvariant)
     {
         *o.top() << '{' << st.back() << '}';
         st.pop_back();
     }
 }
 
-void PrettyPrinter::procStateUrgent(const char *id) 
+void PrettyPrinter::procState(const char *id, bool hasInvariant, bool hasExpRate)
 {
-    if (urgent.empty()) 
+    if (first)
+    {
+        first = false;
+        indent();
+        *o.top() << "state\n";
+    }
+    else
+    {
+        *o.top() << ",\n";
+    }
+
+    level++;
+    indent();
+    level--;
+
+    *o.top() << id;
+    if (hasInvariant)
+    {
+        *o.top() << '{' << st.back() << '}';
+        st.pop_back();
+    }
+    if (hasExpRate)
+    {
+        *o.top() << '[' << st.back() << ']';
+        st.pop_back();
+    }
+}
+
+void PrettyPrinter::procStateUrgent(const char *id)
+{
+    if (urgent.empty())
     {
         urgent = id;
     }
-    else 
+    else
     {
         urgent += ", ";
         urgent += id;
     }
 }
 
-void PrettyPrinter::procStateCommit(const char *id) 
+void PrettyPrinter::procStateCommit(const char *id)
 {
-    if (committed.empty()) 
+    if (committed.empty())
     {
         committed = id;
     }
-    else 
+    else
     {
         committed += ", ";
         committed += id;
     }
 }
 
-void PrettyPrinter::procStateInit(const char *id) 
+void PrettyPrinter::procStateInit(const char *id)
 {
     first = true;
     *o.top() << ";" << endl; // end of states
-    
-    if (!committed.empty()) 
+
+    if (!committed.empty())
     {
         indent();
         *o.top() << "commit " << committed << ';' << endl;
         committed = "";
     }
-    
-    if (!urgent.empty()) 
+
+    if (!urgent.empty())
     {
         indent();
         *o.top() << "urgent " << urgent << ';' << endl;
         urgent = "";
     }
-    
+
     indent();
     *o.top() << "init " << id << ';' << endl;
 }
@@ -530,23 +639,23 @@ void PrettyPrinter::procSelect(const char *id)
     type.pop();
     if (select == -1)
     {
-        st.push_back(string(id) + " : " + t);
+        st.push_back(string(id) + ":" + t);
         select = st.size();
     }
     else
     {
-        st.back() += string(",") + id + " : " + t;
+        st.back() += string(", ") + id + ":" + t;
     }
 }
 
-void PrettyPrinter::procGuard() 
+void PrettyPrinter::procGuard()
 {
     guard = st.size();
 }
 
-void PrettyPrinter::procSync(synchronisation_t type) 
+void PrettyPrinter::procSync(synchronisation_t type)
 {
-    switch (type) 
+    switch (type)
     {
     case SYNC_QUE:
         st.back() += '?';
@@ -554,40 +663,52 @@ void PrettyPrinter::procSync(synchronisation_t type)
     case SYNC_BANG:
         st.back() += '!';
         break;
+    case SYNC_CSP:
+        // no append
+        break;
     }
     sync = st.size();
 }
 
-void PrettyPrinter::procUpdate() 
+void PrettyPrinter::procUpdate()
 {
     update = st.size();
 }
 
-void PrettyPrinter::procEdgeBegin(const char *source, const char *target, const bool control)
+void PrettyPrinter::procEdgeBegin(const char* from, const char* to, const bool control)
+
+{
+    procEdgeBegin(from, to, control, NULL);
+}
+
+void PrettyPrinter::procEdgeBegin(const char *source, const char *target, const bool control, const char* actname)
 {
     if (first)
     {
         // this is the first transition
         first = false;
-        
+
         indent();
         *o.top() << "trans" << endl;
-        
+
         level++;
-    } 
-    else 
-    { 
+    }
+    else
+    {
         *o.top() << ',' << endl;
     }
     indent();
 
-    if (control)
-        *o.top() << source << " -> " << target << " {" << endl;
-    else
-        *o.top() << source << " -u-> " << target << " {" << endl;
+    *o.top() << source << (control ? " -> " : " -u-> ") << target << " {" << endl;
+    if (actname != NULL) {
+        level++;
+        indent();
+        *o.top() << "action " << actname << ";" << endl;
+        level--;
+    }
 }
 
-void PrettyPrinter::procEdgeEnd(const char *source, const char *target) 
+void PrettyPrinter::procEdgeEnd(const char *source, const char *target)
 {
     level++;
 
@@ -597,44 +718,44 @@ void PrettyPrinter::procEdgeEnd(const char *source, const char *target)
         indent();
         *o.top() << "select " << select << ';' << endl;
     }
-    
-    if (guard != -1) 
+
+    if (guard != -1)
     {
         string guard  = st[this->guard - 1];
         indent();
         *o.top() << "guard " << guard << ';' << endl;
     }
-    
-    if (sync != -1) 
+
+    if (sync != -1)
     {
         string sync = st[this->sync - 1];
         indent();
         *o.top() << "sync " << sync << ';' << endl;
     }
-    
-    if (update != -1) 
+
+    if (update != -1)
     {
         string assign = st[this->update - 1];
         indent();
         *o.top() << "assign " << assign << ';' << endl;
     }
-    
+
     level--;
-    
-    if (guard != -1) st.pop_back(); 
+
+    if (guard != -1) st.pop_back();
     if (sync != -1) st.pop_back();
-    if (update != -1) st.pop_back(); 
+    if (update != -1) st.pop_back();
     if (select != -1) st.pop_back();
-    
+
     this->update = this->sync = this->guard = this->select = -1;
-    
+
     indent();
     *o.top() << '}';
 }
 
-void PrettyPrinter::procEnd() 
+void PrettyPrinter::procEnd()
 {
-    if (!first) 
+    if (!first)
     {
         *o.top() << ';' << endl;
         level--;
@@ -644,37 +765,37 @@ void PrettyPrinter::procEnd()
     *o.top() << '}' << endl << endl;
 }
 
-void PrettyPrinter::exprId(const char *id) 
+void PrettyPrinter::exprId(const char *id)
 {
     st.push_back(id);
 }
 
-void PrettyPrinter::exprNat(int32_t n) 
+void PrettyPrinter::exprNat(int32_t n)
 {
     char s[20];
     snprintf(s, 20, "%d", n);
     st.push_back(s);
 }
 
-void PrettyPrinter::exprTrue() 
+void PrettyPrinter::exprTrue()
 {
     st.push_back("true");
 }
 
-void PrettyPrinter::exprFalse() 
+void PrettyPrinter::exprFalse()
 {
     st.push_back("false");
 }
 
-void PrettyPrinter::exprCallBegin() 
+void PrettyPrinter::exprCallBegin()
 {
     st.back() += "(";
 }
 
-void PrettyPrinter::exprCallEnd(uint32_t n) 
+void PrettyPrinter::exprCallEnd(uint32_t n)
 {
     string s = ")";
-    while (n--) 
+    while (n--)
     {
         s = st.back() + s;
         st.pop_back();
@@ -686,40 +807,40 @@ void PrettyPrinter::exprCallEnd(uint32_t n)
     st.back() += s;
 }
 
-void PrettyPrinter::exprArray() 
+void PrettyPrinter::exprArray()
 {
     string f = st.back();
     st.pop_back();
     st.back() += '[' + f + ']';
 }
 
-void PrettyPrinter::exprPostIncrement() 
+void PrettyPrinter::exprPostIncrement()
 {
     st.back() += "++";
 }
 
-void PrettyPrinter::exprPreIncrement() 
+void PrettyPrinter::exprPreIncrement()
 {
     st.back() = "++" + st.back();
 }
 
-void PrettyPrinter::exprPostDecrement() 
+void PrettyPrinter::exprPostDecrement()
 {
     st.back() += "--";
 }
 
-void PrettyPrinter::exprPreDecrement() 
+void PrettyPrinter::exprPreDecrement()
 {
     st.back() = "--" + st.back();
 }
 
-void PrettyPrinter::exprAssignment(kind_t op) 
+void PrettyPrinter::exprAssignment(kind_t op)
 {
     string rhs = st.back(); st.pop_back();
     string lhs = st.back(); st.pop_back();
-    
+
     st.push_back(string());
-    switch (op) 
+    switch (op)
     {
     case ASSIGN:
         st.back() = '(' + lhs + " = " + rhs + ')';
@@ -759,12 +880,12 @@ void PrettyPrinter::exprAssignment(kind_t op)
     }
 }
 
-void PrettyPrinter::exprUnary(kind_t op) 
+void PrettyPrinter::exprUnary(kind_t op)
 {
     string exp = st.back(); st.pop_back();
 
     st.push_back(string());
-    switch (op) 
+    switch (op)
     {
     case MINUS:
         st.back() = '-' + exp;
@@ -772,31 +893,49 @@ void PrettyPrinter::exprUnary(kind_t op)
     case NOT:
         st.back() = '!' + exp;
         break;
+    case FRACTION:
+        st.back() = ':' + exp;
+        break;
     case PLUS:
         st.back() = '+' + exp;
         break;
     case RATE:
         st.back() = exp + '\'';
         break;
+    case CONTROL_TOPT_DEF2:
+        st.back() = "control_t*: " + exp;
+        break;
     case CONTROL:
-        st.back() = "control: ";
+        st.back() = "control: " + exp;
         break;
     case EF_CONTROL:
-        st.back() = "E<> control: ";
+        st.back() = "E<> control: " + exp;
+        break;
+    case IMPLEMENTATION:
+        st.back() = "implementation: " + exp;
+        break;
+    case SPECIFICATION:
+        st.back() = "specification: " + exp;
         break;
     default:
         throw TypeException("Invalid operator");
     }
 }
 
-void PrettyPrinter::exprBinary(kind_t op) 
+void PrettyPrinter::exprBinary(kind_t op)
 {
     string exp2 = st.back(); st.pop_back();
     string exp1 = st.back(); st.pop_back();
-    
+
     st.push_back(string());
-    switch (op) 
+    switch (op)
     {
+    case PO_CONTROL:
+        st.back() = exp1 + " control: " + exp2;
+        break;
+    case CONTROL_TOPT_DEF1:
+        st.back() = "control_t*(" + exp1 + "): " + exp2;
+        break;
     case PLUS:
         st.back() = '(' + exp1 + " + " + exp2 + ')';
         break;
@@ -820,19 +959,37 @@ void PrettyPrinter::exprBinary(kind_t op)
         break;
     case LT:
         st.back() = '(' + exp1 + " < " + exp2 + ')';
-        break;      
+        break;
+    case SIMULATION_LE:
+        st.back() = "simulation: " + exp1 + " <= " + exp2;
+        break;
+    case REFINEMENT_LE:
+        st.back() = "refinement: " + exp1 + " <= " + exp2;
+        break;
+    case CONSISTENCY:
+        st.back() = '(' + exp1 + " : " + exp2 + ')';
+        break;
+    case TIOQUOTIENT:
+        st.back() = '(' + exp1 + " \\ " + exp2 + ')';
+        break;
     case LE:
         st.back() = '(' + exp1 + " <= " + exp2 + ')';
-        break;      
+        break;
     case EQ:
         st.back() = '(' + exp1 + " == " + exp2 + ')';
-        break;      
+        break;
     case NEQ:
         st.back() = '(' + exp1 + " != " + exp2 + ')';
-        break;      
+        break;
+    case SIMULATION_GE:
+        st.back() = "simulation: " + exp1 + " >= " + exp2;
+        break;
+    case REFINEMENT_GE:
+        st.back() = "refinement: " + exp1 + " >= " + exp2;
+        break;
     case GE:
         st.back() = '(' + exp1 + " >= " + exp2 + ')';
-        break;      
+        break;
     case GT:
         st.back() = '(' + exp1 + " > " + exp2 + ')';
         break;
@@ -845,7 +1002,7 @@ void PrettyPrinter::exprBinary(kind_t op)
     case BIT_AND:
         st.back() = '(' + exp1 + " & " + exp2 + ')';
         break;
-    case BIT_OR:      
+    case BIT_OR:
         st.back() = '(' + exp1 + " | " + exp2 + ')';
         break;
     case BIT_XOR:
@@ -863,31 +1020,28 @@ void PrettyPrinter::exprBinary(kind_t op)
 }
 
 
-void PrettyPrinter::exprTernary(kind_t op) 
+void PrettyPrinter::exprTernary(kind_t op)
 {
     string exp3 = st.back(); st.pop_back();
     string exp2 = st.back(); st.pop_back();
     string exp1 = st.back(); st.pop_back();
-    
+
     st.push_back(string());
-    switch (op) 
+    switch (op)
     {
     case CONTROL_TOPT:
         st.back() = "control_t*(" + exp1 + "," + exp2 + "): " + exp3;
         break;
-    case A_UNTIL:
-        st.back() = "A{"+ exp1 +"} [" + exp2 + " U " + exp3 + ']';
-        break;
-    case A_WEAKUNTIL:
-        st.back() = "A{" + exp1 + "} [" + exp2 + " W " + exp3 + ']';
+    case SMC_CONTROL:
+        st.back() = "control[" + exp1 + "<=" + exp2 + "]: " + exp3;
         break;
     default:
         throw TypeException("Invalid operator");
     }
 }
 
-void PrettyPrinter::exprInlineIf() 
-{  
+void PrettyPrinter::exprInlineIf()
+{
     string expr3 = st.back(); st.pop_back();
     string expr2 = st.back(); st.pop_back();
     string expr1 = st.back(); st.pop_back();
@@ -896,7 +1050,7 @@ void PrettyPrinter::exprInlineIf()
     st.back() = expr1 + " ? " + expr2 + " : " + expr3;
 }
 
-void PrettyPrinter::exprComma() 
+void PrettyPrinter::exprComma()
 {
     string expr2 = st.back(); st.pop_back();
     string expr1 = st.back(); st.pop_back();
@@ -905,12 +1059,12 @@ void PrettyPrinter::exprComma()
     st.back() = expr1 + ", " + expr2;
 }
 
-void PrettyPrinter::exprDot(const char *field) 
+void PrettyPrinter::exprDot(const char *field)
 {
     st.back() = st.back() + "." + field;
 }
 
-void PrettyPrinter::exprDeadlock() 
+void PrettyPrinter::exprDeadlock()
 {
     st.push_back("deadlock");
 }
@@ -923,7 +1077,7 @@ void PrettyPrinter::exprForAllBegin(const char *name)
 
 void PrettyPrinter::exprForAllEnd(const char *name)
 {
-    string expr = st.back(); 
+    string expr = st.back();
     st.pop_back();
     st.back() += expr;
 }
@@ -936,7 +1090,21 @@ void PrettyPrinter::exprExistsBegin(const char *name)
 
 void PrettyPrinter::exprExistsEnd(const char *name)
 {
-    string expr = st.back(); st.pop_back();
+    string expr = st.back();
+    st.pop_back();
+    st.back() += expr;
+}
+
+void PrettyPrinter::exprSumBegin(const char *name)
+{
+    st.push_back(string("sum (") + name + ":" + type.top() + ") ");
+    type.pop();
+}
+
+void PrettyPrinter::exprSumEnd(const char *name)
+{
+    string expr = st.back();
+    st.pop_back();
     st.back() += expr;
 }
 
@@ -947,7 +1115,7 @@ void PrettyPrinter::beforeUpdate()
     indent();
     level--;
     *o.top() << st.back() << endl;
-    *o.top() << "}" << endl;            
+    *o.top() << "}" << endl;
 }
 
 void PrettyPrinter::afterUpdate()
@@ -957,10 +1125,10 @@ void PrettyPrinter::afterUpdate()
     indent();
     level--;
     *o.top() << st.back() << endl;
-    *o.top() << "}" << endl;            
+    *o.top() << "}" << endl;
 }
 
-void PrettyPrinter::instantiationBegin(const char *id, size_t, const char *templ) 
+void PrettyPrinter::instantiationBegin(const char *id, size_t, const char *templ)
 {
     // Ignore
 }
@@ -969,14 +1137,14 @@ void PrettyPrinter::instantiationEnd(const char* id, size_t parameters,
                                      const char* templ, size_t arguments)
 {
     stack<string> s;
-    while (arguments--) 
+    while (arguments--)
     {
         s.push(st.back());
         st.pop_back();
     }
 
     *o.top() << id << " = " << templ << '(';
-    while (!s.empty()) 
+    while (!s.empty())
     {
         *o.top() << s.top();
         s.pop();
@@ -988,20 +1156,134 @@ void PrettyPrinter::instantiationEnd(const char* id, size_t parameters,
     *o.top() << ");" << endl;
 }
 
-void PrettyPrinter::process(const char *id) 
+void PrettyPrinter::process(const char *id)
 {
-    if (first) 
+    if (first)
     {
         *o.top() << "system " << id;
         first = false;
     }
-    else 
+    else
     {
         *o.top() << ", " << id;
     }
 }
 
-void PrettyPrinter::done() 
+void PrettyPrinter::processListEnd()
 {
     *o.top() << ';' << endl;
+}
+
+
+void PrettyPrinter::done()
+{
+}
+
+void PrettyPrinter::exprProba(bool isTimedBound, int type, double proba, int ineq)
+{
+    stringstream ss;
+    string pred = st.back(); st.pop_back();
+    string bound = st.back(); st.pop_back();
+    ss << "Pr[" << (isTimedBound ? "time" : "steps") << "<="
+       << bound << "](" << (type == BOX ? "[] " : "<> ")
+       << pred << ") " << (ineq == LE ? "<=" : ">=") << proba;
+    st.push_back(ss.str());
+}
+
+void PrettyPrinter::exprProba2(bool isTimedBound, int type)
+{
+    stringstream ss;
+    string pred = st.back(); st.pop_back();
+    string bound = st.back(); st.pop_back();
+    ss << "Pr[" << (isTimedBound ? "time" : "steps") << "<="
+       << bound << "](" << (type == BOX ? "[] " : "<> ")
+       << pred << ") ?";
+    st.push_back(ss.str());
+}
+
+void PrettyPrinter::exprProbaQuantitative(int isTimedBound,
+                                          Constants::kind_t type,
+                                          bool usesUntil)
+{
+    stringstream ss;
+    string pred2 = st.back(); st.pop_back();
+    string pred1 = st.back(); if (usesUntil) st.pop_back();
+    string bound = st.back(); st.pop_back();
+
+    ss << "Pr[" << (isTimedBound ? "time" : "steps") << "<="
+       << bound << "](" << (type == BOX ? "[] " : "<> ");
+    if (usesUntil) ss << pred1 << " U " << pred2;
+    else ss << pred2;
+    ss << ")";
+    st.push_back(ss.str());
+}
+
+void PrettyPrinter::exprMitlDiamond (int low, int high)
+{
+    stringstream ss;
+    string expr = st.back(); st.pop_back();
+
+    ss << "(<>[" << low << "," << high << "] " << expr << ")";
+    st.push_back(ss.str());
+}
+
+void PrettyPrinter::exprMitlBox (int low, int high)
+{
+    stringstream ss;
+    string expr = st.back(); st.pop_back();
+
+    ss << "([][" << low << "," << high << "] " << expr << ")";
+    st.push_back(ss.str());
+}
+
+void PrettyPrinter::exprSimulate(int nbRuns,
+                                 int isTimedBound,
+                                 int nbExpr,
+                                 bool hasReach,
+                                 int nbOfAcceptingRuns)
+{
+    stringstream ss;
+    string reachExpr = st.back(); if (hasReach) st.pop_back();
+
+    stack<string> exprs;
+    for (int i=0; i<nbExpr; i++)
+    {
+        exprs.push(st.back()); st.pop_back();
+    }
+    string bound = st.back(); st.pop_back();
+
+    ss << "simulate" << nbRuns << " [" << (isTimedBound ? "time" : "steps")
+       << "<=" << bound << "] {";
+    if (!exprs.empty())
+    {
+        ss << exprs.top(); exprs.pop();
+        while (!exprs.empty()) {
+            ss << ", " << exprs.top();
+            exprs.pop();
+        }
+    }
+    ss << "}";
+    if (hasReach)
+    {
+        if (nbOfAcceptingRuns>0)
+        {
+            ss << " : " << nbOfAcceptingRuns;
+        }
+        ss << " : " << reachExpr;
+    }
+    st.push_back(ss.str());
+}
+
+/** Verification queries */
+void PrettyPrinter::queryBegin() {
+    *o.top() << "\n/* Query begin: */" << endl;
+}
+void PrettyPrinter::queryFormula(const char* formula){
+    *o.top() << "/* Formula: "<<formula << "*/" << endl;
+}
+void PrettyPrinter::queryComment(const char* comment){
+    *o.top() << "/* Comment: " << comment << "*/" << endl;
+}
+void PrettyPrinter::queryEnd(){
+    *o.top() << "/* Query end. */" << endl;
 }

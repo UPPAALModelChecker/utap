@@ -42,7 +42,9 @@ namespace UTAP
     struct position_t
     {
         uint32_t start, end;
-        position_t() : start(0), end(UINT_MAX) {}
+        // Do NOT use UINT_MAX but INT_MAX instead because Java Integer
+        // will not parse UINT_MAX.
+        position_t() : start(0), end(INT_MAX) {}
         position_t(uint32_t start, uint32_t end) : start(start), end(end) {}
     };
 
@@ -102,9 +104,11 @@ namespace UTAP
         Positions::line_t end;
         position_t position;
         std::string msg;
+        std::string context;
+        
         error_t(Positions::line_t start, Positions::line_t end, 
-                position_t position, std::string msg)
-            : start(start), end(end), position(position), msg(msg) {}
+                position_t position, std::string msg, std::string context="")
+            : start(start), end(end), position(position), msg(msg), context(context){}
     };
 }
 

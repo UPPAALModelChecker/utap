@@ -1,4 +1,4 @@
-libutap, version 0.91
+libutap, version 0.92
 Mini HOWTO
 Gerd Behrmann
 
@@ -137,7 +137,6 @@ operations. Each node is referenced using an expression_t object.
 5. Contact
 
 If you have questions or comments to libutap, you can contact me on
-the following email address: behrmann@cs.aau.dk. For a list of known
+the following email address: uppaal@list.it.uu.se. For a list of known
 bugs or for reporting new bugs take a look at the UPPAAL bugzilla
-installation at http://www.uppaal.com/.
-
+installation at http://www.uppaal.org/.

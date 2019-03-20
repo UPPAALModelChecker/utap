@@ -1,6 +1,6 @@
-/* C++ code produced by gperf version 3.0.2 */
+/* C++ code produced by gperf version 3.0.4 */
 /* Command-line: gperf -C -E -t -L C++ -c -K str -Z Tags tags.gperf  */
-/* Computed positions: -k'4' */
+/* Computed positions: -k'1,3' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
       && ('%' == 37) && ('&' == 38) && ('\'' == 39) && ('(' == 40) \
@@ -30,8 +30,8 @@
 #endif
 
 #line 1 "tags.gperf"
-struct Tag { char *str; tag_t tag; };
-/* maximum key range = 24, duplicates = 0 */
+struct Tag { const char *str; tag_t tag; };
+/* maximum key range = 48, duplicates = 0 */
 
 class Tags
 {
@@ -46,44 +46,34 @@ Tags::hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 10, 27, 27,
-      27,  5, 27, 20, 27, 27, 27, 27, 10, 15,
-       5,  0,  0, 27, 10, 27,  0, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 27, 27
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 10, 15,  5,
+      35, 10, 10,  5, 52,  0, 52, 52, 10,  5,
+      20,  5, 20,  5, 20,  0, 15,  5, 52, 52,
+      52,  0, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
+      52, 52, 52, 52, 52, 52
     };
-  register int hval = len;
-
-  switch (hval)
-    {
-      default:
-        hval += asso_values[(unsigned char)str[3]];
-      /*FALLTHROUGH*/
-      case 3:
-        break;
-    }
-  return hval;
+  return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[0]];
 }
 
 const struct Tag *
@@ -91,56 +81,98 @@ Tags::in_word_set (register const char *str, register unsigned int len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 17,
+      TOTAL_KEYWORDS = 36,
       MIN_WORD_LENGTH = 3,
       MAX_WORD_LENGTH = 13,
-      MIN_HASH_VALUE = 3,
-      MAX_HASH_VALUE = 26
+      MIN_HASH_VALUE = 4,
+      MAX_HASH_VALUE = 51
     };
 
   static const struct Tag wordlist[] =
     {
-      {""}, {""}, {""},
-#line 3 "tags.gperf"
-      {"nta",		TAG_NTA},
+      {""}, {""}, {""}, {""},
 #line 12 "tags.gperf"
       {"init",		TAG_INIT},
       {""},
 #line 8 "tags.gperf"
       {"system",		TAG_SYSTEM},
+      {""},
+#line 28 "tags.gperf"
+      {"instance",       TAG_INSTANCE},
+#line 34 "tags.gperf"
+      {"sbml",           TAG_SBML},
+      {""},
+#line 17 "tags.gperf"
+      {"source",		TAG_SOURCE},
+#line 30 "tags.gperf"
+      {"message",        TAG_MESSAGE},
+#line 7 "tags.gperf"
+      {"instantiation",	TAG_INSTANTIATION},
+#line 25 "tags.gperf"
+      {"yloccoord",      TAG_YLOCCOORD},
+      {""},
+#line 14 "tags.gperf"
+      {"urgent",		TAG_URGENT},
+#line 38 "tags.gperf"
+      {"comment",        TAG_COMMENT},
+#line 22 "tags.gperf"
+      {"lsc",            TAG_LSC},
+#line 15 "tags.gperf"
+      {"committed",	TAG_COMMITTED},
+#line 36 "tags.gperf"
+      {"query",          TAG_QUERY},
+#line 33 "tags.gperf"
+      {"anchor",         TAG_ANCHOR},
+#line 35 "tags.gperf"
+      {"queries",        TAG_QUERIES},
+#line 11 "tags.gperf"
+      {"location",	TAG_LOCATION},
+#line 20 "tags.gperf"
+      {"nail",		TAG_NAIL},
+      {""},
+#line 26 "tags.gperf"
+      {"lsclocation",    TAG_LSCLOCATION},
 #line 4 "tags.gperf"
       {"imports",	TAG_IMPORTS},
 #line 6 "tags.gperf"
       {"template",	TAG_TEMPLATE},
 #line 9 "tags.gperf"
       {"name",		TAG_NAME},
-#line 18 "tags.gperf"
-      {"label",		TAG_LABEL},
-#line 14 "tags.gperf"
-      {"urgent",		TAG_URGENT},
-      {""},
-#line 7 "tags.gperf"
-      {"instantiation",	TAG_INSTANTIATION},
 #line 19 "tags.gperf"
-      {"nail",		TAG_NAIL},
+      {"label",		TAG_LABEL},
+#line 29 "tags.gperf"
+      {"temperature",    TAG_TEMPERATURE},
+#line 21 "tags.gperf"
+      {"project",        TAG_PROJECT},
+#line 3 "tags.gperf"
+      {"nta",		TAG_NTA},
+#line 31 "tags.gperf"
+      {"condition",      TAG_CONDITION},
 #line 13 "tags.gperf"
       {"transition",	TAG_TRANSITION},
 #line 16 "tags.gperf"
-      {"source",		TAG_SOURCE},
+      {"branchpoint",    TAG_BRANCHPOINT},
+#line 37 "tags.gperf"
+      {"formula",        TAG_FORMULA},
+#line 27 "tags.gperf"
+      {"prechart",       TAG_PRECHART},
+#line 23 "tags.gperf"
+      {"type",           TAG_TYPE},
       {""},
-#line 11 "tags.gperf"
-      {"location",	TAG_LOCATION},
+#line 18 "tags.gperf"
+      {"target",		TAG_TARGET},
+      {""}, {""},
+#line 24 "tags.gperf"
+      {"mode",           TAG_MODE},
+      {""},
+#line 32 "tags.gperf"
+      {"update",         TAG_UPDATE},
+      {""}, {""},
 #line 10 "tags.gperf"
       {"parameter",	TAG_PARAMETER},
       {""},
 #line 5 "tags.gperf"
-      {"declaration",	TAG_DECLARATION},
-      {""}, {""},
-#line 15 "tags.gperf"
-      {"committed",	TAG_COMMITTED},
-      {""},
-#line 17 "tags.gperf"
-      {"target",		TAG_TARGET}
+      {"declaration",	TAG_DECLARATION}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
@@ -157,5 +189,5 @@ Tags::in_word_set (register const char *str, register unsigned int len)
     }
   return 0;
 }
-#line 20 "tags.gperf"
+#line 39 "tags.gperf"
 

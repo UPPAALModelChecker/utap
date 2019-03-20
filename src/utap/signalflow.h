@@ -29,6 +29,8 @@
 #include <set>
 #include <map>
 #include <stack>
+#include <string.h>
+#include <algorithm>
 
 namespace UTAP
 {
@@ -64,7 +66,7 @@ namespace UTAP
         typedef std::map<const proc_t*, strs_t> proc2strs_t;//proc->string set
         typedef std::map<const char*, strs_t> str2strs_t;//string->string set
 
-        typedef struct proc_t { // info about process input/output
+        struct proc_t { // info about process input/output
             const char* name; // name of the process
             strs_t inChans, outChans; // input/output channels used by process
             str2strs_t rdVars, wtVars; // read/written variables with channels
@@ -73,32 +75,50 @@ namespace UTAP
         };
         typedef std::set<proc_t*> procs_t;
         typedef std::map<const char*, procs_t, less_str> str2procs_t;
+        typedef std::map<const symbol_t, expression_t> exprref_t;//fn-params
 
     protected:
         int verbosity;//0 - silent, 1 - errors, 2 - warnings, 3 - diagnostics
         const char* title; // title of the Uppaal TA system
         procs_t procs; // list of all processes in the system
-        str2procs_t receivers, transmiters;// processes sorted by vars/chans
+        str2procs_t receivers, transmitters;// processes sorted by vars/chans
         strs_t processes, channels, variables;
         proc_t* cTA; // current automaton in traversal
         instance_t* cP; // current process in traversal
         const char* cChan; // channel on current transition in traversal
+        std::string chanString;
         bool inp, out, sync, paramsExpanded;// current expression state
         std::stack<std::pair<bool, bool> > ioStack;// remember I/O state
+        std::stack<exprref_t> refparams; // parameter passed by reference
+        std::stack<exprref_t> valparams; // parameter passed by value
 
         bool checkParams(const symbol_t &s);// maps parameter to global symbol
-        void addChan(const symbol_t &, strs_t &, str2procs_t&);
+        void addChan(const std::string &, strs_t &, str2procs_t&);
         void addVar(const symbol_t &, str2strs_t&, str2procs_t&);
         void visitProcess(instance_t &);
         void visitExpression(const expression_t &);
         void pushIO(){
-            ioStack.push(std::make_pair<bool, bool>(inp, out));
+            ioStack.push(std::make_pair(inp, out));
         }
         void popIO() {
             inp = ioStack.top().first;
             out = ioStack.top().second;
             ioStack.pop();
         }
+
+        /* prints list of processes with their look-attributes */
+        virtual void printProcsForDot(std::ostream &os, bool erd);
+        /* prints list of variables with their look-attributes */
+        virtual void printVarsForDot(std::ostream &os, bool ranked, bool erd);
+        /* prints edges representing writes to variables */
+        virtual void printVarsWriteForDot(std::ostream &os);
+        /* prints edges representing reads from variables */        
+        virtual void printVarsReadForDot(std::ostream &os);
+        /* prints channel communication as labels on I/O edges */
+        virtual void printChansOnEdgesForDot(std::ostream &os);
+        /* prints channels as separate nodes (similar to variables) */
+        virtual void printChansSeparateForDot(std::ostream &os, bool ranked,
+                                              bool erd);
 
     public:
 /**
@@ -121,14 +141,14 @@ namespace UTAP
  * Print I/O information in DOT format into given output stream.
  * ranked -- puts oposite "ranks" on variables and channels
  * erd -- puts boxes and diamonds rather than (compact) ellipses.
- * cEdged -- channels are moved on edges rather than separate nodes.
+ * cEdged -- channels are printed on edges rather than separate nodes.
  */
-        void printForDot(std::ostream &os, bool ranked, bool erd, bool cEdged);
+        virtual void printForDot(std::ostream &os, bool ranked, bool erd, 
+                                 bool cEdged);
 
 /**
  * System visitor pattern extracts read/write information from UCode.
  * This is actually "const" visitor and should contain "const Statement *stat".
- * Not tested (contains sample implementation but tested only on v3.4 specs).
  */
         int32_t visitEmptyStatement(EmptyStatement *stat);
         int32_t visitExprStatement(ExprStatement *stat);
@@ -233,6 +253,65 @@ namespace UTAP
         void printViolation(const proc_t* process, const char* variable);
         void fillWithEnvProcs(strs_t& procs);
         void fillWithIUTProcs(strs_t& procs);
+    };
+    
+/**
+ * DistanceCalculator is used in TargetFirst heuristic search order of Uppaal.
+ * Current implementation calculates complexity distances from a process to 
+ * the given set of "needles"  (e.g. variables or process location mentioned 
+ * in query). In the future this can be refined to take the process-local 
+ * information into account (e.g. calculate distance for individual edges 
+ * within the process rather than just process).
+ */
+    class DistanceCalculator: public SignalFlow 
+    {
+        strs_t varNeedles; // set of variables of interest
+        strs_t procNeedles; // set of processes of interest
+        bool distancesUpToDate;
+
+        struct dist_t // distance structure
+        { 
+            uint32_t hops; // number of hops to closest needle
+            uint32_t complexity; // complexity of this entity
+            uint32_t distance; // accumulated complexity|hops to closest needle 
+            dist_t(int h, int c, int d): hops(h), complexity(c), distance(d) {}
+            dist_t(): hops(0), complexity(1), distance(0) {}
+        };
+
+        typedef std::map<const char*, dist_t, less_str> str2dist_t;
+
+        str2dist_t distances;
+
+        void updateDistancesFromVariable(const char* name, 
+                                         const dist_t* distance);
+        void updateDistancesFromProcess(const char* name,
+                                        const dist_t* distance);
+        int calcComplexity(const char* process);
+
+    protected:
+        TimedAutomataSystem& taSystem;
+        /* overwrite how processes appear */
+        virtual void printProcsForDot(std::ostream &os, bool erd);
+        /* overwrite how variables appear */
+        virtual void printVarsForDot(std::ostream &os, bool ranked, bool erd);
+
+    public:
+        DistanceCalculator(const char* _title, TimedAutomataSystem& ta):
+            SignalFlow(_title, ta), distancesUpToDate(false), taSystem(ta) {}
+        virtual ~DistanceCalculator();
+        /** adds a variable needle to I/O map */
+        void addVariableNeedle(const char* var);
+        /** adds a variable needle to I/O map */
+        void addProcessNeedle(const char* proc);
+        /** Recalculates the distances to needles */
+        void updateDistances();
+        /** Finds a distance measure for given element */
+        uint32_t getDistance(const char* element);
+
+        /* overwritten to update the distances on demand. */
+        virtual void printForDot(std::ostream &os, bool ranked, bool erd, 
+                                 bool cEdged);
+
     };
 }
 

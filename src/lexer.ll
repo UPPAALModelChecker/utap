@@ -72,7 +72,7 @@ namespace UTAP
 %}
 
 alpha        [a-zA-Z_]
-num        [0-9]+
+num          [0-9]+
 idchr        [a-zA-Z0-9_$#]
 
 %x comment
@@ -82,8 +82,7 @@ idchr        [a-zA-Z0-9_$#]
 <comment>{
   \n           { PositionTracker::newline(ch, 1); }
   "*/"         { BEGIN(INITIAL); }
-  "//"[^\n]*   /* Single line comments take precedence over multilines */;
-  <<EOF>>      { BEGIN(INITIAL); yyerror("Unclosed comment."); return 0; }
+  <<EOF>>      { BEGIN(INITIAL); yyerror("$Comment_not_closed"); return 0; }
   .            /* ignore (multiline comments)*/
 }
 
@@ -122,6 +121,7 @@ idchr        [a-zA-Z0-9_$#]
 "?"        	{ return '?'; }
 "'"        	{ return '\''; }
 "!"        	{ return T_EXCLAM; }
+"\\"            { return '\\'; }
 
 "->"        	{ return T_ARROW; }
 "-u->"        	{ return T_UNCONTROL_ARROW; }
@@ -153,6 +153,8 @@ idchr        [a-zA-Z0-9_$#]
 ">>"            { return T_RSHIFT; }
 "||"            { return T_BOOL_OR; }
 "&&"            { return T_BOOL_AND; }
+"/\\"           { return T_MITL_AND;}
+"\\/"           { return T_MITL_OR;}
 
 "<="        	{ return T_LEQ; }
 ">="        	{ return T_GEQ; }
@@ -160,14 +162,14 @@ idchr        [a-zA-Z0-9_$#]
                   {
                       return T_LEQ;
                   }
-                  utap_error("Unknown symbol");
+                  utap_error("$Unknown_symbol");
                   return T_ERROR;
                 }
 "=>"        	{ if (syntax & SYNTAX_OLD)
                   {
                       return T_GEQ;
                   }
-                  utap_error("Unknown symbol");
+                  utap_error("$Unknown_symbol");
                   return T_ERROR;
                 }
 "<"        	{ return T_LT; }
@@ -180,22 +182,24 @@ idchr        [a-zA-Z0-9_$#]
 
 "A"             { return 'A'; }
 "U"             { return 'U'; }
+"R"             { return 'R'; }
 "W"             { return 'W'; }
+"E"             { return 'E'; }              
 
 "A<>"           { return T_AF; }
-"AF"            { return T_AF2; }
 "A[]"           { return T_AG; }
-"AG"            { return T_AG2; }
 "E<>"           { return T_EF; }
-"EF"            { return T_EF2; }
 "E[]"           { return T_EG; }
-"EG"            { return T_EG2; }
 "-->"           { return T_LEADSTO; }
+"A[]+"          { return T_AG_PLUS; }
+"E<>+"          { return T_EF_PLUS; }
+"A[]*"          { return T_AG_MULT; }
+"E<>*"          { return T_EF_MULT; }
+"[]"            { return T_BOX; }
+"<>"            { return T_DIAMOND; }
+"#"             { return T_HASH; }
 
 {alpha}{idchr}* {
-/*          	if (strlen(decl_text) >= MaxIdLen ) */
-/*          		declError << "Identifier too long. Only " << MaxIdLen  */
-/*          			 << " characters are significant.\n"; */
         	  const Keyword *keyword
         	    = Keywords::in_word_set(utap_text, strlen(utap_text));
 		  if (keyword != NULL)
@@ -204,6 +208,13 @@ idchr        [a-zA-Z0-9_$#]
 #ifndef ENABLE_TIGA
 		      /* Remove all TIGA keywords if tiga is not enabled. */
 		      if (s & SYNTAX_TIGA)
+		      {
+			  s = 0;
+		      }
+#endif
+#ifndef ENABLE_PROB
+		      /* Remove all PROB keywords if pro is not enabled. */
+		      if (s & SYNTAX_PROB)
 		      {
 			  s = 0;
 		      }
@@ -217,6 +228,11 @@ idchr        [a-zA-Z0-9_$#]
 			  return keyword->token;
 		      } 
 		  }
+                  if (strlen(utap_text) > MAXLEN-1)
+                  {
+                      /* Don't keep the cut of strncpy silent. */
+                      utap_error(ID_TOO_LONG);
+                  }
 		  if (ch->isType(utap_text)) 
 		  {
 		      strncpy(utap_lval.string, utap_text, MAXLEN);
@@ -231,13 +247,44 @@ idchr        [a-zA-Z0-9_$#]
         	  }
                 }
 
-{num}        	{ 
-                  utap_lval.number = atoi(utap_text); 
+{num}        	{
+                  // Skip 0s.
+                  const char *s = utap_text;
+                  while(*s && *s == '0') s++;
+                  if (!*s) { // We've skipped everything.
+                      utap_lval.number = 0;
+                      return T_NAT;
+                  }
+
+                  // Special case for INT_MIN
+                  if (strcmp("2147483648", s) == 0)
+                  {
+                      return T_POS_NEG_MAX;
+                  }
+
+                  // Detect overflow.
+                  utap_lval.number = atoi(s);
+                  char check[16];
+                  snprintf(check,sizeof(check),"%d",utap_lval.number);
+                  if (strcmp(check,s) != 0)
+                  {
+                      yyerror("$Overflow");
+                      return T_ERROR;
+                  }
+
+                  // Oh, it worked.
                   return T_NAT; 
                 }
 
+{num}("."{num})?([eE]("+"|"-")?{num})? {
+                  // Todo: have some check.
+                  utap_lval.floating = atof(utap_text);
+                  return T_FLOATING;
+                }
+
+
 .               { 
-        	  utap_error("Unknown symbol");
+        	  utap_error("$Unknown_symbol");
                   return T_ERROR; 
                 }
 

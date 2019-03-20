@@ -23,7 +23,7 @@ VPATH = @srcdir@
 bin_PROGRAMS = pretty tracer syntaxcheck taflow
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/position.h utap/prettyprinter.h utap/signalflow.h utap/statement.h utap/statementbuilder.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h 
+include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/position.h utap/prettyprinter.h utap/signalflow.h utap/statement.h utap/statementbuilder.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h utap/xmlwriter.h utap/SBMLtoXMLWriter.h utap/sbmlconverter.h
 
 pretty_SOURCES = pretty.cpp
 

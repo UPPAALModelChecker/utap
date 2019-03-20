@@ -124,9 +124,9 @@ void StatementBuilder::typeArrayOfType(size_t n)
         collectDependencies(currentTemplate->restricted, size);
     }
 
-    if (!size.isInteger() && !size.isScalar() || !size.is(RANGE))
+    if ((!size.isInteger() && !size.isScalar()) || !size.is(RANGE))
     {
-        handleError("Array must be defined over an integer range or a scalar set");
+        handleError("$Array_must_be_defined_over_an_integer_range_or_a_scalar_set");
     }
 }
 
@@ -159,7 +159,7 @@ void StatementBuilder::structField(const char* name)
     // Constant fields are not allowed
     if (type.is(CONSTANT)) 
     {
-        handleError("Constant fields not allowed in struct");
+        handleError("$Constant_fields_not_allowed_in_struct");
     }
 
     fields.push_back(type);
@@ -173,7 +173,7 @@ void StatementBuilder::structField(const char* name)
     type_t base = type.stripArray();
     if (!base.isRecord() && !base.isScalar() && !base.isIntegral())
     {
-        handleError("Invalid type in structure");
+        handleError("$Invalid_type_in_structure");
     }
 }
 
@@ -184,12 +184,18 @@ void StatementBuilder::structField(const char* name)
  */
 void StatementBuilder::declTypeDef(const char* name)
 {
+    bool duplicate = frames.top().getIndexOf(name) != -1;
     type_t type = type_t::createTypeDef(name, typeFragments[0], position);
     typeFragments.pop();
+    if (duplicate)
+    {
+        throw TypeException(boost::format("$Duplicate_definition_of %1%") % name);
+    }
+
     frames.top().addSymbol(name, type);
 }
 
-static bool initialisable(type_t type)
+static bool initRec(type_t type, int thisTypeOnly)
 {
     type = type.strip();
     switch (type.getKind()) 
@@ -197,7 +203,7 @@ static bool initialisable(type_t type)
     case RECORD:
         for (size_t i = 0; i < type.size(); i++)
         {
-            if (!initialisable(type[i]))
+            if (!initRec(type[i], thisTypeOnly))
             {
                 return false;
             }
@@ -209,11 +215,20 @@ static bool initialisable(type_t type)
         {
             return false;
         }
-        return initialisable(type.getSub());
+        return initRec(type.getSub(), thisTypeOnly);
 
     default:
-        return type.isIntegral();
+        return thisTypeOnly == 0
+            ? type.isIntegral()
+            : (thisTypeOnly == 1
+               ? type.isClock()
+               : type.isDouble());
     }
+}
+
+static bool initialisable(type_t type)
+{
+    return initRec(type, 0) || initRec(type, 1) || initRec(type, 2);
 }
 
 static bool mustInitialise(type_t type)
@@ -221,6 +236,7 @@ static bool mustInitialise(type_t type)
     assert(type.getKind() != FUNCTION);
     assert(type.getKind() != PROCESS);
     assert(type.getKind() != INSTANCE);
+    assert(type.getKind() != LSCINSTANCE);
 
     switch (type.getKind())
     {
@@ -264,17 +280,17 @@ void StatementBuilder::declVar(const char* name, bool hasInit)
     // Check whether initialiser is allowed/required
     if (hasInit && !initialisable(type))
     {
-        handleError("Cannot have initialiser");
+        handleError("$Cannot_have_initialiser");
     }
 
     if (!hasInit && mustInitialise(type))
     {
-        handleError("Constants must have an initialiser");        
+        handleError("$Constants_must_have_an_initialiser");
     }
 
     if (currentFun && !initialisable(type))
     {
-        handleError("Type is not allowed in functions");
+        handleError("$Type_is_not_allowed_in_functions");
     }
 
     // Add variable to system
@@ -375,15 +391,15 @@ void StatementBuilder::declFuncBegin(const char* name)
     type_t type = type_t::createFunction(return_type, types, labels, position);
     if (!addFunction(type, name))
     {
-        handleError("Duplicate definition");
+        boost::format err = boost::format("$Duplicate_definition_of %1%") % name;
+        handleError(err.str());
     }
 
     /* We maintain a stack of frames. As the function has a local
-     * scope, we push a new frame and add the parameters to it.
+     * scope, we push a new frame and move the parameters to it.
      */
     pushFrame(frame_t::createFrame(frames.top()));
-    frames.top().add(params);
-    params = frame_t::createFrame();
+    params.moveTo(frames.top()); // params is emptied here
 
     /* Create function block.
      */
@@ -394,6 +410,7 @@ void StatementBuilder::declFuncBegin(const char* name)
 void StatementBuilder::declFuncEnd()
 {
     assert(!blocks.empty());
+    assert(currentFun);
 
     /* Recover from unterminated blocks - delete any excess blocks.
      */
@@ -403,13 +420,15 @@ void StatementBuilder::declFuncEnd()
         blocks.pop_back();
     }
 
+    assert(currentFun->body == blocks.back());
+
     /* If function has a non void return type, then check that last
      * statement is a return statement.
      */
     BlockStatement *body = currentFun->body;
     if (!currentFun->uid.getType()[0].isVoid() && !body->returns())
     {
-        handleError("Return statement expected");
+        handleError("$Return_statement_expected");
     }
 
     /* Pop outer function block.
@@ -561,7 +580,7 @@ void StatementBuilder::returnStatement(bool args)
 { // 1 expr if argument is true
     if (!currentFun)
     {
-        handleError("Cannot return outside of function declaration");
+        handleError("$Cannot_return_outside_of_function_declaration");
     }
     else
     {
@@ -571,11 +590,11 @@ void StatementBuilder::returnStatement(bool args)
         type_t return_type = currentFun->uid.getType()[0];
         if (return_type.isVoid() && args)
         {
-            handleError("'return' with a value, in function returning void");
+            handleError("$return_with_a_value_in_function_returning_void");
         }
         else if (!return_type.isVoid() && !args)
         {
-            handleError("`return' with no value, in function returning non-void");
+            handleError("$return_with_no_value_in_function_returning_non-void");
         }
 
         ReturnStatement* stat;
@@ -611,6 +630,6 @@ void StatementBuilder::exprCallBegin()
      */
     if (currentFun != NULL && currentFun->uid == fragments[0].getSymbol())
     {
-        handleError("recursion is not allowed");
+        handleError("$Recursion_is_not_allowed");
     }
 }

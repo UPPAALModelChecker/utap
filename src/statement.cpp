@@ -24,6 +24,7 @@
 #include "utap/statement.h"
 
 using namespace UTAP;
+using std::string;
 
 Statement::Statement()
 {
@@ -46,6 +47,11 @@ bool EmptyStatement::returns()
     return false;
 }
 
+string EmptyStatement::toString(string prefix) const
+{
+    return "";
+}
+
 ExprStatement::ExprStatement(expression_t expr)
     : Statement(), expr(expr)
 {
@@ -60,6 +66,11 @@ int32_t ExprStatement::accept(StatementVisitor *visitor)
 bool ExprStatement::returns()
 {
     return false;
+}
+
+string ExprStatement::toString(string prefix) const
+{
+    return prefix + expr.toString() + ";";
 }
 
 
@@ -79,6 +90,11 @@ bool AssertStatement::returns()
     return false;
 }
 
+string AssertStatement::toString(string prefix) const
+{
+    return prefix + "assert(" + expr.toString()+");";
+}
+
 ForStatement::ForStatement(expression_t init,
    expression_t cond, expression_t step, Statement* _stat)
     : Statement(), init(init), cond(cond), step(step), stat(_stat) 
@@ -94,6 +110,13 @@ int32_t ForStatement::accept(StatementVisitor *visitor)
 bool ForStatement::returns()
 {
     return false;
+}
+
+string ForStatement::toString(string prefix) const
+{
+    return prefix + "for (" + init.toString() + "; "
+        + cond.toString() + "; " + step.toString() + ")\n{\n"
+        + stat->toString(prefix + INDENT) + "}";
 }
 
 IterationStatement::IterationStatement (symbol_t sym, frame_t f, Statement *s)
@@ -113,6 +136,15 @@ bool IterationStatement::returns()
     return false;
 }
 
+string IterationStatement::toString(string prefix) const
+{
+    string type = symbol.getType()[0].getLabel(0);
+    return prefix + "for (" + symbol.getName() + " : "
+        + type //TODO: to be tested
+        +")\n{\n"
+        + stat->toString(prefix + INDENT) + "}";
+}
+
 WhileStatement::WhileStatement(expression_t cond,
                                Statement* _stat)
     : Statement(), cond(cond), stat(_stat) 
@@ -128,6 +160,12 @@ int32_t WhileStatement::accept(StatementVisitor *visitor)
 bool WhileStatement::returns()
 {
     return false;
+}
+
+string WhileStatement::toString(string prefix) const
+{
+    return prefix + "while(" + cond.toString()+")\n" +prefix +"{\n"
+        + stat->toString(prefix + INDENT) + prefix+ "}";
 }
 
 DoWhileStatement::DoWhileStatement(Statement* _stat,
@@ -147,6 +185,11 @@ bool DoWhileStatement::returns()
     return stat->returns();
 }
 
+string DoWhileStatement::toString(string prefix) const
+{
+    return prefix +"do {\n" + stat->toString(prefix + INDENT)
+        + prefix + "}";
+}
 BlockStatement::BlockStatement(frame_t frame)
     : Statement()
 {
@@ -207,6 +250,17 @@ bool BlockStatement::returns()
     return begin() != end() && back()->returns();
 }
 
+std::string BlockStatement::toString(std::string prefix) const
+{
+    std::string str = "";
+    std::vector<Statement*>::const_iterator stats_itr;
+    for (stats_itr = stats.begin(); stats_itr != stats.end(); ++ stats_itr)
+    {
+        str += (*stats_itr)->toString(prefix) + "\n";
+    }
+    return str;
+}
+
 SwitchStatement::SwitchStatement(frame_t frame, expression_t cond)
     : BlockStatement(frame), cond(cond)
 {
@@ -223,6 +277,12 @@ bool SwitchStatement::returns()
     return false;
 }
 
+string SwitchStatement::toString(string prefix) const
+{
+    return prefix +"switch(" + cond.toString() + ")\n" + prefix + "{\n"
+        + BlockStatement::toString(prefix + INDENT) + prefix + "}";
+}
+
 CaseStatement::CaseStatement(frame_t frame, expression_t cond)
     : BlockStatement(frame), cond(cond)
 {
@@ -237,6 +297,12 @@ int32_t CaseStatement::accept(StatementVisitor *visitor)
 bool CaseStatement::returns()
 {
     return false;
+}
+
+string CaseStatement::toString(string prefix) const
+{
+    return prefix + "case " + cond.toString() +":\n"
+        + BlockStatement::toString(prefix + INDENT) ;
 }
 
 DefaultStatement::DefaultStatement(frame_t frame)
@@ -269,7 +335,22 @@ int32_t IfStatement::accept(StatementVisitor *visitor)
 
 bool IfStatement::returns()
 {
-    return trueCase->returns() && (falseCase == NULL || falseCase->returns());
+    // This is wrong: An if statement returns *for sure* if both its
+    // true and false branches return.
+    //return trueCase->returns() && (falseCase == NULL || falseCase->returns());
+
+    return trueCase->returns() && falseCase != NULL && falseCase->returns();
+}
+
+string IfStatement::toString(string prefix) const
+{
+    std::string str =prefix + "if (" + cond.toString() + ")\n"
+        + prefix +"{\n"
+        + trueCase->toString(prefix + INDENT) + prefix +"}";
+    if (falseCase)
+        str += "else {\n" + falseCase->toString(prefix + INDENT)
+        + prefix +"}";
+    return str;
 }
 
 BreakStatement::BreakStatement() : Statement()
@@ -287,6 +368,11 @@ bool BreakStatement::returns()
     return false;
 }
 
+string BreakStatement::toString(string prefix) const
+{
+    return prefix + "break;";
+}
+
 ContinueStatement::ContinueStatement() : Statement()
 {
 
@@ -300,6 +386,11 @@ int32_t ContinueStatement::accept(StatementVisitor *visitor)
 bool ContinueStatement::returns()
 {
     return false;
+}
+
+string ContinueStatement::toString(string prefix) const
+{
+    return prefix + "continue;";
 }
 
 ReturnStatement::ReturnStatement()
@@ -322,6 +413,11 @@ int32_t ReturnStatement::accept(StatementVisitor *visitor)
 bool ReturnStatement::returns()
 {
     return true;
+}
+
+string ReturnStatement::toString(string prefix) const
+{
+    return prefix + "return " + value.toString() + ";";
 }
 
 int32_t AbstractStatementVisitor::visitStatement(Statement *stat)
@@ -531,3 +627,17 @@ void CollectDependenciesVisitor::visitExpression(expression_t expr)
 {
     expr.collectPossibleReads(dependencies);
 }
+
+CollectDynamicExpressions::CollectDynamicExpressions(
+    std::list<expression_t>& e)
+    : expressions (e)
+{
+
+}
+
+void CollectDynamicExpressions::visitExpression(expression_t expr)
+{
+    if (expr.isDynamic() || expr.hasDynamicSub ())
+        expressions.push_back(expr);
+}
+

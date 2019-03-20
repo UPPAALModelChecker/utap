@@ -114,7 +114,7 @@ namespace UTAP
         symbol_t(void *frame, type_t type, std::string name, void *user);
     public:
         /** Default constructor */
-        symbol_t();
+        symbol_t() : data(NULL) {}
 
         /** Copy constructor */
         symbol_t(const symbol_t &);
@@ -151,7 +151,10 @@ namespace UTAP
 
         /** Returns the name (identifier) of this symbol */
         std::string getName() const;
-        
+
+        /** Alters the name of this symbol */
+        void setName(std::string);
+
         /** Sets the user data of this symbol */
         void setData(void *);
     };
@@ -210,8 +213,11 @@ namespace UTAP
         /** Returns the Nth symbol in this frame. */
         symbol_t getSymbol(int32_t);
 
-        /** Returns the index of the symbol with the give name. */
+        /** Returns the index of the symbol with the given name. */
         int32_t getIndexOf(std::string name) const;
+
+        /** Returns the index of a symbol or -1 if not present. */
+        int32_t getIndexOf(symbol_t) const;
 
         /** Returns the Nth symbol in this frame. */
         symbol_t operator[] (int32_t);
@@ -227,7 +233,13 @@ namespace UTAP
 
         /** Add all symbols from the given frame */
         void add(frame_t);
-        
+
+        /** Move all symbols from this to a given one (leaving this empty). */
+        void moveTo(frame_t);
+
+        /** removes the given symbol*/
+        void remove(symbol_t s);
+
         /** Resolves a name in this frame or a parent frame. */
         bool resolve(std::string name, symbol_t &symbol);
 
@@ -242,7 +254,14 @@ namespace UTAP
 
         /** Creates and returns a new sub-frame. */
         static frame_t createFrame(const frame_t &parent);
+
+        std::string toString();
+
+        bool empty();
     };
 }
+
+std::ostream &operator << (std::ostream &o, UTAP::symbol_t t);
+std::ostream &operator << (std::ostream &o, UTAP::frame_t t);
 
 #endif

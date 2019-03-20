@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2003 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -29,12 +29,15 @@
 #include "abstractbuilder.h"
 #include "utap.h"
 
+#define defaultIntMin -0x7FFF
+#define defaultIntMax 0x7FFF
+
 namespace UTAP
 {
-    /** 
+    /**
      * Partial implementation of the builder interface: The
      * ExpressionBuilder implements all expression related
-     * methods. 
+     * methods.
      *
      * In order to support quantifier expressions, this class also
      * handles the type related methods.
@@ -44,10 +47,10 @@ namespace UTAP
      * Internally, three stacks are maintained: One for expressions,
      * one for types and for frames (scopes).
      */
-    class ExpressionBuilder : public AbstractBuilder 
+    class ExpressionBuilder : public AbstractBuilder
     {
     public:
-        class ExpressionFragments 
+        class ExpressionFragments
         {
         private:
             std::vector<expression_t> data;
@@ -62,7 +65,7 @@ namespace UTAP
             uint32_t size() { return data.size(); }
         };
 
-        class TypeFragments 
+        class TypeFragments
         {
         private:
             std::vector<type_t> data;
@@ -98,13 +101,14 @@ namespace UTAP
 
         /** Push a new frame. */
         void pushFrame(frame_t);
-        
+
         /** Pop the topmost frame. */
         void popFrame();
 
         bool resolve(std::string, symbol_t &);
 
         expression_t makeConstant(int value);
+        expression_t makeConstant(double value);
 
         /**
          * Given a prefix and a type, this method creates a new type
@@ -122,7 +126,7 @@ namespace UTAP
          * case the method should be overridden by a sub class.
          */
         virtual bool allowProcessReferences() { return false; }
-
+        std::map<std::string,frame_t> dynamicFrames;
     public:
         ExpressionBuilder(TimedAutomataSystem *);
         ExpressionFragments &getExpressions();
@@ -136,36 +140,77 @@ namespace UTAP
         virtual void typePop();
         virtual void typeBool(PREFIX);
         virtual void typeInt(PREFIX);
+        virtual void typeDouble(PREFIX);
         virtual void typeBoundedInt(PREFIX);
         virtual void typeChannel(PREFIX);
-        virtual void typeClock();
+        virtual void typeClock(PREFIX);
         virtual void typeVoid();
         virtual void typeScalar(PREFIX);
         virtual void typeName(PREFIX, const char* name);
         virtual bool isType(const char*);
         virtual void exprTrue();
         virtual void exprFalse();
+        virtual void exprDouble(double);
         virtual void exprId(const char * varName);
         virtual void exprNat(int32_t);
         virtual void exprCallBegin();
         virtual void exprCallEnd(uint32_t n);
         virtual void exprArray();
         virtual void exprPostIncrement();
-        virtual void exprPreIncrement(); 
+        virtual void exprPreIncrement();
         virtual void exprPostDecrement();
-        virtual void exprPreDecrement(); 
+        virtual void exprPreDecrement();
         virtual void exprAssignment(Constants::kind_t op);
-        virtual void exprUnary(Constants::kind_t unaryop); 
-        virtual void exprBinary(Constants::kind_t binaryop); 
+        virtual void exprUnary(Constants::kind_t unaryop);
+        virtual void exprBinary(Constants::kind_t binaryop);
+        virtual void exprNary(Constants::kind_t op, uint32_t num);
+        virtual void exprScenario(const char* name);
+        virtual expression_t exprScenario();
         virtual void exprTernary(Constants::kind_t ternaryop, bool firstMissing);
-        virtual void exprInlineIf(); 
-        virtual void exprComma(); 
+        virtual void exprInlineIf();
+        virtual void exprComma();
         virtual void exprDot(const char *);
         virtual void exprDeadlock();
         virtual void exprForAllBegin(const char *name);
         virtual void exprForAllEnd(const char *name);
         virtual void exprExistsBegin(const char *name);
         virtual void exprExistsEnd(const char *name);
+        virtual void exprSumBegin(const char *name);
+        virtual void exprSumEnd(const char *name);
+
+        virtual void exprSMCControl(int);
+        virtual void exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double);
+        virtual void exprProbaQuantitative(int,Constants::kind_t,bool stopCondition = false);
+        virtual void exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t);
+        virtual void exprProbaExpected(int,const char*);
+        virtual void exprBuiltinFunction1(Constants::kind_t);
+        virtual void exprBuiltinFunction2(Constants::kind_t);
+
+        virtual void exprSimulate(int,int,int,bool = false,int =0);
+        virtual void exprMitlFormula ( ) ;
+        virtual void exprMitlUntil (int,int ) ;
+        virtual void exprMitlRelease (int,int ) ;
+        virtual void exprMitlDisj () ;
+        virtual void exprMitlConj () ;
+        virtual void exprMitlNext () ;
+        virtual void exprMitlAtom () ;
+        virtual void exprMitlDiamond (int,int) ;
+        virtual void exprMitlBox (int,int) ;
+
+        /*dynamic*/
+        virtual void exprSpawn (int params);
+        virtual void exprExit ();
+        virtual void exprNumOf ();
+        virtual void exprForAllDynamicBegin (const char* ,const char*);
+        virtual void exprForAllDynamicEnd (const char* name);
+        virtual void exprExistsDynamicBegin (const char*,const char*);
+        virtual void exprExistsDynamicEnd (const char*);
+        virtual void exprSumDynamicBegin (const char*,const char* );
+        virtual void exprSumDynamicEnd (const char* name);
+        virtual void exprForeachDynamicBegin (const char*,const char* );
+        virtual void exprForeachDynamicEnd (const char* name);
+        virtual void pushDynamicFrameOf (template_t* t, std::string name);
+        virtual void popDynamicFrameOf (std::string name);
     };
 }
 

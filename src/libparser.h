@@ -26,14 +26,24 @@
     
 #include "utap/builder.h"
 
-#define MAXLEN 64
+// The maximum length is 4000 (see error message) + 1 for the
+// terminating \0.
+
+#define MAXLEN 4001
+
+// Here is the (constant) error message.
+// There is a problem with macros with the mingwin g++ compiler
+// so whenever the constant is changed we need to change the
+// string manually too.
+
+#define ID_TOO_LONG "$Identifier_is_too_long._Limit_length_is_4000."
 
 enum syntax_t { SYNTAX_OLD      = (1 << 0),
                 SYNTAX_NEW      = (1 << 1),
                 SYNTAX_PROPERTY = (1 << 2),
                 SYNTAX_GUIDING  = (1 << 3),
                 SYNTAX_TIGA     = (1 << 4),
-                SYNTAX_SSQL     = (1 << 5)
+                SYNTAX_PROB     = (1 << 5)
 };
 
 // Defined in keywords.cc

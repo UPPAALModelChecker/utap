@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -127,11 +127,6 @@ struct symbol_t::symbol_data
     string name;        // The name of the symbol
 };
 
-symbol_t::symbol_t()
-{
-    data = NULL;
-}
-
 symbol_t::symbol_t(void *frame, type_t type, string name, void *user)
 {
     data = new symbol_data;
@@ -146,7 +141,7 @@ symbol_t::symbol_t(void *frame, type_t type, string name, void *user)
 symbol_t::symbol_t(const symbol_t &symbol)
 {
     data = symbol.data;
-    if (data) 
+    if (data)
     {
         data->count++;
     }
@@ -155,10 +150,10 @@ symbol_t::symbol_t(const symbol_t &symbol)
 /* Destructor */
 symbol_t::~symbol_t()
 {
-    if (data) 
+    if (data)
     {
         data->count--;
-        if (data->count == 0) 
+        if (data->count == 0)
         {
             delete data;
         }
@@ -168,16 +163,16 @@ symbol_t::~symbol_t()
 /* Assignment operator */
 const symbol_t &symbol_t::operator = (const symbol_t &symbol)
 {
-    if (data) 
+    if (data)
     {
         data->count--;
-        if (data->count == 0) 
+        if (data->count == 0)
         {
             delete data;
         }
     }
     data = symbol.data;
-    if (data) 
+    if (data)
     {
         data->count++;
     }
@@ -234,11 +229,21 @@ string symbol_t::getName() const
 {
     return data->name;
 }
-        
+
+void symbol_t::setName(string name)
+{
+    data->name = name;
+}
+
 /* Sets the user data of this symbol */
 void symbol_t::setData(void *value)
 {
     data->user = value;
+}
+
+std::ostream &operator << (std::ostream &o, UTAP::symbol_t t)
+{
+    return o << t.getType() << " " << t.getName();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -279,7 +284,7 @@ frame_t::frame_t(const frame_t &frame)
 /* Destructor */
 frame_t::~frame_t()
 {
-    if (data) 
+    if (data)
     {
         data->count--;
         if (data->count == 0)
@@ -290,8 +295,8 @@ frame_t::~frame_t()
 }
 
 const frame_t &frame_t::operator = (const frame_t &frame)
-{        
-    if (data) 
+{
+    if (data)
     {
         data->count--;
         if (data->count == 0)
@@ -313,7 +318,7 @@ bool frame_t::operator == (const frame_t &frame) const
     return data == frame.data;
 }
 
-/* Inequality operator */ 
+/* Inequality operator */
 bool frame_t::operator != (const frame_t &frame) const
 {
     return data != frame.data;
@@ -374,9 +379,42 @@ void frame_t::add(symbol_t symbol)
 */
 void frame_t::add(frame_t frame)
 {
-    for (uint32_t i = 0; i < frame.getSize(); i++) 
+    for (uint32_t i = 0; i < frame.getSize(); i++)
     {
         add(frame[i]);
+    }
+}
+
+/** Move all symbols from this to the given frame.
+    Notice that the symbols will be updated to point to the given frame,
+    while this frame will be emptied and ready for recycling.
+*/
+void frame_t::moveTo(frame_t frame)
+{
+    for (uint32_t i = 0; i < data->symbols.size(); i++)
+    {
+        symbol_t symbol = data->symbols[i];
+        frame.add(symbol);
+        symbol.data->frame = frame.data;
+    }
+    data->symbols.clear();
+    data->mapping.clear();
+}
+
+/** removes the given symbol*/
+void frame_t::remove(symbol_t s)
+{
+    vector<symbol_t> symbols = data->symbols;
+    data->symbols.clear();
+    data->mapping.clear();
+    for (uint32_t i = 0; i < symbols.size(); i++)
+    {
+        symbol_t symbol = symbols[i];
+        if (symbol != s)
+        {
+            add(symbol);
+            symbol.data->frame = data;
+        }
     }
 }
 
@@ -386,9 +424,24 @@ int32_t frame_t::getIndexOf(string name) const
     return (i == data->mapping.end() ? -1 : i->second);
 }
 
+int32_t frame_t::getIndexOf(symbol_t symbol) const
+{
+    int32_t index = 0;
+    vector<symbol_t>::const_iterator first = data->symbols.begin();
+    vector<symbol_t>::const_iterator last = data->symbols.end();
+    for( ; first != last; ++first, ++index)
+    {
+        if (*first == symbol)
+        {
+            return index;
+        }
+    }
+    return -1;
+}
+
 /**
    Resolves the name in this frame or the parent frame and
-   returns the corresponding symbol. 
+   returns the corresponding symbol.
 */
 bool frame_t::resolve(string name, symbol_t &symbol)
 {
@@ -434,6 +487,19 @@ frame_t frame_t::createFrame(const frame_t &parent)
     data->count = 0;
     data->hasParent = true;
     data->parent = parent.data;
-    return frame_t(data);  
+    return frame_t(data);
 }
 
+std::ostream &operator << (std::ostream &o, UTAP::frame_t t)
+{
+    o << "{";
+    for(uint32_t i = 0; i < t.getSize(); ++i)
+    {
+        if (i > 0)
+        {
+            o << ", ";
+        }
+        o << t[i];
+    }
+    return o << "}";
+}
