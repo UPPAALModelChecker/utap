@@ -68,6 +68,9 @@ namespace UTAP
 
 	/** Inequallity operator */
 	bool operator != (const range_t &) const;
+
+	/** Returns true if and only if the range is empty */
+	bool isEmpty() const;
     };
 
 
@@ -344,6 +347,7 @@ namespace UTAP
 	static type_t VOID_TYPE;
 	static type_t CLOCK;
 	static type_t INT;
+	static type_t BOOL;
 	static type_t LOCATION;
 	static type_t CHANNEL;
 	static type_t TEMPLATE;

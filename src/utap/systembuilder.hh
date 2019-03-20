@@ -143,6 +143,8 @@ namespace UTAP
 	/* current parsing function structure */
 	function_t *currentFun;
 
+	template_t *currentTemplate;
+
 	/* stack of function body statement blocks */
 	std::vector<BlockStatement*> blocks; 
 
@@ -158,7 +160,7 @@ namespace UTAP
 	//
 	
 	/* list of expected arguments */
-	std::list<std::vector<type_t> > expectedArguments;
+	std::list<uint32_t> expectedArguments;
 
         /* stack of function or template symbols */
 	std::vector<symbol_t> identifierStack;
@@ -169,7 +171,7 @@ namespace UTAP
 
 	type_t buildArrayType(type_t type, uint32_t dim);
 	type_t getElementTypeOfArray(type_t type);
-	type_t applyPrefix(uint32_t prefix, type_t type);
+	type_t applyPrefix(int32_t prefix, type_t type);
 
 	//
 	// Methods for handling expressions
@@ -214,12 +216,14 @@ namespace UTAP
 	/************************************************************
 	 * Types
 	 */
-	virtual void declType(uint32_t prefix, const char* name, bool range);
+	virtual void typeName(int32_t prefix, const char* name, bool range);
 	// 2 expr if range==true
-	virtual void declStruct(uint32_t prefix, uint32_t fields);
-	virtual void declField(const char* name, uint32_t dim); 
+	virtual void typeStruct(int32_t prefix, uint32_t fields);
+
+	virtual void structField(const char* name, uint32_t dim); 
 	// 1 type and dim array sizes
-	virtual void declFieldEnd();
+	virtual void structFieldEnd();
+
 	virtual void declTypeDef(const char* name, uint32_t dim); 
 	// 1 type and dim array sizes
 	virtual void declTypeDefEnd();

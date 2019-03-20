@@ -51,7 +51,7 @@ idchr	[a-zA-Z0-9_$#]
   \n           { yylloc.lines(1); }
   "*/"         { BEGIN(INITIAL); }
   "//"[^\n]*   /* Single line comments take precedence over multilines */;
-  <<EOF>>      { yyerror("Unclosed comment."); }
+  <<EOF>>      { BEGIN(INITIAL); yyerror("Unclosed comment."); return 0; }
   .            /* ignore (multiline comments)*/
 }
 

@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <cassert>
 
+#include "utap/utap.hh"
 #include "utap/typechecker.hh"
 #include "utap/systembuilder.hh"
 
@@ -37,8 +38,6 @@ using std::vector;
 
 using namespace UTAP;
 using namespace Constants;
-
-std::map<symbol_t, expression_t> TypeChecker::empty;
 
 class InitialiserException : public std::exception
 {
@@ -86,49 +85,66 @@ void TypeChecker::visitSystemBefore(TimedAutomataSystem *value)
     system->accept(persistentVariables);
 }
 
-/** Checks that the range of an integer (if it has one) is type correct. */
-void TypeChecker::checkIntegerType(type_t type)
+/** Annotate the expression and check that it is a constant integer. */
+void TypeChecker::annotateAndExpectConstantInteger(expression_t expr)
 {
-    assert(type.getBase() == type_t::INT);
+    annotate(expr);
 
-    expression_t lower = type.getRange().first;
-    expression_t upper = type.getRange().second;
+    if (!isInteger(expr))
+    {
+	handleError(expr, "Integer expression expected");
+    }
+    else if (expr.dependsOn(persistentVariables.get()))
+    {
+	handleError(expr, "Constant expression expected");
+    }
+}
 
-    // Check if there is a range; if not then return
-    if (lower.empty())
-	return;
+/** Check that the type is type correct (i.e. all expression such
+ *  as array sizes, integer ranges, etc. contained in the type).
+ */
+void TypeChecker::checkType(type_t type)
+{
+    type_t base = type.getBase();
+    if (base == type_t::INT)
+    {
+	expression_t lower = type.getRange().first;
+	expression_t upper = type.getRange().second;
 
-    annotate(lower);
-    annotate(upper);
+	// Check if there is a range; if not then return
+	if (lower.empty())
+	    return;
 
-    if (!isInteger(lower))
-	handleError(lower, "Integer expression expected");
-    else if (lower.dependsOn(persistentVariables.get()))
-	handleError(lower, "Constant expression expected");
+	annotateAndExpectConstantInteger(lower);
+	annotateAndExpectConstantInteger(upper);
+    }
+    else if (base == type_t::ARRAY)
+    {
+	annotateAndExpectConstantInteger(type.getArraySize());
+	checkType(type.getSub());
+    }
+    else if (base == type_t::RECORD)
+    {
+	// FIXME: Not implemented
+	assert(0);
+    }
+}
 
-    if (!isInteger(upper))
-	handleError(upper, "Integer expression expected");
-    else if (upper.dependsOn(persistentVariables.get()))
-	handleError(upper, "Constant expression expected");
+void TypeChecker::checkVariableDeclaration(variable_t &variable)
+{
+    setContextDeclaration();
+    checkType(variable.uid.getType());
+    checkInitialiser(variable);
 }
 
 void TypeChecker::visitConstant(variable_t &constant)
 {
-    setContextDeclaration();
-    type_t type = constant.uid.getType();
-    if (type.getBase() == type_t::INT) 
-	checkIntegerType(type);
-    checkInitialiser(constant);
+    checkVariableDeclaration(constant);
 }
 
 void TypeChecker::visitVariable(variable_t &variable)
 {
-    setContextDeclaration();
-    type_t type = variable.uid.getType();
-    if (type.getBase() == type_t::INT) 
-	checkIntegerType(type);
-
-    checkInitialiser(variable);
+    checkVariableDeclaration(variable);
 }
 
 void TypeChecker::visitState(state_t &state)
@@ -167,9 +183,8 @@ void TypeChecker::visitTransition(transition_t &transition)
 	type_t channel = transition.sync.get(0).getType();
 	assert(channel.getBase() == type_t::CHANNEL);
 
-	bool hasClockGuard = !transition.guard.empty()
-	    && transition.guard.getType().getBase() != type_t::INT;
-	bool hasInvariant = !transition.dst->invariant.empty();
+	bool hasClockGuard =
+	    !transition.guard.empty() && !isInteger(transition.guard);
 	bool isUrgent = channel.hasPrefix(prefix::URGENT);
 	bool receivesBroadcast = channel.hasPrefix(prefix::BROADCAST) 
 	    && transition.sync.getSync() == SYNC_QUE;
@@ -183,17 +198,6 @@ void TypeChecker::visitTransition(transition_t &transition)
 	    handleError(transition.sync,
 			"Clock guards are not allowed on broadcast receivers.");
 	}
-#if 0
-	if (receivesBroadcast && hasInvariant) {
-	    handleError(transition.sync,
-			"Broadcast receiption is not supported when the target location has invariants.");
-	}
-
-	if (isUrgent && hasInvariant) {
-	    handleError(transition.sync,
-			"Urgent synchronisations are not supported when the target location has invariants.");
-	}
-#endif	
     }
     
     // assignment
@@ -222,11 +226,35 @@ void TypeChecker::visitInstance(instance_t &instance)
     setContextInstantiation();
 
     map<symbol_t, expression_t>::iterator i = instance.mapping.begin();
-    while (i != instance.mapping.end()) {
-	annotate(i->second);
-	checkParameterCompatible(interpreter,
-				 i->first.getType(), i->second);
-	++i;
+    for (;i != instance.mapping.end(); ++i) {
+	type_t parameter = i->first.getType();
+	expression_t argument = i->second;
+	
+	annotate(argument);
+
+	// For template instantiation, the argument must be side effect free
+	if (!isSideEffectFree(argument)) {
+	    handleError(argument, "Argument must be side effect free");
+	    continue;
+	}
+
+	// We have three ok cases:
+	// - Constant reference with computable argument
+	// - Reference parameter with unique lhs argument
+	// - Value parameter with computable argument
+	// If non of the cases is true, then we generate an error
+	bool ref = parameter.hasPrefix(prefix::REFERENCE);
+	bool constant = parameter.hasPrefix(prefix::CONSTANT);
+	bool computable = !argument.dependsOn(persistentVariables.get());
+	
+	if (!(ref && constant && computable)
+	    && !(ref ? isUniqueReference(argument) : computable))
+	{
+	    handleError(argument, "Incompatible argument");
+	    continue;
+	}
+
+	checkParameterCompatible(interpreter, parameter, argument);
     }
 }
 
@@ -245,9 +273,130 @@ void TypeChecker::visitProperty(expression_t expr)
     }
 }
 
+void TypeChecker::checkAssignmentExpressionInFunction(expression_t expr)
+{
+    if (!isInteger(expr) && !isClock(expr) && !isRecord(expr)) {
+	handleError(expr, "Invalid expression in function");
+    }
+
+//     if (isSideEffectFree(expr)) {
+//  	handleWarning(expr, "Expression does not have any effect");
+//     }
+}
+
+void TypeChecker::checkConditionalExpressionInFunction(expression_t expr)
+{
+    if (!isInteger(expr)) {
+	handleError(expr, "Boolean expected here");
+    }
+}
+
+void TypeChecker::visitFunction(function_t &fun)
+{
+    // TODO: Set the correct context
+    fun.body->accept(this);
+    // TODO: Make sure that last statement is a return statement
+}
+
+int32_t TypeChecker::visitEmptyStatement(EmptyStatement *stat)
+{
+    return 0;
+}
+
+int32_t TypeChecker::visitExprStatement(ExprStatement *stat)
+{
+    annotate(stat->expr);
+    checkAssignmentExpressionInFunction(stat->expr);
+    return 0;
+}
+
+int32_t TypeChecker::visitForStatement(ForStatement *stat)
+{
+    annotate(stat->init);
+    annotate(stat->cond);
+    annotate(stat->step);
+
+    checkAssignmentExpressionInFunction(stat->init);
+    checkConditionalExpressionInFunction(stat->cond);
+    checkAssignmentExpressionInFunction(stat->step);
+
+    return stat->stat->accept(this);
+}
+
+int32_t TypeChecker::visitWhileStatement(WhileStatement *stat)
+{
+    annotate(stat->cond);
+    checkConditionalExpressionInFunction(stat->cond);
+    return stat->stat->accept(this);
+}
+
+int32_t TypeChecker::visitDoWhileStatement(DoWhileStatement *stat)
+{
+    annotate(stat->cond);
+    checkConditionalExpressionInFunction(stat->cond);
+    return stat->stat->accept(this);
+}
+
+int32_t TypeChecker::visitBlockStatement(BlockStatement *stat)
+{
+    BlockStatement::iterator i;
+    for (i = stat->begin(); i != stat->end(); ++i) {
+	(*i)->accept(this);
+    }
+    return 0;
+}
+
+int32_t TypeChecker::visitSwitchStatement(SwitchStatement *stat)
+{
+    annotate(stat->cond);
+    // TODO: Check type of expressions
+    return visitBlockStatement(stat);
+}
+
+int32_t TypeChecker::visitCaseStatement(CaseStatement *stat)
+{
+    annotate(stat->cond);
+    // TODO: Check type of expressions
+    return visitBlockStatement(stat);
+}
+
+int32_t TypeChecker::visitDefaultStatement(DefaultStatement *stat)
+{
+    return visitBlockStatement(stat);
+}
+
+int32_t TypeChecker::visitIfStatement(IfStatement *stat)
+{
+    annotate(stat->cond);
+    checkConditionalExpressionInFunction(stat->cond);
+    stat->trueCase->accept(this);
+    if (stat->falseCase) {
+	stat->falseCase->accept(this);
+    }
+    return 0;
+}
+
+int32_t TypeChecker::visitBreakStatement(BreakStatement *stat)
+{
+    return 0;
+}
+
+int32_t TypeChecker::visitContinueStatement(ContinueStatement *stat)
+{   
+    return 0;
+}
+
+int32_t TypeChecker::visitReturnStatement(ReturnStatement *stat)
+{
+    annotate(stat->value);
+    // TODO: Check type of expressions
+    return 0;
+}
+
 bool TypeChecker::isInteger(expression_t expr) const
 {
-    return expr.getType().getBase() == type_t::INT;
+    return expr.getType().getBase() == type_t::INT
+	|| expr.getType().getBase() == type_t::BOOL;
 }
 
 bool TypeChecker::isClock(expression_t expr) const
@@ -273,7 +422,7 @@ bool TypeChecker::isInvariant(expression_t expr) const
 {
     return expr.empty()
 	|| (expr.getType().getBase() == type_t::INVARIANT)
-	|| (expr.getType().getBase() == type_t::INT);
+	|| isInteger(expr);
 }
 
 /**
@@ -313,38 +462,67 @@ static int channelCapability(type_t type)
     return 2;
 }
 
-// checks whether parameter type is compatible to argument type.
-// REVISIT: This is not correct for function calls.
+/**
+ * Checks whether argument type is compatible with parameter type.
+ *
+ * REVISIT: The reasoning behind the current implementation is
+ * strange. For constant reference parameters, it is ok to specify
+ * constant arguments; but these arguments might themself be constant
+ * references to non-constant variables. E.g.
+ *
+ *   void f(const int &i) {}
+ *   void g(const int &j) { f(j); }
+ *
+ * where g() is called with a regular variable. When checking the call
+ * of f() in g(), we have that isLHSValue(j) return false (because we
+ * cannot assign to j in g()). We then conclude that the call is valid
+ * anyway (which is a correct conclusion), because we can always
+ * evaluate j and create a temporary variable for i (this is an
+ * incorrect argument, because what actually happens is that we pass
+ * on the reference we got when g() was called).
+ *
+ * The current implementation seems to work, but for the wrong
+ * reasons!
+ */
 void TypeChecker::checkParameterCompatible(
-    const Interpreter &interpreter, type_t param, expression_t arg)
+    const Interpreter &interpreter, type_t paramType, expression_t arg)
 {
-    bool ref = param.hasPrefix(prefix::REFERENCE);
-    bool constant = param.hasPrefix(prefix::CONSTANT);
-    bool computable = !arg.dependsOn(persistentVariables.get());
+    bool ref = paramType.hasPrefix(prefix::REFERENCE);
+    bool constant = paramType.hasPrefix(prefix::CONSTANT);
+    bool lhs = isLHSValue(arg);
 
-    // Argument must be side effect free
-    if (!isSideEffectFree(arg)) {
-	handleError(arg, "Argument must be side effect free");
-	return;
-    }
-
-    // We have three ok cases:
-    // - Constant reference with computable argument
-    // - Reference parameter with lhs argument
-    // - Value parameter with computable argument
-    // If non of the cases is true, then we generate an error
-    if (!(ref && constant && computable)
-	&& !(ref ? isUniqueReference(arg) : computable))
-    {
-	handleError(arg, "Incompatible argument");
-	return;
-    }
-
-    assert(isLHSValue(arg) || computable);  /* This is a consequence */
-
-    // Resolve base type of arrays
     type_t argType = arg.getType();
-    while (param.getBase() == type_t::ARRAY) {
+
+    if (!ref) {
+	// If the parameter is not a reference, then we can do type
+	// conversion between booleans and integers.
+
+	if (paramType.getBase() == type_t::INT
+	    && argType.getBase() == type_t::BOOL)
+	{
+	    argType = type_t::createInteger(
+		expression_t::createConstant(position_t(), 0),
+		expression_t::createConstant(position_t(), 1));
+	    lhs = false;
+	}
+
+	if (paramType.getBase() == type_t::BOOL
+	    && argType.getBase() == type_t::INT)
+	{
+	    argType = type_t::BOOL;
+	    lhs = false;
+	}
+    }
+    
+    // For non-const reference parameters, we require a lhs argument
+    if (ref && !constant && !lhs)
+    {
+	handleError(arg, "Reference parameter requires left value argument");
+	return;
+    }
+    
+    // Resolve base type of arrays
+    while (paramType.getBase() == type_t::ARRAY) {
 	if (argType.getBase() != type_t::ARRAY) {
 	    handleError(arg, "Incompatible argument to array parameter");
 	    return;
@@ -352,7 +530,7 @@ void TypeChecker::checkParameterCompatible(
 
 	try {
 	    int32_t argSize = interpreter.evaluate(argType.getArraySize());
-	    int32_t paramSize = interpreter.evaluate(param.getArraySize());
+	    int32_t paramSize = interpreter.evaluate(paramType.getArraySize());
 	
 	    if (argSize != paramSize)
 		handleError(arg, "Parameter array size does not match argument array size");
@@ -360,74 +538,115 @@ void TypeChecker::checkParameterCompatible(
 	    assert(0);
 	}
 	    
-	param = param.getSub();
+	paramType = paramType.getSub();
 	argType = argType.getSub();
     }
 
     // The parameter and the argument must have the same base type
-    if (param.getBase() != argType.getBase()) {
+    if (paramType.getBase() != argType.getBase()) {
 	handleError(arg, "Incompatible argument");
 	return;
     }
 
-    // For clocks there is no more to check
-    type_t base = param.getBase();
-    if (base == type_t::CLOCK)
+    type_t base = paramType.getBase();
+    if (base == type_t::CLOCK || base == type_t::BOOL) {
+	// For clocks and booleans there is no more to check
 	return;
+    }
 
-    // For integers we need to consider the range
     if (base == type_t::INT) {
+	// For integers we need to consider the range: The main
+	// purpose is to ensure that arguments to reference parameters
+	// are within range of the parameter. For non-reference
+	// parameters we still try to check whether the argument is
+	// outside the range of the parameter, but this can only be
+	// done if the argument is computable at parse time.
+
 	// Special case; if parameter has no range, then everything
 	// is accepted - this ensures compatibility with 3.2
-	if (param.getRange().first.empty())
+	if (paramType.getRange().first.empty())
 	    return;
+
+	// There are two main cases
+	//
+	// case a: if we have a left value argument, then there is no
+	// way we can compute the exact value of the argument. In this
+	// case we must use the declared range.
+	//
+	// case b: if it is not a left value argument, then we might
+	// be able to compute the exact value, which is what we will
+	// try to do.
 	
-	// Compute range of the argument. We have two cases; if the
-	// argument is computable then we simply compute
-	// it. Otherwise, we know we deal with a LHS argument, thus we
-	// compute the symbol and use its declared range.
-	range_t argRange, paramRange;
-	try {
-	    if (computable) {
+	if (lhs) {
+	    // case a
+	    try {
+		// First try to compute the declared range of the
+		// argument and the paramter.
+		range_t paramRange = interpreter.evaluate(paramType.getRange());
+		range_t argRange = interpreter.evaluate(argType.getRange());
+
+		// For non-constant reference parameters the argument
+		// range must match that of the parameter.
+		if (ref && !constant && argRange != paramRange) {
+		    handleError(arg, "Range of argument does not match range of formal parameter");
+		    return;
+		}
+
+		// For constant reference parameters the argument
+		// range must be contained in the paramtere range.
+		if (ref && constant && !paramRange.contains(argRange)) {
+		    handleError(arg, "Range of argument is outside of the range of the formal parameter");
+		    return;
+		}
+
+		// In case the two ranges do not intersect at all,
+		// then the argument can never be valid.
+		if (paramRange.intersect(argRange).isEmpty()) {
+		    handleError(arg, "Range of argument is outside of the range of the formal parameter");
+		    return;
+		}
+	    } catch (InterpreterException) {
+		// Computing the declared range failed.
+
+		if (ref) {
+		    // For reference parameters we check that the
+		    // range declaration of the argument is identical
+		    // to that of the parameter.
+		    pair<expression_t, expression_t> paramRange, argRange;
+		    paramRange = paramType.getRange();
+		    argRange = argType.getRange();
+		    if (!paramRange.first.equal(argRange.first) ||
+			!paramRange.second.equal(argRange.second))
+		    {
+			handleError(arg, "Range of argument does not match range of formal parameter");
+		    }
+		}
+	    }
+	} else {
+	    // case b
+	    try {
+		range_t argRange, paramRange;
+
+		paramRange = interpreter.evaluate(paramType.getRange());
+
 		vector<int32_t> value;
 		interpreter.evaluate(arg, value);
 		for (uint32_t i = 0; i < value.size(); i++) {
 		    argRange = argRange.join(range_t(value[i]));
 		}
-	    } else {
-		// In this case we know that arg is a lhs and thus the
-		// range refers to the declared range 
-		argRange = interpreter.evaluate(argType.getRange());
-	    }
-
-	    // Compute range of parameter
-	    paramRange = interpreter.evaluate(param.getRange());
-	} catch (InterpreterException) {
-	    // We couldn't compute the ranges; we can assume that we 
-	    // have already reported an error, so we simply ignore it 
-	    // here.
-	    return;
-	}
-	
-	if (ref && !constant) {
-	    // For non-constant reference parameters, the range of the
-	    // argument and the range of the parameter must be the
-	    // same.
-	    if (argRange != paramRange)
-		handleError(arg, "Range of argument does not match range of formal parameter");
-	} else {
-	    // Otherwise the range of the argument must be within the
-	    // range of the parameter: 
-	    if (!paramRange.contains(argRange)) 
-	    {
-		handleError(arg, "Range of argument is outside of the range of the formal parameter");
+		
+		if (!paramRange.contains(argRange)) {
+		    handleError(arg, "Range of argument is outside of the range of the formal parameter");	    
+		}
+	    } catch (InterpreterException) {
+		// Bad luck: we need to revert to runtime checking 
 	    }
 	}
     } else if (base == type_t::RECORD) {
-	if (param.getRecordFields() != argType.getRecordFields()) 
+	if (paramType.getRecordFields() != argType.getRecordFields()) 
 	    handleError(arg, "Argument has incompatible type");
     } else if (base == type_t::CHANNEL) {
-	if (channelCapability(argType) < channelCapability(param))
+	if (channelCapability(argType) < channelCapability(paramType))
 	    handleError(arg, "Incompatible channel type");
     } else {
 	assert(false);
@@ -467,14 +686,20 @@ void TypeChecker::checkInitialiser(type_t type, expression_t init)
         
         if (fields.getSize() < (uint32_t)dim) 
 	    throw InitialiserException(init, "Missing fields in initialiser");
-    } else if (base == type_t::INT) {
-	if (init.getType().getBase() != type_t::INT)
+    } else if (base == type_t::BOOL) {
+	if (!isInteger(init)) {
 	    throw InitialiserException(init, "Invalid initialiser");
+	}
+    } else if (base == type_t::INT) {
+	if (!isInteger(init)) {
+	    throw InitialiserException(init, "Invalid initialiser");
+	}
 
 	// If there is no range (this might be the case when the
 	// variable is a constant), then we cannot do anymore.
-	if (type.getRange().first.empty())
+	if (type.getRange().first.empty()) {
 	    return;
+	}
 
 	// In general we cannot assure that the initialiser is within
 	// the range of the variable - what we can do is to check that
@@ -538,22 +763,32 @@ void TypeChecker::checkInitialiser(type_t type, expression_t init)
 	    }	
 	}
     }
-    return;
 }
 
 /** Checks the initialiser of a constant or a variable */
 void TypeChecker::checkInitialiser(variable_t &var)
 {
-    try {
-	if (!var.expr.empty()) {
+    try 
+    {
+	if (!var.expr.empty()) 
+	{
 	    annotate(var.expr);
-	    if (!isSideEffectFree(var.expr)) {
+	    if (var.expr.dependsOn(persistentVariables.get())) 
+	    {
+		handleError(var.expr, "Constant expression expected");
+	    }
+	    else if (!isSideEffectFree(var.expr)) 
+	    {
 		handleError(var.expr, "Initialiser must not have side effects");
-	    } else {
+	    } 
+	    else 
+	    {
 		checkInitialiser(var.uid.getType(), var.expr);
 	    }
 	}
-    } catch (InitialiserException &e) {
+    } 
+    catch (InitialiserException &e) 
+    {
 	handleError(e.getExpression(), e.what());
     }
 }
@@ -660,35 +895,45 @@ type_t TypeChecker::typeOfBinaryNonInt(
     return type;
 }
 
-/** Returns true if arguments of an inline if are compatible. The
-    'then' and 'else' arguments are compatible if and only if they
-    have the same base type. In case of arrays, they must have the
-    same size and the subtypes must be compatible. In case of records,
-    they must have the same type name.
+/** Returns true if arguments of an inline if are compatible.  Clocks
+    are only compatible with clocks, integers and booleans are
+    compatible, channels are only compatible with channels with
+    identical prefixes. Arrays must have the same size and the
+    subtypes must be compatible. Records must have the same type name.
 */
 bool TypeChecker::areInlineIfCompatible(type_t thenArg, type_t elseArg)
 {
-    type_t base = thenArg.getBase();
-
-    if (base != elseArg.getBase()) {
-	return false;
+    type_t thenBase = thenArg.getBase();
+    type_t elseBase = elseArg.getBase();
+    if (thenBase == type_t::INT || thenBase == type_t::BOOL)
+    {
+	return elseBase == type_t::INT || elseBase == type_t::BOOL;
     }
-
-    if (base == type_t::ARRAY) {
-	return (thenArg.getArraySize().equal(elseArg.getArraySize()))
+    else if (thenBase == type_t::CLOCK)
+    {
+	return elseBase == type_t::CLOCK;
+    }
+    else if (thenBase == type_t::CHANNEL)
+    {
+	return elseBase == type_t::CHANNEL
+	    && (thenArg.hasPrefix(prefix::URGENT) 
+		== elseArg.hasPrefix(prefix::URGENT))
+	    && (thenArg.hasPrefix(prefix::BROADCAST) 
+		== elseArg.hasPrefix(prefix::BROADCAST));
+    }
+    else if (thenBase == type_t::ARRAY)
+    {
+	return elseBase == type_t::ARRAY
+	    && thenArg.getArraySize().equal(elseArg.getArraySize())
 	    && areInlineIfCompatible(thenArg.getSub(), elseArg.getSub());
     }
-
-    if (base == type_t::RECORD) {
-	return (thenArg.getRecordFields() == elseArg.getRecordFields());
+    else if (thenBase == type_t::RECORD)
+    {
+	return elseBase == type_t::RECORD
+	    && thenArg.getRecordFields() == elseArg.getRecordFields();
     }
 
-    if (base == type_t::CHANNEL) {
-	return (thenArg.hasPrefix(prefix::URGENT) == elseArg.hasPrefix(prefix::URGENT))
-	    && (thenArg.hasPrefix(prefix::BROADCAST) == elseArg.hasPrefix(prefix::BROADCAST));
-    }
-
-    return true;
+    return false;
 }
 
 /** Returns true if lvalue and rvalue are assignment compatible.  This
@@ -700,12 +945,14 @@ bool TypeChecker::areInlineIfCompatible(type_t thenArg, type_t elseArg)
 bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue) 
 {
     type_t lbase = lvalue.getBase();
+    type_t rbase = rvalue.getBase();
+
     if (lbase == type_t::VOID_TYPE) {
 	return false;
     }
 
-    if (lbase == type_t::CLOCK || lbase == type_t::INT) {
-	return (rvalue.getBase() == type_t::INT);
+    if (lbase == type_t::CLOCK || lbase == type_t::INT || lbase == type_t::BOOL) {
+	return (rbase == type_t::INT || rbase == type_t::BOOL);
     }
 
     if (lbase == type_t::RECORD) {
@@ -715,7 +962,47 @@ bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue)
 
     return false;
 }
-    
+
+void TypeChecker::checkFunctionCallArguments(expression_t expr)
+{
+    // REVISIT: We don't know anything about the context of this
+    // expression, but the additional mapping provided by the context
+    // might be important additions to the interpreter. In particular,
+    // it might be necessary to add the parameter mapping from the
+    // call itself. E.g. consider a function
+    //
+    //  int f(const int N, int a[N])
+    //
+    // Here it is important to know N when checking the second
+    // argument. At the moment this is not allowed by the
+    // SystemBuilder, though.
+
+    type_t type = expr[0].getType();
+    frame_t parameters = type.getParameters();
+
+    if (parameters.getSize() > expr.getSize() - 1) 
+    {
+	handleError(expr, "Too few arguments");
+    }
+    else if (parameters.getSize() < expr.getSize() - 1)
+    {
+	for (uint32_t i = parameters.getSize() + 1; i < expr.getSize(); i++)
+	{
+	    handleError(expr[i], "Too many arguments");
+	}
+    }
+    else
+    {
+	Interpreter interpreter(system->getConstantValuation());
+	for (uint32_t i = 0; i < parameters.getSize(); i++) 
+	{
+	    type_t parameter = parameters[i].getType();
+	    expression_t argument = expr[i + 1];
+	    checkParameterCompatible(interpreter, parameter, argument);
+	}
+    }
+}
+
 /** Type check and annotate the expression. This function performs
     basic type checking of the given expression and assigns a type to
     every subexpression of the expression. It checks that only
@@ -833,7 +1120,7 @@ void TypeChecker::annotate(expression_t expr)
     case PREINCREMENT:
     case POSTDECREMENT:
     case PREDECREMENT:
-	if (!isInteger(expr[0])) {
+	if (expr[0].getType().getBase() != type_t::INT) {
 	    handleError(expr, "Argument must be an integer value");
 	} else if (!isLHSValue(expr[0])) {
 	    handleError(expr[0], "Left hand side value expected");	    
@@ -846,7 +1133,7 @@ void TypeChecker::annotate(expression_t expr)
 	    handleError(expr, "First argument of inline if must be an integer");
 	}
 	if (!areInlineIfCompatible(expr[1].getType(), expr[2].getType())) {
-	    handleError(expr, "Incompatible argument to inline if");
+	    handleError(expr, "Incompatible arguments to inline if");
 	}
 	type = expr[1].getType();
 	break;
@@ -861,8 +1148,15 @@ void TypeChecker::annotate(expression_t expr)
 	break;
       
     case FUNCALL:
-	// TODO: Check arguments
-	break;
+	if (expr[0].getType().getBase() != type_t::FUNCTION)
+	{
+	    handleError(expr[0], "A function name was expected here");
+	}
+	else
+	{
+	    checkFunctionCallArguments(expr);
+	}
+	return;
       
     default:
 	return;

@@ -1,3 +1,8 @@
+New in 0.50
+* Fixed bugs 32, 43, 46, 54, 58, 60, 82, 85, 88, 93, 97	and more
+* Added tracer example program: Reads trace files in UPPAAL XTR format.
+* Notice that some of the API has changed.
+
 New in 0.40
 * Bug fixes
 * Reimplemented expression representation

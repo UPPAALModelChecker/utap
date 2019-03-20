@@ -103,10 +103,10 @@ namespace UTAP
 	void setCurrentPosition(const position_t &);
 
 	// Called when an error is detected
-	void handleError(const char *);
+	void handleError(const char *, ...);
 
 	// Called when a warning is issued
-	void handleWarning(const char *);
+	void handleWarning(const char *, ...);
 
 	// Returns the errors
 	const std::vector<error_t> &getErrors() const;

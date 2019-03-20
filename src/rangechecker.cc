@@ -114,28 +114,57 @@ range_t RangeChecker::rangeOfBinary(
     throw UndefinedRangeException();
 }
 
-/**
-   Returns the declared range of a variable. The argument must be an
-   expression referring to a variable. The range returned is the
-   declared range of that variable, which might depend on the current
-   mapping.
-*/
-range_t RangeChecker::getDeclaredRange(expression_t expr) const
+bool RangeChecker::isInteger(expression_t expr) const
 {
-    return getDeclaredRange(expr.getSymbol());
+    return expr.getType().getBase() == type_t::INT
+	|| expr.getType().getBase() == type_t::BOOL;
 }
 
 /**
-   Returns the declared range of a variable. The argument must be the
-   symbol of a variable. The range returned is the declared range of
-   that variable, which might depend on the current mapping.
+   Returns the range of a variable. The argument must be an
+   expression referring to a variable. 
 */
+range_t RangeChecker::getDeclaredRange(expression_t expr) const
+{
+    symbol_t symbol = expr.getSymbol();
+    if (symbol == symbol_t())
+	throw UndefinedRangeException();
+    return getDeclaredRange(symbol);
+}
+
+/**
+ * Returns the range of a symbol. If the symbol is a constant value,
+ * then this value is returned. Otherwise the declared range is
+ * returned. The function substitutes formal parameters with actual
+ * arguments before computing the range. In case of arrays, the range
+ * of the base type is returned.
+ */
 range_t RangeChecker::getDeclaredRange(symbol_t symbol) const
 {
+    map<symbol_t, expression_t>::const_iterator i = 
+	interpreter.getValuation().find(symbol);
+    if (i != interpreter.getValuation().end()) {
+	if (symbol.getType().hasPrefix(prefix::REFERENCE)) {
+	    symbol_t symbol = i->second.getSymbol();
+	    if (symbol != symbol_t())
+		return getDeclaredRange(symbol);
+	    
+	    if (symbol.getType().hasPrefix(prefix::CONSTANT))
+		return getRange(i->second);
+
+	    throw UndefinedRangeException();
+	}
+
+	if (symbol.getType().hasPrefix(prefix::CONSTANT))
+	    return getRange(i->second);
+    }
+
     type_t type = symbol.getType();
     while (type.getBase() == type_t::ARRAY)
 	type = type.getSub();
     if (type.getBase() == type_t::LOCATION)
+	return range_t(0, 1);
+    if (type.getBase() == type_t::BOOL)
 	return range_t(0, 1);
     if (type.getBase() != type_t::INT) 
 	throw UndefinedRangeException();
@@ -147,25 +176,12 @@ range_t RangeChecker::getDeclaredRange(symbol_t symbol) const
     }
 }
 
-/** Returns the range of a symbol taking the current mapping
-    into account.
-*/
-range_t RangeChecker::getRange(symbol_t symbol) const
-{
-    map<symbol_t, expression_t>::const_iterator i = 
-	interpreter.getValuation().find(symbol);
-    if (i != interpreter.getValuation().end())
-	return getRange(i->second);
-    return getDeclaredRange(symbol);
-}
-
 /** Returns the range of an expression taking the current mapping
     into account.
 */
 range_t RangeChecker::getRange(expression_t expr) const
 {
     range_t range;
-    int32_t value;
 
     // If the evaluation failed, we need to compute the range
     switch (expr.getKind()) {
@@ -325,8 +341,8 @@ void RangeChecker::checkRange(expression_t expr)
     int size;
     switch (expr.getKind()) {
     case ASSIGN:
-	if (expr[1].getType().getBase() == type_t::INT) {
-	    if (expr[0].getType().getBase() == type_t::INT) {
+	if (isInteger(expr[1])) {
+	    if (isInteger(expr[0])) {
 		drange = getDeclaredRange(expr[0]);
 		range = getRange(expr[1]);
 		if (range.lower > drange.upper || range.upper < drange.lower)

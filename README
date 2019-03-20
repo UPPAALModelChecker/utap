@@ -1,4 +1,4 @@
-libutap, version 0.40
+libutap, version 0.50
 Mini HOWTO
 Gerd Behrmann
 
@@ -28,7 +28,8 @@ libutap is licensed under the LGPL.
 
 libutap uses automake and autoconf to make compilation on various
 platforms easy. You will need gcc 2.95.3 or newer, GNU make and
-libxml2 from http://www.xmlsoft.org. Simply run:
+libxml2 from http://www.xmlsoft.org (libxml needs to be older than
+2.6). Simply run:
 
 ./configure
 make
@@ -139,5 +140,7 @@ operations. Each node is referenced using an expression_t object.
 5. Contact
 
 If you have questions or comments to libutap, you can contact me on
-the following email address: behrmann@cs.auc.dk.
+the following email address: behrmann@cs.auc.dk. For a list of known
+bugs or for reporting new bugs take a look at the UPPAAL bugzilla
+installation at http://www.uppaal.com.
 

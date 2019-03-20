@@ -20,16 +20,16 @@
 
 VPATH = @srcdir@
 
-bin_PROGRAMS = pretty
+bin_PROGRAMS = pretty tracer
 lib_LIBRARIES = libutap.a
-EXTRA_PROGRAMS = decl_check
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/builder.hh utap/common.hh utap/expression.hh utap/statement.hh utap/symbols.hh utap/system.hh utap/typechecker.hh utap/utap.hh utap/systembuilder.hh utap/rangechecker.hh
+include_HEADERS = utap/builder.hh utap/common.hh utap/expression.hh utap/statement.hh utap/symbols.hh utap/system.hh utap/typechecker.hh utap/utap.hh utap/systembuilder.hh utap/rangechecker.hh utap/collectchangesvisitor.hh
 
 pretty_SOURCES = pretty.cc 
-decl_check_SOURCES = decl_check.cc
 
-libutap_a_SOURCES = expression.cc system.cc typechecker.cc typeexception.cc symbols.cc xmlreader.cc tags.gperf statement.cc error.cc parser.yy libparser.hh systembuilder.cc rangechecker.cc
+tracer_SOURCES = tracer.cc
+
+libutap_a_SOURCES = expression.cc system.cc typechecker.cc typeexception.cc symbols.cc xmlreader.cc tags.gperf statement.cc error.cc parser.yy libparser.hh systembuilder.cc rangechecker.cc collectchangesvisitor.cc
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)
@@ -69,7 +69,11 @@ keywords.cc: keywords.gperf
 parser.cc parser.h: parser.yy lexer.cc
 	$(YACC) -p utap_ -b parser $<
 	$(RM) parser.cc
-	mv parser.tab.c parser.cc
+	if [ -f parser.tab.cc ]; then\
+		mv parser.tab.cc parser.cc ;\
+	else\
+		mv -f parser.tab.c parser.cc;\
+	fi
 
 lexer.cc: lexer.ll
 	$(LEX) -Putap_ -o$@ $< 

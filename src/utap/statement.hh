@@ -22,8 +22,9 @@
 #ifndef UTAP_STATEMENT_H
 #define UTAP_STATEMENT_H
 
-#include "expression.hh"
-#include "symbols.hh"
+#include "utap/expression.hh"
+#include "utap/symbols.hh"
+#include "utap/system.hh"
 
 namespace UTAP
 {
@@ -31,16 +32,9 @@ namespace UTAP
 
     class Statement 
     {
-    protected:
-	bool returnDefined;
-	frame_t frame;    
     public:
 	virtual ~Statement() {};
 	virtual int32_t accept(StatementVisitor *visitor) = 0;
-
-	frame_t getFrame() { return frame; }
-	void setRetDefined(bool ret) { returnDefined = ret; }
-	bool retDefined() const { return returnDefined; }    
     protected:
 	Statement(frame_t);
     };
@@ -90,10 +84,11 @@ namespace UTAP
 	int32_t accept(StatementVisitor *visitor);
     };
 
-    class BlockStatement: public Statement 
+    class BlockStatement: public Statement, public declarations_t 
     {
     public:
 	typedef std::vector<Statement *>::const_iterator const_iterator;
+	typedef std::vector<Statement *>::iterator iterator;
     protected:
 	std::vector<Statement*> stats;
     public:
@@ -105,6 +100,8 @@ namespace UTAP
 	Statement* pop_stat();
 	const_iterator begin() const;
 	const_iterator end() const;
+	iterator begin();
+	iterator end();
     };
 
     class SwitchStatement: public BlockStatement
@@ -168,19 +165,19 @@ namespace UTAP
     {
     public:
 	virtual ~StatementVisitor() {};
-	virtual int32_t emptyStat(EmptyStatement *stat)=0;
-	virtual int32_t exprStat(ExprStatement *stat)=0;
-	virtual int32_t forStat(ForStatement *stat)=0;
-	virtual int32_t whileStat(WhileStatement *stat)=0;
-	virtual int32_t doWhileStat(DoWhileStatement *stat)=0;
-	virtual int32_t blockStat(BlockStatement *stat)=0;
-	virtual int32_t switchStat(SwitchStatement *stat)=0;
-	virtual int32_t caseStat(CaseStatement *stat)=0;
-	virtual int32_t defaultStat(DefaultStatement *stat)=0;
-	virtual int32_t ifStat(IfStatement *stat)=0;
-	virtual int32_t breakStat(BreakStatement *stat)=0;
-	virtual int32_t continueStat(ContinueStatement *stat)=0;
-	virtual int32_t returnStat(ReturnStatement *stat)=0;
+	virtual int32_t visitEmptyStatement(EmptyStatement *stat)=0;
+	virtual int32_t visitExprStatement(ExprStatement *stat)=0;
+	virtual int32_t visitForStatement(ForStatement *stat)=0;
+	virtual int32_t visitWhileStatement(WhileStatement *stat)=0;
+	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat)=0;
+	virtual int32_t visitBlockStatement(BlockStatement *stat)=0;
+	virtual int32_t visitSwitchStatement(SwitchStatement *stat)=0;
+	virtual int32_t visitCaseStatement(CaseStatement *stat)=0;
+	virtual int32_t visitDefaultStatement(DefaultStatement *stat)=0;
+	virtual int32_t visitIfStatement(IfStatement *stat)=0;
+	virtual int32_t visitBreakStatement(BreakStatement *stat)=0;
+	virtual int32_t visitContinueStatement(ContinueStatement *stat)=0;
+	virtual int32_t visitReturnStatement(ReturnStatement *stat)=0;
     
     protected:
 	StatementVisitor(){};

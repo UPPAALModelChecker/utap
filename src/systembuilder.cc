@@ -19,9 +19,6 @@
    USA
 */
 
-// TODO:
-//      add support for functions
-
 #include <vector>
 #include <climits>
 #include <cmath>
@@ -30,6 +27,7 @@
 #include <inttypes.h>
 
 #include "utap/systembuilder.hh"
+#include "utap/collectchangesvisitor.hh"
 
 using namespace UTAP;
 using namespace Constants;
@@ -52,7 +50,7 @@ void SystemBuilder::ExpressionFragments::pop(int32_t n)
     while (n--) pop();
 }
 
-SystemBuilder::SystemBuilder(TimedAutomataSystem *sys)
+ SystemBuilder::SystemBuilder(TimedAutomataSystem *sys)
 {
     system = sys;
     strict_range = false;
@@ -84,13 +82,6 @@ type_t SystemBuilder::getElementTypeOfArray(type_t type)
     return type;
 }
 
-/********************************************************************
- * Query functions (these are used by the lexical analyzer)
- */
-
-// isType(name): true if name is registered in the symbol table as
-// a named type (a.k.a. type name), e.g. "int" or "bool" or a user
-// defined type. 
 bool SystemBuilder::isType(const char* name) 
 {
     symbol_t uid;
@@ -99,6 +90,9 @@ bool SystemBuilder::isType(const char* name)
     return uid.getType().getBase() == type_t::NTYPE;
 }
 
+/**
+ * Returns true if and only if the given name has is a location.
+ */
 bool SystemBuilder::isLocation(const char *name)
 {
     symbol_t uid;
@@ -107,16 +101,13 @@ bool SystemBuilder::isLocation(const char *name)
     return uid.getType() == type_t::LOCATION;
 }
 
-/********************************************************************
- * Types
+/**
+ * Given a type and dim constant expressions on the expression stack,
+ * this function constructs and returns an array type using the type
+ * as the base type and the expressions as the array size (or sizes in
+ * case it is a multidimensional array). The expressions are popped of
+ * the expression stack.
  */
-
-
-// Given a type and dim constant expressions on the expression stack,
-// this function constructs and returns an array type using the type
-// as the base type and the expressions as the array size (or sizes in
-// case it is a multidimensional array). The expressions are popped of
-// the expression stack.
 type_t SystemBuilder::buildArrayType(type_t type, uint32_t dim)
 {
     uint32_t i = 0;
@@ -143,16 +134,20 @@ type_t SystemBuilder::buildArrayType(type_t type, uint32_t dim)
     return type;
 }
 
-// Given a prefix and a type, this method creates a new type by
-// applying the prefix. TypeExceptions might be thrown if the
-// combination of the prefix and the type is illegal.
-type_t SystemBuilder::applyPrefix(uint32_t prefix, type_t type)
+/**
+ * Given a prefix and a type, this method creates a new type by
+ * applying the prefix. TypeExceptions might be thrown if the
+ * combination of the prefix and the type is illegal.
+ */
+type_t SystemBuilder::applyPrefix(int32_t prefix, type_t type)
 {    
     type_t base = type.getBase();
     if (base == type_t::VOID_TYPE || base == type_t::CLOCK) {
 	if (prefix == PREFIX_NONE)
 	    return type;
-    } else if (base == type_t::INT || base == type_t::ARRAY || base == type_t::RECORD) {
+    } else if (base == type_t::INT || base == type_t::BOOL
+	       || base == type_t::ARRAY || base == type_t::RECORD)
+    {
 	switch (prefix) {
 	case PREFIX_NONE:
 	    return type;
@@ -175,17 +170,23 @@ type_t SystemBuilder::applyPrefix(uint32_t prefix, type_t type)
     return type;
 }
 
-// Push a new type onto the type stack. This type might subsequently
-// be used to declare e.g. variables. If range is true, then we expect
-// two constant expressions on the expression stack encoding the
-// beginning and end of the range. These fragments will be popped from
-// the expression stack.
-void SystemBuilder::declType(uint32_t prefix, const char* name, bool range)
+/**
+ * Push a new type onto the type stack. This type might subsequently
+ * be used to declare e.g. variables. If range is true, then we expect
+ * two expressions on the expression stack encoding the beginning and
+ * end of the range. These fragments will be popped from the
+ * expression stack.
+ */
+void SystemBuilder::typeName(int32_t prefix, const char* name, bool range)
 {
     symbol_t uid;
     assert(frame.resolve(name, uid));
-    frame.resolve(name, uid);
-    assert(uid.getType().getBase() == type_t::NTYPE);
+
+    if (!frame.resolve(name, uid) || uid.getType().getBase() != type_t::NTYPE)
+    {
+	typeFragments.push(type_t::VOID_TYPE);
+	throw TypeException("Identifier is undeclared or not a type name");
+    }
 
     type_t type = uid.getType().getSub();
     if (range) {
@@ -219,10 +220,12 @@ void SystemBuilder::declType(uint32_t prefix, const char* name, bool range)
     typeFragments.push(applyPrefix(prefix, type));
 }
 
-// Used to construct a new struct type, which is then pushed onto
-// the type stack. The type is based on n fields, which are expected
-// to be on and will be popped off the type stack.
-void SystemBuilder::declStruct(uint32_t prefix, uint32_t n)
+/**
+ * Used to construct a new struct type, which is then pushed onto the
+ * type stack. The type is based on n fields, which are expected to be
+ * on and will be popped off the type stack.
+ */
+void SystemBuilder::typeStruct(int32_t prefix, uint32_t n)
 {
     // Compute new type (each field has a singular record type)
     frame_t frame = frame_t::createFrame();
@@ -236,11 +239,13 @@ void SystemBuilder::declStruct(uint32_t prefix, uint32_t n)
     typeFragments.push(applyPrefix(prefix, type_t::createRecord(frame)));
 }
 
-// Used to declare the fields of a structure. The type of the field is
-// expected to be on the type fragment stack, and dim constant
-// expressions are expected on the expression stack (in case of an
-// array field). These will be popped of the stack.
-void SystemBuilder::declField(const char* name, uint32_t dim) 
+/**
+ * Used to declare the fields of a structure. The type of the field is
+ * expected to be on the type fragment stack, and dim constant
+ * expressions are expected on the expression stack (in case of an
+ * array field). These will be popped of the stack.
+ */
+void SystemBuilder::structField(const char* name, uint32_t dim) 
 {
     type_t type = typeFragments[0].first;
 
@@ -272,7 +277,7 @@ void SystemBuilder::declField(const char* name, uint32_t dim)
     }
     
     // Check base type
-    if (basetype != type_t::INT && basetype != type_t::RECORD)
+    if (basetype != type_t::BOOL && basetype != type_t::INT && basetype != type_t::RECORD)
 	throw TypeException("Invalid type in structure");
 
     // Copy type for next field
@@ -283,39 +288,43 @@ void SystemBuilder::declField(const char* name, uint32_t dim)
     typeFragments[1].second = strdup(name);
 }
 
-// The end of a number of field declarations of the same type. The
-// type must be popped of the type fragment stack.
-void SystemBuilder::declFieldEnd() 
+/**
+ * The end of a number of field declarations of the same type. The
+ * type must be popped of the type fragment stack.
+ */
+void SystemBuilder::structFieldEnd() 
 {
     typeFragments.pop();
 }
 
-// The type definition. Assign the name to the given type on the
-// type fragment stack. In case of array types, dim constant expressions
-// are expected on and popped from the expression stack.
+/**
+ * A type definition. Assign the name to the given type on the type
+ * fragment stack. In case of array types, dim constant expressions
+ * are expected on and popped from the expression stack.
+ */
 void SystemBuilder::declTypeDef(const char* name, uint32_t dim) 
 {
     type_t type = buildArrayType(typeFragments[0].first, dim);
     frame.addSymbol(name, type_t::createTypeName(type));
 }
 
-// End of type definition. Pop type of type stack.
+/**
+ * End of type definition. Pop type of type stack.
+ */
 void SystemBuilder::declTypeDefEnd() 
 {
     typeFragments.pop();
 }
 
-/********************************************************************
- * Variable declarations
+/**
+ * Declare a new variable of the given name. The type is expected to
+ * be on the type stack. In case of an array, dim constant expressions
+ * are expected on the expression stack. If the variable has an
+ * initialiser (the init parameter is true), then an additional
+ * constant expression is expected at the top of the expression stack.
+ * The expressions will be popped of the stack (the type is left
+ * untouched).
  */
-
-// Declare a new variable of the given name. The type is expected to
-// be on the type stack. In case of an array, dim constant expressions
-// are expected on the expression stack. If the variable has an
-// initialiser (the init parameter is true), then an additional
-// constant expression is expected at the top of the expression stack.
-// The expressions will be popped of the stack (the type is left
-// untouched).
 void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit) 
 {
     // Pop initial value
@@ -340,9 +349,13 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
     // Check whether initialiser is allowed/required
     type_t base = getElementTypeOfArray(type).getBase();
     if (base == type_t::CLOCK) {
+	if (currentFun)
+	    errorHandler->handleError("Clock declarations are not allowed inside functions");
 	if (hasInit)
 	    errorHandler->handleError("Clocks cannot have initialisers");
-    } else if (base == type_t::RECORD || base == type_t::INT) {
+    } else if (base == type_t::RECORD || base == type_t::INT
+	       || base == type_t::BOOL)
+    {
 	if (type.hasPrefix(prefix::CONSTANT) && !hasInit) {
 		errorHandler->handleError("Constants must have an initialiser");
 	}
@@ -358,8 +371,10 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
     system->addVariable(type, name, init);
 } 
 
-// At the end of a variable declaration, this method is called in
-// order to pop the type from the type stack.
+/**
+ * At the end of a variable declaration, this method is called in
+ * order to pop the type from the type stack.
+ */
 void SystemBuilder::declVarEnd() 
 {
     typeFragments.pop(); 
@@ -474,56 +489,55 @@ void SystemBuilder::declParameterEnd()
 
 void SystemBuilder::declFuncBegin(const char* name, uint32_t n) 
 {
-    try {
-	assert(currentFun == NULL);
-	type_t result = typeFragments[0].first;
-	typeFragments.pop(); // pop function result type
+    assert(currentFun == NULL);
+    type_t result = typeFragments[0].first;
+    typeFragments.pop(); // pop function result type
     
-	type_t type = type_t::createFunction(params, result);
-	currentFun = &(system->addFunction(type, name));
-	// TODO: What do we do in case of duplicate declarations?
+    type_t type = type_t::createFunction(params, result);
+    if (!system->addFunction(type, name, currentFun))
+	errorHandler->handleError("Duplicate definition");
 
-	// Notice: This adds an extra nested block inside the function,
-	// but this does not change the semantics so that is ok.
-	frame = frame_t::createFrame(frame);
-	currentFun->body = new BlockStatement(frame);
-	blocks.push_back(currentFun->body);
-
-	// Add function parameters to the frame
-	frame.add(params);
-    } catch (TypeException &e) {
-	errorHandler->handleError(e.what());
-    }
-
-    // Clear parameter frame
+    // Create new frame and add parameters; the new frame will
+    // be made the current frame
+    frame = frame_t::createFrame(frame);
+    frame.add(params);
     params = frame_t::createFrame();
+
+    // Create function block
+    currentFun->body = new BlockStatement(frame);
+    blocks.push_back(currentFun->body);
+
+    system->setDeclarationBlock(currentFun->body);
 }
 
 void SystemBuilder::declFuncEnd() 
 { 
     assert(!blocks.empty());
 
-    if (blocks.size() > 1) { // we are recovering from unfinished blocks
-	// normaly all block statements must be closed and removed from stack
-	do {
-	    BlockStatement *block = blocks.back();
-	    blocks.pop_back();
-	    if (blocks.size() > 1)
-		blocks.back()->push_stat(block);
-	    else
-		break;
-	} while (true);	
+    // Recover from unterminated blocks - delete any excess blocks 
+    while (blocks.size() > 1) {
+	delete blocks.back();
+	blocks.pop_back();
     }
 
-    if (currentFun != NULL) {
-	currentFun->body = blocks.back();
-	blocks.pop_back();
+    // Pop outer function block
+    blocks.pop_back();
 
-	frame = frame.getParent();
-	currentFun = NULL;
+    // Collect symbols which are changes by the function
+    CollectChangesVisitor visitor(currentFun->changes);
+    currentFun->body->accept(&visitor);    
+
+    // Restore global frame
+    frame = frame.getParent();
+
+    // Reset current function pointer to NULL
+    currentFun = NULL;
+
+    // Restore current declaration block
+    if (currentTemplate) {
+	system->setDeclarationBlock(currentTemplate);
     } else {
-	// something was wrong with fn declaration, we ignore
-	blocks.pop_back();
+	system->setDeclarationBlock(&system->getGlobals());
     }
 }
 
@@ -535,17 +549,19 @@ void SystemBuilder::procBegin(const char* name, uint32_t n)
     assert(params.getSize() == n);
     if (frame.getIndexOf(name) != -1) 
 	errorHandler->handleError("Identifier defined multiple times");
-    frame = system->addTemplate(name, params).frame;
+    currentTemplate = &system->addTemplate(name, params);
+    frame = currentTemplate->frame;
     params = frame_t::createFrame();
 }
     
 void SystemBuilder::procEnd() // 1 ProcBody
 {
-    template_t &templ = system->getCurrentTemplate();
-    system->setCurrentTemplate(system->getGlobals());
-    frame = frame.getParent();
-    if (templ.init == symbol_t())
+    if (currentTemplate->init == symbol_t())
 	errorHandler->handleError("Missing initial state");
+
+    currentTemplate = NULL;
+    system->setDeclarationBlock(&system->getGlobals());
+    frame = frame.getParent();
 }
 
 // Add a state to the current template. An invariant expression is
@@ -597,7 +613,7 @@ void SystemBuilder::procStateInit(const char* name)
     {
 	throw TypeException("Location expected here");
     }
-    system->getCurrentTemplate().init = uid;
+    currentTemplate->init = uid;
 }
     
 void SystemBuilder::procTransition(const char* from, const char* to)
@@ -669,20 +685,19 @@ void SystemBuilder::blockBegin()
 
 void SystemBuilder::blockEnd() 
 {
+    // Append the block which is being terminated as a statement to
+    // the containing block.
     BlockStatement *block = blocks.back();
     blocks.pop_back();
-    if (!blocks.empty()) { // if this was inner block
-	blocks.back()->setRetDefined(
-	    blocks.back()->retDefined() || // mark dead code
-	    block->retDefined());
-	blocks.back()->push_stat(block);
-    }
+    blocks.back()->push_stat(block);
+
+    // Restore containing frame
     frame = frame.getParent();
 }
 
 void SystemBuilder::emptyStatement() 
 {
-    blocks.back()->push_stat(new EmptyStatement(blocks.back()->getFrame()));
+    blocks.back()->push_stat(new EmptyStatement(frame));
 }
 
 void SystemBuilder::forBegin() 
@@ -693,15 +708,12 @@ void SystemBuilder::forBegin()
 void SystemBuilder::forEnd() 
 { // 3 expr, 1 stat
     Statement* substat = blocks.back()->pop_stat();
-    ForStatement* forstat = new ForStatement(blocks.back()->getFrame(), 
+    ForStatement* forstat = new ForStatement(frame,
 					     fragments[2], fragments[1], 
 					     fragments[0], substat);
-    forstat->setRetDefined(substat->retDefined());
     blocks.back()->push_stat(forstat);
 
-    fragments.pop();
-    fragments.pop();
-    fragments.pop();
+    fragments.pop(3);
 }
 
 void SystemBuilder::whileBegin() 
@@ -711,9 +723,8 @@ void SystemBuilder::whileBegin()
 void SystemBuilder::whileEnd() 
 { // 1 expr, 1 stat
     Statement* substat = blocks.back()->pop_stat();
-    WhileStatement* whilestat = new WhileStatement(blocks.back()->getFrame(),
+    WhileStatement* whilestat = new WhileStatement(frame,
 						   fragments[0], substat);
-    whilestat->setRetDefined(substat->retDefined());
     blocks.back()->push_stat(whilestat);
 
     fragments.pop();
@@ -727,7 +738,7 @@ void SystemBuilder::doWhileEnd()
 { // 1 stat, 1 expr
     Statement* substat = blocks.back()->pop_stat();
     blocks.back()->push_stat(
-	new DoWhileStatement(blocks.back()->getFrame(), substat, fragments[0]));
+	new DoWhileStatement(frame, substat, fragments[0]));
     fragments.pop();
 }
 
@@ -741,16 +752,10 @@ void SystemBuilder::ifElse()
 
 void SystemBuilder::ifEnd(bool elsePart)
 { // 1 expr, 1 or 2 statements
-    Statement *falseCase = NULL;
-    if (elsePart) falseCase = blocks.back()->pop_stat();
-
+    Statement *falseCase = (elsePart ? blocks.back()->pop_stat() : NULL);
     Statement *trueCase = blocks.back()->pop_stat();
-
-    IfStatement *ifstat = new IfStatement(blocks.back()->getFrame(), 
+    IfStatement *ifstat = new IfStatement(frame,
 					  fragments[0], trueCase, falseCase);
-
-    if (elsePart) ifstat->setRetDefined(trueCase->retDefined() && 
-					falseCase->retDefined());
 
     blocks.back()->push_stat(ifstat);
 
@@ -759,17 +764,16 @@ void SystemBuilder::ifEnd(bool elsePart)
 
 void SystemBuilder::breakStatement()
 {
-    blocks.back()->push_stat(new BreakStatement(blocks.back()->getFrame()));
+    blocks.back()->push_stat(new BreakStatement(frame));
 }
 
 void SystemBuilder::continueStatement()
 {
-    blocks.back()->push_stat(new ContinueStatement(blocks.back()->getFrame()));
+    blocks.back()->push_stat(new ContinueStatement(frame));
 }
 
 void SystemBuilder::switchBegin()
 { // 1 expr
-    frame = frame_t::createFrame();
     blocks.push_back(new SwitchStatement(frame, fragments[0]));
     fragments.pop();
 }
@@ -778,7 +782,6 @@ void SystemBuilder::switchEnd()
     BlockStatement *block = blocks.back();
     blocks.pop_back();
     blocks.back()->push_stat(block);
-    frame = frame.getParent();
 }
 
 void SystemBuilder::caseBegin() 
@@ -808,35 +811,20 @@ void SystemBuilder::defaultEnd()
 
 void SystemBuilder::exprStatement() 
 { // 1 expr
-    blocks.back()->push_stat(new ExprStatement(blocks.back()->getFrame(), 
-					       fragments[0]));
+    blocks.back()->push_stat(new ExprStatement(frame, fragments[0]));
     fragments.pop();
 }
 
 void SystemBuilder::returnStatement(bool args) 
 { // 1 expr if argument is true
-    assert(currentFun != NULL);
-    type_t result = currentFun->uid.getType().getSub();
-    type_t base = result.getBase();
-    
-    if (!args) {
-	if (base != type_t::VOID_TYPE)
-	    throw TypeException("non-void function must return a value");
-	ReturnStatement* stat = new ReturnStatement(blocks.back()->getFrame());
-	blocks.back()->push_stat(stat);
-	blocks.back()->setRetDefined(true);
-	return;
+    ReturnStatement* stat;
+    if (args) {
+	stat = new ReturnStatement(frame, fragments[0]);
+	fragments.pop();
+    } else {
+	stat = new ReturnStatement(frame);
     }
-    
-    type_t type = fragments[0].getType();
-    ReturnStatement* retstat = new ReturnStatement(blocks.back()->getFrame(), 
-						   fragments[0]);
-    fragments.pop();
-    blocks.back()->push_stat(retstat);
-    blocks.back()->setRetDefined(true);
-
-    if (base == type_t::VOID_TYPE)
-	throw TypeException("void function does not return any value");
+    blocks.back()->push_stat(stat);
 }
 
 /********************************************************************
@@ -857,8 +845,8 @@ void SystemBuilder::exprId(const char *name)
     symbol_t uid;
 
     if (!frame.resolve(name, uid)) {
-	fragments.push(expression_t::createIdentifier(position, symbol_t()));
-	throw TypeException("%s: Unknown identifier", name);
+	exprFalse();
+	throw TypeException("Unknown identifier: %s", name);
     }
 
     fragments.push(expression_t::createIdentifier(position, uid));
@@ -869,11 +857,13 @@ void SystemBuilder::exprId(const char *name)
 	throw TypeException("Process references are not allowed");
 
     if (base != type_t::INT
+	&& base != type_t::BOOL
 	&& base != type_t::ARRAY
 	&& base != type_t::CLOCK
 	&& base != type_t::CHANNEL
 	&& base != type_t::RECORD
-	&& base != type_t::PROCESS)
+	&& base != type_t::PROCESS
+	&& base != type_t::VOID_TYPE) // See (*) above
     {
 	throw TypeException("Identifier of this type cannot be referenced in an expression");
     }    
@@ -896,62 +886,82 @@ void SystemBuilder::exprNat(int32_t n)
 
 void SystemBuilder::exprCallBegin(const char *functionName) 
 {
-    expectedArguments.push_back(vector<type_t>());
-    identifierStack.push_back(symbol_t());
+    /* For function calls we leave the type checking to the type
+     * checker. To avoid that exprArg() is producing errors, we push
+     * MAX_INT as the expected number of arguments.
+     */
+    expectedArguments.push_back(INT_MAX);
 
-    if (!frame.resolve(functionName, identifierStack.back())) 
-	throw TypeException("function '%s' not declared", functionName);
+    /* Resolve identifier. If unknown, we leave a symbol_t() on the
+     * stack.
+     */
+    symbol_t id;
+    bool found = frame.resolve(functionName, id);
+    fragments.push(expression_t::createIdentifier(position, id));
 
-    symbol_t id = identifierStack.back();
-    
-    if (id.getType().getBase() != type_t::FUNCTION)
-	throw TypeException("Not a function: %s", functionName);
-    
+    if (!found) 
+    {
+	throw TypeException("Unknown identifier: %s", functionName);
+    }
+
+    /* Check for recursive function calls. We could move this to
+     * the type checker.
+     */
     if (currentFun != NULL && currentFun->uid == id)
+    {
 	throw TypeException("recursion is not allowed", functionName);
-
-    frame_t params = id.getType().getParameters();
-    for (int i = params.getSize() - 1; i >= 0; i--)
-	expectedArguments.back().push_back(params[i].getType());
+    }
 }
 
 // expects n argument expressions on the stack
 void SystemBuilder::exprCallEnd(uint32_t n) 
 {
-    symbol_t id = identifierStack.back();
-    identifierStack.pop_back();
-
-    if (!expectedArguments.back().empty())
-	errorHandler->handleError("Too few arguments");
-
     expectedArguments.pop_back();
-    
+ 
+    /* exprCallBegin() pushes symbol_t() if and only if the identifier
+     * is undeclared: In that case we pop the fragments and push a
+     * dummy expression to recover from the error.
+     */
+    symbol_t id = fragments[n].getSymbol();
     if (id == symbol_t())
+    {
+	fragments.pop(n + 1);
+	exprFalse();
 	return;
-    
-    type_t result = id.getType().getSub();
+    }
 
-    // Create vector of sub expressions: The first sub expression
-    // evaluates to the function. The remaining sub expressions
-    // are the arguments.
-    vector<expression_t> sub;
-    sub.push_back(expression_t::createIdentifier(position_t(), id));
+    /* If id is a function call, then retrieve the type.
+     */
+    type_t result = type_t::VOID_TYPE;
+    if (id.getType().getBase() == type_t::FUNCTION)
+    {
+	result = id.getType().getSub();
+    }
 
-    // Pop arguments
-    for (int i = n - 1; i >= 0; i--)
-	sub.push_back(fragments[i]);
-    fragments.pop(n);
+    /* Create vector of sub expressions: The first expression
+     * evaluates to the function. The remaining expressions are the
+     * arguments.
+     */
+    vector<expression_t> expr;
+    for (int i = n; i >= 0; i--)
+    {
+	expr.push_back(fragments[i]);
+    }
+    fragments.pop(n + 1);
 
-    // Push FUNCALL expression
-    fragments.push(expression_t::createNary(position, FUNCALL, sub, result));
+    /* Create the function call expression.
+     */
+    fragments.push(expression_t::createNary(position, FUNCALL, expr, result));
 }
 
-// expects 1 expression on the stack
+// expects 1 expression on the stack: Notice that that arguments are
+// counted from 1.
 void SystemBuilder::exprArg(uint32_t n) 
 {
-    if (expectedArguments.back().empty())
+    if (n > expectedArguments.back())
+    {
 	throw TypeException("Too many arguments");
-    expectedArguments.back().pop_back();
+    }
 }
 
 // 2 expr     // array[index]
@@ -1011,9 +1021,17 @@ void SystemBuilder::exprAssignment(kind_t op) // 2 expr
 
 void SystemBuilder::exprUnary(kind_t unaryop) // 1 expr
 {
-    if (unaryop == MINUS)
+    switch (unaryop)
+    {
+    case PLUS:
+	/* Unary plus can be ignored */
+	break;
+    case MINUS:
 	unaryop = UNARY_MINUS;
-    fragments[0] = expression_t::createUnary(position, unaryop, fragments[0]);
+	/* Fall through! */
+    default:
+	fragments[0] = expression_t::createUnary(position, unaryop, fragments[0]);
+    }
 }
     
 void SystemBuilder::exprBinary(kind_t binaryop) // 2 expr
@@ -1053,7 +1071,9 @@ void SystemBuilder::exprDot(const char *id)
 	frame_t fields = type.getFrame();
 	int i = fields.getIndexOf(id);
 	if (i == -1) {
-	    errorHandler->handleError("Structure has no such member");
+	    char *s = expr.toString(true);
+	    errorHandler->handleError("%s has no member named %s", s, id);
+	    delete[] s;
 	    expr = expression_t::createDot(position, expr);
 	} else if (fields[i].getType().getBase() == type_t::LOCATION) {
 	    expr = expression_t::createDot(position, expr, i, type_t::INT);
@@ -1075,7 +1095,7 @@ void SystemBuilder::exprDot(const char *id)
 // Prepares for the instantiations of a process
 void SystemBuilder::instantiationBegin(const char* name, const char* templ_name)
 {
-    expectedArguments.push_back(vector<type_t>());
+    expectedArguments.push_back(0);
     identifierStack.push_back(symbol_t());
 
     if (!frame.resolve(templ_name, identifierStack.back()))
@@ -1086,9 +1106,7 @@ void SystemBuilder::instantiationBegin(const char* name, const char* templ_name)
     if (id.getType().getBase() != type_t::TEMPLATE) 
 	throw TypeException("Not a template: %s", templ_name);
 
-    frame_t params = id.getType().getParameters();
-    for (int i = params.getSize() - 1; i >= 0; i--)
-	expectedArguments.back().push_back(params[i].getType());
+    expectedArguments.back() = id.getType().getParameters().getSize();
 }
 
 void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, uint32_t n)
@@ -1096,9 +1114,12 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
     symbol_t id = identifierStack.back();
     identifierStack.pop_back();
 
-    if (!expectedArguments.back().empty())
+    /* Check that enough arguments were given.
+     */
+    if (n < expectedArguments.back())
+    {
 	errorHandler->handleError("Too few arguments");
-
+    }
     expectedArguments.pop_back();
 
     if (id == symbol_t())
@@ -1166,31 +1187,3 @@ void SystemBuilder::afterUpdate()
 {
 
 }
-
-// bool parseXTA(FILE *file, ErrorHandler *error, TimedAutomataSystem *system, bool newxta)
-// {
-//     SystemBuilder builder(system);
-//     parseXTA(file, &builder, error, newxta);
-//     return !error->hasErrors();
-// }
-
-// bool parseXTA(const char *buffer, ErrorHandler *error, TimedAutomataSystem *system, bool newxta)
-// {
-//     SystemBuilder builder(system);
-//     parseXTA(buffer, &builder, error, newxta);
-//     return !error->hasErrors();
-// }
-
-// bool parseXMLBuffer(const char *buffer, ErrorHandler *error, TimedAutomataSystem *system, bool newxta)
-// {
-//     SystemBuilder builder(system);
-//     parseXMLBuffer(buffer, &builder, error, newxta);
-//     return !error->hasErrors();
-// }
-
-// bool parseXMLFile(const char *file, ErrorHandler *error, TimedAutomataSystem *system, bool newxta)
-// {
-//     SystemBuilder builder(system);
-//     parseXMLFile(file, &builder, error, newxta);
-//     return !error->hasErrors();
-// }

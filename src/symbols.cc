@@ -42,6 +42,7 @@ type_t type_t::UNKNOWN = type_t::createBase();
 type_t type_t::VOID_TYPE = type_t::createBase();
 type_t type_t::CLOCK = type_t::createBase();
 type_t type_t::INT = type_t::createBase();
+type_t type_t::BOOL = type_t::createBase();
 type_t type_t::LOCATION = type_t::createBase();
 type_t type_t::CHANNEL = type_t::createBase();
 type_t type_t::TEMPLATE = type_t::createBase();
@@ -108,6 +109,11 @@ bool range_t::contains(const range_t &r) const
 bool range_t::contains(int32_t value) const
 {
     return lower <= value && value <= upper;
+}
+
+bool range_t::isEmpty() const
+{
+    return lower > upper;
 }
 
 //////////////////////////////////////////////////////////////////////////

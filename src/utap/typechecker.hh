@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -28,6 +28,7 @@
 #include "utap/system.hh"
 #include "utap/common.hh"
 #include "utap/expression.hh"
+#include "utap/statement.hh"
 
 namespace UTAP
 {
@@ -49,13 +50,12 @@ namespace UTAP
     };
 
     /** A visitor which type checks the system it visits. */
-    class TypeChecker : public ContextVisitor
+    class TypeChecker : public ContextVisitor, public StatementVisitor
     {
     private:
 	ErrorHandler *errorHandler;
 	TimedAutomataSystem *system;
 	PersistentVariables persistentVariables;
-	static std::map<symbol_t, expression_t> empty;
     
 	void annotate(expression_t expr);
 	void checkInitialiser(variable_t &var);
@@ -76,8 +76,20 @@ namespace UTAP
 	void checkParameterCompatible(const Interpreter &,
 				      type_t param, expression_t expr);
 
-	/** Checks that the range of an integer is type correct. */
-	void checkIntegerType(type_t type);
+	/** Checks that the expression is a valid 'statement expression' */
+	void checkAssignmentExpressionInFunction(expression_t);
+
+	/** Checks that the expression can be used as a condition (e.g. for if) */
+	void checkConditionalExpressionInFunction(expression_t);
+
+	/** Checks that the arguments of a function call expression are valid */
+	void checkFunctionCallArguments(expression_t);
+
+	void annotateAndExpectConstantInteger(expression_t);
+	void checkType(type_t);
+
+	/** Check that a variable declaration is type correct. */
+	void checkVariableDeclaration(variable_t &variable);
     
 	expression_t makeConstant(int);
 	type_t typeOfBinaryNonInt(expression_t, uint32_t binaryop, expression_t);
@@ -92,6 +104,22 @@ namespace UTAP
 	virtual void visitTransition(transition_t &);
 	virtual void visitInstance(instance_t &);
 	virtual void visitProperty(expression_t);
+	virtual void visitFunction(function_t &);
+
+	virtual int32_t visitEmptyStatement(EmptyStatement *stat);
+	virtual int32_t visitExprStatement(ExprStatement *stat);
+	virtual int32_t visitForStatement(ForStatement *stat);
+	virtual int32_t visitWhileStatement(WhileStatement *stat);
+	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
+	virtual int32_t visitBlockStatement(BlockStatement *stat);
+	virtual int32_t visitSwitchStatement(SwitchStatement *stat);
+	virtual int32_t visitCaseStatement(CaseStatement *stat);
+	virtual int32_t visitDefaultStatement(DefaultStatement *stat);
+	virtual int32_t visitIfStatement(IfStatement *stat);
+	virtual int32_t visitBreakStatement(BreakStatement *stat);
+	virtual int32_t visitContinueStatement(ContinueStatement *stat);
+	virtual int32_t visitReturnStatement(ReturnStatement *stat);
+
     };
 }
 

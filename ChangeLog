@@ -1,3 +1,60 @@
+2004-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed decl_check debug code
+	* Documentation updates
+	* Renamed some ParserBuilder methods
+	* Moved more things to the UTAP name space
+	* Removed bogus computation of deadcode from SystemBuilder
+	* Fixed some error handling productions in parser.yy
+	* First steps to type checking functions
+	* More updates in the error recovery rules of the parser
+	* In TimedAutomataSystem, replaced 'current template' with 'current
+	  declaration block', which can be a template or a statement block
+	* Changed method names for StatementVisitor (using a verb)
+	* Added CollectChangesVisitor for collecting which variables might
+	  be changed by a functiono Added check for non-constant reference
+  	  paramters to ::changesVariable and ::collectPossibleWrites	
+	* Added error message for clock declarations inside functions
+	* Made recursion on false-case of if statements conditional
+	* Added type checking of expressions used inside functions
+	* Added checks to make sure that only valid expressions are used in
+	  functions
+	* Moved some of the template specific checks out of 
+	  checkParameterCompatible()
+	* Added range_t::isEmpty()
+	* Changed checkParameterCompatible() to also handle cases which would
+	  not appear with templates, but could happen with functions
+	* Implemented getSize for FUNCALL expressions
+	* Added parameter checking for functions
+	* Added some TODO information
+	* Removed unused variable from RangeChecker
+	* Reimplemented expresson_t::toString() to reduce the number of 
+	  allocations
+	* Fixed problem with evaluating an empty expression
+	* Fixed problem in RangeChecker in determining the range of template
+	  parameters without an explicit range
+	* Added type_t::BOOL type to libutap (assignment to a bool variable is
+	  not the same as assignment to a int[0,1] variable).
+	* Updated internal builder to handle assignments to bool variables 
+	  correctly 
+	* Replaced call to strlcpy with a while loop (strlcpy does not exist
+	  on Linux)
+	* Added check to ::typeName method to ensure that the identifier 
+	  is actually a type name (this is normally ensured by the parser
+	  already, but as described in bug 41 there is a single situation
+	  where this is actually not the case; anyway, the method should not 
+	  assume that the caller always provides valid arguments).
+	* Fixed bug in expression_t::equal
+	* Fixed bug in TimedAutomataSystem::addVariable	
+	* Added type check for expressions used in the type of a variable 
+	  declaration.
+	* Added example program (tracer) which reads UPPAAL trace files
+	  (xtr files) and prints them to stdout.
+	* Added collectPossibleWrites method to expression_t
+	* In SystemBuilder::declFunEnd, used CollectChangesVisitor to 
+	  initialise the changes attribute of the function_t structure
+	  (which is used to determine whether a function has side effects).
+        * Fixed bugs 32, 43, 46, 54, 58, 60, 82, 85, 88, 93, 97	
+	
 2003-06-24  Gerd Behrmann  <behrmann@cs.auc.dk>
 	* Marked expression_t::collectAlwaysChangedSymbols() to const
 	* Removed expression_t::collectAlwaysChanged... method

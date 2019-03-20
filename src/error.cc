@@ -19,6 +19,8 @@
    USA
 */
 
+#include <cstdarg>
+#include <cstdio>
 #include "utap/common.hh"
 
 using namespace UTAP;
@@ -61,21 +63,33 @@ void ErrorHandler::setCurrentPosition(const position_t &p)
 }
 
 // Called when an error is detected
-void ErrorHandler::handleError(const char *msg)
+void ErrorHandler::handleError(const char *msg, ...)
 {
-  errors.push_back(error_t(first_line, first_column, last_line, last_column));
-  errors.back().setMessage(msg);
-  if (currentPath)
-    errors.back().setPath(currentPath->get());
+    char str[256];
+    va_list ap;
+    va_start(ap, msg);
+    vsnprintf(str, 256, msg, ap);
+    va_end(ap);
+
+    errors.push_back(error_t(first_line, first_column, last_line, last_column));
+    errors.back().setMessage(str);
+    if (currentPath)
+	errors.back().setPath(currentPath->get());
 }
 
 // Called when a warning is issued
-void ErrorHandler::handleWarning(const char *msg)
+void ErrorHandler::handleWarning(const char *msg, ...)
 {
-  warnings.push_back(error_t(first_line, first_column, last_line, last_column));
-  warnings.back().setMessage(msg);
-  if (currentPath)
-    warnings.back().setPath(currentPath->get());
+    char str[256];
+    va_list ap;
+    va_start(ap, msg);
+    vsnprintf(str, 256, msg, ap);
+    va_end(ap);
+
+    warnings.push_back(error_t(first_line, first_column, last_line, last_column));
+    warnings.back().setMessage(str);
+    if (currentPath)
+	warnings.back().setPath(currentPath->get());
 }
 
 // Returns the errors

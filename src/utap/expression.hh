@@ -147,6 +147,8 @@ namespace UTAP
 	    any of the symbols in the given set. */
 	bool dependsOn(const std::set<symbol_t> &) const;
 
+	void collectPossibleWrites(std::set<symbol_t> &) const;
+
 	/** Create a CONSTANT expression. */
 	static expression_t createConstant(const position_t &, int32_t);
 
@@ -187,7 +189,7 @@ namespace UTAP
 	struct expression_data;
 	expression_data *data;
 	int getPrecedence() const;
-	std::pair<int, char*> toString_(bool) const;
+	void toString(bool, char *&str, char *&end, int &size) const;
     };
 
     class InterpreterException : public std::exception

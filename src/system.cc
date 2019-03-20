@@ -27,6 +27,7 @@
 
 #include "utap/builder.hh"
 #include "utap/system.hh"
+#include "utap/statement.hh"
 #include "libparser.hh"
 
 using namespace UTAP;
@@ -46,15 +47,16 @@ static const char *const unsupported
 = "Internal error: Feature not supported in this mode.";
 static const char *const invalid_type = "Invalid type";
 
+function_t::~function_t()
+{
+    delete body; 
+}
+
 TimedAutomataSystem::TimedAutomataSystem()
 {
-    current_template = &global;
+    setDeclarationBlock(&global);
     global.frame = frame_t::createFrame();
-    global.frame.addSymbol(
-	"bool", type_t::createTypeName(
-	    type_t::createInteger(
-		expression_t::createConstant(position_t(), 0), 
-		expression_t::createConstant(position_t(), 1))));
+    global.frame.addSymbol("bool", type_t::createTypeName(type_t::BOOL));
     global.frame.addSymbol("int", type_t::createTypeName(type_t::INT));
     global.frame.addSymbol("chan", type_t::createTypeName(type_t::CHANNEL));
     global.frame.addSymbol("clock", type_t::createTypeName(type_t::CLOCK));
@@ -101,18 +103,18 @@ template_t &TimedAutomataSystem::addTemplate(const char *name, frame_t params)
     templ.frame = frame_t::createFrame(global.frame);
     templ.frame.add(params);
     templ.nr = nr;
-    setCurrentTemplate(templ);
+    setDeclarationBlock(&templ);
     return templ;
 }
 
 state_t &TimedAutomataSystem::addLocation(const char *name, expression_t inv)
 {
-    bool duplicate = current_template->frame.getIndexOf(name) != -1;
+    bool duplicate = current->frame.getIndexOf(name) != -1;
     
-    current_template->states.push_back(state_t());
-    state_t &state = current_template->states.back();
-    state.uid = current_template->frame.addSymbol(name, type_t::LOCATION, &state);
-    state.locNr = current_template->states.size() - 1;
+    current->states.push_back(state_t());
+    state_t &state = current->states.back();
+    state.uid = current->frame.addSymbol(name, type_t::LOCATION, &state);
+    state.locNr = current->states.size() - 1;
     state.invariant = inv;
 
     if (duplicate) {	
@@ -124,7 +126,7 @@ state_t &TimedAutomataSystem::addLocation(const char *name, expression_t inv)
 
 transition_t &TimedAutomataSystem::addTransition(symbol_t src, symbol_t dst)
 {
-    list<transition_t> &trans = current_template->transitions;
+    list<transition_t> &trans = current->transitions;
     int32_t nr = trans.empty() ? 0 : trans.back().nr + 1;
     trans.push_back(transition_t());
     trans.back().src = static_cast<state_t*>(src.getData());
@@ -175,57 +177,50 @@ process_t &TimedAutomataSystem::addProcess(symbol_t uid)
     return *process;
 }
 
-template_t &TimedAutomataSystem::getCurrentTemplate()
+void TimedAutomataSystem::setDeclarationBlock(declarations_t *value)
 {
-    return *current_template;
+    current = value;
 }
 
-void TimedAutomataSystem::setCurrentTemplate(template_t &value)
-{
-    current_template = &value;
-}
-
-// Add an integer to current_template (which might be the "global"
-// template)
-void TimedAutomataSystem::addVariable(
+// Add a regular variable
+variable_t *TimedAutomataSystem::addVariable(
     type_t type, const char *name, expression_t initial)
 {
-    bool duplicate = current_template->frame.getIndexOf(name) != -1;
+    bool duplicate = current->frame.getIndexOf(name) != -1;
     variable_t *var;
 
     // Add variable
-    current_template->variables.push_back(variable_t());
-    var = &current_template->variables.back();
+    current->variables.push_back(variable_t());
+    var = &current->variables.back();
     var->expr = initial;
-    var->global = (current_template == &global);
+    var->global = (current == &global);
 
     // Add symbol
-    var->uid = current_template->frame.addSymbol(name, type, var);
-    if (duplicate)
-	throw TypeException("Duplicate definition of identifier %s", name);
+    var->uid = current->frame.addSymbol(name, type, var);
 
     if (type.hasPrefix(prefix::CONSTANT)) {
 	constants.insert(var->uid);
-	// FIXME: This will not work for structures (the order
+	// TODO: This will not work for structures (the order
 	// of the initialiser fields might not match the declaration
 	// of the struct).
 	constantValuation[var->uid] = var->expr;
     }
+
+    if (duplicate)
+	throw TypeException("Duplicate definition of identifier %s", name);
+
+    return var;
 }
 
-// Add a function to current_template (which might be the "global" template)
-function_t &TimedAutomataSystem::addFunction(type_t type, const char *name)
+// Add a function 
+bool TimedAutomataSystem::addFunction(type_t type, const char *name, function_t *&fun)
 {	
-    bool duplicate = current_template->frame.getIndexOf(name) != -1;
-    // Add function
-    current_template->functions.push_back(function_t());
-    function_t &fun = current_template->functions.back();
-    fun.global = (current_template == &global);
-    // Add symbol
-    fun.uid = current_template->frame.addSymbol(name, type, &fun);
-    if (duplicate) 
-	throw TypeException("Duplicate definition of identifier %s", name);
-    return fun;
+    bool duplicate = current->frame.getIndexOf(name) != -1;
+    current->functions.push_back(function_t());
+    fun = &current->functions.back();
+    fun->global = (current == &global);
+    fun->uid = current->frame.addSymbol(name, type, fun); // Add symbol
+    return !duplicate;
 }
 
 void TimedAutomataSystem::accept(SystemVisitor &visitor)

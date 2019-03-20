@@ -26,7 +26,6 @@
 using namespace UTAP;
 
 Statement::Statement(frame_t frame)
-    : returnDefined(false), frame(frame)
 {
 
 }
@@ -39,7 +38,7 @@ EmptyStatement::EmptyStatement(frame_t frame) : Statement(frame)
 
 int32_t EmptyStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->emptyStat(this); 
+    return visitor->visitEmptyStatement(this); 
 }
 
 ExprStatement::ExprStatement(frame_t frame, expression_t expr)
@@ -50,7 +49,7 @@ ExprStatement::ExprStatement(frame_t frame, expression_t expr)
 
 int32_t ExprStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->exprStat(this);
+    return visitor->visitExprStatement(this);
 }
 
 ForStatement::ForStatement(frame_t frame, expression_t init,
@@ -62,7 +61,7 @@ ForStatement::ForStatement(frame_t frame, expression_t init,
 
 int32_t ForStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->forStat(this);
+    return visitor->visitForStatement(this);
 }
 
 WhileStatement::WhileStatement(frame_t frame, expression_t cond,
@@ -74,7 +73,7 @@ WhileStatement::WhileStatement(frame_t frame, expression_t cond,
 
 int32_t WhileStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->whileStat(this);
+    return visitor->visitWhileStatement(this);
 }
 
 DoWhileStatement::DoWhileStatement(frame_t frame, Statement* _stat,
@@ -86,13 +85,13 @@ DoWhileStatement::DoWhileStatement(frame_t frame, Statement* _stat,
 
 int32_t DoWhileStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->doWhileStat(this);
+    return visitor->visitDoWhileStatement(this);
 }
 
 BlockStatement::BlockStatement(frame_t frame)
     : Statement(frame)
 {
-
+    this->frame = frame;
 }
 
 BlockStatement::~BlockStatement()
@@ -116,6 +115,16 @@ BlockStatement::const_iterator BlockStatement::end() const
     return stats.end();
 }
 
+BlockStatement::iterator BlockStatement::begin()
+{
+    return stats.begin();
+}
+
+BlockStatement::iterator BlockStatement::end() 
+{
+    return stats.end();
+}
+
 Statement* BlockStatement::pop_stat()
 { 
     assert(!stats.empty()); 
@@ -126,7 +135,7 @@ Statement* BlockStatement::pop_stat()
 
 int32_t BlockStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->blockStat(this);
+    return visitor->visitBlockStatement(this);
 }
 
 SwitchStatement::SwitchStatement(frame_t frame, expression_t cond)
@@ -137,7 +146,7 @@ SwitchStatement::SwitchStatement(frame_t frame, expression_t cond)
 
 int32_t SwitchStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->switchStat(this);
+    return visitor->visitSwitchStatement(this);
 }
 
 CaseStatement::CaseStatement(frame_t frame, expression_t cond)
@@ -148,7 +157,7 @@ CaseStatement::CaseStatement(frame_t frame, expression_t cond)
 
 int32_t CaseStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->caseStat(this);
+    return visitor->visitCaseStatement(this);
 }
 
 DefaultStatement::DefaultStatement(frame_t frame)
@@ -159,7 +168,7 @@ DefaultStatement::DefaultStatement(frame_t frame)
 
 int32_t DefaultStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->defaultStat(this);
+    return visitor->visitDefaultStatement(this);
 }
 
 IfStatement::IfStatement(frame_t frame, expression_t cond,
@@ -171,7 +180,7 @@ IfStatement::IfStatement(frame_t frame, expression_t cond,
 
 int32_t IfStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->ifStat(this);
+    return visitor->visitIfStatement(this);
 }
 
 BreakStatement::BreakStatement(frame_t frame) : Statement(frame)
@@ -181,7 +190,7 @@ BreakStatement::BreakStatement(frame_t frame) : Statement(frame)
 
 int32_t BreakStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->breakStat(this);
+    return visitor->visitBreakStatement(this);
 }
 
 ContinueStatement::ContinueStatement(frame_t frame) : Statement(frame)
@@ -191,7 +200,7 @@ ContinueStatement::ContinueStatement(frame_t frame) : Statement(frame)
 
 int32_t ContinueStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->continueStat(this);
+    return visitor->visitContinueStatement(this);
 }
 
 ReturnStatement::ReturnStatement(frame_t frame)
@@ -208,5 +217,5 @@ ReturnStatement::ReturnStatement(frame_t frame, expression_t value)
 
 int32_t ReturnStatement::accept(StatementVisitor *visitor)
 {
-    return visitor->returnStat(this);
+    return visitor->visitReturnStatement(this);
 };

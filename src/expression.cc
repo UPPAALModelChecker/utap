@@ -23,6 +23,7 @@
 #include <algorithm>
 
 #include "utap/builder.hh"
+#include "utap/system.hh"
 #include "utap/expression.hh"
 
 using namespace UTAP;
@@ -167,6 +168,8 @@ uint32_t expression_t::getSize() const
     case PREDECREMENT:
     case POSTDECREMENT:
 	return 1;
+    case FUNCALL:
+	return data->value;
     default:
 	assert(0);
 	return 0;
@@ -237,10 +240,10 @@ bool expression_t::empty() const
     root are identical. */
 bool expression_t::equal(const expression_t &e) const
 {
-    if (data == NULL && e.data == NULL || data == e.data)
+    if (data == e.data)
 	return true;
 
-    if (data->count != e.data->count
+    if (getSize() != e.getSize()
 	|| data->kind != e.data->kind
 	|| data->value != e.data->value
 	|| data->symbol != e.data->symbol)
@@ -248,7 +251,7 @@ bool expression_t::equal(const expression_t &e) const
 	return false;
     }
 
-    for (int i = 0; i < data->count; i++)
+    for (uint32_t i = 0; i < getSize(); i++)
 	if (data->sub[i].equal(e[i]))
 	    return false;
 
@@ -381,8 +384,22 @@ bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
     }
 }
 
+static bool changes(function_t *fun, const std::set<symbol_t> &variables)
+{
+    set<symbol_t>::const_iterator i;
+    for (i = fun->changes.begin(); i != fun->changes.end(); ++i) {
+	if (variables.find(*i) != variables.end()) {
+	    return true;
+	}
+    }
+    return false;
+}
+
 bool expression_t::changesVariable(const std::set<symbol_t> &symbols) const
 {
+    function_t *fun;
+    frame_t parameters;
+
     if (empty())
 	return false;
 
@@ -409,8 +426,22 @@ bool expression_t::changesVariable(const std::set<symbol_t> &symbols) const
 	return get(0).isReferenceTo(symbols);
       
     case FUNCALL:
-	// TODO: The function must be side effect free
-	return false;
+	fun = (function_t*)get(0).getSymbol().getData();
+	
+	// Check if symbols contains arguments to non-constant reference params
+	parameters = fun->uid.getType().getParameters();
+	for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
+	{
+	    type_t type = parameters[i].getType();
+	    if (type.hasPrefix(prefix::REFERENCE)
+		&& !type.hasPrefix(prefix::CONSTANT)
+		&& get(i + 1).isReferenceTo(symbols))
+	    {
+		return true;
+	    }
+	}
+
+	return changes(fun, symbols);
 
     default:
 	return false;
@@ -525,19 +556,63 @@ int expression_t::getPrecedence() const
     case LEADSTO:
     case LIST:
     case FUNCALL:
-	return -1; // FIXME
+	return -1; // TODO
     }
     assert(0);
     return 0;
 }
 
-pair<int, char *> expression_t::toString_(bool old) const
+static void ensure(char *&str, char *&end, int &size, int len)
 {
-    pair<int, char *> left, right, expr;
-    const char *name;
-    char *s = NULL;
-    int precedence = getPrecedence();
+    while (size <= len)
+	size *= 2;
 	
+    char *nstr = new char[size];
+    strncpy(nstr, str, end - str);
+    end = nstr + (end - str);
+    *end = 0;
+    delete[] str;
+    str = nstr;
+}
+
+static void append(char *&str, char *&end, int &size, const char *s)
+{
+    while (end < str + size && *s)
+	*(end++) = *(s++);
+
+    if (end == str + size) {
+	ensure(str, end, size, 2 * size);
+	append(str, end, size, s);
+    } else {
+	*end = 0;
+    }
+    
+//     int strlen = end - str;
+//     int space = size - strlen;
+//     int slen = strlcpy(end, s, space);
+//     if (slen >= space) {
+// 	ensure(str, end, size, strlen + slen + 1);
+// 	append(str, end, size, s);
+//     } else {
+// 	end += slen;
+//     }
+}
+
+static void append(char *&str, char *&end, int &size, char c)
+{
+    if (size - (end - str) < 2) {
+	ensure(str, end, size, size + 2);
+    }
+    *end = c;
+    ++end;
+    *end = 0;
+}
+
+void expression_t::toString(bool old, char *&str, char *&end, int &size) const
+{
+    char s[12];
+    int precedence = getPrecedence();
+
     switch (data->kind) {
     case PLUS:
     case MINUS:
@@ -570,288 +645,270 @@ pair<int, char *> expression_t::toString_(bool old) const
     case ASSRSHIFT:
     case MIN:
     case MAX:
-	left = get(0).toString_(old);
-	right = get(1).toString_(old);
 
-	s = new char[strlen(left.second) + strlen(right.second) + 10];
-
-	if (precedence > left.first)
-	    sprintf(s, "(%s)", left.second);
-	else
-	    sprintf(s, "%s", left.second);
-				  
+	if (precedence > get(0).getPrecedence())
+	    append(str, end, size, '(');
+	get(0).toString(old, str, end, size);
+	if (precedence > get(0).getPrecedence())
+	    append(str, end, size, ')');
+	
 	switch (data->kind) {
 	case PLUS:
-	    strcat(s, " + ");
+	    append(str, end, size, " + ");
 	    break;
 	case MINUS:
-	    strcat(s, " - ");
+	    append(str, end, size, " - ");
 	    break;
 	case MULT:
-	    strcat(s, " * ");
+	    append(str, end, size, " * ");
 	    break;
 	case DIV:
-	    strcat(s, " / ");
+	    append(str, end, size, " / ");
 	    break;
 	case MOD:
-	    strcat(s, " % ");
+	    append(str, end, size, " % ");
 	    break;
 	case BIT_AND:
-	    strcat(s, " & ");
+	    append(str, end, size, " & ");
 	    break;
 	case BIT_OR:
-	    strcat(s, " | ");
+	    append(str, end, size, " | ");
 	    break;
 	case BIT_XOR:
-	    strcat(s, " ^ ");
+	    append(str, end, size, " ^ ");
 	    break;
 	case BIT_LSHIFT:
-	    strcat(s, " << ");
+	    append(str, end, size, " << ");
 	    break;
 	case BIT_RSHIFT:
-	    strcat(s, " >> ");
+	    append(str, end, size, " >> ");
 	    break;
 	case AND:
-	    strcat(s, " && ");
+	    append(str, end, size, " && ");
 	    break;
 	case OR:
-	    strcat(s, " || ");
+	    append(str, end, size, " || ");
 	    break;
 	case LT:
-	    strcat(s, " < ");
+	    append(str, end, size, " < ");
 	    break;
 	case LE:
-	    strcat(s, " <= ");
+	    append(str, end, size, " <= ");
 	    break;
 	case EQ:
-	    strcat(s, " == ");
+	    append(str, end, size, " == ");
 	    break;
 	case NEQ:
-	    strcat(s, " != ");
+	    append(str, end, size, " != ");
 	    break;
 	case GE:
-	    strcat(s, " >= ");
+	    append(str, end, size, " >= ");
 	    break;
 	case GT:
-	    strcat(s, " > ");
+	    append(str, end, size, " > ");
 	    break;
 	case ASSIGN:
 	    if (old)
-		strcat(s, " := ");
+		append(str, end, size, " := ");
 	    else
-		strcat(s, " = ");
+		append(str, end, size, " = ");
 	    break;
 	case ASSPLUS:
-	    strcat(s, " += ");
+	    append(str, end, size, " += ");
 	    break;
 	case ASSMINUS:
-	    strcat(s, " -= ");
+	    append(str, end, size, " -= ");
 	    break;
 	case ASSDIV:
-	    strcat(s, " /= ");
+	    append(str, end, size, " /= ");
 	    break;
 	case ASSMOD:
-	    strcat(s, " %= ");
+	    append(str, end, size, " %= ");
 	    break;
 	case ASSMULT:
-	    strcat(s, " *= ");
+	    append(str, end, size, " *= ");
 	    break;
 	case ASSAND:
-	    strcat(s, " &= ");
+	    append(str, end, size, " &= ");
 	    break;
 	case ASSOR:
-	    strcat(s, " |= ");
+	    append(str, end, size, " |= ");
 	    break;
 	case ASSXOR:
-	    strcat(s, " ^= ");
+	    append(str, end, size, " ^= ");
 	    break;
 	case ASSLSHIFT:
-	    strcat(s, " <<= ");
+	    append(str, end, size, " <<= ");
 	    break;
 	case ASSRSHIFT:
-	    strcat(s, " >>= ");
+	    append(str, end, size, " >>= ");
 	    break;
 	case MIN:
-	    strcat(s, " <? ");
+	    append(str, end, size, " <? ");
 	    break;
 	case MAX:
-	    strcat(s, " >? ");
+	    append(str, end, size, " >? ");
 	    break;
 	default:
 	    assert(0);
 	}
 	
-	if (precedence >= right.first) 
-	    sprintf(s + strlen(s), "(%s)", right.second);
-	else
-	    strcat(s, right.second);
-	
-	delete[] left.second;
-	delete[] right.second;
+	if (precedence >= get(1).getPrecedence())
+	    append(str, end, size, '(');
+	get(1).toString(old, str, end, size);
+	if (precedence >= get(1).getPrecedence())
+	    append(str, end, size, ')');
 	break;
 
     case IDENTIFIER:
-	name = data->symbol.getName();
-	s = strcpy(new char[strlen(name) + 1], name);
+	append(str, end, size, data->symbol.getName());
 	break;
 		
     case CONSTANT:
-	s = new char[12];
 	snprintf(s, 12, "%d", data->value);
+	append(str, end, size, s);
 	break;
 
     case ARRAY:
-	left = get(0).toString_(old);
-	right = get(1).toString_(old);
-	s = new char[strlen(left.second) + strlen(right.second) + 5];
-	if (precedence > left.first)
-	    sprintf(s, "(%s)[%s]", left.second, right.second);
-	else
-	    sprintf(s, "%s[%s]", left.second, right.second);
-	delete[] left.second;
-	delete[] right.second;
+	if (precedence > get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
+	append(str, end, size, '[');
+	get(1).toString(old, str, end, size);
+	append(str, end, size, ']');
 	break;
 	    
     case UNARY_MINUS:
-	left = get(0).toString_(old);
-	s = new char[strlen(left.second) + 4];
-	if (precedence > left.first)
-	    sprintf(s, "-(%s)", left.second);
-	else
-	    sprintf(s, "-%s", left.second);
-	delete[] left.second;
+	append(str, end, size, '-');
+	if (precedence > get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
 	break;
 
     case POSTDECREMENT:
     case POSTINCREMENT:
-	left = get(0).toString_(old);
-	s = new char[strlen(left.second) + 5];
-	if (precedence > left.first)
-	    sprintf(s, "(%s)%s", left.second, 
-		    getKind() == POSTDECREMENT ? "--" : "++");
-	else
-	    sprintf(s, "%s%s", left.second,
-		    getKind() == POSTDECREMENT ? "--" : "++");
-	delete[] left.second;
+	if (precedence > get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
+	append(str, end, size, getKind() == POSTDECREMENT ? "--" : "++");
 	break;
      
     case PREDECREMENT:
     case PREINCREMENT:
-	left = get(0).toString_(old);
-	s = new char[strlen(left.second) + 5];
-	if (precedence > left.first)
-	    sprintf(s, "%s(%s)", 
-		    getKind() == PREDECREMENT ? "--" : "++", left.second);
-	else
-	    sprintf(s, "%s%s", 
-		    getKind() == PREDECREMENT ? "--" : "++", left.second);
-	delete[] left.second;
+	append(str, end, size, getKind() == PREDECREMENT ? "--" : "++");
+	if (precedence > get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
 	break;
 
     case NOT:
-	left = get(0).toString_(old);
-	s = new char[strlen(left.second) + 4];
-	if (precedence > left.first)
-	    sprintf(s, "!(%s)", left.second);
-	else
-	    sprintf(s, "!%s", left.second);
-	delete[] left.second;
+	append(str, end, size, '!');
+	if (precedence > get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
 	break;
 
     case DOT:
     {
 	type_t base = get(0).getType().getBase();
 	if (base == type_t::PROCESS || base == type_t::RECORD) {
-	    left = get(0).toString_(old);
-	    name = get(0).getType().getFrame()[data->value].getName();
-
-	    s = new char[strlen(left.second) + 4 + strlen(name)];
-	    if (precedence > left.first)
-		sprintf(s, "(%s).%s", left.second, name);
-	    else 
-		sprintf(s, "%s.%s", left.second, name);
-	    delete[] left.second;
+	    if (precedence > get(0).getPrecedence()) {
+		append(str, end, size, '(');
+		get(0).toString(old, str, end, size);
+		append(str, end, size, ')');
+	    } else {
+		get(0).toString(old, str, end, size);
+	    }
+	    append(str, end, size, '.');
+	    append(str, end, size, get(0).getType().getFrame()[data->value].getName());
 	} else {
 	    assert(0);
 	}
 	break;
     }	
 	    
-    case INLINEIF:	
-	expr = get(0).toString_(old);
-	left = get(1).toString_(old);
-	right = get(2).toString_(old);
+    case INLINEIF:
+	if (precedence >= get(0).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(0).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(0).toString(old, str, end, size);
+	}
 
-	s = new char[strlen(expr.second) + strlen(left.second)
-		    + strlen(right.second) + 13];
+	append(str, end, size, " ? ");
+
+	if (precedence >= get(1).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(1).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(1).toString(old, str, end, size);
+	}
+
+	append(str, end, size, " : ");
+
+	if (precedence >= get(2).getPrecedence()) {
+	    append(str, end, size, '(');
+	    get(2).toString(old, str, end, size);
+	    append(str, end, size, ')');
+	} else {
+	    get(2).toString(old, str, end, size);
+	}
 	
-	if (precedence >= expr.first)
-	    sprintf(s, "(%s)", expr.second);
-	else
-	    strcpy(s, expr.second);
-	
-	strcat(s, " ? ");
-	
-	if (precedence >= left.first)
-	    sprintf(s, "(%s)", left.second);
-	else
-	    strcat(s, left.second);
-
-	strcat(s, " : ");
-
-	if (precedence >= right.first)
-	    sprintf(s, "(%s)", right.second);
-	else
-	    strcat(s, right.second);	    
-
-	delete[] left.second;
-	delete[] right.second;
-	delete[] expr.second;
 	break;
 
     case COMMA:
-	left = get(0).toString_(old);
-	right = get(1).toString_(old);
-	s = new char[strlen(left.second) + strlen(right.second) + 3];
-	sprintf(s, "%s, %s", left.second, right.second);
+	get(0).toString(old, str, end, size);
+	append(str, end, size, ", ");
+	get(1).toString(old, str, end, size);
 	break;
 	    
     case SYNC:
-	left = get(0).toString_(old);
-	s = new char[strlen(left.second) + 2];
+	get(0).toString(old, str, end, size);
 	switch (data->sync) {
 	case SYNC_QUE:
-	    sprintf(s, "%s?", left.second);
+	    append(str, end, size, '?');
 	    break;
 	case SYNC_BANG:
-	    sprintf(s, "%s!", left.second);
+	    append(str, end, size, '!');
 	    break;
 	}
-	delete[] left.second;
 	break;
 
     case DEADLOCK:
-	s = strcpy(new char[9], "deadlock");
+	append(str, end, size, "deadlock");
 	break;
 
     case LIST:
     {
-	char *p[getSize()];
-	int len = 0;
-	for (uint32_t i = 0; i < getSize(); i++) {
-	    p[i] = get(i).toString();
-	    len += strlen(p[i]);
-	}
-
-	s = new char[len + getSize() * 2 + 2];
-	sprintf(s, "{ %s", p[0]);
-	delete[] p[0];
+	append(str, end, size, "{ ");
+	get(0).toString(old, str, end, size);
 	for (uint32_t i = 1; i < getSize(); i++) {
-	    strcat(s, ", ");
-	    strcat(s, p[i]);
-	    delete p[i];
+	    append(str, end, size, ", ");
+	    get(i).toString(old, str, end, size);
 	}
-	strcat(s, " }");
+	append(str, end, size, " }");
 	break;
     }
 
@@ -861,10 +918,8 @@ pair<int, char *> expression_t::toString_(bool old) const
     case AG:
     case LEADSTO:
     case FUNCALL:
-	assert(0); // FIXME
+	assert(0); // TODO
     }
-
-    return make_pair(precedence, s);
 }
 
 /** Returns a string representation of the expression. The string
@@ -872,10 +927,68 @@ pair<int, char *> expression_t::toString_(bool old) const
     expression is empty. */
 char *expression_t::toString(bool old) const
 {
-    if (empty())
+    if (empty()) {
 	return NULL;
-    else
-	return toString_(old).second;
+    } else {
+ 	int size = 16;
+ 	char *s, *end;
+ 	s = end = new char[size];
+ 	toString(old, s, end, size);
+ 	return s;
+    }
+}
+
+void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
+{
+    function_t *fun;
+    frame_t parameters;
+
+    if (empty())
+	return;
+
+    for (uint32_t i = 0; i < getSize(); i++) 
+	get(i).collectPossibleWrites(symbols);
+
+    switch (getKind()) {
+    case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
+    case POSTINCREMENT:
+    case POSTDECREMENT:
+    case PREINCREMENT:
+    case PREDECREMENT:
+	symbols.insert(get(0).getSymbol());
+	break;
+      
+    case FUNCALL:
+	// Add all symbols which are changed by the function
+	fun = (function_t*)get(0).getSymbol().getData();
+	symbols.insert(fun->changes.begin(), fun->changes.end());
+
+	// Add arguments to non-constant reference parameters
+	parameters = fun->uid.getType().getParameters();
+	for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
+	{
+	    type_t type = parameters[i].getType();
+	    if (type.hasPrefix(prefix::REFERENCE)
+		&& !type.hasPrefix(prefix::CONSTANT))
+	    {
+		symbols.insert(get(i + 1).getSymbol());
+	    }
+	}
+	break;
+
+    default:
+	break;
+    }
 }
 
 expression_t expression_t::createConstant(
@@ -1054,6 +1167,9 @@ void Interpreter::evaluate(
     throw (InterpreterException)
 {
     int32_t left, right;
+
+    if (expr.empty())
+	throw InterpreterException();
     
     switch (expr.getKind()) {
     case PLUS:
@@ -1186,7 +1302,7 @@ range_t Interpreter::evaluate(
 int32_t Interpreter::sizeOfType(type_t type) const
 {
     type_t base = type.getBase();
-    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT)
+    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT || base == type_t::BOOL)
 	return 1;
     if (base == type_t::ARRAY) {
 	return evaluate(type.getArraySize()) * sizeOfType(type.getSub());
@@ -1207,3 +1323,4 @@ const map<symbol_t, expression_t> &Interpreter::getValuation() const
 {
     return valuation;
 }
+

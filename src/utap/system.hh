@@ -27,13 +27,11 @@
 #include <map>
 #include <exception>
 
-#include "symbols.hh"
+#include "utap/symbols.hh"
 #include "utap/expression.hh"
-#include "statement.hh"
 
 namespace UTAP
 {
-
     /** Base type for variables, clocks, etc.  The user data of the
 	corresponding symbol_t points to this structure,
 	i.e. v.uid.getData() is a pointer to v.
@@ -68,15 +66,19 @@ namespace UTAP
 	expression_t sync;	        /**< The synchronisation */
     };
 
+    class BlockStatement; // Forward declaration
+
     /** Information about a function. The symbol's user data points to
 	this structure, i.e. f.uid.getData() is a pointer to f.
     */
-    struct function_t {
-	symbol_t uid;		/**< The symbol of the function */
-	bool global;		/**< True if this is a global function */
-	BlockStatement *body;	/**< Pointer to the block */
+    struct function_t
+    {
+	symbol_t uid;		     /**< The symbol of the function */
+	bool global;	   	     /**< True if this is a global function */
+	std::set<symbol_t> changes;  /**< Variables changed by this function */
+	BlockStatement *body;	     /**< Pointer to the block */
 	function_t() : body(NULL) {}
-	~function_t() { delete body; }
+	~function_t();
     };
     
     struct template_t;
@@ -86,20 +88,28 @@ namespace UTAP
 	const template_t *templ;
 	std::map<symbol_t, expression_t> mapping;
     };
-	
+
+    /**
+     * Structure holding declarations of various types. Used by
+     * templates and block statements.
+     */
+    struct declarations_t 
+    {
+	frame_t frame;
+	std::list<variable_t> variables;	/**< Variables */
+	std::list<function_t> functions;	/**< Functions */
+	std::list<instance_t> instances;	/**< Instance */	
+	std::list<state_t> states;		/**< Locations */
+	std::list<transition_t> transitions;	/**< Transitions */
+    };
+
     /** Information about a template. A template is either a
 	parameterized automaton.
     */
-    struct template_t
+    struct template_t : public declarations_t
     {
-	symbol_t uid;				/**< The symbol of the template */
-	frame_t frame;				/**< The local variables */
-	std::list<variable_t> variables;	/**< Local variables */
-	std::list<function_t> functions;	/**< Local functions */
-	std::list<instance_t> instances;	/**< The 'instances' */	
+	symbol_t uid;				/**< Symbol of the template */
 	int32_t nr;				/**< Placement in input file */
-	std::list<state_t> states;		/**< The locations */
-	std::list<transition_t> transitions;	/**< The transitions */
 	symbol_t init;				/**< The initial location */
     };
 
@@ -140,12 +150,12 @@ namespace UTAP
 	std::list<template_t> &getTemplates();
 	std::list<process_t> &getProcesses();
 	template_t &getGlobals();
-	template_t &getCurrentTemplate();
-	void setCurrentTemplate(template_t &);
 
-	void addVariable(type_t type, const char *name, 
-			 expression_t initial);
-	function_t &addFunction(type_t type, const char *name);
+	void setDeclarationBlock(declarations_t *);
+
+	variable_t *addVariable(type_t type, const char *name, 
+				expression_t initial);
+	bool addFunction(type_t type, const char *name, function_t *&);
 
 	template_t &addTemplate(const char *name, frame_t params);
 	state_t &addLocation(const char *name, expression_t inv);
@@ -177,8 +187,8 @@ namespace UTAP
 	// Not really a template, only used to keep track of global variables
 	template_t global;
 
-	// The current template: New variables will be added to this template
-	template_t *current_template;
+	// The current declaration block
+	declarations_t *current;
     };
 
     /** Extension of SystemVisitor which tracks the context. It can use

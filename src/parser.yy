@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -61,6 +61,7 @@ using namespace Constants;
 struct Position
 {
     int32_t first_line, first_column, last_line, last_column;
+    char *text;   // Unused - needed for compatibility with bison 1.28
     void reset() {
 	first_column = first_line = 1; 
 	last_column = last_line = 1; 
@@ -101,20 +102,13 @@ static const char* PE_ASSIGN_EXP = "assignment expression expected";
 static const char* PE_BANG = "'!' expected";
 static const char* PE_BANGQUE = "'!' or '?' expected";
 static const char* PE_COLON = "':' expected";
-static const char* PE_COMMA = "',' expected";
 static const char* PE_CONST_EXP = "constant expression expected";
-static const char* PE_CONSTID_ = "one more constant identifier expected";
-static const char* PE_DECL_STAT = "variable declaration or statement expected";
 static const char* PE_EXPR = "expression expected";
-static const char* PE_EXPR_ = "one more expression expected";
-static const char* PE_EXPR_SEMI = "expression or ';' expected";
 static const char* PE_GUARD_EXP = "guard expression expected";
 static const char* PE_GUARD_EXP_ = "one more guard expression expected";
 static const char* PE_INIT = "'init' expected";
 static const char* PE_INITIAL = "initialiser expected";
-static const char* PE_INITIAL_ = "one more initialiser expected";
 static const char* PE_INV = "invariant expression expected";
-static const char* PE_INV_ = "one more invariant expression expected";
 static const char* PE_LBRACE = "'{' expected";
 static const char* PE_LBRACES = "'(' or '{' expected";
 static const char* PE_LOC_DECL = "location declaration expected";
@@ -127,7 +121,6 @@ static const char* PE_PARAM_DECL_ = "one more parameter declaration expected";
 static const char* PE_PARAMETERS = "parameters expected";
 static const char* PE_PARAMETERS_ = "one more parameter expected";
 static const char* PE_PARAMID = "parameter identifier expected";
-static const char* PE_PROC = "'process' expected";
 static const char* PE_PROCID = "process identifiers expected";
 static const char* PE_PROCID_ = "one more process identifier expected";
 static const char* PE_QUE = "'?' expected";
@@ -149,7 +142,6 @@ static const char* PE_TYPE_DEF = "type definition expected";
 static const char* PE_TYPEID = "type identifier expected";
 static const char* PE_TYPEID_= "one more type identifier expected";
 static const char* PE_VARID = "variable identifier expected";
-static const char* PE_VARID_ ="one more variable identifier expected" ;
 
 static int lexer_flex();
   
@@ -231,7 +223,7 @@ static int32_t g_parameter_count;
 
 %type <number> ArgList ArrayDecl FieldDeclList FieldDeclIdList FieldDecl
 %type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
-%type <number> OldProcParams OldProcParamList OldProcParam
+%type <number> OldProcParams OldProcParamList OldProcParam OldProcConstParam
 %type <kind> Quantifier
 %type <number> Type TypePrefix 
 %type <string> Id
@@ -378,8 +370,11 @@ FunctionDecl:
 	Type Id OptionalParameterList { 
 	  CALL(@2, @3, declFuncBegin($2, $3));
 	} 
-        Block { 
-	  CALL(@4, @4, declFuncEnd());
+        '{' BlockLocalDeclList StatementList '}' { 
+	  CALL(@1, @7, declFuncEnd());
+	}
+        | Type Id OptionalParameterList error '}' {
+	    CALL(@1, @5, declFuncEnd());
 	}
 	;
 
@@ -449,9 +444,6 @@ VariableDecl:
 DeclIdList:
 	DeclId
 	| DeclIdList ',' DeclId
-	| DeclIdList ',' error {
-	  REPORT_ERROR(last_loc, TypeException(PE_VARID_));
-	}
 	;
 
 DeclId:
@@ -463,10 +455,6 @@ DeclId:
 VarInit:
 	/* empty */ { $$ = false; }
 	| T_ASSIGNMENT Initializer { $$ = true; }
-	| T_ASSIGNMENT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INITIAL));
-	  $$ = false; 
-	}
 	; 
 
 Initializer:
@@ -474,23 +462,11 @@ Initializer:
 	| '{' FieldInitList '}' {	
 	  CALL(@1, @3, declInitialiserList($2));
 	}
-	| '{' FieldInitList error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
-	  CALL(@1, @4, declInitialiserList($2));
-	}
-	| '{' error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INITIAL));
-	  CALL(@1, @3, declInitialiserList(0));
-	}
 	;
 
 FieldInitList:
 	FieldInit { $$ = 1; }
 	| FieldInitList ',' FieldInit { $$ = $1+1; }
-	| FieldInitList ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INITIAL_));
-	  $$ = $1+1; 
-	}
 	;
 
 FieldInit:
@@ -516,11 +492,13 @@ ArrayDecl:
 	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
 	  $$=$1+1; 
 	}
-	| ArrayDecl '[' error ']' { 
+	| ArrayDecl '[' error ']' {
+	  CALL(@3, @3, exprNat(1));
 	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
 	  $$=$1+1; 
 	}
 	| ArrayDecl '[' error { 
+	  CALL(@3, @3, exprNat(1));
 	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
 	  $$=$1+1; 
 	}
@@ -566,18 +544,22 @@ TypeId:
 
 Type: 
 	TypePrefix T_TYPENAME Range { 
-	  CALL(@1, @3, declType($1, $2, $3));
+	    CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @3,
+		 typeName($1, $2, $3));
 	}
 	| TypePrefix T_STRUCT '{' FieldDeclList '}' { 
-	  CALL(@1, @5, declStruct($1, $4));
+	    CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @5,
+	       typeStruct($1, $4));
 	}
 	| TypePrefix T_STRUCT '{' error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_MEMBER));
-	  CALL(@1, @5, declStruct($1, 0));
+	  CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @5,
+	       typeStruct($1, 0));
 	}
 	| TypePrefix T_STRUCT '{' error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
-	  CALL(@1, @4, declStruct($1, 0));
+	  CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @4,
+	       typeStruct($1, 0));
 	}
 	| TypePrefix T_STRUCT error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
@@ -601,12 +583,12 @@ FieldDeclList:
 FieldDecl:
 	Type FieldDeclIdList ';' {
 	  $$ = $2; 
-	  CALL(@1, @3, declFieldEnd());
+	  CALL(@1, @3, structFieldEnd());
 	}
 	| Type FieldDeclIdList error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));	  
 	  $$ = $2; 
-	  CALL(@1, @4, declFieldEnd());
+	  CALL(@1, @4, structFieldEnd());
 	}
 	| Type error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERID));	  
@@ -630,7 +612,7 @@ FieldDeclIdList:
 
 FieldDeclId:
 	Id ArrayDecl { 
-	  CALL(@1, @2, declField($1, $2));
+	  CALL(@1, @2, structField($1, $2));
 	}
 	;
 
@@ -653,51 +635,9 @@ Range:
 	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
 	  $$ = true; 
 	}
-	| '[' Expression ',' error ']' {
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	  $$ = true;
-	  CALL(@1, @5, exprTrue());
-	}
-	| '[' error ',' Expression ']' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	  $$ = true;
-	  CALL(@1, @5, exprTrue());
-	}
-	| '[' error ',' {
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	  $$ = true;
-	  CALL(@1, @3, exprTrue());
-	} 
-          error ']' {
-	    REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	    $$ = true;
-	    CALL(@4, @5, exprTrue());
-	  }
-	| '[' Expression error ',' {
-	  REPORT_ERROR(last_loc, TypeException(PE_COMMA)); 
-	  yyclearin; yyerrok;
-	}
-          Expression ']' {
-	    $$ = true;
-	  }
-	| '[' Expression error ']' {
-	  REPORT_ERROR(last_loc, TypeException(PE_COMMA)); 
-	  yyclearin; yyerrok;
-	  $$ = true;
-	  CALL(@1, @4, exprTrue());
-	}
-	| '[' Expression error {
-	  REPORT_ERROR(last_loc, TypeException(PE_COMMA)); 
-	  yyclearin; yyerrok;
-	  $$ = true;
-	  CALL(@1, @3, exprTrue());
-	}
-	| '[' error {
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP)); 
-	  yyclearin; yyerrok;
-	  $$ = true;
-	  CALL(@1, @2, exprTrue());
-	}
+        | '[' error ']' {
+	    $$ = false;
+        }
 	;
 
 /*********************************************************************
@@ -881,11 +821,11 @@ TransitionOpt:
 Guard:
 	/* empty */ 
         | T_GUARD Expression ';' {
-	  CALL(@$, @$, procGuard());
+	  CALL(@2, @2, procGuard());
         }
 	| T_GUARD Expression error ';' {
 	  REPORT_ERROR(yylloc, TypeException(PE_SEMICOLON));
-	  CALL(@$, @$, procGuard());
+	  CALL(@2, @3, procGuard());
 	}
 	| T_GUARD error ';' {
 	  REPORT_ERROR(yylloc, TypeException(PE_GUARD_EXP));
@@ -930,7 +870,7 @@ SyncExpr:
 Assign:
 	/* empty */ 
 	| T_ASSIGN ExprList ';' {
-	  CALL(@$, @$, procUpdate());	  
+	  CALL(@2, @2, procUpdate());	  
 	}
 	| T_ASSIGN error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN_EXP));
@@ -1012,13 +952,6 @@ Block:
 	BlockLocalDeclList StatementList '}' { 
 	  CALL(@2, @4, blockEnd());
 	}
-        | '{' { 
-	  CALL(@1, @1, blockBegin());
-	}
-	error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_DECL_STAT));
-	  CALL(@2, @3, blockEnd());
-	}
 	;
 
 BlockLocalDeclList:
@@ -1030,6 +963,7 @@ BlockLocalDeclList:
 StatementList:
 	/* empty */
 	| StatementList Statement
+        | StatementList error ';'
 	;
 
 Statement:
@@ -1040,58 +974,26 @@ Statement:
 	| Expression ';' { 
 	  CALL(@1, @2, exprStatement());
 	}
-	| Expression error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @3, exprStatement());
-	}
 	| T_FOR '(' { 
 	  CALL(@1, @2, forBegin());
 	} 
-          ExprList ';' ExprList ';' ExprList ')' Statement { 
+          ExprList0 ';' ExprList0 ';' ExprList0 ')' Statement { 
 	    CALL(@3, @9, forEnd());
 	  }
-	| T_FOR '(' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, forBegin());
-	} 
-          ExprList0 ';' ExprList0 ';' ExprList0 ')'
-	  Statement { 
-	    CALL(@4, @1, forEnd());
-	  }
-	| T_FOR error '(' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LPAREN));
-	  CALL(@1, @3, forBegin());
-	} 
-          ExprList0 ';' ExprList0 ';' ExprList0 ')' 
-	  Statement { 
-	    CALL(@4, @1, forEnd());
-	  }
+        | T_FOR '(' error ')' Statement
         | T_WHILE '(' {
 	    CALL(@1, @2, whileBegin());
 	}
           ExprList ')' Statement { 
 	    CALL(@3, @4, whileEnd());
 	  }
-	| T_WHILE error '(' {
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	  CALL(@1, @3, whileBegin());
-	}
-	  ExprList ')' Statement { 
-	    CALL(@4, @6, whileEnd());
-	  }
-	| T_WHILE '(' error {
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, whileBegin());
-	}
-	  ExprList ')' Statement { 
-	    CALL(@1, @3, whileEnd());
-	  }
+        | T_WHILE '(' error ')' Statement 
 	| T_DO { 
 	    CALL(@1, @1, doWhileBegin());
 	}
 	  Statement T_WHILE '(' ExprList ')' ';' { 
 	    CALL(@2, @7, doWhileEnd());
-	  }	   
+	  }
 	| T_IF '(' { 
 	    CALL(@1, @2, ifBegin());
 	}
@@ -1099,16 +1001,8 @@ Statement:
 	| T_BREAK ';' { 
 	    CALL(@1, @2, breakStatement());
 	  }
-	| T_BREAK error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @3, breakStatement());
-	}
 	| T_CONTINUE ';' { 
 	  CALL(@1, @2, continueStatement());
-	}
-	| T_CONTINUE error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @3, continueStatement());
 	}
 	| T_SWITCH '(' ExprList ')' { 
 	    CALL(@1, @4, switchBegin());
@@ -1116,39 +1010,17 @@ Statement:
            '{' SwitchCaseList '}' { 
 	       CALL(@5, @7, switchEnd());
 	   }
-	| T_SWITCH error '(' ExprList ')' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	  CALL(@1, @5, switchBegin());
-	}
-	  '{' SwitchCaseList '}' { 
-	    CALL(@6, @8, switchEnd());
-	  }
-	| T_SWITCH '(' error ExprList ')' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @5, switchBegin());
-	}
-	  '{' SwitchCaseList '}' { 
-	    CALL(@6, @8, switchEnd());
-	  }
         | T_RETURN Expression ';' { 
 	  CALL(@1, @3, returnStatement(true));
 	}
-        | T_RETURN Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @3, returnStatement(true));
-	}
         | T_RETURN ';' { 
-	  CALL(@1, @2, returnStatement(false));
-	}
-        | T_RETURN error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR_SEMI));
 	  CALL(@1, @2, returnStatement(false));
 	}
 	;
 
 ElsePart: 
 	/* empty */ { 
-	  CALL(@$, @$, ifEnd(false));
+	  CALL(position_t(), position_t(), ifEnd(false));
 	}
 	| T_ELSE { 
 	  CALL(@1, @1, ifElse());
@@ -1208,11 +1080,7 @@ ExprList:
 	  Expression
 	| ExprList ',' Expression { 
 	  CALL(@1, @3, exprComma());
-	}
-	| ExprList ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR_));
-	}
-        ;
+	};
 
 Expression:
 	T_FALSE { 
@@ -1320,13 +1188,13 @@ Expression:
 	  CALL(@1, @3, exprBinary(OR));
 	}
 	| Expression '?' Expression ':' Expression { 
-	  CALL(@1, @3, exprInlineIf());
+	  CALL(@1, @5, exprInlineIf());
 	}
 	| Expression '.' T_ID { 
 	  CALL(@1, @3, exprDot($3));
 	}
         | T_DEADLOCK {
-	  CALL(@$, @$, exprDeadlock());
+	  CALL(@1, @1, exprDeadlock());
 	}
 	| Expression T_KW_IMPLY {  
 	  CALL(@1, @1, exprUnary(NOT));
@@ -1372,8 +1240,9 @@ AssignOp:
 	;
 
 UnaryOp: 
-	/* - ! ~ */
+	/* - + ! */
 	T_MINUS       { $$ = MINUS; }
+        | T_PLUS      { $$ = PLUS; }
 	| T_EXCLAM    { $$ = NOT; }
 	;
 
@@ -1412,7 +1281,7 @@ OldDeclaration:
 OldVarDecl:
 	VariableDecl
 	| T_OLDCONST { 
-	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", 0));
+	  CALL(@1, @1, typeName(ParserBuilder::PREFIX_CONST, "int", 0));
 	} OldConstDeclIdList ';' { 
 	  CALL(@1, @3, declVarEnd());
 	}
@@ -1486,6 +1355,10 @@ OldProcParamList:
 	  $$ = $1; 
 	  CALL(@1, @1, declParameterEnd());
 	}
+        | OldProcConstParam { 
+	  $$ = $1; 
+	  CALL(@1, @1, declParameterEnd());
+	}
 	| OldProcParamList ';' OldProcParam { 
 	  $$ = $1 + $3;
 	  CALL(@1, @3, declParameterEnd());
@@ -1501,13 +1374,20 @@ OldProcParam:
           CALL(@1, @3, declParameter($2, $3 == 0, $3));
 	  $$ = 1;
 	}
-	| T_OLDCONST T_ID ArrayDecl {
-	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", false));
+	| OldProcParam ',' T_ID ArrayDecl { 
+	  CALL(@1, @4, declParameter($3, $4 == 0, $4));
+	  $$ = $1 + 1;
+	} 
+	;
+
+OldProcConstParam:
+	T_OLDCONST T_ID ArrayDecl {
+	  CALL(@1, @1, typeName(ParserBuilder::PREFIX_CONST, "int", false));
 	  CALL(@2, @3, declParameter($2, false, $3));
 	  $$ = 1;
 	}
-	| OldProcParam ',' T_ID ArrayDecl { 
-	  CALL(@1, @4, declParameter($3, $4 == 0, $4));
+	| OldProcConstParam ',' T_ID ArrayDecl { 
+	  CALL(@1, @4, declParameter($3, false, $4));
 	  $$ = $1 + 1;
 	} 
 	;
@@ -1657,15 +1537,15 @@ OldTransitionOpt:
 OldGuard:
         /* empty */
 	| T_GUARD OldGuardList ';' {
-	  CALL(@$, @$, procGuard());
+	  CALL(@2, @2, procGuard());
 	}
 	| T_GUARD OldGuardList error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@$, @$, procGuard());
+	  CALL(@2, @3, procGuard());
 	}
 	| T_GUARD OldGuardList error {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@$, @$, procGuard());
+	  CALL(@2, @3, procGuard());
 	}
 	| T_GUARD error {
 	  REPORT_ERROR(last_loc, TypeException(PE_GUARD_EXP));

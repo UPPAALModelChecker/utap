@@ -102,10 +102,11 @@ public:
     virtual bool isType(const char *id) {
 	return strcmp(id, "int") == 0
 	    || strcmp(id, "clock") == 0
-	    || strcmp(id, "chan") == 0;
+	    || strcmp(id, "chan") == 0
+	    || strcmp(id, "bool") == 0;
     }
 
-    virtual void declType(uint32_t prefix, const char *type, bool range) {
+    virtual void typeName(int32_t prefix, const char *type, bool range) {
 	string res;
 	
 	res += prefix_label[prefix];
@@ -154,13 +155,15 @@ public:
     }
 
     virtual void declVarEnd() {
-	*o.top() << ';' << endl;
-	first = true;
+	if (!first) {
+	    *o.top() << ';' << endl;
+	    first = true;
+	}
     }
   
-    virtual void declStruct(uint32_t prefix, uint32_t n) {}
-    virtual void declField(const char* name, uint32_t dim) {}
-    virtual void declFieldEnd() {}
+    virtual void typeStruct(int32_t prefix, uint32_t n) {}
+    virtual void structField(const char* name, uint32_t dim) {}
+    virtual void structFieldEnd() {}
     
     virtual void declTypeDef(const char* name, uint32_t dim) {}
     virtual void declTypeDefEnd() {}
@@ -592,6 +595,9 @@ public:
 	    break;
 	case NOT:
 	    st.back() = '!' + exp;
+	    break;
+	case PLUS:
+	    st.back() = '+' + exp;
 	    break;
 	default:
 	    throw TypeException("Invalid operator");

@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -30,10 +30,6 @@
 #include "utap/system.hh"
 #include "utap/statement.hh"
 
-/*********************************************************************
- * Parse system definition.
- * Returns an intermediate system.
- */
 bool parseXTA(FILE *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
 bool parseXTA(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
 bool parseXMLBuffer(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);

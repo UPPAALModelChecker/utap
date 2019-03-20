@@ -57,7 +57,7 @@ namespace UTAP
 	TimedAutomataSystem *system;
 	Interpreter interpreter;
     protected:
-	range_t getRange(symbol_t symbol) const;
+	bool isInteger(expression_t) const;
 	range_t rangeOfBinary(expression_t, uint32_t op, expression_t) const;
 //	void checkRange(expression_t expr);
 	bool evaluate(expression_t expr, int32_t &value) const;
