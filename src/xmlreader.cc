@@ -61,12 +61,6 @@ enum tag_t
 #define CHAR xmlChar
 
 /**
- * The minimum number of bytes allocated to buffer the tag contents.
- */
-static int32_t the_size_of_the_page = 1024;
-#define PAGESIZE the_size_of_the_page
-
-/**
  * We enumerate all possible states of state machine that listens to
  * SAX.
  */
@@ -85,7 +79,7 @@ typedef enum
  * memory.
  *
  * dest - the destination string, a new page will be allocated if NULL
- * dlen - memory in pages allocated to dest - updated automatically.
+ * dlen - memory of bytes allocated for dest
  * source - the source string, not necessary ended with '\0'
  * slen - the byte number to be appended from source.
  * returns the dest if there were enough memory,
@@ -95,27 +89,25 @@ typedef enum
 static char* append(
     char *dest, int32_t& dlen, const CHAR *source, int32_t slen) 
 {
-    // remember to destroy the result with delete[]
     char *res = NULL;
-    int32_t mult = dlen;
-    int32_t len = dest?strlen(dest):0;
+    int32_t len = dest ? strlen(dest) : 0;
 
-    if (dest && dlen>0) {
-	while (len+slen+1 > mult*PAGESIZE) mult*=2;
-	if (mult != dlen) { // reallocate
-	    res = new char[mult*PAGESIZE];
-	    res = strcpy(res, dest);
-	    dlen = mult;
+    if (dest) {
+	if (len + slen + 1 > dlen) {
+	    while (len + slen + 1 > dlen) dlen *= 2;
+	    res = new char[dlen];
+	    res = strncpy(res, dest, dlen);
 	    delete [] dest;
-	} else res = dest;
+	} else {
+	    res = dest;
+	}
 	res = strncat(res, (const char*)source, slen);
     } else {
-	mult = 1;
-	while (slen >= mult*PAGESIZE) mult*=2;
-	res = new char[mult*PAGESIZE];
-	res = strncpy(res, (const char*)source, slen);
+	dlen = 1024;
+	while (slen + 1 > dlen) dlen *= 2;
+	res = new char[dlen];
+	strncpy(res, (const char*)source, slen);
 	res[slen] = 0;
-	dlen = mult;
     }
     return res;
 }
@@ -151,22 +143,24 @@ static bool isIdChr(char c)
  * identifiers.  Identifier starts with alpha and further might
  * contain digits, white spaces are ignored.
  *
- * Returns a NULL if identifier was not recognized
- *         or a newly allocated string to be destroyed with delete []
+ * Throws a TypeException is identifier is invalid or a newly
+ * allocated string to be destroyed with delete [].
  */
 static char* symbol(const char *str)
 {
     if (str == NULL)
-  	return NULL;
-    while (*str && isspace(*str)) str++;
-    if (!*str || !isAlpha(*str))
-     	return NULL;
+	throw TypeException("Identifier expected");
+    while (isspace(*str)) str++;
+    if (*str == 0)
+	throw TypeException("Identifier expected");
+    if (!isAlpha(*str))
+	throw TypeException("Invalid identifier");
     const char *end = str;
-    while (*end && isIdChr(*end)) end++;
+    while (isIdChr(*end)) end++;
     const char *p = end;
-    while (*p && isspace(*p)) p++;
+    while (isspace(*p)) p++;
     if (*p)
-    	return NULL;
+	throw TypeException("Invalid identifier");
     int32_t len = end - str;
     char *res = strncpy(new char[len + 1], str, len);
     res[len] = 0;
@@ -247,17 +241,15 @@ public:
     ParserBuilder *parser;
     bool newxta;  // tells whether to use the new grammar insterad of old
 
-    char *body; // holds tag contents, strstream is not really suitable, 
-    //since we need to empty it sometimes...
-    int32_t len;    // the body length in pages
+    char *body; // holds tag contents
+    int32_t len;    // the body length
 
-    char* invariant; // holds the content of invariant, 
-    // since there might be multiple invariant tags...
-    int32_t ilen;        // the invariant length in pages
+    char* invariant; // holds the content of invariant
+    int32_t ilen;        // the invariant length
 
-    char *tname; // the name tag (inside template) - destroy copy with delete []
-    char *lname; // the name tag (inside location) - pointer, do not destroy!
-    char *id;    // location id - pointer, do not destroy!
+    char *tname; // the name tag (inside template) - destroy with delete []
+    char *lname; // the name tag (inside location) - destroy with delete []
+    const char *id;    // current location id
     locationmap_t locations;  // map<id,name> - destroy both id and name with delete []
     labelkind_t labelkind;    // the last label kind until the end of tag
     bool urgent, committed;   // true if location is urgent/committed
@@ -274,6 +266,8 @@ public:
     virtual ~ParserState();    
 
     char *get() const;
+
+    char *getName();
 protected:
     // counts current state appearances in siblings:
     int32_t count_states(const vector<state_t> &, const state_t) const; 
@@ -285,14 +279,22 @@ ParserState::ParserState(
 {
     assert(parser);
     errormsg = NULL;
-    body = invariant = NULL;
     tname = lname = NULL;
     errorHandler->setCurrentPath(this);
-    
     labelkind = L_NONE;
     id = NULL;
     sourceRef = targetRef = NULL;
     guard = sync = assign = false;
+
+    // Initialize invariant buffer
+    ilen = 1024;
+    invariant = new char[ilen];
+    invariant[0] = 0;
+
+    // Initialise body buffer
+    len = 1024;
+    body = new char[len];
+    body[0] = 0;    
 }
 
 ParserState::~ParserState()
@@ -315,6 +317,34 @@ int32_t ParserState::count_states(const vector<state_t> &states, const state_t s
     for (vector<state_t>::const_iterator it = states.begin(); it != states.end(); it++)
 	if (*it == state) res++;
     return res;
+}
+
+char *ParserState::getName()
+{
+    try {
+	char *id = symbol(body);
+	if (!isKeyword(id, SYNTAX_OLD | SYNTAX_PROPERTY))
+	    return id;
+	delete[] id;
+	throw TypeException("Keywords are not allowed here");
+    } catch (TypeException &te) {
+	int line = 1, col = 1;
+	if (body) {
+	    char *c = body;
+	    while (*c) {
+		if (*c == '\n') {
+		    line++;
+		    col = 1;
+		} else {
+		    col++;
+		}
+		c++;
+	    }
+	}
+	errorHandler->setCurrentPosition(1, 1, line, col);
+	errorHandler->handleError(te.what());
+    }
+    return NULL;
 }
 
 char *ParserState::get() const
@@ -388,7 +418,6 @@ static void NTA_endDocument(void *user_data)
  */
 static void NTA_characters(void *user_data, const CHAR *ch, int32_t len)
 {
-    char *part = NULL;
     ParserState* s = (ParserState*) user_data;
     switch (s->state) {
     case DECLARATION:
@@ -408,11 +437,6 @@ static void NTA_characters(void *user_data, const CHAR *ch, int32_t len)
     case TRANSITION:
 	break;
     default:
-	part = new char[len+1]; 
-	strncpy(part, (const char*)ch, len);
-	part[len] = 0;
-	printf("Part ignored: %s\n", part);
-	delete [] part;
 	break;
     }
 }
@@ -527,8 +551,10 @@ static void NTA_startElement(void *user_data, const CHAR *n, const CHAR **attrs)
 			       s->siblings.back().back() == DECLARATION ||
 			       s->siblings.back().back() == LOCATION)))
 	    {
-		s->labelkind = L_NONE; // reset label kind to be aware of the invariant
-		s->id = mystrdup(retrieve((const char**) attrs, "id"));
+		char *p = mystrdup(retrieve((const char**) attrs, "id"));
+		s->locations[p] = NULL;
+		s->labelkind = L_NONE;
+		s->id = p;
 		s->lname = NULL;
 		s->state = LOCATION;
 		s->committed = false;
@@ -730,9 +756,9 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	}
 	case NAME:
 	    if (s->history.back().first == TEMPLATE) {
-		s->tname = symbol(s->body);
+		s->tname = s->getName();
 	    } else if (s->history.back().first == LOCATION) {
-		s->lname = symbol(s->body);
+		s->lname = s->getName();
 	    } 
 	    break;
 	case PARAMETER:
@@ -740,8 +766,8 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 		s->parameter_count = parseXTA(s->body, s->parser, s->errorHandler, s->newxta, S_PARAMETERS);
 	    } else s->parameter_count = 0;
 	    try { s->parser->procBegin(s->tname, s->parameter_count); }
-	    catch(TypeException te) { 
-		s->errorHandler->handleError(te.what());
+	    catch(TypeException &e) { 
+		s->errorHandler->handleError(e.what());
 	    }
 	    break;
 	case LOCATION: 
@@ -751,7 +777,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 		s->lname[0] = '_';
 		strcpy(s->lname+1, s->id);
 	    }
-	    s->locations[s->id] = s->lname;
+	    s->locations[(char*)s->id] = s->lname;
 	    if (isempty(s->invariant)) {
 		try { s->parser->exprTrue(); }
 		catch(TypeException te) { 
@@ -778,8 +804,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 		catch(TypeException te) { 
 		    s->errorHandler->handleError(te.what());
 		}
-	    delete [] s->invariant;
-	    s->invariant = NULL;
+	    s->invariant[0] = 0;
 	    s->lname = NULL;
 	    s->id = NULL;
 	    break;
@@ -851,8 +876,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
     s->history.pop_back();
 
     // Delete any textual body
-    delete [] s->body;
-    s->body=NULL;
+    s->body[0] = 0;
 }
 
 /**

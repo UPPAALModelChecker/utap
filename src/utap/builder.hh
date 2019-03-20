@@ -55,6 +55,7 @@ namespace UTAP
     virtual ~ParserBuilder() {}
 
     virtual void setErrorHandler(ErrorHandler *) = 0;
+    virtual void setPosition(const position_t &) = 0;
     
     /********************************************************************
      * Query functions
@@ -169,6 +170,12 @@ namespace UTAP
      */
     virtual void quit() {}
     virtual void property(uint32_t kind, int line) {}
+
+    /********************************************************************
+     * Guiding
+     */
+    virtual void beforeUpdate() = 0;
+    virtual void afterUpdate() = 0;
   };
 }
 

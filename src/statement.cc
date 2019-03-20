@@ -23,86 +23,188 @@
 
 using namespace UTAP;
 
-EmptyStatement::EmptyStatement(int32_t frameId): Statement(frameId) {};
+Statement::Statement(frame_t frame)
+    : returnDefined(false), frame(frame)
+{
+
+}
+
+
+EmptyStatement::EmptyStatement(frame_t frame) : Statement(frame)
+{
+
+}
 
 int32_t EmptyStatement::accept(StatementVisitor *visitor)
 {
     return visitor->emptyStat(this); 
-};
+}
 
-ExprStatement::ExprStatement(int32_t frameId, ExpressionProgram& _expr): 
-    Statement(frameId), expr(_expr.begin(), _expr.end()) {};
+ExprStatement::ExprStatement(frame_t frame, ExpressionProgram& _expr)
+    : Statement(frame), expr(expr)
+{
+
+}
+
 int32_t ExprStatement::accept(StatementVisitor *visitor)
-{ return visitor->exprStat(this); };
+{
+    return visitor->exprStat(this);
+}
 
-ForStatement::ForStatement(int32_t frameId, ExpressionProgram& _init,
-   ExpressionProgram& _cond, ExpressionProgram& _step, Statement* _stat): 
-    Statement(frameId), init(_init.begin(), _init.end()), 
-    cond(_cond.begin(), _cond.end()), step(_step.begin(), _step.end()), 
-    stat(_stat) 
+ForStatement::ForStatement(frame_t frame, ExpressionProgram& init,
+   ExpressionProgram& cond, ExpressionProgram& step, Statement* _stat)
+    : Statement(frame), init(init), cond(cond), step(step), stat(_stat) 
 { 
     assert(_stat!=NULL); 
-};
+}
+
 int32_t ForStatement::accept(StatementVisitor *visitor)
-{ return visitor->forStat(this); };
+{
+    return visitor->forStat(this);
+}
 
-WhileStatement::WhileStatement(int32_t frameId, ExpressionProgram& _cond,
-			       Statement* _stat): 
-    Statement(frameId), cond(_cond.begin(), _cond.end()), stat(_stat) 
+WhileStatement::WhileStatement(frame_t frame, ExpressionProgram& cond,
+			       Statement* _stat)
+    : Statement(frame), cond(cond), stat(_stat) 
 { 
     assert(_stat!=NULL); 
-};
-int32_t WhileStatement::accept(StatementVisitor *visitor)
-{ return visitor->whileStat(this); };
+}
 
-DoWhileStatement::DoWhileStatement(int32_t frameId, Statement* _stat,
-				   ExpressionProgram& _cond): 
-    Statement(frameId), stat(_stat), cond(_cond) 
+int32_t WhileStatement::accept(StatementVisitor *visitor)
+{
+    return visitor->whileStat(this);
+}
+
+DoWhileStatement::DoWhileStatement(frame_t frame, Statement* _stat,
+				   ExpressionProgram& cond)
+    : Statement(frame), stat(_stat), cond(cond) 
 {
     assert(_stat!=NULL);
-};
+}
+
 int32_t DoWhileStatement::accept(StatementVisitor *visitor)
-{ return visitor->doWhileStat(this); };
+{
+    return visitor->doWhileStat(this);
+}
 
-BlockStatement::BlockStatement(int32_t frameId): 
-    Statement(frameId) {};
-BlockStatement::~BlockStatement() { while(!stats.empty()) delete pop_stat(); }
+BlockStatement::BlockStatement(frame_t frame)
+    : Statement(frame)
+{
+
+}
+
+BlockStatement::~BlockStatement()
+{
+    while(!stats.empty()) delete pop_stat();
+}
+
+void BlockStatement::push_stat(Statement* stat)
+{
+    assert(stat!=NULL);
+    stats.push_back(stat);
+}
+
+BlockStatement::const_iterator BlockStatement::begin() const
+{
+    return stats.begin();
+}
+
+BlockStatement::const_iterator BlockStatement::end() const
+{
+    return stats.end();
+}
+
+Statement* BlockStatement::pop_stat()
+{ 
+    assert(!stats.empty()); 
+    Statement* st = stats.back();
+    stats.pop_back();
+    return st;
+}
+
 int32_t BlockStatement::accept(StatementVisitor *visitor)
-{ return visitor->blockStat(this); };
+{
+    return visitor->blockStat(this);
+}
 
-SwitchStatement::SwitchStatement(int32_t frameId, ExpressionProgram& _cond): 
-    BlockStatement(frameId), cond(_cond) {};
+SwitchStatement::SwitchStatement(frame_t frame, ExpressionProgram& cond)
+    : BlockStatement(frame), cond(cond)
+{
+
+}
+
 int32_t SwitchStatement::accept(StatementVisitor *visitor)
-{ return visitor->switchStat(this); };
+{
+    return visitor->switchStat(this);
+}
 
-CaseStatement::CaseStatement(int32_t frameId, ExpressionProgram& _cond): 
-    BlockStatement(frameId), cond(_cond) {};
+CaseStatement::CaseStatement(frame_t frame, ExpressionProgram& cond)
+    : BlockStatement(frame), cond(cond)
+{
+
+}
+
 int32_t CaseStatement::accept(StatementVisitor *visitor)
-{ return visitor->caseStat(this); };
+{
+    return visitor->caseStat(this);
+}
 
-DefaultStatement::DefaultStatement(int32_t frameId): 
-    BlockStatement(frameId) {};
+DefaultStatement::DefaultStatement(frame_t frame)
+    : BlockStatement(frame)
+{
+
+};
+
 int32_t DefaultStatement::accept(StatementVisitor *visitor)
-{ return visitor->defaultStat(this); };
+{
+    return visitor->defaultStat(this);
+}
 
-IfStatement::IfStatement(int32_t frameId, ExpressionProgram& _cond,
-			 Statement* _true, Statement* _false): 
-    Statement(frameId), cond(_cond), trueCase(_true), falseCase(_false) 
+IfStatement::IfStatement(frame_t frame, ExpressionProgram& cond,
+			 Statement* _true, Statement* _false)
+    : Statement(frame), cond(cond), trueCase(_true), falseCase(_false) 
 {
     assert(_true!=NULL);
-};
+}
+
 int32_t IfStatement::accept(StatementVisitor *visitor)
-{ return visitor->ifStat(this); };
+{
+    return visitor->ifStat(this);
+}
 
-BreakStatement::BreakStatement(int32_t frameId): Statement(frameId) {};
+BreakStatement::BreakStatement(frame_t frame) : Statement(frame)
+{
+
+}
+
 int32_t BreakStatement::accept(StatementVisitor *visitor)
-{ return visitor->breakStat(this); };
+{
+    return visitor->breakStat(this);
+}
 
-ContinueStatement::ContinueStatement(int32_t frameId): Statement(frameId) {};
-inline int32_t ContinueStatement::accept(StatementVisitor *visitor)
-{ return visitor->continueStat(this); };
+ContinueStatement::ContinueStatement(frame_t frame) : Statement(frame)
+{
 
-ReturnStatement::ReturnStatement(int32_t frameId, ExpressionProgram& _value): 
-    Statement(frameId), value(_value) {};
-inline int32_t ReturnStatement::accept(StatementVisitor *visitor)
-{ return visitor->returnStat(this); };
+}
+
+int32_t ContinueStatement::accept(StatementVisitor *visitor)
+{
+    return visitor->continueStat(this);
+}
+
+ReturnStatement::ReturnStatement(frame_t frame)
+    : Statement(frame)
+{
+
+}
+
+ReturnStatement::ReturnStatement(frame_t frame, ExpressionProgram& value)
+    : Statement(frame), value(value)
+{
+
+}
+
+int32_t ReturnStatement::accept(StatementVisitor *visitor)
+{
+    return visitor->returnStat(this);
+};

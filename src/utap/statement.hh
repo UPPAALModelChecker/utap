@@ -22,7 +22,8 @@
 #ifndef UTAP_STATEMENT_H
 #define UTAP_STATEMENT_H
 
-#include "utap/expression.hh"
+#include "expression.hh"
+#include "symbols.hh"
 
 namespace UTAP
 {
@@ -32,24 +33,22 @@ namespace UTAP
     {
     protected:
 	bool returnDefined;
-    
+	frame_t frame;    
     public:
-	// frame id (from symbol table)
-	int32_t frameId;    
-    
 	virtual ~Statement() {};
-	virtual int32_t accept(StatementVisitor *visitor)=0;
-	void setRetDefined(bool ret){ returnDefined = ret; }
-	bool retDefined(){ return returnDefined; }
-    
+	virtual int32_t accept(StatementVisitor *visitor) = 0;
+
+	frame_t getFrame() { return frame; }
+	void setRetDefined(bool ret) { returnDefined = ret; }
+	bool retDefined() const { return returnDefined; }    
     protected:
-	Statement(int32_t _fid): returnDefined(false), frameId(_fid) {}
+	Statement(frame_t);
     };
 
     class EmptyStatement: public Statement 
     {
     public:
-	EmptyStatement(int32_t frameId);
+	EmptyStatement(frame_t frame);
 	int32_t accept(StatementVisitor *visitor);
     };
 
@@ -57,10 +56,9 @@ namespace UTAP
     {
     public:
 	ExpressionProgram expr;
-	ExprStatement(int32_t frameId, ExpressionProgram&);
+	ExprStatement(frame_t frame, ExpressionProgram&);
 	int32_t accept(StatementVisitor *visitor);
     };
-
 
     class ForStatement: public Statement 
     {
@@ -69,7 +67,7 @@ namespace UTAP
 	ExpressionProgram cond;
 	ExpressionProgram step;
 	Statement *stat;
-	ForStatement(int32_t frameId, ExpressionProgram&, 
+	ForStatement(frame_t frame, ExpressionProgram&, 
 		     ExpressionProgram&, ExpressionProgram&, Statement*);
 	int32_t accept(StatementVisitor *visitor);
     };
@@ -79,7 +77,7 @@ namespace UTAP
     public:
 	ExpressionProgram cond;
 	Statement *stat;
-	WhileStatement(int32_t frameId, ExpressionProgram&, Statement*);
+	WhileStatement(frame_t frame, ExpressionProgram&, Statement*);
 	int32_t accept(StatementVisitor *visitor);
     };
 
@@ -88,51 +86,48 @@ namespace UTAP
     public:
 	Statement *stat;
 	ExpressionProgram cond;
-	DoWhileStatement(int32_t frameId, Statement*, ExpressionProgram&);
+	DoWhileStatement(frame_t frameId, Statement*, ExpressionProgram&);
 	int32_t accept(StatementVisitor *visitor);
     };
 
     class BlockStatement: public Statement 
     {
+    public:
+	typedef std::vector<Statement *>::const_iterator const_iterator;
     protected:
 	std::vector<Statement*> stats;
     public:
-	BlockStatement(int32_t frameId);
-	int32_t getFrame(){ return frameId; }
-	void push_stat(Statement* stat){ assert(stat!=NULL); stats.push_back(stat); }
-	Statement* pop_stat() { 
-	    assert(!stats.empty()); 
-	    Statement* st = stats.back();
-	    stats.pop_back();
-	    return st;
-	}
-	std::vector<Statement*>::const_iterator begin() { return stats.begin(); }
-	std::vector<Statement*>::const_iterator end() { return stats.end(); }
+	BlockStatement(frame_t frame);
 	virtual ~BlockStatement();
 	virtual int32_t accept(StatementVisitor *visitor);
+
+	void push_stat(Statement* stat);
+	Statement* pop_stat();
+	const_iterator begin() const;
+	const_iterator end() const;
     };
 
     class SwitchStatement: public BlockStatement
     {
     public:
 	ExpressionProgram cond;
-	SwitchStatement(int32_t frameId, ExpressionProgram&);
-	int32_t accept(StatementVisitor *visitor);  
+	SwitchStatement(frame_t frame, ExpressionProgram&);
+	virtual int32_t accept(StatementVisitor *visitor);  
     };
 
     class CaseStatement: public BlockStatement 
     {
     public:
 	ExpressionProgram cond;
-	CaseStatement(int32_t frameId, ExpressionProgram&);
-	int32_t accept(StatementVisitor *visitor);
+	CaseStatement(frame_t frame, ExpressionProgram&);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class DefaultStatement: public BlockStatement 
     {
     public:
-	DefaultStatement(int32_t frameId);
-	int32_t accept(StatementVisitor *visitor);
+	DefaultStatement(frame_t frame);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class IfStatement: public Statement 
@@ -141,31 +136,32 @@ namespace UTAP
 	ExpressionProgram cond;
 	Statement *trueCase;
 	Statement *falseCase;
-	IfStatement(int32_t frameId, ExpressionProgram&, Statement*, 
+	IfStatement(frame_t frame, ExpressionProgram&, Statement*, 
 		    Statement* falseStat=NULL);
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class BreakStatement: public Statement 
     {
     public:
-	BreakStatement(int32_t frameId);
-	int32_t accept(StatementVisitor *visitor);
+	BreakStatement(frame_t frame);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class ContinueStatement: public Statement 
     {
     public:
-	ContinueStatement(int32_t frameId);
-	int32_t accept(StatementVisitor *visitor);
+	ContinueStatement(frame_t frame);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class ReturnStatement: public Statement 
     {
     public:
 	ExpressionProgram value;
-	ReturnStatement(int32_t frameId, ExpressionProgram&);
-	int32_t accept(StatementVisitor *visitor);
+	ReturnStatement(frame_t frame);
+	ReturnStatement(frame_t frame, ExpressionProgram&);
+	virtual int32_t accept(StatementVisitor *visitor);
     };
 
     class StatementVisitor

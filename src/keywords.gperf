@@ -33,5 +33,14 @@ or,			T_BOOL_OR,	SYNTAX_PROPERTY
 not,			T_BOOL_NOT,	SYNTAX_PROPERTY
 imply,			T_IMPLY,	SYNTAX_PROPERTY
 quit,			T_QUIT,		SYNTAX_PROPERTY
+rate,			T_RATE,		SYNTAX_GUIDING
+before_update,		T_BEFORE,	SYNTAX_GUIDING
+after_update,		T_AFTER,	SYNTAX_GUIDING
+cost,			T_COST,		SYNTAX_GUIDING
 %%
 
+bool isKeyword(const char *id, uint32_t syntax)
+{
+    const Keyword *keyword = Keywords::in_word_set(id, strlen(id));
+    return (keyword != NULL && (keyword->syntax & syntax));
+}

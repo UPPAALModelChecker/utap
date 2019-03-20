@@ -22,11 +22,16 @@
 #ifndef UTAP_LIBPARSER_HH
 #define UTAP_LIBPARSER_HH
 
+#include <functional>
+
 #include "utap/builder.hh"
 
 #define MAXLEN 64
 
-enum syntax_t { SYNTAX_OLD = 1, SYNTAX_NEW = 2, SYNTAX_PROPERTY = 4 };
+enum syntax_t { SYNTAX_OLD = 1,
+		SYNTAX_NEW = 2,
+		SYNTAX_PROPERTY = 4,
+		SYNTAX_GUIDING = 8 };
 
 // type for specifying which XTA part to parse (syntax switch)
 typedef enum { 
@@ -34,6 +39,37 @@ typedef enum {
   S_DECLARATION, S_LOCAL_DECL, S_INST, S_SYSTEM, S_PARAMETERS, 
   S_INVARIANT, S_GUARD, S_SYNC, S_ASSIGN
 } xta_part_t;
+
+/***********************************************************************
+ * Helper for creating function objects to members
+ */
+template <typename ReturnType, typename CalleeType, typename ArgType>
+    class other_mem_fun_t
+{
+    typedef ReturnType (CalleeType::*function_t) (ArgType);
+    CalleeType *m_callee;
+    function_t m_pfn;
+
+public:
+    other_mem_fun_t(CalleeType *callee, function_t pfn)
+        : m_callee(callee), m_pfn(pfn)
+	{
+	}
+
+    ReturnType operator() (ArgType arg) const
+    {
+        return (m_callee->*m_pfn)(arg);
+    }
+};
+
+template <typename ReturnType, typename CalleeType, typename ArgType>
+other_mem_fun_t<ReturnType, CalleeType, ArgType>
+    other_mem_fun(CalleeType *callee, ReturnType (CalleeType::* pfn)(ArgType))
+{
+    return other_mem_fun_t<ReturnType, CalleeType, ArgType>(callee, pfn);
+}
+
+
 
 /*************************************************************************
  * Parse system definition in old XTA format (without C extensions)
@@ -46,5 +82,8 @@ int32_t parseXTA(FILE *, UTAP::ParserBuilder *,
 int32_t parseXTA(const char *, UTAP::ParserBuilder *,
 		 UTAP::ErrorHandler *, bool newxta,
 		 xta_part_t part);
+
+// Defined in keywords.cc
+extern bool isKeyword(const char *id, uint32_t syntax);
  
 #endif

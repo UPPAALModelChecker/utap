@@ -18,22 +18,23 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
+VPATH = @srcdir@
 
 bin_PROGRAMS = pretty
 lib_LIBRARIES = libutap.a
 EXTRA_PROGRAMS = decl_check
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/builder.hh utap/common.hh utap/expression.hh utap/statement.hh utap/symtable.hh utap/system.hh utap/typechecker.hh utap/typesys.hh utap/utap.hh
+include_HEADERS = utap/builder.hh utap/common.hh utap/expression.hh utap/statement.hh utap/symbols.hh utap/system.hh utap/typechecker.hh utap/utap.hh utap/systembuilder.hh utap/rangechecker.hh
 
-pretty_SOURCES = pretty.cc
+pretty_SOURCES = pretty.cc 
 decl_check_SOURCES = decl_check.cc
 
-libutap_a_SOURCES = expression.cc system.cc symtable.cc typechecker.cc typeexception.cc typesys.cc xmlreader.cc tags.gperf statement.cc error.cc parser.yy libparser.hh
+libutap_a_SOURCES = expression.cc system.cc typechecker.cc typeexception.cc symbols.cc xmlreader.cc tags.gperf statement.cc error.cc parser.yy libparser.hh systembuilder.cc rangechecker.cc
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)
-AM_CFLAGS = @CFLAGS@ $(XML_CFLAGS)
-AM_CPPFLAGS = @CPPFLAGS@ $(XML_CFLAGS)
+AM_CFLAGS = @CFLAGS@ $(XML_CFLAGS) -Wall
+AM_CPPFLAGS = @CPPFLAGS@ $(XML_CFLAGS) -Wall
 
 BUILT_SOURCES = tags.cc keywords.cc lexer.cc
 
@@ -42,7 +43,7 @@ GPERFFLAGS = -C -E -t -L C++ -c
 
 tags.cc: tags.gperf
 	if $(GPERF) $(GPERFFLAGS) -K str -Z Tags \
-		tags.gperf >$@t; then \
+		$< >$@t; then \
 	mv $@t $@; \
 	elif $(GPERF) --version >/dev/null 2>&1; then \
 		rm $@t; \
@@ -54,7 +55,7 @@ tags.cc: tags.gperf
 
 keywords.cc: keywords.gperf
 	if $(GPERF) $(GPERFFLAGS) -Z Keywords \
-		keywords.gperf >$@t; then \
+		$< >$@t; then \
 	mv $@t $@; \
 	elif $(GPERF) --version >/dev/null 2>&1; then \
 		rm $@t; \

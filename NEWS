@@ -1,2 +1,12 @@
+New in 0.30
+* Bug fixes
+* Reimplementation of type and symbol handling, see the new
+  symbol_t, type_t and frame_t classes.
+* Reimplementation of TimedAutomataSystem construction and  
+  type checking. The construction is now handled by the 
+  SystemBuilder class and the type checking is done in a
+  seperate pass by the new TypeChecker class.
+* Range checking has been moved to another class: RangeChecker
+
 New in 0.10
 * Initial release

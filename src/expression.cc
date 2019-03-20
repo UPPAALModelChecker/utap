@@ -27,6 +27,7 @@ using namespace Constants;
 
 using std::list;
 using std::vector;
+using std::set;
 
 int ExpressionProgram::getNumberOfSubExpressions(const expression_t &expr) const
 {
@@ -71,8 +72,6 @@ int ExpressionProgram::getNumberOfSubExpressions(const expression_t &expr) const
       break;
     case DOT:
       return 1;
-    case CONSTRAINT:
-      return 3;
     case LEADSTO:
     case COMMA:
     case ASSIGN:
@@ -169,7 +168,7 @@ void ExpressionProgram::append(SubExpression sub)
   append(first, last);
 }
 
-SubExpression SubExpression::getSubExpression(uint32_t idx)
+SubExpression SubExpression::get(uint32_t idx)
 {
   vector<ExpressionProgram::iterator> sub;
   expr.decompose(pos, sub);
@@ -180,4 +179,160 @@ SubExpression SubExpression::getSubExpression(uint32_t idx)
   else
     result = --sub[idx + 1];
   return SubExpression(expr, result);
+}
+
+const SubExpression SubExpression::get(uint32_t idx) const
+{
+  vector<ExpressionProgram::iterator> sub;
+  expr.decompose(pos, sub);
+  assert(idx < sub.size());
+  ExpressionProgram::iterator result = pos;
+  if (idx + 1 == sub.size())
+    --result;
+  else
+    result = --sub[idx + 1];
+  return SubExpression(expr, result);
+}
+
+/** Returns true if expr might be a reference to a symbol in the
+    set. NOTE: This method does not use the getSymbol() call, since
+    that one always returns the 'true' result of an inline if.
+ */
+bool SubExpression::isReferenceTo(const set<int> &identifiers) const
+{
+    switch (getKind()) {
+    case IDENTIFIER:
+	return (identifiers.find(getValue()) != identifiers.end());
+    case ARRAY:
+	return get(0).isReferenceTo(identifiers);
+    case PREINCREMENT:
+    case PREDECREMENT:
+	return get(0).isReferenceTo(identifiers);
+    case COMMA:
+	return get(1).isReferenceTo(identifiers);
+    case DOT:
+	return get(0).isReferenceTo(identifiers) 
+	    || identifiers.find(get(0).getSymbol().getId()) != identifiers.end();
+
+    case INLINEIF:
+	return get(1).isReferenceTo(identifiers) || get(2).isReferenceTo(identifiers);
+    case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
+	return get(0).isReferenceTo(identifiers);
+    default:
+	// This operation will not result in a reference
+	return false;
+    }
+}
+
+bool SubExpression::changesVariable(const set<int> &variables) const
+{
+    for (int i = 0; i < getSize(); i++) 
+	if (get(i).changesVariable(variables)) 
+	    return true;  
+
+    switch (getKind()) {
+    case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
+    case POSTINCREMENT:
+    case POSTDECREMENT:
+    case PREINCREMENT:
+    case PREDECREMENT:
+	return get(0).isReferenceTo(variables);
+      
+    case FUNCALL:
+	// TODO: The function must be side effect free
+	return false;
+    }
+
+    return false; // Pessimistic default
+}
+
+/**
+   Returns the symbol of a variable reference. The expression must be
+   a left-hand side value. The symbol returned is the symbol of the
+   variable the expression if resulting in a reference to. NOTE: In
+   case of inline if, the symbol referenced by the 'true' part is
+   returned.
+*/
+symbol_t SubExpression::getSymbol() const
+{
+    switch (getKind()) {
+    case IDENTIFIER:
+	return symbol_t(getValue());
+      
+    case DOT:
+	return get(0).getType().getFrame()[getValue()];
+      
+    case ARRAY:
+	return get(0).getSymbol();
+      
+    case PREINCREMENT:
+    case PREDECREMENT:
+	return get(0).getSymbol();
+    
+    case INLINEIF:
+	return get(1).getSymbol();
+      
+    case COMMA:
+	return get(1).getSymbol();
+
+    case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
+	return get(0).getSymbol();
+
+    case SYNC:
+	if (getValue() != SYNC_TAU)
+	    return get(0).getSymbol();
+	break;
+	
+    case FUNCALL:
+	//Functions cannot return references (yet!)
+	break;
+    }
+    return symbol_t();
+}
+
+bool SubExpression::dependsOn(const set<int> &variables) const
+{
+    for (int i = 0; i < getSize(); i++) 
+	if (get(i).dependsOn(variables)) 
+	    return true;
+
+    if (getKind() == IDENTIFIER) 
+	return variables.find(getValue()) != variables.end();
+    
+    return false;
+}
+
+const position_t &SubExpression::getPosition() const
+{
+    return pos->position;
 }

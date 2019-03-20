@@ -83,6 +83,7 @@ idchr	[a-zA-Z0-9_$#]
 "("             { return '('; }
 ")"             { return ')'; }
 "?"		{ return '?'; }
+"'"		{ return '\''; }
 "!"		{ return T_EXCLAM; }
 
 "->"		{ return T_ARROW; }
@@ -122,9 +123,11 @@ idchr	[a-zA-Z0-9_$#]
 "||"            { return T_BOOL_OR; }
 "&&"            { return T_BOOL_AND; }
 
-"<="|"=<"	{ return T_LEQ; }
+"<="		{ return T_LEQ; }
+"=<"		{ return T_LEQ; } // TODO: Remove from new syntax
 "<"		{ return T_LT; }
-">="|"=>"	{ return T_GEQ; }
+">="		{ return T_GEQ; } // TODO: Remove from new syntax
+"=>"		{ return T_GEQ; }
 ">"		{ return T_GT; }
 "=="		{ return T_EQ; }
 "!="		{ return T_NEQ; }

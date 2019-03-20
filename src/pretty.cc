@@ -28,6 +28,8 @@
 
 #include "utap/builder.hh"
 #include "utap/typechecker.hh"
+#include "utap/systembuilder.hh"
+#include "utap/rangechecker.hh"
 
 #if defined(__MINGW32__) || defined(__CYGWIN32__) || !defined(HAVE_UNISTD_H) 
 extern "C" {
@@ -42,6 +44,9 @@ using UTAP::TypeChecker;
 using UTAP::TypeException;
 using UTAP::TimedAutomataSystem;
 using UTAP::ErrorHandler;
+using UTAP::SystemBuilder;
+using UTAP::RangeChecker;
+using UTAP::position_t;
 using std::vector;
 using std::string;
 using std::stack;
@@ -60,11 +65,7 @@ static const char *const prefix_label[] = {
 class PrettyPrinter : public ParserBuilder
 {
 private:
-    typedef struct  {
-	string s;
-    } Fragment;
-
-    vector<Fragment> st;
+    vector<string> st;
 
     stack<ostream *> o;
 
@@ -96,6 +97,7 @@ public:
     }
 
     virtual void setErrorHandler(ErrorHandler *) {}
+    virtual void setPosition(const position_t &) {}
     
     virtual bool isType(const char *id) {
 	return strcmp(id, "int") == 0
@@ -104,23 +106,23 @@ public:
     }
 
     virtual void declType(uint32_t prefix, const char *type, bool range) {
-	Fragment res;
+	string res;
 	
-	res.s += prefix_label[prefix];
-	res.s += type;
+	res += prefix_label[prefix];
+	res += type;
 
 	if (range) {
-	    Fragment r2 = st.back(); st.pop_back(); 
-	    Fragment r1 = st.back(); st.pop_back();
-	    res.s += '[' + r1.s + ',' + r2.s + ']';
+	    string r2 = st.back(); st.pop_back(); 
+	    string r1 = st.back(); st.pop_back();
+	    res += '[' + r1 + ',' + r2 + ']';
 	}
 
 	st.push_back(res);
     }
 
     virtual void declVar(const char *id, uint32_t dim, bool init) {
-	stack<Fragment> array;
-	Fragment i;
+	stack<string> array;
+	string i;
 	
 	if (init) {
 	    i = st.back();
@@ -135,19 +137,19 @@ public:
 	if (first) {
 	    first = false;
 	    indent();
-	    *o.top() << st.back().s << ' ' << id;
+	    *o.top() << st.back() << ' ' << id;
 	    st.pop_back();
 	} else {
 	    *o.top() << ", " << id;
 	}
     
 	while (!array.empty()) {
-	    *o.top() << '[' << array.top().s << ']';
+	    *o.top() << '[' << array.top() << ']';
 	    array.pop();
 	}
 	
 	if (init) {
-	    *o.top() << " = " << i.s;
+	    *o.top() << " = " << i;
 	}
     }
 
@@ -159,10 +161,24 @@ public:
     virtual void declStruct(uint32_t prefix, uint32_t n) {}
     virtual void declField(const char* name, uint32_t dim) {}
     virtual void declFieldEnd() {}
+    
     virtual void declTypeDef(const char* name, uint32_t dim) {}
     virtual void declTypeDefEnd() {}
-    virtual void declInitialiserList(uint32_t num) {}
-    virtual void declFieldInit(const char* name) {}
+
+    virtual void declInitialiserList(uint32_t num) {
+	string s = st.back();
+	st.pop_back();
+	while (--num) {
+	    s = st.back() + ", " + s;
+	    st.pop_back();
+	}
+	st.push_back("{ " + s + " }");
+    }
+
+    virtual void declFieldInit(const char* name) {
+	if (name) 
+	    st.back() = string(name) + ": " + st.back();
+    }
 
 private:    
     string param;
@@ -174,7 +190,7 @@ public:
 
 	if (!param.empty())
 	    param += ", ";
-	param += st.back().s + (reference ? " &" : " ") + name;
+	param += st.back() + (reference ? " &" : " ") + name;
     }
 
     virtual void declParameterEnd() {
@@ -182,7 +198,7 @@ public:
     }
 
     virtual void declFuncBegin(const char* name, uint32_t n) {
-	*o.top() << st.back().s << " " << name << "(" << param << ")" << endl;
+	*o.top() << st.back() << " " << name << "(" << param << ")" << endl;
 	param = "";
 	level++;
     }
@@ -216,17 +232,17 @@ public:
     }
   
     virtual void forEnd() { // 3 expr, 1 stat
-	Fragment expr3 = st.back(); st.pop_back();
-	Fragment expr2 = st.back(); st.pop_back();
-	Fragment expr1 = st.back(); st.pop_back();
+	string expr3 = st.back(); st.pop_back();
+	string expr2 = st.back(); st.pop_back();
+	string expr1 = st.back(); st.pop_back();
 	ostringstream *s = (ostringstream*)o.top();
 	o.pop();
     
 	level--;
 	indent();
 	*s << '\0';
-	*o.top() << "for ( " << expr1.s << "; " << expr2.s << "; "
-		 << expr3.s << ")" << endl
+	*o.top() << "for ( " << expr1 << "; " << expr2 << "; "
+		 << expr3 << ")" << endl
 		 << s->str() << endl;
 	delete s;
     }
@@ -238,7 +254,7 @@ public:
 	}
   
     virtual void whileEnd()  { // 1 expr, 1 stat
-	Fragment expr = st.back(); st.pop_back();
+	string expr = st.back(); st.pop_back();
 	ostringstream *s = (ostringstream*)o.top();
 	o.pop();
 
@@ -246,7 +262,7 @@ public:
 	indent();
     
 	*s << '\0';
-	*o.top() << "while (" << expr.s << ")" << endl
+	*o.top() << "while (" << expr << ")" << endl
 		 << s->str() << endl;
 	delete s;
     }
@@ -275,7 +291,7 @@ public:
 	indent();
 	*t << '\0';
 	*e << '\0';
-	*o.top() << "if (" << st.back().s << ")" << endl
+	*o.top() << "if (" << st.back() << ")" << endl
 		 << t->str() << endl;
 	delete t;
 	if (hasElse) {
@@ -305,25 +321,25 @@ public:
 
     virtual void exprStatement() {
 	indent();
-	*o.top() << st.back().s << ';' << endl;
+	*o.top() << st.back() << ';' << endl;
 	st.pop_back();
     }
 
     virtual void returnStatement(bool hasValue) {
-	Fragment f;
-	indent(f.s);
+	string f;
+	indent(f);
     
 	if (hasValue) {
-	    f.s += "return " + st.back().s + ";\n";
+	    f += "return " + st.back() + ";\n";
 	    st.pop_back();
 	} else {
-	    f.s += "return;\n";
+	    f += "return;\n";
 	}
 	st.push_back(f);
     }
   
     virtual void procBegin(const char *id, uint32_t n) {
-	*o.top() << "process " << id << '(' << param << ")" << endl
+	*o.top() << "process " << (id ? id : "") << '(' << param << ")" << endl
 		 << "{" << endl;
 	param = "";
 	
@@ -339,8 +355,8 @@ public:
 	    *o.top() << ", " << id;
 	}
 
-	if (st.back().s != "true")
-	    *o.top() << '{' << st.back().s << '}';
+	if (st.back() != "true")
+	    *o.top() << '{' << st.back() << '}';
 	st.pop_back();
     }
 
@@ -390,13 +406,13 @@ public:
     virtual void procSync(uint32_t type) {
 	switch (type) {
 	case SYNC_QUE:
-	    st.back().s += '?';
+	    st.back() += '?';
 	    break;
 	case SYNC_BANG:
-	    st.back().s += '!';
+	    st.back() += '!';
 	    break;
 	case SYNC_TAU:
-	    st.push_back(Fragment());
+	    st.push_back(string());
 	    break;
 	default:
 	    throw TypeException("Invalid synchronisation");
@@ -438,9 +454,9 @@ public:
 	    procGuard();
 	}
 
-	Fragment assign = st[this->update - 1];
-	Fragment sync   = st[this->sync - 1];
-	Fragment guard  = st[this->guard - 1];
+	string assign = st[this->update - 1];
+	string sync   = st[this->sync - 1];
+	string guard  = st[this->guard - 1];
 
 	st.pop_back(); st.pop_back(); st.pop_back();
 
@@ -448,19 +464,19 @@ public:
 
 	level++;
       
-	if (guard.s != "true") {
+	if (guard != "true") {
 	    indent();
-	    *o.top() << "guard " << guard.s << ';' << endl;
+	    *o.top() << "guard " << guard << ';' << endl;
 	}
 
-	if (!sync.s.empty()) {
+	if (!sync.empty()) {
 	    indent();
-	    *o.top() << "sync " << sync.s << ';' << endl;
+	    *o.top() << "sync " << sync << ';' << endl;
 	}
 
-	if (assign.s != "true") {
+	if (assign != "true") {
 	    indent();
-	    *o.top() << "assign " << assign.s << ';' << endl;
+	    *o.top() << "assign " << assign << ';' << endl;
 	}
 
 	level--;
@@ -480,25 +496,25 @@ public:
     }
 
     virtual void exprId(const char *id) {
-	st.push_back(Fragment());
-	st.back().s = id;
+	st.push_back(string());
+	st.back() = id;
     }
   
     virtual void exprNat(int32_t n) {
 	char s[20];
 	snprintf(s, 20, "%d", n);
-	st.push_back(Fragment());
-	st.back().s += s;
+	st.push_back(string());
+	st.back() += s;
     }
   
     virtual void exprTrue() {
-	st.push_back(Fragment());
-	st.back().s = "true";
+	st.push_back(string());
+	st.back() = "true";
     }
 
     virtual void exprFalse() {
-	st.push_back(Fragment());
-	st.back().s = "false";
+	st.push_back(string());
+	st.back() = "false";
     }
 
     virtual void exprCallBegin(const char *) {
@@ -514,65 +530,65 @@ public:
     }
 
     virtual void exprArray() {
-	Fragment f = st.back();
+	string f = st.back();
 	st.pop_back();
-	st.back().s += '[' + f.s + ']';
+	st.back() += '[' + f + ']';
     }
 
     virtual void exprPostIncrement() {
-	st.back().s += "++";
+	st.back() += "++";
     }
 
     virtual void exprPreIncrement() {
-	st.back().s = "++" + st.back().s;
+	st.back() = "++" + st.back();
     }
 
     virtual void exprPostDecrement() {
-	st.back().s += "--";
+	st.back() += "--";
     }
 
     virtual void exprPreDecrement() {
-	st.back().s = "--" + st.back().s;
+	st.back() = "--" + st.back();
     }
 
     virtual void exprAssignment(uint32_t op) {
-	Fragment rhs = st.back(); st.pop_back();
-	Fragment lhs = st.back(); st.pop_back();
+	string rhs = st.back(); st.pop_back();
+	string lhs = st.back(); st.pop_back();
 
-	st.push_back(Fragment());
+	st.push_back(string());
 	switch (op) {
 	case ASSIGN:
-	    st.back().s = '(' + lhs.s + " = " + rhs.s + ')';
+	    st.back() = '(' + lhs + " = " + rhs + ')';
 	    break;
 	case ASSPLUS:
-	    st.back().s = '(' + lhs.s + " += " + rhs.s + ')';
+	    st.back() = '(' + lhs + " += " + rhs + ')';
 	    break;
 	case ASSMINUS:
-	    st.back().s = '(' + lhs.s + " -= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " -= " + rhs + ')';
 	    break;
 	case ASSMULT:
-	    st.back().s = '(' + lhs.s + " *= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " *= " + rhs + ')';
 	    break;
 	case ASSDIV:
-	    st.back().s = '(' + lhs.s + " /= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " /= " + rhs + ')';
 	    break;
 	case ASSMOD:
-	    st.back().s = '(' + lhs.s + " %= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " %= " + rhs + ')';
 	    break;
 	case ASSOR:
-	    st.back().s = '(' + lhs.s + " |= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " |= " + rhs + ')';
 	    break;
 	case ASSAND:
-	    st.back().s = '(' + lhs.s + " &= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " &= " + rhs + ')';
 	    break;
 	case ASSXOR:
-	    st.back().s = '(' + lhs.s + " ^= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " ^= " + rhs + ')';
 	    break;
 	case ASSLSHIFT:
-	    st.back().s = '(' + lhs.s + " <<= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " <<= " + rhs + ')';
 	    break;
 	case ASSRSHIFT:
-	    st.back().s = '(' + lhs.s + " >>= " + rhs.s + ')';
+	    st.back() = '(' + lhs + " >>= " + rhs + ')';
 	    break;
 	default:
 	    throw TypeException("Invalid assignment operator");
@@ -580,15 +596,15 @@ public:
     }
 
     virtual void exprUnary(uint32_t op) {
-	Fragment exp = st.back(); st.pop_back();
+	string exp = st.back(); st.pop_back();
 
-	st.push_back(Fragment());
+	st.push_back(string());
 	switch (op) {
 	case MINUS:
-	    st.back().s = '-' + exp.s;
+	    st.back() = '-' + exp;
 	    break;
 	case NOT:
-	    st.back().s = '!' + exp.s;
+	    st.back() = '!' + exp;
 	    break;
 	default:
 	    throw TypeException("Invalid operator");
@@ -596,70 +612,70 @@ public:
     }
 
     virtual void exprBinary(uint32_t op) {
-	Fragment exp2 = st.back(); st.pop_back();
-	Fragment exp1 = st.back(); st.pop_back();
+	string exp2 = st.back(); st.pop_back();
+	string exp1 = st.back(); st.pop_back();
     
-	st.push_back(Fragment());
+	st.push_back(string());
 	switch (op) {
 	case PLUS:
-	    st.back().s = '(' + exp1.s + " + " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " + " + exp2 + ')';
 	    break;
 	case MINUS:
-	    st.back().s = '(' + exp1.s + " - " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " - " + exp2 + ')';
 	    break;
 	case MULT:
-	    st.back().s = '(' + exp1.s + " * " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " * " + exp2 + ')';
 	    break;
 	case DIV:
-	    st.back().s = '(' + exp1.s + " / " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " / " + exp2 + ')';
 	    break;
 	case MOD:
-	    st.back().s = '(' + exp1.s + " % " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " % " + exp2 + ')';
 	    break;
 	case MIN:
-	    st.back().s = '(' + exp1.s + " <? " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " <? " + exp2 + ')';
 	    break;
 	case MAX:
-	    st.back().s = '(' + exp1.s + " >? " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " >? " + exp2 + ')';
 	    break;
 	case LT:
-	    st.back().s = '(' + exp1.s + " < " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " < " + exp2 + ')';
 	    break;      
 	case LE:
-	    st.back().s = '(' + exp1.s + " <= " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " <= " + exp2 + ')';
 	    break;      
 	case EQ:
-	    st.back().s = '(' + exp1.s + " == " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " == " + exp2 + ')';
 	    break;      
 	case NEQ:
-	    st.back().s = '(' + exp1.s + " != " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " != " + exp2 + ')';
 	    break;      
 	case GE:
-	    st.back().s = '(' + exp1.s + " >= " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " >= " + exp2 + ')';
 	    break;      
 	case GT:
-	    st.back().s = '(' + exp1.s + " > " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " > " + exp2 + ')';
 	    break;
 	case AND:
-	    st.back().s = '(' + exp1.s + " && " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " && " + exp2 + ')';
 	    break;
 	case OR:
-	    st.back().s = '(' + exp1.s + " || " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " || " + exp2 + ')';
 	    break;
 	case BIT_AND:
-	    st.back().s = '(' + exp1.s + " & " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " & " + exp2 + ')';
 	    break;
 	case BIT_OR:      
-	    st.back().s = '(' + exp1.s + " | " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " | " + exp2 + ')';
 	    break;
 	case BIT_XOR:
-	    st.back().s = '(' + exp1.s + " ^ " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " ^ " + exp2 + ')';
 	    break;
 	case BIT_LSHIFT:
-	    st.back().s = '(' + exp1.s + " << " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " << " + exp2 + ')';
 	    break;
 	case BIT_RSHIFT:
-	    st.back().s = '(' + exp1.s + " >> " + exp2.s + ')';
+	    st.back() = '(' + exp1 + " >> " + exp2 + ')';
 	    break;
 	default:
 	    throw TypeException("Invalid operator");
@@ -667,20 +683,20 @@ public:
     }
 
     virtual void exprInlineIf() {  
-	Fragment expr3 = st.back(); st.pop_back();
-	Fragment expr2 = st.back(); st.pop_back();
-	Fragment expr1 = st.back(); st.pop_back();
+	string expr3 = st.back(); st.pop_back();
+	string expr2 = st.back(); st.pop_back();
+	string expr1 = st.back(); st.pop_back();
 
-	st.push_back(Fragment());
-	st.back().s = expr1.s + " ? " + expr2.s + " : " + expr3.s;
+	st.push_back(string());
+	st.back() = expr1 + " ? " + expr2 + " : " + expr3;
     }
 
     virtual void exprComma() {
-	Fragment expr2 = st.back(); st.pop_back();
-	Fragment expr1 = st.back(); st.pop_back();
+	string expr2 = st.back(); st.pop_back();
+	string expr1 = st.back(); st.pop_back();
 
-	st.push_back(Fragment());
-	st.back().s = expr1.s + ", " + expr2.s;
+	st.push_back(string());
+	st.back() = expr1 + ", " + expr2;
     }
 
     virtual void exprDot(const char *) {
@@ -696,7 +712,7 @@ public:
     }
     
     virtual void instantiationEnd(const char* id, const char* templ, uint32_t n) {
-	stack<Fragment> s;
+	stack<string> s;
 	while (n--) {
 	    s.push(st.back());
 	    st.pop_back();
@@ -704,7 +720,7 @@ public:
 
 	*o.top() << id << " = " << templ << '(';
 	while (!s.empty()) {
-	    *o.top() << s.top().s;
+	    *o.top() << s.top();
 	    s.pop();
 	    if (!s.empty())
 		*o.top() << ", ";
@@ -723,6 +739,14 @@ public:
 
     virtual void done() {
 	*o.top() << ';' << endl;
+    }
+
+    virtual void beforeUpdate() {
+
+    }
+
+    virtual void afterUpdate() {
+
     }
 };
 
@@ -754,7 +778,7 @@ int main(int argc, char *argv[])
 
     ParserBuilder *b;
     if (check) {
-	b = new TypeChecker(&system);
+	b = new SystemBuilder(&system);
     } else {
 	b = new PrettyPrinter(cout);
     }
@@ -771,6 +795,14 @@ int main(int argc, char *argv[])
     } catch (TypeException e) {
 	cerr << e.what() << endl;
     }
+
+    if (check) {
+	TypeChecker tc(&errorHandler);
+	RangeChecker rc(&errorHandler);
+	system.accept(tc);
+	system.accept(rc);
+    }
+    
     vector<ErrorHandler::error_t>::const_iterator it;
     const vector<ErrorHandler::error_t> &errors = errorHandler.getErrors();
     const vector<ErrorHandler::error_t> &warns = errorHandler.getWarnings();
@@ -780,7 +812,3 @@ int main(int argc, char *argv[])
 	cerr << *it << endl;
     return 0;
 }
-
-
-
-

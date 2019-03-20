@@ -19,5 +19,5 @@
 # USA
 
 
-SUBDIRS=src
+SUBDIRS=src doc
 

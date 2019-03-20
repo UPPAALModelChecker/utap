@@ -1,3 +1,33 @@
+2003-04-06  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed several crasher bugs related to the parser and
+	  error recovery
+	* Added const version of SubExpression::operator[]
+	* Removed the code which converted constraints to the 
+	  normal form (x-y<c) - also removed the CONSTRAINT 
+	  operation.
+	* Added flag to expressionToString which indicates whether
+	  to use = or := as the assignment operator.
+	* Reimplemented type and symbol handling. Three new classes
+	  (frame_t, type_t and symbol_t) have repaced the TypeSystem
+	  and SymbolTable classes.
+	* Added doxygen support
+	* Added support for the visitor pattern to TimedAutomataSystem
+	* Replaced the old TypeChecker class with two new classes: The
+	  SystemBuilder class is used for creating a TimedAutomataSystem
+	  with minimal type checking. The TypeChecker class (which 
+	  implements the visitor pattern) type checks an existing 
+	  TimedAutomataSystem. The new type checker no longer copies
+	  the template on template instantiation.
+	* Moved range checking to new RangeChecker class
+	* Added support for tracking the position of expression in the
+	  input file.
+	* Added ExpressionProgram::empty() method
+	* Added SubExpression::getSymbol(), SubExpression::isReferenceTo(),
+	  and SubExpression::changesVariables().
+	* Unified handling of processes and structs
+	* Added warning for updates on edges without any effect
+
 2003-02-17  Gerd Behrmann  <behrmann@cs.auc.dk>
 
 	* Enlarged "default domain" of a constant (since a constant is 

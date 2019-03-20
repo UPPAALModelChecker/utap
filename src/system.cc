@@ -20,10 +20,12 @@
 */
 
 #include <stack>
+#include <algorithm>
 #include <stdio.h>
 
 #include "utap/builder.hh"
 #include "utap/system.hh"
+#include "libparser.hh"
 
 using namespace UTAP;
 using namespace Constants;
@@ -36,6 +38,7 @@ using std::pair;
 using std::make_pair;
 using std::min;
 using std::max;
+using std::set;
 
 #define defaultIntMin -0x7FFF
 #define defaultIntMax 0x7FFF
@@ -47,34 +50,17 @@ static const char *const invalid_type = "Invalid type";
 TimedAutomataSystem::TimedAutomataSystem()
 {
     current_template = &global;
-    global.frame = SymbolTable::ROOT;
-    symbols.addSymbol("bool", types.addNamedType(types.addInteger(0, 1)));
-    symbols.addSymbol("int",
-		       types.addNamedType(
-			   types.addInteger(defaultIntMin, defaultIntMax)));
-    symbols.addSymbol("chan", types.addNamedType(TypeSystem::CHANNEL));
-    symbols.addSymbol("clock", types.addNamedType(TypeSystem::CLOCK));
-    addClock(TypeSystem::CLOCK, "t(0)");
+    global.frame = frame_t::createFrame();
+    global.frame.addSymbol("bool", type_t::createTypeName(type_t::createInteger(0, 1)));
+    global.frame.addSymbol("int", type_t::createTypeName(type_t::INT));
+    global.frame.addSymbol("chan", type_t::createTypeName(type_t::CHANNEL));
+    global.frame.addSymbol("clock", type_t::createTypeName(type_t::CLOCK));
+    addClock(type_t::CLOCK, "t(0)");
 }
 
 TimedAutomataSystem::~TimedAutomataSystem()
 {
 
-}
-
-TypeSystem &TimedAutomataSystem::getTypeSystem()
-{
-    return types;
-}
-
-SymbolTable &TimedAutomataSystem::getSymbolTable()
-{
-    return symbols;
-}
-
-const char *TimedAutomataSystem::getName(int32_t uid) const
-{
-    return symbols.getName(uid);
 }
 
 list<TimedAutomataSystem::template_t> &TimedAutomataSystem::getTemplates()
@@ -92,32 +78,43 @@ TimedAutomataSystem::template_t &TimedAutomataSystem::getGlobals()
     return global;
 }
 
-TimedAutomataStructures::template_t &
-TimedAutomataSystem::addTemplate(type_t type, const char *name)
+const set<int> &TimedAutomataSystem::getConstants() const
 {
+    return constants;
+}
+
+/** Creates and returns a new template. The template is created with
+ *  the given name and parameters and added to the global frame. The
+ *  new template is set to be the current template. The method does
+ *  not check for duplicate declarations.
+ */
+TimedAutomataSystem::template_t &
+TimedAutomataSystem::addTemplate(const char *name, frame_t params)
+{
+    int nr = templates.empty() ? 0 : templates.back().nr + 1;
+    type_t type = type_t::createTemplate(params);
     templates.push_back(template_t());
     template_t &templ = templates.back();
-    templ.uid = symbols.addSymbol(name, type, &templ);
-    templ.frame = symbols.addFrame();
-    templ.init = -1;
-
-    if (templ.uid == -1) {
-        throw TypeException("Duplicate definition of %s", name);
-    } 
-
+    templ.uid = global.frame.addSymbol(name, type, &templ);
+    templ.frame = frame_t::createFrame(global.frame);
+    templ.frame.add(params);
+    templ.nr = nr;
+    setCurrentTemplate(templ);
     return templ;
 }
 
 TimedAutomataStructures::state_t &
 TimedAutomataSystem::addLocation(const char *name, ExpressionProgram &inv)
 {
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
+    
     current_template->states.push_back(state_t());
     state_t &state = current_template->states.back();
-    state.uid = symbols.addSymbol(name, TypeSystem::LOCATION, &state);
+    state.uid = current_template->frame.addSymbol(name, type_t::LOCATION, &state);
     state.locNr = current_template->states.size() - 1;
     state.invariant = inv;
 
-    if (state.uid == -1) {
+    if (duplicate) {	
 	throw TypeException("Duplicate definition of %s", name);
     }
 
@@ -125,24 +122,37 @@ TimedAutomataSystem::addLocation(const char *name, ExpressionProgram &inv)
 }
 
 TimedAutomataStructures::transition_t &
-TimedAutomataSystem::addTransition(int32_t src, int32_t dst)
+TimedAutomataSystem::addTransition(symbol_t src, symbol_t dst)
 {
-    current_template->transitions.push_back(transition_t());
-    current_template->transitions.back().src = 
-	static_cast<state_t*>(symbols.getData(src));
-    current_template->transitions.back().dst =
-	static_cast<state_t*>(symbols.getData(dst));
-    return current_template->transitions.back();
+    list<transition_t> &trans = current_template->transitions;
+    int nr = trans.empty() ? 0 : trans.back().nr + 1;
+    trans.push_back(transition_t());
+    trans.back().src = static_cast<state_t*>(src.getData());
+    trans.back().dst = static_cast<state_t*>(dst.getData());
+    trans.back().nr = nr;
+    return trans.back();
 }
 
 TimedAutomataStructures::process_t &
-TimedAutomataSystem::addProcess(int32_t uid, template_t &templ)
+TimedAutomataSystem::addInstance(symbol_t uid, template_t &templ)
 {
-    processes.push_back(process_t());
-    processes.back().uid = uid;
-    processes.back().nr = processes.size() - 1;
-    processes.back().templ = &templ;
-    return processes.back();
+    instances.push_back(process_t());
+    instances.back().uid = uid;
+    instances.back().templ = &templ;
+    instances.back().nr = -1;
+    uid.setData(&instances.back());
+    uid.setType(type_t::createProcess(templ.frame));
+    return instances.back();
+}
+
+void TimedAutomataSystem::addProcess(process_t &process)
+{
+    if (process.nr != -1)
+	throw TypeException("Process appearing several times in system line");
+    
+    process.nr = processes.empty() ? 0 : processes.back().nr + 1;
+    processes.push_back(process);
+    process.uid.setData(&processes.back());
 }
 
 TimedAutomataSystem::template_t &TimedAutomataSystem::getCurrentTemplate()
@@ -155,27 +165,22 @@ void TimedAutomataSystem::setCurrentTemplate(template_t &value)
     current_template = &value;
 }
 
-int32_t TimedAutomataSystem::sizeOfType(int32_t type)
+int32_t TimedAutomataSystem::sizeOfType(type_t type)
 {
-    switch (types.getClass(type)) {
-    case TypeSystem::CHANNEL:
-    case TypeSystem::CLOCK:
-    case TypeSystem::INT:
+    type_t base = type.getBase();
+    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT)
 	return 1;
-    case TypeSystem::ARRAY:
-	return (types.getIntegerRange(types.getFirstSubType(type)).second + 1)
-	    * sizeOfType(types.getSecondSubType(type));
-    case TypeSystem::RECORD: {
+    if (base == type_t::ARRAY)
+	return (type.getArraySize() * sizeOfType(type.getSub()));
+    if (base == type_t::RECORD) {
 	uint32_t sum = 0;
-	const vector<pair<char *, int> > &record = types.getRecord(type);
-	for (uint32_t i = 0, size = record.size(); i < size; i++)
-	    sum += sizeOfType(record[i].second);
+	frame_t frame = type.getRecordFields();
+	for (uint32_t i = 0, size = frame.getSize(); i < size; i++)
+	    sum += sizeOfType(frame[i].getType());
 	return sum;
     }
-    default:
-	throw TypeException("BUG: Cannot compute size of this type %d",
-			    types.getClass(type));
-    }
+    
+    throw TypeException("BUG: Cannot compute size of this type");
 }
 
 int32_t TimedAutomataSystem::evaluateBinary(int32_t left, int32_t op, int32_t right) {
@@ -230,32 +235,30 @@ bool TimedAutomataSystem::evaluateConstantExpression(
 {
     map<int32_t, ExpressionProgram> emptyMap;
     vector<int32_t> s;
-    if (types.getClass(expr.getType()) != TypeSystem::INT)
-	throw TypeException("Integer expression expected");
-    if (!types.isConstant(expr.getType()))
-	return false;
     if (!evaluateExpression(expr, emptyMap, s))
 	return false;
-    if (s.size() == 0)
+    if (s.size() != 1)
 	return false;
     result = s.back();
     return true;
 }
 
 // Evaluate the expression. Use the mapping to assign meaning to
-// identifiers. Identifiers not mapped by the given mapping are mapped
-// using the build-in constantMapping. The result will be stored in
+// identifiers. Constants not mapped by the given mapping are mapped
+// to the value given by the initialiser. The result will be stored in
 // the vector (the result cave have size bigger than one).
 bool TimedAutomataSystem::evaluateExpression(
     const SubExpression &expr, map<int32_t, ExpressionProgram> &mapping,
     vector<int32_t> &s)
 {
+    type_t base;
+    map<int32_t, ExpressionProgram>::iterator i;
     ExpressionProgram::const_iterator first, last;
     int32_t left, right;
-
+    
     first = expr.begin();
     last = expr.end();
-
+    
     while (first != last) {
 	switch (first->kind) {
 	case PLUS:
@@ -276,30 +279,31 @@ bool TimedAutomataSystem::evaluateExpression(
 	case NEQ:
 	case GE:
 	case GT:
+	case MIN:
+	case MAX:
 	    right = s.back(); s.pop_back();
 	    left = s.back(); s.pop_back();
 	    s.push_back(evaluateBinary(left, first->kind, right));
 	    break;
 
 	case IDENTIFIER:
-	    switch (types.getClass(first->type)) {
-	    case TypeSystem::ARRAY:
-	    case TypeSystem::INT:
-	    case TypeSystem::RECORD:
+	    base = first->type.getBase();
+	    if (base != type_t::ARRAY && base != type_t::INT
+		&& base != type_t::RECORD)
 	    {
-		map<int32_t, ExpressionProgram>::iterator i
-		    = mapping.find(first->value);
-		if (i == mapping.end()) {
-		    i = constantMapping.find(first->value);
-		    if (i == constantMapping.end())
-			return false;
-		}
-		if (!evaluateExpression(i->second, mapping, s))
-		    return false;
-		break;
-	    }
-	    default:
 		throw TypeException(unsupported);
+	    }
+
+	    i = mapping.find(first->value);
+	    if (i == mapping.end()) {
+		set<int32_t>::const_iterator j = constants.find(first->value);
+		if (j == constants.end())
+		    return false;
+		constant_t *var = (constant_t *)symbol_t(*j).getData();
+		if (!evaluateExpression(var->expr, mapping, s))
+		    return false;
+	    } else if (!evaluateExpression(i->second, mapping, s)) {
+		return false;
 	    }
 	    break;
 		
@@ -312,10 +316,10 @@ bool TimedAutomataSystem::evaluateExpression(
 	    break;
 	    
 	case ARRAY: {
-	    int type = first->value; // Array type is in the value field
+	    type_t type = type_t(first->value); 
 	    int index = s.back(); s.pop_back();
-	    int size = types.getIntegerRange(types.getFirstSubType(type)).second + 1;
-	    int subsize = sizeOfType(types.getSecondSubType(type));
+	    int size = type.getArraySize();
+	    int subsize = sizeOfType(type.getSub());
 	    s.erase(s.end() - (size - index - 1) * subsize, s.end());
 	    s.erase(s.end() - (index + 1) * subsize, s.end() - subsize);
 	    break;
@@ -331,23 +335,23 @@ bool TimedAutomataSystem::evaluateExpression(
 
 	case DOT:
 	{
+	    // FIXME
 	    int index = first->value;
 	    ExpressionProgram::const_iterator str = first;
 	    --str;
-	    const vector<pair<char *, int> > &record =
-		types.getRecord(str->type);
-	    int size = sizeOfType(record[index].second);
+	    frame_t frame = str->type.getRecordFields();
+	    int size = sizeOfType(frame[index].getType());
 	    
 	    // Delete data after index
 	    int space = 0;
-	    for (int i = record.size() - 1; i > index; i--) 
-		space += sizeOfType(record[i].second);
+	    for (int i = frame.getSize() - 1; i > index; i--) 
+		space += sizeOfType(frame[i].getType());
 	    s.erase(s.end() - space, s.end());
 
 	    // Delete data before index
 	    space = 0;
 	    for (int i = index - 1; i >= 0; i--)
-		space += sizeOfType(record[i].second);
+		space += sizeOfType(frame[i].getType());
 	    s.erase(s.end() - space - size, s.end() - size);
 
 	    break;
@@ -369,8 +373,10 @@ bool TimedAutomataSystem::evaluateExpression(
 
 // Add clock to current_template (which might be the "global"
 // template)
-void TimedAutomataSystem::addClock(int32_t type, const char *name)
+void TimedAutomataSystem::addClock(type_t type, const char *name)
 {
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
+    
     int32_t offset;
     if (current_template->clocks.empty()) {
 	offset = 0;
@@ -381,20 +387,21 @@ void TimedAutomataSystem::addClock(int32_t type, const char *name)
     }
     current_template->clocks.push_back(clock_t());
     clock_t *clock = &current_template->clocks.back();
-    clock->uid = symbols.addSymbol(name, type, clock);
+    clock->uid = current_template->frame.addSymbol(name, type, clock);
     clock->size = sizeOfType(type);
     clock->offset = offset;
     clock->global = (current_template == &global);
 
-    if (clock->uid == -1) 
+    if (duplicate)
 	throw TypeException("Duplicate definition of identifier %s", name);
 }
 
 // Add an integer to current_template (which might be the "global"
 // template)
 void TimedAutomataSystem::addVariable(
-    int32_t type, const char *name, const ExpressionProgram &initial)
-{	
+    type_t type, const char *name, const ExpressionProgram &initial)
+{
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
     variable_t *var;
     int32_t offset;
 
@@ -416,14 +423,15 @@ void TimedAutomataSystem::addVariable(
     var->global = (current_template == &global);
 
     // Add symbol
-    var->uid = symbols.addSymbol(name, type, var);
-    if (var->uid == -1) 
+    var->uid = current_template->frame.addSymbol(name, type, var);
+    if (duplicate)
 	throw TypeException("Duplicate definition of identifier %s", name);
 }
 
 void TimedAutomataSystem::addConstant(
-    int32_t type, const char *name, const ExpressionProgram &initial)
-{	
+    type_t type, const char *name, const ExpressionProgram &initial)
+{
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
     constant_t *constant;
 
     int32_t offset;
@@ -431,7 +439,7 @@ void TimedAutomataSystem::addConstant(
 	offset = 0;
     } else {
 	offset =
-	    current_template->constants.back().offset
+	    current_template->constants.back().offset 
 	    + current_template->constants.back().size;
     }
 
@@ -444,17 +452,18 @@ void TimedAutomataSystem::addConstant(
     constant->offset = offset;
 
     // Add symbol
-    constant->uid = symbols.addSymbol(name, type, constant);
-    if (constant->uid == -1) 
+    constant->uid = current_template->frame.addSymbol(name, type, constant);
+    if (duplicate) 
 	throw TypeException("Duplicate definition of identifier %s", name);
 
-    constantMapping[constant->uid] = initial;
+    constants.insert(constant->uid.getId());
 }
 
 // Add a channel to current_template (which might be the "global"
 // template)
-void TimedAutomataSystem::addChannel(int32_t type, const char *name)
+void TimedAutomataSystem::addChannel(type_t type, const char *name)
 {
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
     int32_t offset;
     if (current_template->channels.empty()) {
 	offset = 0;
@@ -466,26 +475,27 @@ void TimedAutomataSystem::addChannel(int32_t type, const char *name)
 
     current_template->channels.push_back(channel_t());
     channel_t *channel = &current_template->channels.back();
-    channel->uid = symbols.addSymbol(name, type, channel);
+    channel->uid = current_template->frame.addSymbol(name, type, channel);
     channel->size = sizeOfType(type);
     channel->offset = offset;
     channel->global = (current_template == &global);
 
-    if (channel->uid == -1) 
+    if (duplicate) 
 	throw TypeException("Duplicate definition of identifier %s", name);
 }
 
 // Add a function to current_template (which might be the "global" template)
 TimedAutomataSystem::function_t &
-TimedAutomataSystem::addFunction(int32_t type, const char *name)
+TimedAutomataSystem::addFunction(type_t type, const char *name)
 {	
+    bool duplicate = current_template->frame.getIndexOf(name) != -1;
     // Add function
     current_template->functions.push_back(function_t());
     function_t &fun = current_template->functions.back();
     fun.global = (current_template == &global);
     // Add symbol
-    fun.uid = symbols.addSymbol(name, type, &fun);
-    if (fun.uid == -1) 
+    fun.uid = current_template->frame.addSymbol(name, type, &fun);
+    if (duplicate) 
 	throw TypeException("Duplicate definition of identifier %s", name);
     return fun;
 }
@@ -532,7 +542,6 @@ int TimedAutomataSystem::getPrecedence(int kind)
     case LE:
     case GE:
     case GT:
-    case CONSTRAINT:
 	return 50;
 	    
     case IDENTIFIER:
@@ -581,25 +590,28 @@ int TimedAutomataSystem::getPrecedence(int kind)
     }
 }
 
-char *TimedAutomataSystem::expressionToString(const ExpressionProgram& expr)
+char *TimedAutomataSystem::expressionToString(const ExpressionProgram& expr,
+					      bool old)
 {
-    return expressionToString(expr.begin(), expr.end());
+    return expressionToString(expr.begin(), expr.end(), old);
 }
 
-char *TimedAutomataSystem::expressionToString(const SubExpression& sub)
+char *TimedAutomataSystem::expressionToString(const SubExpression& sub, 
+					      bool old)
 {
-    return expressionToString(sub.begin(), sub.end());
+    return expressionToString(sub.begin(), sub.end(), old);
 }
 
 char *TimedAutomataSystem::expressionToString(
     ExpressionProgram::const_iterator first,
-    ExpressionProgram::const_iterator last)
+    ExpressionProgram::const_iterator last, bool old)
 {
     typedef pair<int, char *> element_t;
     stack<element_t> st;
 
     while (first != last) {
 	element_t left, right;
+	const char *name;
 	char *s;
 	int precedence = getPrecedence(first->kind);
 	
@@ -702,7 +714,10 @@ char *TimedAutomataSystem::expressionToString(
 		strcat(s, " > ");
 		break;
 	    case ASSIGN:
-		strcat(s, " = ");
+		if (old)
+		    strcat(s, " := ");
+		else
+		    strcat(s, " = ");
 		break;
 	    case ASSPLUS:
 		strcat(s, " += ");
@@ -754,9 +769,9 @@ char *TimedAutomataSystem::expressionToString(
 	    break;
 
 	case IDENTIFIER:
-	    s = (char*)symbols.getName(first->value);
-	    st.push(make_pair(
-			precedence, strcpy(new char[strlen(s) + 1], s)));
+	    name = symbol_t(first->value).getName();
+	    s = strcpy(new char[strlen(name) + 1], name);
+	    st.push(make_pair(precedence, s));
 	    break;
 		
 	case CONSTANT:
@@ -840,26 +855,22 @@ char *TimedAutomataSystem::expressionToString(
 
 	case DOT:
 	{
-	    const char *sub;
 	    ExpressionProgram::const_iterator i = first;
 	    --i;
 
-	    switch (types.getClass(i->type)) {
-	    case TypeSystem::PROCESS:
-		sub = symbols.getName(first->value);
-		break;
-	    case TypeSystem::RECORD:	
-		sub = types.getRecord(i->type)[first->value].first;
-		break;
-	    default:
+	    if (i->type.getBase() == type_t::PROCESS) {
+		name = symbol_t(first->value).getName();
+	    } else if (i->type.getBase() == type_t::RECORD) {
+		name = i->type.getRecordFields()[first->value].getName();
+	    } else {
 		throw TypeException("BUG: Unexpected type here");
 	    }
 
-	    s = new char[strlen(st.top().second) + 4 + strlen(sub)];
+	    s = new char[strlen(st.top().second) + 4 + strlen(name)];
 	    if (precedence > st.top().first)
-		sprintf(s, "(%s).%s", st.top().second, sub);
+		sprintf(s, "(%s).%s", st.top().second, name);
 	    else 
-		sprintf(s, "%s.%s", st.top().second, sub);
+		sprintf(s, "%s.%s", st.top().second, name);
 	    delete[] st.top().second;
 	    st.top() = make_pair(precedence, s);
 	    break;
@@ -890,26 +901,6 @@ char *TimedAutomataSystem::expressionToString(
 	    else
 		strcat(s, right.second);	    
 
-	    delete[] left.second;
-	    delete[] right.second;
-	    delete[] st.top().second;
-	    st.top() = make_pair(precedence, s);
-	    break;
-
-	case CONSTRAINT:
-	    right = st.top(); st.pop(); // value
-	    left = st.top(); st.pop();  // clock2
-	    s = new char[strlen(st.top().second) + strlen(left.second)
-			 + strlen(right.second) + 8];
-	    sprintf(s, "%s - %s", st.top().second, left.second);
-
-	    if (first->value) {
-		strcat(s, " < ");
-	    } else {
-		strcat(s, " <= ");
-	    }
-
-	    strcat(s, right.second);
 	    delete[] left.second;
 	    delete[] right.second;
 	    delete[] st.top().second;
@@ -955,4 +946,135 @@ char *TimedAutomataSystem::expressionToString(
 	++first;
     }
     return st.top().second;
+}
+
+void TimedAutomataSystem::accept(SystemVisitor &visitor)
+{
+    visitor.visitSystemBefore(this);
+
+    for_each(global.constants.begin(), global.constants.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitConstant));
+    for_each(global.variables.begin(), global.variables.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitVariable));
+    for_each(global.clocks.begin(), global.clocks.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitClock));
+    for_each(global.channels.begin(), global.channels.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitChannel));
+    for_each(global.functions.begin(), global.functions.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitFunction));
+
+    list<template_t>::iterator i;
+    for (i = templates.begin(); i != templates.end(); ++i) {
+	if (!visitor.visitTemplateBefore(*i))
+	    continue;
+	for_each(i->constants.begin(), i->constants.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitConstant));
+	for_each(i->variables.begin(), i->variables.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitVariable));
+	for_each(i->clocks.begin(), i->clocks.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitClock));
+	for_each(i->channels.begin(), i->channels.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitChannel));
+	for_each(i->functions.begin(), i->functions.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitFunction));
+	for_each(i->states.begin(), i->states.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitState));
+	for_each(i->transitions.begin(), i->transitions.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitTransition));
+	visitor.visitTemplateAfter(*i);
+    }
+
+    for_each(instances.begin(), instances.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitInstance));
+    for_each(processes.begin(), processes.end(),
+	     other_mem_fun(&visitor, &SystemVisitor::visitProcess));
+	
+    visitor.visitSystemAfter(this);
+}
+
+    
+ContextVisitor::ContextVisitor(ErrorHandler *handler)
+{
+    errorHandler = handler;
+    currentTemplate = -1;
+    path[0] = 0;
+}
+
+void ContextVisitor::setContextNone()
+{
+    path[0] = 0;
+}
+
+void ContextVisitor::setContextDeclaration()
+{
+    if (currentTemplate == -1) {
+	strncpy(path, "/nta/declaration", 256);
+    } else {
+	snprintf(path, 256, "/nta/template[%d]/declaration", currentTemplate + 1);
+    }
+}
+
+void ContextVisitor::setContextParameters()
+{
+    snprintf(path, 256, "/nta/template[%d]/parameter", currentTemplate + 1);
+}
+
+void ContextVisitor::setContextInvariant(state_t &state)
+{
+    snprintf(path, 256, "/nta/template[%d]/location[%d]/label[@kind=\"invariant\"]", currentTemplate + 1, state.locNr + 1);
+}
+
+void ContextVisitor::setContextGuard(transition_t &transition)
+{
+    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"guard\"]", currentTemplate + 1, transition.nr + 1);
+}
+
+void ContextVisitor::setContextSync(transition_t &transition)
+{
+    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"synchronisation\"]", currentTemplate + 1, transition.nr + 1);
+}
+
+void ContextVisitor::setContextAssignment(transition_t &transition)
+{
+    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"assignment\"]", currentTemplate + 1, transition.nr + 1);
+}
+
+void ContextVisitor::setContextInstantiation()
+{
+    strncpy(path, "/nta/instantiation", 256);
+}
+
+bool ContextVisitor::visitTemplateBefore(template_t &templ)
+{
+    currentTemplate = templ.nr;
+    return true;
+}
+
+void ContextVisitor::visitTemplateAfter(template_t &templ)
+{
+    currentTemplate = -1;
+}
+
+char *ContextVisitor::get() const
+{
+    return strcpy(new char[strlen(path) + 1], path);
+}
+
+void ContextVisitor::handleWarning(SubExpression expr, const char *msg)
+{
+    if (errorHandler) {
+	errorHandler->setCurrentPath(this);	
+	errorHandler->setCurrentPosition(expr.getPosition());
+	errorHandler->handleWarning(msg);
+    }
+}
+
+void ContextVisitor::handleError(SubExpression expr, const char *msg)
+{
+    if (errorHandler) {
+	errorHandler->setCurrentPath(this);	
+	errorHandler->setCurrentPosition(expr.getPosition());
+	errorHandler->handleError(msg);
+    }
+
 }

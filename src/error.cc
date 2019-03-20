@@ -48,6 +48,16 @@ void ErrorHandler::setCurrentPosition(int first_line, int first_column, int last
   this->last_column = last_column;
 }
 
+// Sets the current position of the parser. Any errors or
+// warnings will be assumed to be at this position.
+void ErrorHandler::setCurrentPosition(const position_t &p)
+{
+  this->first_line = p.first_line;
+  this->first_column = p.first_column;
+  this->last_line = p.last_line;
+  this->last_column = p.last_column;
+}
+
 // Called when an error is detected
 void ErrorHandler::handleError(const char *msg)
 {

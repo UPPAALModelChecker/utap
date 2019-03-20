@@ -23,107 +23,146 @@
 #define UTAP_INTERMEDIATE_HH
 
 #include <list>
+#include <vector>
+#include <map>
 
-#include "utap/typesys.hh"
-#include "utap/symtable.hh"
+#include "symbols.hh"
 #include "utap/expression.hh"
-#include "utap/statement.hh"
+#include "statement.hh"
 
 namespace UTAP
 {
+    /** Common structures describing a network of timed automata. */
     class TimedAutomataStructures
     {
     public:
+
+	/** Base type for variables, clocks, etc.  The user data of
+	    the corresponding symbol_t points to this structure,
+	    i.e. v.uid.getData() is a pointer to v.
+	*/
 	struct varbase_t {
-	    int32_t uid;
-	    int32_t size;
-	    int32_t offset;
-	    int32_t global;
+	    symbol_t uid;	/**< The symbol of the variables */
+	    int32_t size;	/**< The size in elements */
+	    int32_t offset;	/**< The offset */
+	    bool global;	/**< True if this is a global variable */
 	};
 	
-	// This struct is used to keep information about a variable
-	// when added to the symbol table. A pointer to such a struct
-	// is given as the data element.
+	/** Information about an integer or struct variable. */
 	struct variable_t : public varbase_t {
-	    ExpressionProgram expr; // initialiser for variable
+	    ExpressionProgram expr; /**< The initialiser */
 	};
 
-	// This struct is used to keep information about a constant
-	// when added to the symbol table. A pointer to such a struct
-	// is given as the data element.
+	/** Information about a constant. */
 	struct constant_t : public varbase_t {
-	    ExpressionProgram expr; // initialiser for constant
+	    ExpressionProgram expr; /**< initialiser for constant */
 	};
 
-	// This struct is used to keep information about a clock when
-	// added to the symbol table. A pointer to such a struct is
-	// given as the data element.
+	/** Information about a clock. */
 	struct clock_t : public varbase_t {};
 
-	// This struct is used to keep information about a channel
-	// when added to the symbol table. A pointer to such a struct
-	// is given as the data element.
+	/** Information about a channel. */
 	struct channel_t : public varbase_t {};
 
-	// A state is stored using the uid of the symbol, the
-	// invariant (an expression) and a locNr indication which nr
-	// state it is for the template it if contained in
+	/** Information about a location.
+	    The symbol's user data points to this structure, i.e.
+	    s.uid.getData() is a pointer to s.
+	*/
 	struct state_t {
-	    int32_t uid;
-	    ExpressionProgram invariant;
-	    int32_t locNr;
+	    symbol_t uid;		/**< The symbol of the location */
+	    ExpressionProgram invariant;/**< The invariant */
+	    int32_t locNr;		/**< Location number in template */
 	};
 
-	// Transitions have a source (src) and a destination (dst),
-	// which are actually the uid of the symbols in the symbol
-	// table. The guard and assignments are stored as
-	// expressions. The synchronisation is stored as an int.
+	/** Information about a transition.  Transitions have a source
+	    (src) and a destination (dst), which are actually the uid
+	    of the symbols in the symbol table. The guard,
+	    synchronisation and assignment are stored as expressions.
+	*/
 	struct transition_t {
-	    state_t *src;
-	    state_t *dst;
-	    ExpressionProgram guard;
-	    ExpressionProgram assign;
-	    ExpressionProgram sync;
+	    int nr;			/**< Placement in in put file */
+	    state_t *src;		/**< Pointer to source location */
+	    state_t *dst;		/**< Pointer to destination location */
+	    ExpressionProgram guard;	/**< The guard */
+	    ExpressionProgram assign;	/**< The assignment */
+	    ExpressionProgram sync;	/**< The synchronisation */
 	};
 
-	// function structure has the uid in symbol table, 
-	// its own frame of variables and flag of being global
+	/** Information about a function. The symbol's user data points
+	    to this structure, i.e. f.uid.getData() is a pointer to f.
+	*/
 	struct function_t {
-	    int32_t uid;
-	    bool global;
-	    BlockStatement *body;
-	    function_t(): body(NULL) {}
+	    symbol_t uid;		/**< The symbol of the function */
+	    bool global;		/**< True if this is a global function */
+	    BlockStatement *body;	/**< Pointer to the block */
+	    function_t() : body(NULL) {}
+	    ~function_t() { delete body; }
 	};
 
-	// A template is stored with information about its frame,
-	// states (a.k.a. locations), the variables, the uid of the
-	// initial state, and the transitions. Notice that the
-	// expressions are *not* converted to, for instance, the
-	// Uppaal Expression classes. This is because the template
-	// must be instantiated before we know the index of local
-	// variables and parameters in the IntegerTable.
-	struct template_t {
-	    int32_t uid;
-	    int32_t frame;
-	    std::list<state_t> states;
-	    std::list<variable_t> variables;
-	    std::list<constant_t> constants;  
-	    std::list<channel_t> channels;    
-	    std::list<clock_t> clocks;     
-	    int32_t init;
-	    std::list<transition_t> transitions;
-	    std::list<function_t> functions;
+	struct template_t;
+	
+	struct instance_t {
+	    template_t *templ;
 	    std::map<int32_t, ExpressionProgram> mapping;
 	};
+	
+	/** Information about a template. A template is either a
+	    parameterized automaton or a parameterized parallel
+	    composition of other templates.  All templates can have
+	    local variables and functions.
+	*/
+	struct template_t {
+	    symbol_t uid;		/**< The symbol of the template */
+	    int32_t nr;			/**< Placement in input file */
+	    frame_t frame;		/**< The local variables */
+	    std::list<variable_t> variables;	/**< The variables */
+	    std::list<constant_t> constants;	/**< Local constants */
+	    std::list<channel_t> channels;    	/**< Local channels */
+	    std::list<clock_t> clocks;     	/**< Local clocks */
+	    std::list<function_t> functions;	/**< Local functions */
 
-	struct process_t {
-	    int32_t uid;
-	    int32_t nr;
-	    template_t *templ;
-	    int32_t stateOffset, variableOffset, clockOffset, channelOffset,
-		constOffset;
+	    std::list<instance_t> instances;	/**< The 'instances' */
+	    
+	    std::list<state_t> states;		/**< The locations */
+	    std::list<transition_t> transitions;/**< The transitions */
+	    symbol_t init;			/**< The initial location */
 	};
 
+	/** Information about a process. A process is something
+	    mentioned in the system line of the input file. It
+	    basically points to a template, but also contains
+	    information about offsets for local variables, clocks,
+	    etc.
+	*/
+	struct process_t : public instance_t {
+	    symbol_t uid;		/**< The symbol of the process */
+	    int32_t nr;			/**< Placement in the system line */
+	    int32_t variableOffset;	/**< Offset of local variables */
+	    int32_t clockOffset;	/**< Offset of local clocks */
+	    int32_t channelOffset;	/**< Offset of local channels */
+	    int32_t constOffset;	/**< Offset of local constants */
+	};
+
+    };
+
+    class TimedAutomataSystem;
+    
+    class SystemVisitor : public TimedAutomataStructures {
+    public:
+	virtual ~SystemVisitor() {}
+	virtual void visitSystemBefore(TimedAutomataSystem *) {}
+	virtual void visitSystemAfter(TimedAutomataSystem *) {}
+	virtual void visitVariable(variable_t &) {}
+	virtual void visitConstant(constant_t &) {}
+	virtual void visitClock(clock_t &) {}
+	virtual void visitChannel(channel_t &) {}
+	virtual bool visitTemplateBefore(template_t &) { return true; }
+	virtual void visitTemplateAfter(template_t &) {}
+	virtual void visitState(state_t &) {}
+	virtual void visitTransition(transition_t &) {}
+	virtual void visitInstance(instance_t &) {}
+	virtual void visitProcess(process_t &) {}
+	virtual void visitFunction(function_t &) {}
     };
 
     class TimedAutomataSystem : public TimedAutomataStructures
@@ -132,34 +171,30 @@ namespace UTAP
 	TimedAutomataSystem();
 	virtual ~TimedAutomataSystem();
 
-	TypeSystem &getTypeSystem();
-	SymbolTable &getSymbolTable();
-
-	const char *getName(int32_t uid) const;
-	
 	std::list<template_t> &getTemplates();
 	std::list<process_t> &getProcesses();
 	template_t &getGlobals();
 	template_t &getCurrentTemplate();
 	void setCurrentTemplate(template_t &);
 
-	void addClock(int32_t type, const char *name);
-	void addVariable(int32_t type, const char *name, 
+	void addClock(type_t type, const char *name);
+	void addVariable(type_t type, const char *name, 
 			 const ExpressionProgram &initial);
-	void addConstant(int32_t type, const char *name, 
+	void addConstant(type_t type, const char *name, 
 			 const ExpressionProgram &initial);
-	void addChannel(int32_t type, const char *name);
-	function_t &addFunction(int32_t type, const char *name);
+	void addChannel(type_t type, const char *name);
+	function_t &addFunction(type_t type, const char *name);
 
-	template_t &addTemplate(type_t type, const char *name);
+	template_t &addTemplate(const char *name, frame_t params);
 	state_t &addLocation(const char *name, ExpressionProgram &inv);
-	transition_t &addTransition(int32_t src, int32_t dst);
-	process_t &addProcess(int32_t uid, template_t &);
+	transition_t &addTransition(symbol_t src, symbol_t dst);
+	process_t &addInstance(symbol_t uid, template_t &);
+	void addProcess(process_t &);
 
 	int getPrecedence(int kind);
 
-	char *expressionToString(const ExpressionProgram &);
-	char *expressionToString(const SubExpression &);
+	char *expressionToString(const ExpressionProgram &, bool old = false);
+	char *expressionToString(const SubExpression &, bool old = false);
 
 	// Evaluate constant expression (must be computable at parse time)
 	bool evaluateConstantExpression(const SubExpression &, int32_t &);
@@ -168,23 +203,25 @@ namespace UTAP
 	    std::map<int32_t, ExpressionProgram> &,
 	    std::vector<int32_t> &);
 
-	int32_t sizeOfType(int32_t type);
-  
-    protected:
-	TypeSystem types;
-	SymbolTable symbols;
+	int32_t sizeOfType(type_t type);
 
-	// The list of templates. This is only used to keep track of the
-	// memory used for the template_t structures. Normally, existing
-	// template structures are located using the symbol table.
+	void accept(SystemVisitor &);
+
+	const std::set<int32_t> &getConstants() const;
+	
+    protected:
+	// The list of templates.
 	std::list<template_t> templates;
 
+	// The list of instances
+	std::list<process_t> instances;
+	
 	// List of processes used in the system line
 	std::list<process_t> processes;
 
-	// Keep track of the values of constants
-	std::map<int32_t, ExpressionProgram> constantMapping;
-
+	// The set of all constants
+	std::set<int32_t> constants;	
+	
 	// Not really a template, only used to keep track of global variables
 	template_t global;
 
@@ -193,9 +230,39 @@ namespace UTAP
 
 	char *expressionToString(
 	    ExpressionProgram::const_iterator first,
-	    ExpressionProgram::const_iterator last);
+	    ExpressionProgram::const_iterator last, bool old);
 
 	int32_t evaluateBinary(int32_t left, int32_t op, int32_t right);
     };
+
+    /** Extension of SystemVisitor which tracks the context. It can use
+	this information when reporting errors and warnings to an
+	ErrorHandler.
+    */
+    class ContextVisitor : public SystemVisitor, private XPath
+    {
+    private:
+	int currentTemplate;
+	char path[256];
+	ErrorHandler *errorHandler;
+	char *get() const;
+    protected:
+	void setContextNone();
+	void setContextDeclaration();
+	void setContextParameters();
+	void setContextInvariant(state_t &);
+	void setContextGuard(transition_t &);
+	void setContextSync(transition_t &);
+	void setContextAssignment(transition_t &);
+	void setContextInstantiation();
+	
+	void handleError(SubExpression, const char *);
+	void handleWarning(SubExpression, const char *);
+    public:
+	ContextVisitor(ErrorHandler *);
+	virtual bool visitTemplateBefore(template_t &);
+	virtual void visitTemplateAfter(template_t &);
+    };
+
 }
 #endif

@@ -58,7 +58,7 @@ using namespace std;
 using namespace UTAP;
 using namespace Constants;
 
-typedef struct position_t 
+struct Position
 {
     int32_t first_line, first_column, last_line, last_column;
     void reset() {
@@ -77,7 +77,7 @@ typedef struct position_t
 
 std::ostream &operator <<(std::ostream &out, const position_t &loc);
 
-#define YYLTYPE position_t
+#define YYLTYPE Position
 
 static YYLTYPE last_loc; 
 static ErrorHandler *errorHandler;
@@ -171,7 +171,7 @@ static int32_t g_parameter_count;
 
 //#define CALL(first,last,call) do { ch->call; } while (0)
 
-#define CALL(first,last,call) do { errorHandler->setCurrentPosition(first.first_line, first.first_column, last.last_line, last.last_column); try { ch->call; } catch (TypeException &te) { errorHandler->handleError(te.what()); } } while (0)
+#define CALL(first,last,call) do { errorHandler->setCurrentPosition(first.first_line, first.first_column, last.last_line, last.last_column); ch->setPosition(position_t(first.first_line, first.first_column, last.last_line, last.last_column)); try { ch->call; } catch (TypeException &te) { errorHandler->handleError(te.what()); } } while (0)
 //           try { ch->done(); }
 // 	  catch(TypeException te) { 
 // 	    utap_error(te, @2.first_line, @2.first_column, 
@@ -211,7 +211,7 @@ static int32_t g_parameter_count;
 
 /* Uppaal keywords */
 %token T_SYSTEM T_PROCESS T_STATE T_COMMIT T_INIT T_TRANS T_ARROW 
-%token T_GUARD T_SYNC T_ASSIGN /* assign */
+%token T_GUARD T_SYNC T_ASSIGN T_RATE T_BEFORE T_AFTER T_COST
 
 /* Property tokens */
 %token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO T_QUIT
@@ -230,7 +230,7 @@ static int32_t g_parameter_count;
 
 %type <number> ArgList ArrayDecl FieldDeclList FieldDeclIdList FieldDecl
 %type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
-%type <number> OldProcParams OldProcParamList
+%type <number> OldProcParams OldProcParamList OldProcParam
 %type <number> UnaryOp Quantifier
 %type <number> Type AssignOp TypePrefix 
 %type <string> Id
@@ -339,7 +339,35 @@ Declaration:
 	| Declaration VariableDecl
 	| Declaration TypeDecl
 	| Declaration ProcDecl
+	| Declaration RateDecl
+	| Declaration BeforeUpdateDecl
+	| Declaration AfterUpdateDecl
 	;
+
+RateDecl: T_RATE '{' RateList '}';
+
+RateList:
+	/* empty */
+	| RateList Rate ';';
+
+Rate:
+	T_COST ':' Expression;
+
+BeforeUpdateDecl: T_BEFORE '{' BeforeAssignmentList '}';
+
+AfterUpdateDecl: T_AFTER '{' AfterAssignmentList '}';
+
+BeforeAssignmentList:
+	/* empty */
+	| BeforeAssignmentList Assignment ';' {
+	  CALL(@2, @2, beforeUpdate());
+        };
+
+AfterAssignmentList:
+	/* empty */
+	| AfterAssignmentList Assignment ';' {
+	  CALL(@2, @2, afterUpdate());
+        };
 
 FunctionDecl:
 	Type Id OptionalParameterList { 
@@ -1229,158 +1257,68 @@ Expression:
 	| T_DECREMENT Expression { 
 	  CALL(@1, @2, exprPreDecrement());
 	}
-	| Expression AssignOp Expression { 
-	  CALL(@1, @3, exprAssignment($2));
-	} %prec T_ASSIGNMENT
-	| Expression AssignOp error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprAssignment($2));
-	} %prec T_ASSIGNMENT
 	| UnaryOp Expression { 
 	  CALL(@1, @2, exprUnary($1));
 	} %prec UOPERATOR
 	| Expression T_LT Expression { 
 	  CALL(@1, @3, exprBinary(LT));
 	}
-	| Expression T_LT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprBinary(LT));
-	}
 	| Expression T_LEQ Expression { 
-	  CALL(@1, @3, exprBinary(LE));
-	}
-	| Expression T_LEQ error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
 	  CALL(@1, @3, exprBinary(LE));
 	}
 	| Expression T_EQ Expression { 
 	  CALL(@1, @3, exprBinary(EQ));
 	}
-	| Expression T_EQ error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprBinary(EQ));
-	}
 	| Expression T_NEQ Expression { 
-	  CALL(@1, @3, exprBinary(NEQ));
-	}
-	| Expression T_NEQ error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
 	  CALL(@1, @3, exprBinary(NEQ));
 	}
 	| Expression T_GT Expression { 
 	  CALL(@1, @3, exprBinary(GT));
 	}
-	| Expression T_GT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprBinary(GT));
-	}
 	| Expression T_GEQ Expression { 
 	  CALL(@1, @3, exprBinary(GE));
-	}
-	| Expression T_GEQ error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(GE));
 	}
 	| Expression T_PLUS Expression { 
 	  CALL(@1, @3, exprBinary(PLUS));
 	}
-	| Expression T_PLUS error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(PLUS));
-	}
 	| Expression T_MINUS Expression { 
 	  CALL(@1, @3, exprBinary(MINUS));
-	}
-	| Expression T_MINUS error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(MINUS));
 	}
 	| Expression T_MULT Expression { 
 	  CALL(@1, @3, exprBinary(MULT));
 	}
-	| Expression T_MULT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(MULT));
-	}
 	| Expression T_DIV Expression { 
 	  CALL(@1, @3, exprBinary(DIV));
-	}
-	| Expression T_DIV error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(DIV));
 	}
 	| Expression T_MOD Expression { 
 	  CALL(@1, @3, exprBinary(MOD));
 	}
-	| Expression T_MOD error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(MOD));
-	}
 	| Expression '&'  Expression { 
 	  CALL(@1, @3, exprBinary(BIT_AND));
-	}
-	| Expression '&' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(BIT_AND));
 	}
 	| Expression T_OR Expression { 
 	  CALL(@1, @3, exprBinary(BIT_OR));
 	}
-	| Expression T_OR error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(BIT_OR));
-	}
 	| Expression T_XOR Expression { 
 	  CALL(@1, @3, exprBinary(BIT_XOR));
-	}
-	| Expression T_XOR error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(BIT_XOR));
 	}
 	| Expression T_LSHIFT Expression { 
 	  CALL(@1, @3, exprBinary(BIT_LSHIFT));
 	}
-	| Expression T_LSHIFT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(BIT_LSHIFT));
-	}
 	| Expression T_RSHIFT Expression { 
 	  CALL(@1, @3, exprBinary(BIT_RSHIFT));
-	}
-	| Expression T_RSHIFT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(BIT_RSHIFT));
 	}
 	| Expression T_BOOL_AND Expression { 
 	  CALL(@1, @3, exprBinary(AND));
 	}
-	| Expression T_BOOL_AND error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(AND));
-	}
 	| Expression T_BOOL_OR Expression { 
 	  CALL(@1, @3, exprBinary(OR));
-	}
-	| Expression T_BOOL_OR error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(OR));
 	}
 	| Expression '?' Expression ':' Expression { 
 	  CALL(@1, @3, exprInlineIf());
 	}
-	| Expression '?' Expression ':' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprTrue(); ch->exprInlineIf());
-	}
-	| Expression '?' Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_COLON));
-	  CALL(@1, @4, exprTrue(); ch->exprInlineIf());
-	}
 	| Expression '.' T_ID { 
 	  CALL(@1, @3, exprDot($3));
-	}
-        | Expression '.' error {
-	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERID));
 	}
         | T_DEADLOCK {
 	  CALL(@$, @$, exprDeadlock());
@@ -1396,8 +1334,13 @@ Expression:
         | Expression T_MAX Expression {
 	    CALL(@1, @3, exprBinary(MAX));
         }
+        | Assignment
 	;
 
+Assignment:
+	Expression AssignOp Expression { 
+	  CALL(@1, @3, exprAssignment($2));
+	} %prec T_ASSIGNMENT;
 
 AssignOp: 
 	/* = += -= /= %= &= |= ^= <<= >>= */
@@ -1459,25 +1402,17 @@ OldVarDecl:
 	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", 0));
 	} OldConstDeclIdList ';' { 
 	  CALL(@1, @3, declVarEnd());
-	};
+	}
+        | T_OLDCONST error ';';
 
 OldConstDeclIdList:
 	OldConstDeclId { $$=1; }
 	| OldConstDeclIdList ',' OldConstDeclId { $$=$1+1; }
-	| OldConstDeclIdList ',' error { 
-	  $$=$1+1; 
-	  REPORT_ERROR(last_loc, TypeException(PE_CONSTID_));
-	}
 	;
 
 OldConstDeclId:
 	T_ID ArrayDecl Initializer { 
 	  CALL(@1, @3, declVar($1, $2, true));
-	}
-	| T_ID error {
-	  ch->exprTrue();
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));	  
-	  CALL(@1, @2, declVar($1, 0, true));
 	}
 	;
 
@@ -1512,13 +1447,6 @@ OldProcDecl:
         OldProcBody '}' { 
 	  CALL(@4, @5, procEnd());
 	} 
-	| error '{' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PROC));
-	  CALL(@1, @2, procBegin("_", 0));
-	}
-        OldProcBody '}' { 
-	  CALL(@3, @4, procEnd());
-	} 
 	| T_PROCESS Id '{' { 
 	  CALL(@1, @3, procBegin($2, 0));
 	}
@@ -1542,30 +1470,32 @@ OldProcParams:
 
 OldProcParamList:
         OldProcParam { 
-	  $$ = 1; 
+	  $$ = $1; 
 	  CALL(@1, @1, declParameterEnd());
 	}
 	| OldProcParamList ';' OldProcParam { 
-	  $$ = $1+1;
+	  $$ = $1 + $3;
 	  CALL(@1, @3, declParameterEnd());
 	}
 	| OldProcParamList ';' error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_PARAM_DECL_));
-          $$ = $1+1; 
-	  CALL(@1, @3, declParameterEnd());
+          $$ = $1; 
 	}
 	;
 
 OldProcParam:
 	Type T_ID ArrayDecl {
           CALL(@1, @3, declParameter($2, $3 == 0, $3));
+	  $$ = 1;
 	}
 	| T_OLDCONST T_ID ArrayDecl {
 	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", false));
 	  CALL(@2, @3, declParameter($2, false, $3));
+	  $$ = 1;
 	}
 	| OldProcParam ',' T_ID ArrayDecl { 
 	  CALL(@1, @4, declParameter($3, $4 == 0, $4));
+	  $$ = $1 + 1;
 	} 
 	;
 
@@ -1624,11 +1554,7 @@ OldInvariant:
 	  CALL(@1, @1, exprTrue());
 	}
 	| OldInvariant ',' Expression { 
-	  CALL(@1, @3, exprBinary(T_BOOL_AND));
-	}
-	| OldInvariant ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INV_));	  
-	  CALL(@1, @3, exprTrue(); ch->exprBinary(T_BOOL_AND));
+	  CALL(@1, @3, exprBinary(AND));
 	}
 	;
 

@@ -39,6 +39,14 @@ namespace UTAP
 	virtual char *get() const = 0;
     };
     
+    struct position_t {
+	int32_t first_line, first_column, last_line, last_column;
+	position_t() {}
+	position_t(int fl, int fc, int ll, int lc)
+	    : first_line(fl), first_column(fc), last_line(ll), last_column(lc)
+	    {}
+    };
+
     class ErrorHandler
     {
     public:
@@ -89,6 +97,10 @@ namespace UTAP
 	// Sets the current position of the parser. Any errors or
 	// warnings will be assumed to be at this position.
 	void setCurrentPosition(int first_line, int first_column, int last_line, int last_column);
+
+	// Sets the current position of the parser. Any errors or
+	// warnings will be assumed to be at this position.
+	void setCurrentPosition(const position_t &);
 
 	// Called when an error is detected
 	void handleError(const char *);
@@ -186,7 +198,6 @@ namespace UTAP
 	    DOT = 521,
 	    INLINEIF = 522,
 	    COMMA = 523,
-	    CONSTRAINT = 524,
 	    SYNC = 525,
 	    DEADLOCK = 526,
 	    FUNCALL = 527

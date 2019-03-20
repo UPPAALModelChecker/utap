@@ -25,8 +25,7 @@
 #include <cstdio>
 
 #include "utap/common.hh"
-#include "utap/typesys.hh"
-#include "utap/symtable.hh"
+#include "utap/symbols.hh"
 #include "utap/expression.hh"
 #include "utap/system.hh"
 #include "utap/statement.hh"

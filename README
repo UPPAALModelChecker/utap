@@ -1,4 +1,4 @@
-libutap, version 0.20
+libutap, version 0.30
 Mini HOWTO
 Gerd Behrmann
 
@@ -6,16 +6,17 @@ Gerd Behrmann
 1. What is libutap
 2. Compiling
 3. Simple use
-4. Contact
+4. Architecture
+5. Contact
 
 
 
 1. What is libutap
 
 libutap is the Uppaal Timed Automata Parser. It will be used in the
-upcoming release of Uppaal 4.0. Uppaal is an integrated tool
-environment for desining, simulating and verifying real time systems
-modelled as extended timed automata.
+upcoming release of Uppaal 3.4. Uppaal is an integrated tool
+environment for designing, simulating and verifying real time systems
+modeled as extended timed automata.
 
 libutap has the ability to parse and type check Uppaal models in any
 of the three file formats supported by Uppaal.
@@ -27,7 +28,7 @@ libutap is licensed under the LGPL.
 
 libutap uses automake and autoconf to make compilation on various
 platforms easy. You will need gcc 2.95.3 or newer, GNU make and
-libxml2 from www.xmlsoft.org. Simply run
+libxml2 from http://www.xmlsoft.org. Simply run:
 
 ./configure
 make
@@ -39,6 +40,10 @@ make install
 to install it. Read the INSTALL file in the distribution for more
 information on how to compile.
 
+NOTE: if you want to regenerate automatically created files like the
+configure script and Makefile, use autoreconf -i. Do *not* use
+autoconf, it will mess up your Makefile. You need the autoconf package
+version 2.53 or newer (and automake).
 
 3. Simple use
 
@@ -62,15 +67,85 @@ The first argument is the file to read. The second is a pointer to the
 error handler, which keeps track of errors and warnings produced
 during parsing. The third is the output of the parser and the fourth
 is a flag indicating whether we want to use the new or the old syntax
-(the old syntax is the one used in Uppaal 3.2, the new is the one that
+(the old syntax is the one used in Uppaal 3.4, the new is the one that
 will be used in Uppaal 4.0).
 
 After the call to parseXTA, one can access the network of timed
 automata in the system variable. Take a look at utap/system.hh to see
 what kind of structure you can access.
 
+4. Architecture
 
-4. Contact
+The following ASCII figure shows the initial information flow through
+the library.
+
+ +----\
+ |    |\
+ |    +-\
+ |      |   --> libxml2 --[SAX-interface]--> "xmlreader.cc"
+ | .xml |                                         |
+ |      |                                         |
+ +------+                                         |
+                                                  |
+ +----\                                           |
+ |    |\                                          |
+ |    +-\                                         v
+ | .ta  |                            +--------------------------+
+ | .xta |   -----------------------> | bison parser (parser.yy) |
+ |      |	                     +--------------------------+
+ +------+                                           |
+                                                    |
+ +------+                                           |
+ |      |                                           |
+ | TAS  |                                           |
+ |      |      +---------------+                    |
+ |      | <--- | SystemBuilder |<--[ParserBuilder]--/
+ |      |      +---------------+                     
+ +------+
+
+
+The BNF implemented by the bison generated parser is split into
+several sections and to some extend duplicated for the old and new
+syntax. It can read .ta and .xta files directly. XML files are read
+using the libxml2 library. The implementation of the SAX call-back
+interface can be found in the "xmlreader.cc" file. Each text-block in
+the XML file is then parser wrt. the BNF for that block. For this, the
+bison generated parser is reused.
+
+The parser calls methods in the abstract ParserBuilder class. The
+methods in the ParserBuilder class are implemented by the
+SystemBuilder class. The SystemBuilder writes the model to an instance
+of the TimedAutomataSystem (TAS) class.
+
+The design abstracts the differences between the .xml, .xta and .ta
+input formats and also hides the differences between the 3.4 and 4.0
+formats from any implementation of the ParserBuilder interface (for
+equivalent input the parser will call the same methods in the
+ParserBuilder class).
+
+
+A TAS object represents the templates, variables, locations,
+transitions and processes of a model. Symbols are represented by
+symbol_t objects (see the API documentation). A symbol is a name (a
+string) with a type. The type is represented by a type_t
+object. Symbols are grouped into frames (represented by frame_t
+objects). Frames are used to represent scopes and other collections of
+symbols such as records or parameters of templates and functions.
+
+All expressions are represented in reverse polish notation by
+ExpressionProgram objects. An expression program is a sequence of
+instructions/operations which when executed compute the result of the
+expression. Sometimes a tree representation of an expression is easier
+to work with. The SubExpression class provides a 'tree view' of any
+expression program. Each SubExpression object represents a single node
+in the parse tree of the expression and provides methods for finding
+the children of this node (which themself are SubExpression
+objects). Using the tree view is more expensive that simply iterating
+the list of instructions in the expression program, but for most
+applications the difference is negligible.
+
+
+5. Contact
 
 If you have questions or comments to libutap, you can contact me on
 the following email address: behrmann@cs.auc.dk.
