@@ -1,0 +1,77 @@
+libutap, version 0.10
+Mini HOWTO
+Gerd Behrmann
+
+
+1. What is libutap
+2. Compiling
+3. Simple use
+4. Contact
+
+
+
+1. What is libutap
+
+libutap is the Uppaal Timed Automata Parser. It will be used in the
+upcoming release of Uppaal 4.0. Uppaal is an integrated tool
+environment for desining, simulating and verifying real time systems
+modelled as extended timed automata.
+
+libutap has the ability to parse and type check Uppaal models in any
+of the three file formats supported by Uppaal.
+
+libutap is licensed under the LGPL.
+
+
+2. Compiling
+
+libutap uses automake and autoconf to make compilation on various
+platforms easy. You will need gcc 2.95.3 or newer, GNU make and
+libxml2 from www.xmlsoft.org. Simply run
+
+./configure
+make
+
+to compile libutap and use 
+
+make install
+
+to install it. Read the INSTALL file in the distribution for more
+information on how to compile.
+
+
+3. Simple use
+
+There are two ways one can use the library. In its simplest form, one
+calls one of the top level parsing functions defined in utap/utap.h,
+e.g.
+
+#include <stdio.h>
+#include "utap/utap.hh"
+
+int main()
+{
+  UTAP::ErrorHandler errorHandler;
+  UTAP::TimedAutomataSystem system;
+  FILE *file = fopen("myfile.ta", "r");
+  parseXTA(file, &errorHandler, &system, false);
+}
+
+
+The first argument is the file to read. The second is a pointer to the
+error handler, which keeps track of errors and warnings produced
+during parsing. The third is the output of the parser and the fourth
+is a flag indicating whether we want to use the new or the old syntax
+(the old syntax is the one used in Uppaal 3.2, the new is the one that
+will be used in Uppaal 4.0).
+
+After the call to parseXTA, one can access the network of timed
+automata in the system variable. Take a look at utap/system.hh to see
+what kind of structure you can access.
+
+
+4. Contact
+
+If you have questions or comments to libutap, you can contact me on
+the following email address: behrmann@cs.auc.dk.
+
