@@ -294,8 +294,8 @@ void RateDecomposer::decompose(expression_t expr)
     }
     else
     {
-		assert(expr[0].getType().getKind() == RATE
-			   ^ expr[1].getType().getKind() == RATE);
+		assert((expr[0].getType().getKind() == RATE) xor
+			   (expr[1].getType().getKind() == RATE));
 
 		if (expr[0].getType().getKind() == RATE)
 		{
