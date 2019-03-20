@@ -25,9 +25,9 @@
 #include <cstdio>
 #include <cassert>
 #include <inttypes.h>
+#include <stdexcept>
 
 #include "utap/systembuilder.h"
-#include "utap/collectchangesvisitor.h"
 
 using namespace UTAP;
 using namespace Constants;
@@ -42,9 +42,6 @@ const char *const SystemBuilder::unsupported =
 "Internal error: Feature not supported in this mode.";
 const char *const SystemBuilder::invalid_type = "Invalid type";
 
-#define defaultIntMin -0x7FFF
-#define defaultIntMax 0x7FFF
-
 SystemBuilder::SystemBuilder(TimedAutomataSystem *system)
     : ExpressionBuilder(system)
 {
@@ -52,8 +49,8 @@ SystemBuilder::SystemBuilder(TimedAutomataSystem *system)
     currentFun = NULL;
     currentTemplate = NULL;
 
-    guard = sync = update = -1;
     params = frame_t::createFrame();
+    templateset = frame_t::createFrame();
 };
 
 /********************************************************************
@@ -80,57 +77,17 @@ type_t SystemBuilder::buildArrayType(type_t type, uint32_t dim)
 {
     for (uint32_t i = 0; i < dim; i++) 
     {
-	type = type_t::createArray(fragments[0], type).setPrefix(
+	type_t array = type_t::createArray(
+	    type_t::createInteger(
+		makeConstant(0), 
+		expression_t::createBinary(fragments[0].getPosition(),
+					   MINUS, fragments[0], 
+					   makeConstant(1))), type);
+	type = array.setPrefix(
 	    type.hasPrefix(prefix::CONSTANT), prefix::CONSTANT).setPrefix(
 		type.hasPrefix(prefix::META), prefix::META);
 	fragments.pop();
     }
-    return type;
-}
-
-/**
- * Given a prefix and a type, this method creates a new type by
- * applying the prefix. TypeExceptions might be thrown if the
- * combination of the prefix and the type is illegal.
- */
-type_t SystemBuilder::applyPrefix(int32_t prefix, type_t type)
-{    
-    type_t base = type.getBase();
-    if (base == type_t::VOID_TYPE || base == type_t::CLOCK) 
-    {
-	if (prefix == PREFIX_NONE)
-	{
-	    return type;
-	}
-    } 
-    else if (base == type_t::INT || base == type_t::BOOL
-	     || base == type_t::ARRAY || base == type_t::RECORD)
-    {
-	switch (prefix) 
-	{
-	case PREFIX_NONE:
-	    return type;
-	case PREFIX_CONST:
-	    return type.setPrefix(true, prefix::CONSTANT);
-	case PREFIX_META:
-	    return type.setPrefix(true, prefix::META);
-	}
-    } 
-    else if (base == type_t::CHANNEL) 
-    {
-	switch (prefix) 
-	{
-	case PREFIX_NONE:
-	    return type;
-	case PREFIX_URGENT:
-	    return type.setPrefix(true, prefix::URGENT);
-	case PREFIX_BROADCAST:
-	    return type.setPrefix(true, prefix::BROADCAST);
-	case PREFIX_URGENT_BROADCAST:
-	    return type.setPrefix(true, prefix::URGENT).setPrefix(true, prefix::BROADCAST);
-	}
-    }
-    errorHandler->handleError("Invalid prefix");
     return type;
 }
 
@@ -140,51 +97,16 @@ declarations_t *SystemBuilder::getCurrentDeclarationBlock()
 }
 
 /**
- * Push a new type onto the type stack. This type might subsequently
- * be used to declare e.g. variables. Range indicates the number range
- * or rate expressions (currently, it might be 0, 1 or 2). The
- * corresponding number of fragments will be popped from the
- * expression stack.
- */
-void SystemBuilder::typeName(int32_t prefix, const char* name, int range)
-{
-    symbol_t uid;
-    assert(frame.resolve(name, uid));
-
-    if (!frame.resolve(name, uid) || uid.getType().getBase() != type_t::NTYPE)
-    {
-	typeFragments.push(type_t::VOID_TYPE);
-	throw TypeException("Identifier is undeclared or not a type name");
-    }
-
-    type_t type = uid.getType().getSub();
-    if (range) 
-    {
-	if (type == type_t::INT && range == 2)
-	{
-	    type = type_t::createInteger(fragments[1], fragments[0]);
-	}
-	else
-	{
-	    errorHandler->handleError("Invalid number of arguments for this type.");
-	}
-	fragments.pop(range);
-    }
-    typeFragments.push(applyPrefix(prefix, type));
-}
-
-/**
  * Used to construct a new struct type, which is then pushed onto the
  * type stack. The type is based on n fields, which are expected to be
  * on and will be popped off the type stack.
  */
 void SystemBuilder::typeStruct(int32_t prefix, uint32_t n)
 {
-    // Compute new type (each field has a singular record type)
     frame_t frame = frame_t::createFrame();
     for (int32_t i = n - 1; i >= 0; i--) 
     {
-	frame.addSymbol(typeFragments[i].second, typeFragments[0].first);
+	frame.addSymbol(typeFragments[i].second, typeFragments[i].first);
     }
 
     // Pop fragments
@@ -212,14 +134,6 @@ void SystemBuilder::structField(const char* name, uint32_t dim)
 	throw TypeException("Constant fields not allowed in struct");
     }
 
-    // If no range was specified, use default range
-    if (type.getBase() == type_t::INT && type.getRange().first.empty())
-    {
-	type = type_t::createInteger(
-	    expression_t::createConstant(position_t(), defaultIntMin), 
-	    expression_t::createConstant(position_t(), defaultIntMax));
-    }
-
     // Construct array type
     type = buildArrayType(type, dim);
 
@@ -241,7 +155,7 @@ void SystemBuilder::structField(const char* name, uint32_t dim)
 	type = type.getSub();
 	base = type.getBase();
     }
-    if (base != type_t::BOOL && base != type_t::INT && base != type_t::RECORD)
+    if (!base.isRecord() && !base.isScalar() && !base.isValue())
     {
 	throw TypeException("Invalid type in structure");
     }
@@ -264,7 +178,7 @@ void SystemBuilder::structFieldEnd()
 void SystemBuilder::declTypeDef(const char* name, uint32_t dim) 
 {
     type_t type = buildArrayType(typeFragments[0].first, dim);
-    frame.addSymbol(name, type_t::createTypeName(type));
+    frames.top().addSymbol(name, type_t::createTypeName(type));
 }
 
 /**
@@ -298,14 +212,7 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
     type_t type = typeFragments[0].first;
     if (type.getBase() == type_t::INT)
     {
-	if (!type.hasPrefix(prefix::CONSTANT) && type.getRange().first.empty())
-	{
-	    type = type_t::createInteger(
-		expression_t::createConstant(position_t(), defaultIntMin), 
-		expression_t::createConstant(position_t(), defaultIntMax)).
-		setPrefix(type.hasPrefix(prefix::META), prefix::META);
-	}
-	else if (type.hasPrefix(prefix::CONSTANT) 
+	if (type.hasPrefix(prefix::CONSTANT) 
 		 && !type.getRange().first.empty())
 	{
 	    errorHandler->handleError("Constant must not have a range specification");
@@ -327,8 +234,7 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
 	    errorHandler->handleError("Clocks cannot have initialisers");
 	}
     } 
-    else if (base == type_t::RECORD || base == type_t::INT
-	       || base == type_t::BOOL)
+    else if (base.isRecord() || base.isValue())
     {
 	if (type.hasPrefix(prefix::CONSTANT) && !hasInit) 
 	{
@@ -341,7 +247,21 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
 	{
 	    errorHandler->handleError("Channels cannot have initialisers");
 	}
+    }
+    else if (base == type_t::COST) 
+    {
+	if (hasInit)
+	{
+	    errorHandler->handleError("Costs cannot have initialisers");
+	}
     } 
+    else if (base == type_t::SCALAR)
+    {
+	if (hasInit)
+	{
+	    errorHandler->handleError("Scalars cannot yet have initialisers");
+	}
+    }
     else 
     {
 	errorHandler->handleError("Cannot declare variable of this type");
@@ -351,7 +271,7 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
     // Add variable to system
     if (currentFun)
     {
-	system->addVariableToFunction(currentFun, frame, type, name, init);
+	system->addVariableToFunction(currentFun, frames.top(), type, name, init);
     }
     else
     {
@@ -433,10 +353,15 @@ void SystemBuilder::declInitialiserList(uint32_t num)
  */
 void SystemBuilder::declProgress(bool hasGuard)
 {
-    system->addProgressMeasure(getCurrentDeclarationBlock(),
-			       hasGuard ? fragments[1] : expression_t(),
-			       fragments[0]);
-    fragments.pop(hasGuard ? 2 : 1);
+    expression_t guard, measure;
+    measure = fragments[0];
+    fragments.pop();
+    if (hasGuard)
+    {
+	guard = fragments[0];
+	fragments.pop();
+    }
+    system->addProgressMeasure(getCurrentDeclarationBlock(), guard, measure);
 }
   
 /********************************************************************
@@ -458,21 +383,11 @@ void SystemBuilder::declParameter(const char* name, bool ref, uint32_t dim)
 	ref = true;
     }
 
-    // Non-constant non-reference integer parameters without a range
-    // use the default range of a 16 bit signed integer.
-    if (!ref && !type.hasPrefix(prefix::CONSTANT)
-	&& type.getBase() == type_t::INT
-	&& type.getRange().first.empty())
-    {
-	type = type_t::createInteger(
-	    expression_t::createConstant(position_t(), defaultIntMin), 
-	    expression_t::createConstant(position_t(), defaultIntMax));
-    }
-
-    // Popup array dimensions of expression stack and construct array type
+    // Pop array dimensions from expression stack and construct array
+    // type.
     type = buildArrayType(type, dim);
 
-    // Append parameter to list of parameters
+    // Append parameter to list of parameters.
     params.addSymbol(name, type.setPrefix(ref, prefix::REFERENCE));
     
     // In case it is not a reference parameter, make sure we are not
@@ -506,14 +421,15 @@ void SystemBuilder::declFuncBegin(const char* name, uint32_t n)
 	errorHandler->handleError("Duplicate definition");
     }
 
-    // Create new frame and add parameters; the new frame will
-    // be made the current frame
-    frame = frame_t::createFrame(frame);
-    frame.add(params);
+    /* Push new frame and add parameters.
+     */
+    pushFrame(frame_t::createFrame(frames.top()));
+    frames.top().add(params);
     params = frame_t::createFrame();
 
-    // Create function block
-    currentFun->body = new BlockStatement(frame);
+    /* Create function block.
+     */
+    currentFun->body = new BlockStatement(frames.top());
     blocks.push_back(currentFun->body);
 }
 
@@ -531,12 +447,8 @@ void SystemBuilder::declFuncEnd()
     // Pop outer function block
     blocks.pop_back();
 
-    // Collect symbols which are changed by the function
-    CollectChangesVisitor visitor(currentFun->changes);
-    currentFun->body->accept(&visitor);    
-
     // Restore global frame
-    frame = frame.getParent();
+    popFrame();
 
     // Reset current function pointer to NULL
     currentFun = NULL;
@@ -545,21 +457,39 @@ void SystemBuilder::declFuncEnd()
 /********************************************************************
  * Process declarations
  */
-void SystemBuilder::procBegin(const char* name, uint32_t n)
+void SystemBuilder::procTemplateSet(const char *name)
 {
-    if (frame.getIndexOf(name) != -1) 
+    type_t type = typeFragments[0].first;
+    typeFragments.pop();
+
+    if (!type.isScalar())
+    {
+	throw TypeException("Scalar type expected");
+    }
+    if (type.getRange().first.empty())
+    {
+	throw TypeException("Range expected");
+    }
+
+    templateset.addSymbol(name, type);
+}
+
+void SystemBuilder::procBegin(const char* name, uint32_t m, uint32_t n)
+{
+    if (frames.top().getIndexOf(name) != -1) 
     {
 	errorHandler->handleError("Identifier defined multiple times");
     }
-    currentTemplate = &system->addTemplate(name, params);
-    frame = currentTemplate->frame;
+    currentTemplate = &system->addTemplate(name, templateset, params);
+    pushFrame(currentTemplate->frame);
     params = frame_t::createFrame();
+    templateset = frame_t::createFrame();
 }
     
 void SystemBuilder::procEnd() // 1 ProcBody
 {
     currentTemplate = NULL;
-    frame = frame.getParent();
+    popFrame();
 }
 
 // Add a state to the current template. An invariant expression is
@@ -578,14 +508,14 @@ void SystemBuilder::procState(const char* name, bool hasInvariant) // 1 expr
 void SystemBuilder::procStateCommit(const char* name) 
 {
     symbol_t uid;
-    if (!frame.resolve(name, uid)
+    if (!resolve(name, uid)
 	|| uid.getType().getBase() != type_t::LOCATION)
     {
-	errorHandler->handleError("Location expected here");
+	errorHandler->handleError("Location expected");
     } 
     else if (uid.getType().hasPrefix(prefix::URGENT)) 
     {
-	errorHandler->handleError("States cannot be committed and urgent at the same time.");
+	errorHandler->handleError("States cannot be committed and urgent at the same time");
     } 
     else 
     {
@@ -597,14 +527,14 @@ void SystemBuilder::procStateUrgent(const char* name)
 {
     symbol_t uid;
 
-    if (!frame.resolve(name, uid)
+    if (!resolve(name, uid)
 	|| uid.getType().getBase() != type_t::LOCATION)
     {
-	errorHandler->handleError("Location expected here");
+	errorHandler->handleError("Location expected");
     } 
     else if (uid.getType().hasPrefix(prefix::COMMITTED)) 
     {
-	errorHandler->handleError("States cannot be committed and urgent at the same time.");
+	errorHandler->handleError("States cannot be committed and urgent at the same time");
     }
     else 
     {
@@ -612,73 +542,113 @@ void SystemBuilder::procStateUrgent(const char* name)
     }
 }
 
+void SystemBuilder::procStateWinning(const char* name) 
+{
+    symbol_t uid;
+
+    if (!resolve(name, uid)
+	|| uid.getType().getBase() != type_t::LOCATION)
+    {
+	errorHandler->handleError("Location expected");
+    } 
+    else if (uid.getType().hasPrefix(prefix::LOSING)) 
+    {
+	errorHandler->handleError("States cannot be winning and losing at the same time");
+    }
+    else 
+    {
+	uid.setType(uid.getType().setPrefix(true, prefix::WINNING));
+    }
+}
+
+void SystemBuilder::procStateLosing(const char* name) 
+{
+    symbol_t uid;
+
+    if (!resolve(name, uid)
+	|| uid.getType().getBase() != type_t::LOCATION)
+    {
+	errorHandler->handleError("Location expected");
+    } 
+    else if (uid.getType().hasPrefix(prefix::WINNING)) 
+    {
+	errorHandler->handleError("States cannot be winning and losing at the same time");
+    }
+    else 
+    {
+	uid.setType(uid.getType().setPrefix(true, prefix::LOSING));
+    }
+}
+
 void SystemBuilder::procStateInit(const char* name) 
 {
     symbol_t uid;
-    if (!frame.resolve(name, uid)
+    if (!resolve(name, uid)
 	|| uid.getType().getBase() != type_t::LOCATION)
     {
-	throw TypeException("Location expected here");
+	throw TypeException("Location expected");
     }
     currentTemplate->init = uid;
 }
-    
-void SystemBuilder::procEdge(const char* from, const char* to)
+
+void SystemBuilder::procEdgeBegin(const char* from, const char* to, const bool control)
 {
     symbol_t fid, tid;
 
-    if (!frame.resolve(from, fid)
+    if (!resolve(from, fid)
 	|| fid.getType().getBase() != type_t::LOCATION)
     {
 	throw TypeException("No such location (source)");
     }
 
-    if (!frame.resolve(to, tid)
+    if (!resolve(to, tid)
 	|| tid.getType().getBase() != type_t::LOCATION)
     {
 	throw TypeException("No such location (destination)");
     }
 
-    // Complete labels
-    if (update == -1) 
-    {
-	exprTrue();
-	procUpdate();
-    }
-
-    if (guard == -1) 
-    {
-	exprTrue();
-	procGuard();
-    }
+    currentEdge = &currentTemplate->addEdge(fid, tid, control);
+    currentEdge->guard = makeConstant(1);
+    currentEdge->assign = makeConstant(1);
+    pushFrame(currentEdge->select = frame_t::createFrame(frames.top()));
+}
     
-    // Create transition
-    edge_t &tran = currentTemplate->addEdge(fid, tid);
-    tran.assign = fragments[fragments.size() - update];
-    if (sync != -1)
-    {
-	tran.sync = fragments[fragments.size() - sync];
-    }
-    tran.guard = fragments[fragments.size() - guard];
-    fragments.pop(sync == -1 ? 2 : 3);
+void SystemBuilder::procEdgeEnd(const char* from, const char* to)
+{
+    popFrame();
+}
 
-    guard = sync = update = -1;
+void SystemBuilder::procSelect(const char *id)
+{
+    type_t type = typeFragments[0].first;
+    typeFragments.pop();
+    if (!type.isScalar())
+    {
+	throw TypeException("Scalar type expected");
+    } 
+    if (type.getRange().first.empty()) 
+    {
+	throw TypeException("Range expected");
+    }
+    currentEdge->select.addSymbol(id, type);
 }
 
 void SystemBuilder::procGuard()
 {
-    guard = fragments.size();
+    currentEdge->guard = fragments[0];
+    fragments.pop();
 }
 
 void SystemBuilder::procSync(synchronisation_t type)
 {
-    fragments[0] = expression_t::createSync(position, fragments[0], type);
-    sync = fragments.size();
+    currentEdge->sync = expression_t::createSync(position, fragments[0], type);
+    fragments.pop();
 }
 
 void SystemBuilder::procUpdate()
 {
-    update = fragments.size();
+    currentEdge->assign = fragments[0];
+    fragments.pop();
 }
 
 /*********************************************************************
@@ -686,8 +656,8 @@ void SystemBuilder::procUpdate()
  */
 void SystemBuilder::blockBegin() 
 {
-    frame = frame.createFrame(frame);
-    blocks.push_back(new BlockStatement(frame));
+    pushFrame(frame_t::createFrame(frames.top()));
+    blocks.push_back(new BlockStatement(frames.top()));
 }
 
 void SystemBuilder::blockEnd() 
@@ -699,7 +669,7 @@ void SystemBuilder::blockEnd()
     blocks.back()->push_stat(block);
 
     // Restore containing frame
-    frame = frame.getParent();
+    popFrame();
 }
 
 void SystemBuilder::emptyStatement() 
@@ -720,6 +690,68 @@ void SystemBuilder::forEnd()
     blocks.back()->push_stat(forstat);
 
     fragments.pop(3);
+}
+
+void SystemBuilder::iterationBegin (const char *name)
+{
+    /* At this point, the type that we iterate over is on the type
+     * stack. What we need to do is to add a new symbol to a new frame
+     * with the given name and the type on the type stack. 
+     *
+     * In case of functions, declVar() adds variables to the current
+     * frame and expects the type on the type stack. Since an
+     * iteration statement is always used from within functions, it
+     * should be safe to call declVar() from here.
+     */
+    pushFrame(frame_t::createFrame(frames.top()));
+    declVar(name, 0, false);
+    declVarEnd();
+
+    /* Lookup the symbol. REVISIT: This could be provided by declVar().
+     */
+    symbol_t symbol;
+    if (!resolve(name,symbol))
+    {
+	/* This should never happen.
+	 */
+	throw std::logic_error("SystemBuilder::iterationEnd(const char *): Could not resolve symbol!");
+    }
+
+    /* Create a new statement for the loop. We need to already create
+     * this here as the statement is the only thing that can keep the
+     * reference to the frame.
+     */
+    blocks.back()->push_stat(new IterationStatement(symbol, frames.top(), NULL));
+
+
+    /* Finally, we only support iteration over scalars. This ought to
+     * be checked by the type checker, but at that point we do not
+     * have any information about the position in the input file, so
+     * we check it here.
+     */
+    if (!symbol.getType().isScalar())
+    {
+	throw TypeException("Scalar type expected");
+    }
+    if (symbol.getType().getRange().first.empty())
+    {
+	throw TypeException("Range expected");
+    }
+}
+
+void SystemBuilder::iterationEnd (const char *name)
+{
+    /* Retrieve the statement that we iterate over.
+     */
+    Statement* statement = blocks.back()->pop_stat();
+
+    /* Add statement to loop construction.
+     */
+    static_cast<IterationStatement *>(blocks.back()->back())->stat = statement;
+
+    /* Restore the frame pointer.
+     */
+    popFrame();
 }
 
 void SystemBuilder::whileBegin() 
@@ -777,7 +809,7 @@ void SystemBuilder::continueStatement()
 
 void SystemBuilder::switchBegin()
 { // 1 expr
-    blocks.push_back(new SwitchStatement(frame, fragments[0]));
+    blocks.push_back(new SwitchStatement(frames.top(), fragments[0]));
     fragments.pop();
 }
 void SystemBuilder::switchEnd()
@@ -789,7 +821,7 @@ void SystemBuilder::switchEnd()
 
 void SystemBuilder::caseBegin() 
 { // 1 expr
-    blocks.push_back(new CaseStatement(frame, fragments[0]));
+    blocks.push_back(new CaseStatement(frames.top(), fragments[0]));
     fragments.pop();
 }
 
@@ -802,7 +834,7 @@ void SystemBuilder::caseEnd()
 
 void SystemBuilder::defaultBegin() 
 {    
-    blocks.push_back(new DefaultStatement(frame));
+    blocks.push_back(new DefaultStatement(frames.top()));
 }
 
 void SystemBuilder::defaultEnd() 
@@ -837,18 +869,16 @@ void SystemBuilder::returnStatement(bool args)
  * Expressions
  */
 
-void SystemBuilder::exprCallBegin(const char *functionName) 
+void SystemBuilder::exprCallBegin() 
 {
-    ExpressionBuilder::exprCallBegin(functionName);
+    ExpressionBuilder::exprCallBegin();
 
     /* Check for recursive function calls. We could move this to
      * the type checker.
-     */
-    symbol_t id;
-    frame.resolve(functionName, id);
-    if (currentFun != NULL && currentFun->uid == id)
+     */    
+    if (currentFun != NULL && currentFun->uid == fragments[0].getSymbol())
     {
-	throw TypeException("recursion is not allowed", functionName);
+	throw TypeException("recursion is not allowed");
     }
 }
 
@@ -869,7 +899,7 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 	/* Lookup symbol.
 	 */
 	symbol_t id;
-	if (!frame.resolve(templ_name, id))
+	if (!resolve(templ_name, id))
 	{
 	    throw TypeException("Unknown identifier");
 	}	
@@ -893,7 +923,7 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 	else if (n > expected)
 	{
 	    errorHandler->handleError("Too many arguments");
-	    fragments.pop(n - parameters.getSize());
+	    fragments.pop(n - expected);
 	    n = expected;
 	}	
 
@@ -922,7 +952,7 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 void SystemBuilder::process(const char* name)
 {
     symbol_t sym;
-    if (!frame.resolve(name, sym))
+    if (!resolve(name, sym))
     {
 	throw TypeException("No such template: %s", name);
     }
@@ -964,7 +994,7 @@ void SystemBuilder::samePriority(const char* name)
 {
 #ifdef ENABLE_PRIORITY
     symbol_t symbol;
-    if (!frame.resolve(name, symbol))
+    if (!resolve(name, symbol))
     {
         throw TypeException("No such template: %s", name);
     }

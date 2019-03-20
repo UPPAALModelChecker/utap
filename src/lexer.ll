@@ -93,6 +93,8 @@ idchr	[a-zA-Z0-9_$#]
 "!"		{ return T_EXCLAM; }
 
 "->"		{ return T_ARROW; }
+"-u->"		{ return T_UNCONTROL_ARROW; }
+
 "="		{ return T_ASSIGNMENT; }
 ":="		{ return T_ASSIGNMENT; }
 "+="            { return T_ASSPLUS; }

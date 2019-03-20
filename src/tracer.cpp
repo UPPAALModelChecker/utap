@@ -148,7 +148,11 @@ void analyzeVariable(process_t *process, const variable_t variable)
 	     * to the dimension list.
 	     */
 	    do {
-		int value = interpreter.evaluate(type.getArraySize());
+		int value = 
+		    interpreter.evaluate(type.getArraySize().getRange().second)
+		    - interpreter.evaluate(type.getArraySize().getRange().first) 
+		    + 1;
+
 		size *= value;
 		dimensions.push_back(value);
 		type = type.getSub();
@@ -420,12 +424,20 @@ void loadModel(const char *model)
 
     /* Parse file.
      */
-    parseXMLFile(model, &errors, &ta, false);
+    parseXMLFile(model, &errors, &ta, true);
 
     /* Abort in case of errors.
      */
     if (errors.hasErrors()) 
     {
+	vector<ErrorHandler::error_t>::const_iterator it;
+	const vector<ErrorHandler::error_t> &msg = errors.getErrors();
+	
+	for (it = msg.begin(); it != msg.end(); it++)
+	{
+	    cerr << *it << endl;
+	}
+	
 	cerr << "Syntax errors in model" << endl;
 	exit(1);
     }
@@ -468,6 +480,6 @@ int main(int argc, char *argv[])
     }
     catch (exception &e)
     {
-	cerr << "Catched exception: " << e.what() << endl;
+	cerr << "Caught exception: " << e.what() << endl;
     }
 }

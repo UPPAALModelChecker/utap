@@ -33,15 +33,35 @@ using namespace Constants;
 
 using std::vector;
 
-void ExpressionBuilder::ExpressionFragments::pop(int32_t n)
+#define defaultIntMin -0x7FFF
+#define defaultIntMax 0x7FFF
+
+void ExpressionBuilder::ExpressionFragments::pop(uint32_t n)
 {
+    assert(n <= size());
     while (n--) pop();
 }
 
 ExpressionBuilder::ExpressionBuilder(TimedAutomataSystem *system)
   : system(system)
 {
-    frame = system->getGlobals().frame;
+    pushFrame(system->getGlobals().frame);
+}
+
+void ExpressionBuilder::pushFrame(frame_t frame)
+{
+    frames.push(frame);
+}
+
+void ExpressionBuilder::popFrame()
+{
+    frames.pop();
+}
+
+bool ExpressionBuilder::resolve(std::string name, symbol_t &uid)
+{
+    assert(!frames.empty());
+    return frames.top().resolve(name, uid);
 }
 
 ExpressionBuilder::ExpressionFragments &ExpressionBuilder::getExpressions()
@@ -52,7 +72,7 @@ ExpressionBuilder::ExpressionFragments &ExpressionBuilder::getExpressions()
 bool ExpressionBuilder::isType(const char* name) 
 {
     symbol_t uid;
-    if (!frame.resolve(name, uid))
+    if (!resolve(name, uid))
     {
 	return false;
     }
@@ -62,7 +82,7 @@ bool ExpressionBuilder::isType(const char* name)
 bool ExpressionBuilder::isLocation(const char *name)
 {
     symbol_t uid;
-    if (!frame.resolve(name, uid))
+    if (!resolve(name, uid))
     {
 	return false;
     }
@@ -72,6 +92,98 @@ bool ExpressionBuilder::isLocation(const char *name)
 expression_t ExpressionBuilder::makeConstant(int value)
 {
     return expression_t::createConstant(position, value);
+}
+
+type_t ExpressionBuilder::applyPrefix(int32_t prefix, type_t type)
+{    
+    type_t base = type.getBase();
+    if (base == type_t::VOID_TYPE || base == type_t::CLOCK || base == type_t::SCALAR || base == type_t::COST) 
+    {
+	if (prefix == PREFIX_NONE)
+	{
+	    return type;
+	}
+    } 
+    else if (base == type_t::INT || base == type_t::BOOL
+	     || base == type_t::ARRAY || base == type_t::RECORD)
+    {
+	switch (prefix) 
+	{
+	case PREFIX_NONE:
+	    return type;
+	case PREFIX_CONST:
+	    return type.setPrefix(true, prefix::CONSTANT);
+	case PREFIX_META:
+	    return type.setPrefix(true, prefix::META);
+	}
+    } 
+    else if (base == type_t::CHANNEL) 
+    {
+	switch (prefix) 
+	{
+	case PREFIX_NONE:
+	    return type;
+	case PREFIX_URGENT:
+	    return type.setPrefix(true, prefix::URGENT);
+	case PREFIX_BROADCAST:
+	    return type.setPrefix(true, prefix::BROADCAST);
+	case PREFIX_URGENT_BROADCAST:
+	    return type.setPrefix(true, prefix::URGENT).setPrefix(true, prefix::BROADCAST);
+	}
+    }
+    errorHandler->handleError("Invalid prefix");
+    return type;
+}
+
+/**
+ * Push a new type onto the type stack. This type might subsequently
+ * be used to declare e.g. variables. Range indicates the number range
+ * or rate expressions (currently, it might be 0, 1 or 2). The
+ * corresponding number of fragments will be popped from the
+ * expression stack.
+ */
+void ExpressionBuilder::typeName(int32_t prefix, const char* name, int range)
+{
+    symbol_t uid;
+    assert(resolve(name, uid));
+
+    if (!resolve(name, uid) || uid.getType().getBase() != type_t::NTYPE)
+    {
+	typeFragments.push(type_t::VOID_TYPE);
+	throw TypeException("Identifier is undeclared or not a type name");
+    }
+
+    type_t type = uid.getType().getSub();
+    if (type == type_t::SCALAR)
+    {
+	if (range == 1)
+	{
+	    type = type_t::createScalarSet(
+		makeConstant(0), 
+		expression_t::createBinary(fragments[0].getPosition(),
+					   MINUS, fragments[0], makeConstant(1)));
+	}
+	else
+	{
+	    errorHandler->handleError("Scalarset must have a size");
+	}
+    }
+    else if (type == type_t::INT && range == 2)
+    {
+	type = type_t::createInteger(fragments[1], fragments[0]);
+    }
+    else if (range)
+    {
+	errorHandler->handleError("Invalid number of arguments for this type");
+    }
+    else if (type == type_t::INT && prefix != PREFIX_CONST)
+    {
+	type = type_t::createInteger(makeConstant(defaultIntMin),
+				     makeConstant(defaultIntMax));
+    }
+
+    fragments.pop(range);
+    typeFragments.push(applyPrefix(prefix, type));
 }
 
 void ExpressionBuilder::exprTrue() 
@@ -87,8 +199,8 @@ void ExpressionBuilder::exprFalse()
 void ExpressionBuilder::exprId(const char *name) 
 {
     symbol_t uid;
-
-    if (!frame.resolve(name, uid)) 
+    
+    if (!resolve(name, uid)) 
     {
 	exprFalse();
 	throw TypeException("Unknown identifier: %s", name);
@@ -105,7 +217,10 @@ void ExpressionBuilder::exprId(const char *name)
 	&& base != type_t::CHANNEL
 	&& base != type_t::RECORD
 	&& base != type_t::PROCESS
-	&& base != type_t::VOID_TYPE)
+	&& base != type_t::COST
+	&& base != type_t::VOID_TYPE
+	&& base != type_t::FUNCTION
+	&& base != type_t::SCALAR)
     {
 	throw TypeException("Identifier of this type cannot be referenced in an expression");
     }    
@@ -121,19 +236,8 @@ void ExpressionBuilder::exprNat(int32_t n)
     fragments.push(makeConstant(n));
 }
 
-void ExpressionBuilder::exprCallBegin(const char *functionName) 
+void ExpressionBuilder::exprCallBegin() 
 {
-    /* Resolve identifier. If unknown, we leave a symbol_t() on the
-     * stack. TODO: This could be moved to exprCallEnd().
-     */
-    symbol_t id;
-    bool found = frame.resolve(functionName, id);
-    fragments.push(expression_t::createIdentifier(position, id));
-
-    if (!found)
-    {
-	throw TypeException("Unknown identifier: %s", functionName);
-    }
 }
 
 // expects n argument expressions on the stack
@@ -314,3 +418,29 @@ void ExpressionBuilder::exprDot(const char *id)
     fragments[0] = expr;
 }
 
+void ExpressionBuilder::exprForAllBegin(const char *name)
+{
+    type_t type = typeFragments[0].first;
+    typeFragments.pop();
+    
+    pushFrame(frame_t::createFrame(frames.top()));
+    symbol_t symbol = frames.top().addSymbol(name, type);
+
+    if (type.getBase() != type_t::INT && type.getBase() != type_t::SCALAR)
+    {
+	errorHandler->handleError("Quantifier must range over scalar type");
+    }
+}
+
+void ExpressionBuilder::exprForAllEnd(const char *name)
+{
+    /* Create the forall expression. The symbol is added as an identifier
+     * expression as the first child. Notice that the frame is discarded
+     * but the identifier expression will maintain a reference to the
+     * symbol so it will not be deallocated.
+     */
+    fragments[0] = expression_t::createBinary(
+	position, FORALL, 
+	expression_t::createIdentifier(position, frames.top()[0]), fragments[0]);
+    popFrame();
+}

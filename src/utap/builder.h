@@ -197,13 +197,18 @@ namespace UTAP
 	/********************************************************************
 	 * Process declarations
 	 */
-	virtual void procBegin(const char* name, uint32_t n) = 0; // n parameters
+	virtual void procTemplateSet(const char *name) = 0;
+	virtual void procBegin(const char* name, uint32_t m, uint32_t n) = 0; // n template set declarations, m parameters
 	virtual void procEnd() = 0; // 1 ProcBody
 	virtual void procState(const char* name, bool hasInvariant) = 0; // 1 expr
 	virtual void procStateCommit(const char* name) = 0; // mark previously decl. state
 	virtual void procStateUrgent(const char* name) = 0; // mark previously decl. state
+	virtual void procStateWinning(const char* name) = 0; // mark previously decl. state
+	virtual void procStateLosing(const char* name) = 0; // mark previously decl. state
 	virtual void procStateInit(const char* name) = 0; // mark previously decl. state
-	virtual void procEdge(const char* from, const char* to) = 0; 
+	virtual void procEdgeBegin(const char* from, const char* to, const bool control) = 0;
+	virtual void procEdgeEnd(const char* from, const char* to) = 0; 
+	virtual void procSelect(const char * id) = 0; // 1 expr
 	virtual void procGuard() = 0; // 1 expr
 	virtual void procSync(Constants::synchronisation_t type) = 0; // 1 expr
 	virtual void procUpdate() = 0; // 1 expr
@@ -214,8 +219,10 @@ namespace UTAP
 	virtual void blockBegin() = 0;
 	virtual void blockEnd() = 0;
 	virtual void emptyStatement() = 0;
-	virtual void forBegin() = 0;
-	virtual void forEnd() = 0; // 3 expr, 1 stat
+	virtual void forBegin() = 0; // 3 expr
+	virtual void forEnd() = 0; // 1 stat
+	virtual void iterationBegin(const char *name) = 0; // 1 id, 1 type
+	virtual void iterationEnd(const char *name) = 0; // 1 stat
 	virtual void whileBegin() = 0;
 	virtual void whileEnd() = 0; // 1 expr, 1 stat
 	virtual void doWhileBegin() = 0;
@@ -241,7 +248,7 @@ namespace UTAP
 	virtual void exprTrue() = 0;
 	virtual void exprId(const char * varName) = 0;
 	virtual void exprNat(int32_t) = 0; // natural number
-	virtual void exprCallBegin(const char * functionName) = 0;
+	virtual void exprCallBegin() = 0;
 	virtual void exprCallEnd(uint32_t n) = 0; // n exprs as arguments
 	virtual void exprArg(uint32_t n) = 0; // 1 expr for n-th fn call argument (indexed from 0)
 	virtual void exprArray() = 0; // 2 expr 
@@ -256,6 +263,8 @@ namespace UTAP
 	virtual void exprComma() = 0; // 2 expr
 	virtual void exprDot(const char *) = 0; // 1 expr
 	virtual void exprDeadlock() = 0;
+	virtual void exprForAllBegin(const char *name) = 0;
+	virtual void exprForAllEnd(const char *name) = 0;
 
 	/********************************************************************
 	 * System declaration

@@ -83,28 +83,30 @@ namespace UTAP
 	/** Checks that the arguments of a function call expression are valid */
 	void checkFunctionCallArguments(expression_t);
 
-	void annotateAndExpectConstantInteger(expression_t);
+	bool annotateAndExpectConstantInteger(expression_t);
 	void checkType(type_t, bool inRecord = false);
 
 	/** Check that a variable declaration is type correct. */
 	void checkVariableDeclaration(variable_t &variable);
 
-	expression_t makeConstant(int);
 	type_t typeOfBinaryNonInt(expression_t, uint32_t binaryop, expression_t);
     
     public:
 	TypeChecker(TimedAutomataSystem *system, ErrorHandler *handler);
 	virtual ~TypeChecker() {}
+	virtual bool visitTemplateBefore(template_t &);
 	virtual void visitVariable(variable_t &);
 	virtual void visitState(state_t &);
 	virtual void visitEdge(edge_t &);
 	virtual void visitInstance(instance_t &);
 	virtual void visitProperty(expression_t);
 	virtual void visitFunction(function_t &);
+	virtual void visitProgressMeasure(progress_t &);
 
 	virtual int32_t visitEmptyStatement(EmptyStatement *stat);
 	virtual int32_t visitExprStatement(ExprStatement *stat);
 	virtual int32_t visitForStatement(ForStatement *stat);
+	virtual int32_t visitIterationStatement(IterationStatement *stat);
 	virtual int32_t visitWhileStatement(WhileStatement *stat);
 	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
 	virtual int32_t visitBlockStatement(BlockStatement *stat);
@@ -115,15 +117,6 @@ namespace UTAP
 	virtual int32_t visitBreakStatement(BreakStatement *stat);
 	virtual int32_t visitContinueStatement(ContinueStatement *stat);
 	virtual int32_t visitReturnStatement(ReturnStatement *stat);
-
-        static bool isVoid(expression_t);
-        static bool isInteger(expression_t);
-        static bool isClock(expression_t);
-        static bool isRecord(expression_t);
-        static bool isDiff(expression_t);
-        static bool isInvariant(expression_t);
-        static bool isGuard(expression_t);
-        static bool isConstraint(expression_t);
 
 	/** Type check an expression */
 	void checkExpression(expression_t);

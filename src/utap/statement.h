@@ -65,6 +65,21 @@ namespace UTAP
 	int32_t accept(StatementVisitor *visitor);
     };
 
+    /**
+     * Statement class for the iterator loop-construction.
+     */
+    class IterationStatement: public Statement
+    {
+    protected:
+	frame_t frame;
+    public:
+	symbol_t symbol;
+	Statement *stat;
+	IterationStatement(symbol_t, frame_t, Statement *);
+ 	frame_t getFrame() { return frame; }
+	int32_t accept(StatementVisitor *visitor);
+     };
+
     class WhileStatement: public Statement 
     {
     public:
@@ -99,6 +114,7 @@ namespace UTAP
  	frame_t getFrame() { return frame; }
 	void push_stat(Statement* stat);
 	Statement* pop_stat();
+	Statement* back();
 	const_iterator begin() const;
 	const_iterator end() const;
 	iterator begin();
@@ -169,6 +185,7 @@ namespace UTAP
 	virtual int32_t visitEmptyStatement(EmptyStatement *stat)=0;
 	virtual int32_t visitExprStatement(ExprStatement *stat)=0;
 	virtual int32_t visitForStatement(ForStatement *stat)=0;
+	virtual int32_t visitIterationStatement(IterationStatement *stat)=0;
 	virtual int32_t visitWhileStatement(WhileStatement *stat)=0;
 	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat)=0;
 	virtual int32_t visitBlockStatement(BlockStatement *stat)=0;
@@ -189,6 +206,7 @@ namespace UTAP
 	virtual int32_t visitEmptyStatement(EmptyStatement *stat);
 	virtual int32_t visitExprStatement(ExprStatement *stat);
 	virtual int32_t visitForStatement(ForStatement *stat);
+	virtual int32_t visitIterationStatement(IterationStatement *stat);
 	virtual int32_t visitWhileStatement(WhileStatement *stat);
 	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
 	virtual int32_t visitBlockStatement(BlockStatement *stat);
@@ -199,6 +217,41 @@ namespace UTAP
 	virtual int32_t visitBreakStatement(BreakStatement *stat);
 	virtual int32_t visitContinueStatement(ContinueStatement *stat);
 	virtual int32_t visitReturnStatement(ReturnStatement *stat);
+    };
+
+    class ExpressionVisitor : public AbstractStatementVisitor
+    {
+    protected:
+	virtual void visitExpression(expression_t) = 0;
+    public:
+	virtual int32_t visitExprStatement(ExprStatement *stat);
+	virtual int32_t visitForStatement(ForStatement *stat);
+	virtual int32_t visitWhileStatement(WhileStatement *stat);
+	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
+	virtual int32_t visitBlockStatement(BlockStatement *stat);
+	virtual int32_t visitSwitchStatement(SwitchStatement *stat);
+	virtual int32_t visitCaseStatement(CaseStatement *stat);
+	virtual int32_t visitDefaultStatement(DefaultStatement *stat);
+	virtual int32_t visitIfStatement(IfStatement *stat);
+	virtual int32_t visitReturnStatement(ReturnStatement *stat);
+    };
+
+    class CollectChangesVisitor : public ExpressionVisitor
+    {
+    protected:
+	virtual void visitExpression(expression_t);
+	std::set<symbol_t> &changes;
+    public:
+	CollectChangesVisitor(std::set<symbol_t> &);
+    };
+
+    class CollectDependenciesVisitor : public ExpressionVisitor
+    {
+    protected:
+	virtual void visitExpression(expression_t);
+	std::set<symbol_t> &dependencies;
+    public:
+	CollectDependenciesVisitor(std::set<symbol_t> &);
     };
 
 }

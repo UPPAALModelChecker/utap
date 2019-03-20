@@ -38,8 +38,11 @@ namespace UTAP
 	std::stack<std::ostream *> o;
 	std::string urgent;
 	std::string committed;
+	std::string winning;
+	std::string losing;
 	std::string param;
-	int guard, sync, update;
+	std::string templateset;
+	int select, guard, sync, update;
 	
 	bool first;
 	uint32_t level;
@@ -55,6 +58,8 @@ namespace UTAP
     
 	virtual bool isType(const char *id);
 	virtual void typeName(int32_t prefix, const char *type, int range);
+	virtual void declTypeDef(const char* name, uint32_t dim); 
+	virtual void declTypeDefEnd();
 	virtual void declVar(const char *id, uint32_t dim, bool init);
 	virtual void declVarEnd();
 	virtual void declInitialiserList(uint32_t num);
@@ -68,6 +73,8 @@ namespace UTAP
 	virtual void emptyStatement();
 	virtual void forBegin();
 	virtual void forEnd();
+	virtual void iterationBegin(const char *name); // 1 id, 1 type
+	virtual void iterationEnd(const char *name); // 1 stat
 	virtual void whileBegin();
 	virtual void whileEnd();
 	virtual void doWhileBegin();
@@ -79,21 +86,26 @@ namespace UTAP
 	virtual void continueStatement();
 	virtual void exprStatement();
 	virtual void returnStatement(bool hasValue);
-	virtual void procBegin(const char *id, uint32_t n);
+	virtual void procTemplateSet(const char *name);
+	virtual void procBegin(const char* name, uint32_t n, uint32_t m);
 	virtual void procState(const char *id, bool hasInvariant);
 	virtual void procStateUrgent(const char *id);
 	virtual void procStateCommit(const char *id);
+	virtual void procStateWinning(const char *id);
+	virtual void procStateLosing(const char *id);
 	virtual void procStateInit(const char *id);
+	virtual void procSelect(const char *id);
 	virtual void procGuard();
 	virtual void procSync(Constants::synchronisation_t type);
 	virtual void procUpdate();
-	virtual void procEdge(const char *source, const char *target);
+	virtual void procEdgeBegin(const char *source, const char *target, const bool control);
+        virtual void procEdgeEnd(const char *source, const char *target);
 	virtual void procEnd();
 	virtual void exprId(const char *id);
 	virtual void exprNat(int32_t n);
 	virtual void exprTrue();
 	virtual void exprFalse();
-	virtual void exprCallBegin(const char *name);
+	virtual void exprCallBegin();
 	virtual void exprCallEnd(uint32_t n);
 	virtual void exprArg(uint32_t n);
 	virtual void exprArray();
@@ -108,6 +120,8 @@ namespace UTAP
 	virtual void exprComma();
 	virtual void exprDot(const char *);
 	virtual void exprDeadlock();
+	virtual void exprForAllBegin(const char *name);
+	virtual void exprForAllEnd(const char *name);
 	virtual void beforeUpdate();
 	virtual void afterUpdate();
 	virtual void instantiationBegin(const char *id, const char *templ);

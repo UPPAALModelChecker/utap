@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 # libutap - Uppaal Timed Automata Parser.
-# Copyright (C) 2002-2004 Uppsala University and Aalborg University.
+# Copyright (C) 2002-2005 Uppsala University and Aalborg University.
 # 
 # This library is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -106,15 +106,19 @@ am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
 
-bin_PROGRAMS = pretty tracer
+bin_PROGRAMS = pretty tracer check ioiface
 lib_LIBRARIES = libutap.a
-include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/rangechecker.h utap/collectchangesvisitor.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h
+include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h utap/iointerface.h
 
 pretty_SOURCES = pretty.cpp
 
 tracer_SOURCES = tracer.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp rangechecker.cpp collectchangesvisitor.cpp prettyprinter.cpp
+check_SOURCES = check.cpp
+
+ioiface_SOURCES = ioiface.cpp
+
+libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp prettyprinter.cpp iointerface.cpp
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)
@@ -138,12 +142,22 @@ am_libutap_a_OBJECTS = abstractbuilder.$(OBJEXT) \
 	system.$(OBJEXT) typechecker.$(OBJEXT) typeexception.$(OBJEXT) \
 	symbols.$(OBJEXT) xmlreader.$(OBJEXT) statement.$(OBJEXT) \
 	error.$(OBJEXT) parser.$(OBJEXT) systembuilder.$(OBJEXT) \
-	rangechecker.$(OBJEXT) collectchangesvisitor.$(OBJEXT) \
-	prettyprinter.$(OBJEXT)
+	prettyprinter.$(OBJEXT) iointerface.$(OBJEXT)
 libutap_a_OBJECTS = $(am_libutap_a_OBJECTS)
-bin_PROGRAMS = pretty$(EXEEXT) tracer$(EXEEXT)
+bin_PROGRAMS = pretty$(EXEEXT) tracer$(EXEEXT) check$(EXEEXT) \
+	ioiface$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
+am_check_OBJECTS = check.$(OBJEXT)
+check_OBJECTS = $(am_check_OBJECTS)
+check_LDADD = $(LDADD)
+check_DEPENDENCIES = libutap.a
+check_LDFLAGS =
+am_ioiface_OBJECTS = ioiface.$(OBJEXT)
+ioiface_OBJECTS = $(am_ioiface_OBJECTS)
+ioiface_LDADD = $(LDADD)
+ioiface_DEPENDENCIES = libutap.a
+ioiface_LDFLAGS =
 am_pretty_OBJECTS = pretty.$(OBJEXT)
 pretty_OBJECTS = $(am_pretty_OBJECTS)
 pretty_LDADD = $(LDADD)
@@ -163,13 +177,13 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/abstractbuilder.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/collectchangesvisitor.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/error.Po ./$(DEPDIR)/expression.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/check.Po ./$(DEPDIR)/error.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/expression.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/expressionbuilder.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ioiface.Po ./$(DEPDIR)/iointerface.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/keywords.Po ./$(DEPDIR)/lexer.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/parser.Po ./$(DEPDIR)/pretty.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/prettyprinter.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/rangechecker.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/statement.Po ./$(DEPDIR)/symbols.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/system.Po ./$(DEPDIR)/systembuilder.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/tags.Po ./$(DEPDIR)/tracer.Po \
@@ -190,12 +204,13 @@ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libutap_a_SOURCES) $(EXTRA_libutap_a_SOURCES) \
-	$(pretty_SOURCES) $(tracer_SOURCES)
+	$(check_SOURCES) $(ioiface_SOURCES) $(pretty_SOURCES) \
+	$(tracer_SOURCES)
 HEADERS = $(include_HEADERS)
 
 DIST_COMMON = $(include_HEADERS) Makefile.am Makefile.in lexer.cc \
 	parser.cc
-SOURCES = $(libutap_a_SOURCES) $(EXTRA_libutap_a_SOURCES) $(pretty_SOURCES) $(tracer_SOURCES)
+SOURCES = $(libutap_a_SOURCES) $(EXTRA_libutap_a_SOURCES) $(check_SOURCES) $(ioiface_SOURCES) $(pretty_SOURCES) $(tracer_SOURCES)
 
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -267,6 +282,12 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
+check$(EXEEXT): $(check_OBJECTS) $(check_DEPENDENCIES) 
+	@rm -f check$(EXEEXT)
+	$(CXXLINK) $(check_LDFLAGS) $(check_OBJECTS) $(check_LDADD) $(LIBS)
+ioiface$(EXEEXT): $(ioiface_OBJECTS) $(ioiface_DEPENDENCIES) 
+	@rm -f ioiface$(EXEEXT)
+	$(CXXLINK) $(ioiface_LDFLAGS) $(ioiface_OBJECTS) $(ioiface_LDADD) $(LIBS)
 pretty$(EXEEXT): $(pretty_OBJECTS) $(pretty_DEPENDENCIES) 
 	@rm -f pretty$(EXEEXT)
 	$(CXXLINK) $(pretty_LDFLAGS) $(pretty_OBJECTS) $(pretty_LDADD) $(LIBS)
@@ -281,16 +302,17 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/abstractbuilder.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/collectchangesvisitor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expression.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expressionbuilder.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioiface.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iointerface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keywords.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pretty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prettyprinter.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rangechecker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statement.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/symbols.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/system.Po@am__quote@

@@ -78,6 +78,9 @@ namespace UTAP
 	/** Destructor. */
 	~expression_t();
 
+	/** Make a shallow clone of the expression. */
+	expression_t clone() const;
+
 	/** Returns the kind of the expression. */
 	Constants::kind_t getKind() const;
 
@@ -148,6 +151,7 @@ namespace UTAP
 	bool dependsOn(const std::set<symbol_t> &) const;
 
 	void collectPossibleWrites(std::set<symbol_t> &) const;
+	void collectPossibleReads(std::set<symbol_t> &) const;
 
  	/** Less-than operator. Makes it possible to put expression_t
  	    objects into an STL set. */

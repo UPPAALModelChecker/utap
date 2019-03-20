@@ -32,8 +32,8 @@
 
 bool parseXTA(FILE *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
 bool parseXTA(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-bool parseXMLBuffer(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-bool parseXMLFile(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
+int32_t parseXMLBuffer(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
+int32_t parseXMLFile(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
 UTAP::expression_t parseExpression(
     const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool);
 

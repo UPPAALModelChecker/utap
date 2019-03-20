@@ -84,31 +84,15 @@ namespace UTAP
 	int32_t currentPriority;
     private:
 
-	//
-	// The stack of type fragments. A type fragment is a pair
-	// consiting of a type and an optional name (the name is 
-	// used for fields of a structure).
-	//
-	class TypeFragments 
-	{
-	private:
-	    std::vector<std::pair<type_t, char *> > data;
-	public:
-	    ~TypeFragments() 
-                { while (!data.empty()) pop(); }
-	    std::pair<type_t, char *> &operator[] (int idx)
-		{ return data[data.size() - idx - 1]; }
-	    void push(type_t value)
-		{ data.push_back(std::make_pair(value, (char*)NULL)); }
-	    void pop()
-		{ assert(!data.empty()); free(data.back().second); data.pop_back(); }
-	} typeFragments;
 
 	// 
 	// Support for handling template and function parameters
 	//
 
-	/* The params vector is used temporarily during parameter parsing */
+	/* The templateset frame is used during template set declaration */
+	frame_t templateset;
+
+	/* The params frame is used temporarily during parameter parsing */
 	frame_t params;
 
 	/* current parsing function structure */
@@ -116,15 +100,10 @@ namespace UTAP
 
 	template_t *currentTemplate;
 
+	edge_t *currentEdge;
+
 	/* stack of function body statement blocks */
 	std::vector<BlockStatement*> blocks; 
-
-	//
-	// Fields for handling edge labels
-	//
-	int32_t guard;
-	int32_t sync;
-	int32_t update;
 
 	//
 	// Method for handling types
@@ -132,7 +111,6 @@ namespace UTAP
 
 	type_t buildArrayType(type_t type, uint32_t dim);
 	type_t getElementTypeOfArray(type_t type);
-	type_t applyPrefix(int32_t prefix, type_t type);
 	declarations_t *getCurrentDeclarationBlock();
 
     public:
@@ -142,7 +120,6 @@ namespace UTAP
 	/************************************************************
 	 * Types
 	 */
-	virtual void typeName(int32_t prefix, const char* name, int range);
 	// 2 expr if range==true
 	virtual void typeStruct(int32_t prefix, uint32_t fields);
 
@@ -181,16 +158,28 @@ namespace UTAP
 	/************************************************************
 	 * Process declarations
 	 */
-	virtual void procBegin(const char* name, uint32_t n); // n parameters
+	virtual void procTemplateSet(const char *name);
+	virtual void procBegin(const char* name, uint32_t n, uint32_t m);
 	virtual void procEnd(); // 1 ProcBody
 	virtual void procState(const char* name, bool hasInvariant); // 1 expr
 	virtual void procStateCommit(const char* name); // mark previously decl. state
 	virtual void procStateUrgent(const char* name); // mark previously decl. state
+	virtual void procStateWinning(const char* name); // mark previously decl. state
+	virtual void procStateLosing(const char* name); // mark previously decl. state
 	virtual void procStateInit(const char* name); // mark previously decl. state
-	virtual void procEdge(const char* from, const char* to); 
-	// 1 epxr,1sync,1expr
+        virtual void procEdgeBegin(const char* from, const char* to, const bool control);
+	virtual void procEdgeEnd(const char* from, const char* to); 
+
+	// 1 type
+	virtual void procSelect(const char *id);
+
+	// 1 epxr
 	virtual void procGuard();
+
+	// 1 expr
 	virtual void procSync(Constants::synchronisation_t type); // 1 expr
+
+	// 1 expr
 	virtual void procUpdate();
     
 	/************************************************************
@@ -201,6 +190,8 @@ namespace UTAP
 	virtual void emptyStatement();
 	virtual void forBegin();
 	virtual void forEnd(); // 3 expr, 1 stat
+	virtual void iterationBegin(const char *name);
+	virtual void iterationEnd(const char *name);
 	virtual void whileBegin();
 	virtual void whileEnd(); // 1 expr, 1 stat
 	virtual void doWhileBegin();
@@ -222,7 +213,7 @@ namespace UTAP
 	/************************************************************
 	 * Expressions
 	 */	
-	virtual void exprCallBegin(const char *);
+	virtual void exprCallBegin();
     
 	/************************************************************
 	 * System declaration

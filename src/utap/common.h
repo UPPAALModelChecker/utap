@@ -147,6 +147,7 @@ namespace UTAP
 	     * Unary operators
 	     */
 	    NOT = 30,
+	    FORALL = 31,
 
 	    /********************************************************
 	     * Assignment operators
@@ -209,7 +210,8 @@ namespace UTAP
     { 
 	S_XTA, // entire system 
 	S_DECLARATION, S_LOCAL_DECL, S_INST, S_SYSTEM, S_PARAMETERS, 
-	S_INVARIANT, S_GUARD, S_SYNC, S_ASSIGN, S_EXPRESSION, S_PROPERTY
+	S_INVARIANT, S_SELECT, S_GUARD, S_SYNC, S_ASSIGN, 
+	S_EXPRESSION, S_PROPERTY
     } xta_part_t;
 
 }

@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT(UPPAAL TA Parser Library, 0.70, behrmann@cs.aau.dk, libutap)
+AC_INIT(UPPAAL TA Parser Library, 0.80, behrmann@cs.aau.dk, libutap)
 
 AC_PREREQ(2.50)
 
-AM_INIT_AUTOMAKE(libutap, 0.70)
+AM_INIT_AUTOMAKE(libutap, 0.80)
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/pretty.cpp)
 AC_CONFIG_AUX_DIR(.)
@@ -35,6 +35,7 @@ AC_ISC_POSIX
 
 AM_MISSING_PROG([GPERF], [gperf])
 
+OPT_FLAGS=""
 dnl Check if documentation should be built
 
 AC_SUBST(INDEX)
@@ -42,7 +43,7 @@ AC_SUBST(INDEX)
 enableval=no
 AC_MSG_CHECKING([if documentation should be generated])
 AC_ARG_ENABLE(documentation,
-[  --enable-documentation   generate documentation from source])
+AS_HELP_STRING([--enable-documentation], [generate documentation from source]))
 case "${enableval}" in
 yes)
   AC_MSG_RESULT(yes)
@@ -59,6 +60,13 @@ no)
   AC_MSG_ERROR([bad value ${enableval} --enable-documentation, needs yes or no])
   ;;
 esac
+
+dnl Check for CORA extensions
+
+AC_ARG_ENABLE(cora,
+AS_HELP_STRING([--enable-cora], [enable UPPAAL CORA extensions]),
+OPT_FLAGS="${OPT_FLAGS} -DENABLE_PRICED"
+)
  
 dnl Checks for libraries.
      
@@ -93,11 +101,10 @@ AC_SUBST(XML_CFLAGS)
 AC_SUBST(XML_LIBS)
 
 dnl Check for debug flags
-OPT_FLAGS=""
 enableval=no
 AC_MSG_CHECKING([whether to compile with debug info])
 AC_ARG_ENABLE(debugging,
-[  --enable-debugging      compile with debugging information])
+AS_HELP_STRING([--enable-debugging], [compile with debugging information]))
 case "${enableval}" in
 yes)
   AC_MSG_RESULT(yes)
@@ -115,7 +122,7 @@ esac
 enableval=no
 AC_MSG_CHECKING([whether to enable checking of run-time assertions])
 AC_ARG_ENABLE(assertions,
-[  --enable-assertions     check run-time assertions])
+AS_HELP_STRING([--enable-assertions], [check run-time assertions]))
 case "${enableval}" in
 yes)
   AC_MSG_RESULT(yes)

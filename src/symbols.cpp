@@ -55,9 +55,13 @@ type_t type_t::RECORD = type_t::createBase();
 type_t type_t::PROCESS = type_t::createBase();
 type_t type_t::NTYPE = type_t::createBase();
 type_t type_t::INVARIANT = type_t::createBase();
+type_t type_t::INVARIANT_WR = type_t::createBase();
 type_t type_t::GUARD = type_t::createBase();
 type_t type_t::DIFF = type_t::createBase();
 type_t type_t::CONSTRAINT = type_t::createBase();
+type_t type_t::COST = type_t::createBase();
+type_t type_t::RATE = type_t::createBase();
+type_t type_t::SCALAR = type_t::createBase();
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -103,6 +107,16 @@ range_t range_t::join(const range_t &r) const
     return range_t(min(lower, r.lower), max(upper, r.upper));
 }
 
+range_t range_t::operator| (const range_t &r) const
+{
+    return range_t(min(lower, r.lower), max(upper, r.upper));
+}
+
+range_t range_t::operator& (const range_t &r) const
+{
+    return range_t(max(lower, r.lower), min(upper, r.upper));
+}
+
 bool range_t::contains(const range_t &r) const
 {
     return lower <= r.lower && r.upper <= r.upper;
@@ -116,6 +130,11 @@ bool range_t::contains(int32_t value) const
 bool range_t::isEmpty() const
 {
     return lower > upper;
+}
+
+uint32_t range_t::size() const
+{
+    return isEmpty() ? 0 : upper - lower + 1;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -371,7 +390,7 @@ void frame_t::add(frame_t frame)
     }
 }
 
-int32_t frame_t::getIndexOf(string name)
+int32_t frame_t::getIndexOf(string name) const
 {
     map<string, int32_t>::const_iterator i = data->mapping.find(name);
     return (i == data->mapping.end() ? -1 : i->second);
@@ -437,7 +456,7 @@ struct type_t::type_data
     type_t base;		// Base type
     type_t sub;			// Sub type
     frame_t frame;		// Frame (fields or parameters)
-    expression_t size;          // Size of array
+    type_t size;                // Size of array
     pair<expression_t, expression_t> range;// Range of integers
 
     type_data(const type_t &base, const frame_t &frame, const type_t &sub)
@@ -531,7 +550,7 @@ frame_t type_t::getRecordFields() const
     assert(data->base == RECORD);
     return data->frame;
 }
-
+ 
 /** Returns the arguments of a function or template type. See also
     getFrame(). 
 */
@@ -569,7 +588,7 @@ type_t type_t::getReturnType()
 }
 
 /* Returns the size of an array */
-expression_t type_t::getArraySize() const
+type_t type_t::getArraySize() const
 {
     assert(data->base == ARRAY);
     return data->size;
@@ -604,7 +623,7 @@ type_t type_t::setPrefix(bool set, prefix::prefix_t prefix) const
 /* Returns the range of an integer type. */
 pair<expression_t, expression_t> type_t::getRange() const
 {
-    assert(data->base == INT);
+    assert(data->base == INT || data->base == SCALAR);
     return data->range;
 }
 
@@ -612,6 +631,13 @@ pair<expression_t, expression_t> type_t::getRange() const
 type_t type_t::createInteger(expression_t lower, expression_t upper)
 {
     type_t type(new type_data(INT, frame_t(), type_t()));
+    type.data->range = make_pair(lower, upper);
+    return type;
+}
+
+type_t type_t::createScalarSet(expression_t lower, expression_t upper)
+{
+    type_t type(new type_data(SCALAR, frame_t(), type_t()));
     type.data->range = make_pair(lower, upper);
     return type;
 }
@@ -629,7 +655,7 @@ type_t type_t::createFunction(frame_t arguments, type_t ret)
 }
 
 /* Creates and returns a new array type */
-type_t type_t::createArray(expression_t size, type_t type)
+type_t type_t::createArray(type_t size, type_t type)
 {
     type_t t(new type_data(ARRAY, frame_t(), type));
     t.data->size = size;
@@ -659,71 +685,92 @@ type_t type_t::createBase()
     return type_t(data);
 }
 
-ostream &operator << (ostream &o, const type_t &t)
+string type_t::toString()
 {
-    if (t == type_t()) 
+    if (data == NULL)
     {
-	o << "null";
-	return o;
+	return string("null");
     }
 
-    type_t type = t;
+    string str, array;
+    type_t type = *this;
     type_t base = type.getBase();
-    bool isArray = (base == type_t::ARRAY);
     bool isConstant = type.hasPrefix(prefix::CONSTANT);
 
     while (base == type_t::ARRAY) 
     {
+	array = array + "[" + type.getArraySize().toString() + "]";
 	type = type.getSub();
 	base = type.getBase();
     }
 
     if (isConstant) 
     {
-	o << "const ";    
+	str = "const";
     }
  
     if (base == type_t::INT) 
     {
-	o << "int";
+	str = "int";
     } 
+    else if (base == type_t::SCALAR)
+    {
+	str = "scalar";
+    }
     else if (base == type_t::BOOL) 
     {
- 	o << "bool";
+ 	str = "bool";
     } 
     else if (base == type_t::CLOCK) 
     {
- 	o << "clock";
+ 	str = "clock";
     }
     else if (base == type_t::CHANNEL) 
     {
- 	o << "channel";
+ 	str = "channel";
     } 
     else if (base == type_t::INVARIANT) 
     {
- 	o << "invariant";
+ 	str = "invariant";
     } 
     else if (base == type_t::GUARD) 
     {
- 	o << "guard";
+ 	str = "guard";
     } 
     else if (base == type_t::DIFF) 
     {
- 	o << "diff";
+ 	str = "diff";
     } 
     else if (base == type_t::CONSTRAINT) 
     {
- 	o << "constraint";
+ 	str = "constraint";
     } 
-    else 
+    else if (base == type_t::RECORD)
     {
- 	o << "unknown";
+	frame_t fields = getRecordFields();
+
+	str = "struct { ";
+	if (fields.getSize() > 0)
+	{
+	    for (uint32_t i = 0; i < fields.getSize(); i++)
+	    {
+		str += fields[i].getType().toString() +
+		    " " + fields[i].getName() + "; ";
+	    }    
+	}   
+	str += "}";
+    }
+    else
+    {
+ 	str = "unknown";
     }
  
-    if (isArray) 
-    {
- 	o << "[]";
-    }
-
-    return o;
+    return str + array;
  }
+
+
+ostream &operator << (ostream &o, type_t t)
+{
+    o << t.toString();
+    return o;
+}

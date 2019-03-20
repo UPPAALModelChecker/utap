@@ -12,7 +12,7 @@ H2 {
        font-size: 120%;
 }
 H3 {
-       font-size: 110%;
+       font-size: 100%;
 }
 CAPTION { font-weight: bold }
 DIV.qindex {
@@ -32,6 +32,17 @@ DIV.nav {
 	margin: 2px;
 	padding: 2px;
 	line-height: 140%;
+}
+DIV.navtab {
+       background-color: #eeeeff;
+       border: 1px solid #b0b0b0;
+       text-align: center;
+       margin: 2px;
+       margin-right: 15px;
+       padding: 2px;
+}
+TD.navtab {
+       font-size: 70%;
 }
 A.qindex {
        text-decoration: none;
@@ -69,7 +80,8 @@ A.codeRef:visited { font-weight: normal; color: #0000FF}
 A:hover { text-decoration: none; background-color: #f2f2ff }
 DL.el { margin-left: -1cm }
 .fragment {
-       font-family: monospace
+       font-family: Fixed, monospace;
+       font-size: 95%;
 }
 PRE.fragment {
 	border: 1px solid #CCCCCC;

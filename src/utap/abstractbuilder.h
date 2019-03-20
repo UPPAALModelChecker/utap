@@ -22,18 +22,22 @@
 #ifndef UTAP_ABSTRACTBUILDER_HH
 #define UTAP_ABSTRACTBUILDER_HH
 
-#include <stdexcept>
+#include <exception>
+#include <string>
 
-#include "utap/builder.h"
-#include "utap/utap.h"
+#include "builder.h"
+#include "utap.h"
 
 namespace UTAP
 {
-    class NotSupportedException : public std::logic_error
+    class NotSupportedException : public std::exception 
     {
+    private:
+	std::string error;
     public:
-	NotSupportedException(const char *msg) : std::logic_error(msg) {}
-
+	NotSupportedException(const char *err) { error = err; }
+	virtual ~NotSupportedException() throw() {}
+	virtual const char* what() const throw() { return error.c_str(); }
     };
 
     class AbstractBuilder : public ParserBuilder
@@ -97,14 +101,19 @@ namespace UTAP
 	/************************************************************
 	 * Process declarations
 	 */
-	virtual void procBegin(const char* name, uint32_t n); // n parameters
+	virtual void procTemplateSet(const char *name);
+	virtual void procBegin(const char* name, uint32_t n, uint32_t m);
 	virtual void procEnd(); // 1 ProcBody
 	virtual void procState(const char* name, bool hasInvariant); // 1 expr
 	virtual void procStateCommit(const char* name); // mark previously decl. state
 	virtual void procStateUrgent(const char* name); // mark previously decl. state
+	virtual void procStateWinning(const char* name); // mark previously decl. state
+	virtual void procStateLosing(const char* name); // mark previously decl. state
 	virtual void procStateInit(const char* name); // mark previously decl. state
-	virtual void procEdge(const char* from, const char* to); 
+	virtual void procEdgeBegin(const char* from, const char* to, const bool control);
+	virtual void procEdgeEnd(const char* from, const char* to); 
 	// 1 epxr,1sync,1expr
+	virtual void procSelect(const char *id);
 	virtual void procGuard();
 	virtual void procSync(Constants::synchronisation_t type); // 1 expr
 	virtual void procUpdate();
@@ -115,8 +124,10 @@ namespace UTAP
 	virtual void blockBegin();
 	virtual void blockEnd();
 	virtual void emptyStatement();
-	virtual void forBegin();
-	virtual void forEnd(); // 3 expr, 1 stat
+	virtual void forBegin(); // 3 expr
+	virtual void forEnd(); // 1 stat
+	virtual void iterationBegin(const char *name); // 1 id, 1 type
+	virtual void iterationEnd(const char *name); // 1 stat
 	virtual void whileBegin();
 	virtual void whileEnd(); // 1 expr, 1 stat
 	virtual void doWhileBegin();
@@ -142,7 +153,7 @@ namespace UTAP
 	virtual void exprFalse();
 	virtual void exprId(const char * varName);
 	virtual void exprNat(int32_t); // natural number
-	virtual void exprCallBegin(const char * functionName);
+	virtual void exprCallBegin();
 	virtual void exprCallEnd(uint32_t n); // n exprs as arguments
 	virtual void exprArg(uint32_t n); // 1 exprs as n-th argument for fn-call
 	virtual void exprArray(); // 2 expr 
@@ -157,6 +168,8 @@ namespace UTAP
 	virtual void exprComma(); // 2 expr
 	virtual void exprDot(const char *); // 1 expr
 	virtual void exprDeadlock();
+	virtual void exprForAllBegin(const char *name);
+	virtual void exprForAllEnd(const char *name);
     
 	/************************************************************
 	 * System declaration

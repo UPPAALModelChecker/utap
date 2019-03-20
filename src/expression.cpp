@@ -80,6 +80,21 @@ expression_t::expression_t(const expression_t &e)
     }
 }
 
+expression_t expression_t::clone() const
+{
+    expression_t expr(data->kind, data->position);
+    expr.data->value = data->value;
+    expr.data->type = data->type;
+    expr.data->symbol = data->symbol;
+    expr.data->type = data->type;
+    if (data->sub)
+    {
+	expr.data->sub = new expression_t[getSize()];
+	std::copy(data->sub, data->sub + getSize(), expr.data->sub);
+    }
+    return expr;
+}
+
 expression_t::~expression_t()
 {
     if (data) 
@@ -154,7 +169,6 @@ uint32_t expression_t::getSize() const
 	break;
     case DOT:
 	return 1;
-    case LEADSTO:
     case COMMA:
     case ASSIGN:
     case ASSPLUS:
@@ -181,6 +195,15 @@ uint32_t expression_t::getSize() const
 	return 1;
     case FUNCALL:
 	return data->value;
+    case EG:
+    case AG:
+    case EF:
+    case AF:
+	return 1;
+    case LEADSTO: 
+	return 2;
+    case FORALL:
+	return 2;
     default:
 	assert(0);
 	return 0;
@@ -266,7 +289,7 @@ bool expression_t::equal(const expression_t &e) const
 
     for (uint32_t i = 0; i < getSize(); i++)
     {
-	if (data->sub[i].equal(e[i]))
+	if (!data->sub[i].equal(e[i]))
 	{
 	    return false;
 	}
@@ -511,13 +534,22 @@ bool expression_t::dependsOn(const std::set<symbol_t> &symbols) const
 	}
     }
 
-    if (getKind() == IDENTIFIER) 
+    switch (getKind())
     {
+	const function_t *fun;
+
+    case IDENTIFIER:
 	return symbols.find(data->symbol) != symbols.end();
+
+    case FUNCALL:
+	fun = static_cast<const function_t*>(get(0).getSymbol().getData());
+	return find_first_of(symbols.begin(), symbols.end(),
+			     fun->depends.begin(), fun->depends.end())
+	    != symbols.end();
+	
+    default:
+	return false;
     }    
-
-    return false;
-
 }
 
 int expression_t::getPrecedence() const
@@ -587,6 +619,9 @@ int expression_t::getPrecedence(kind_t kind)
 	    
     case INLINEIF:
 	return 15;
+
+    case FORALL:
+	return 13; // REVISIT!
 
     case ASSIGN:
     case ASSPLUS:
@@ -1028,7 +1063,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	break;
 
     case FUNCALL:
- 	append(str, end, size, get(0).getSymbol().getName().c_str());
+	get(0).toString(old, str, end, size);
  	append(str, end, size, '(');
  	if (getSize() > 1) 
 	{
@@ -1048,11 +1083,39 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	break;
 	
     case EF:
+	append(str, end, size, "E<> ");
+	get(0).toString(old, str, end, size);
+	break;
+
     case EG:
+	append(str, end, size, "E[] ");
+	get(0).toString(old, str, end, size);
+	break;
+
     case AF:
+	append(str, end, size, "A<> ");
+	get(0).toString(old, str, end, size);
+	break;
+
     case AG:
+	append(str, end, size, "A[] ");
+	get(0).toString(old, str, end, size);
+	break;
+
     case LEADSTO:
-	assert(0); // TODO
+	get(0).toString(old, str, end, size);
+	append(str, end, size, " --> ");
+	get(1).toString(old, str, end, size);
+	break;
+
+    case FORALL:
+	append(str, end, size, "forall (");
+	append(str, end, size, get(0).getSymbol().getName().c_str());
+	append(str, end, size, ":");
+	append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+	append(str, end, size, ") ");
+	get(1).toString(old, str, end, size);
+	break;
     }
 }
 
@@ -1092,6 +1155,7 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
 {
     function_t *fun;
     frame_t parameters;
+    symbol_t symbol;
 
     if (empty())
     {
@@ -1125,18 +1189,23 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
       
     case FUNCALL:
 	// Add all symbols which are changed by the function
-	fun = (function_t*)get(0).getSymbol().getData();
-	symbols.insert(fun->changes.begin(), fun->changes.end());
-
-	// Add arguments to non-constant reference parameters
-	parameters = fun->uid.getType().getParameters();
-	for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
+	symbol = get(0).getSymbol();
+	if (symbol.getType().getBase() == type_t::FUNCTION && symbol.getData())
 	{
-	    type_t type = parameters[i].getType();
-	    if (type.hasPrefix(prefix::REFERENCE)
-		&& !type.hasPrefix(prefix::CONSTANT))
+	    fun = (function_t*)symbol.getData();
+
+	    symbols.insert(fun->changes.begin(), fun->changes.end());
+
+	    // Add arguments to non-constant reference parameters
+	    parameters = fun->uid.getType().getParameters();
+	    for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
 	    {
-		symbols.insert(get(i + 1).getSymbol());
+		type_t type = parameters[i].getType();
+		if (type.hasPrefix(prefix::REFERENCE)
+		    && !type.hasPrefix(prefix::CONSTANT))
+		{
+		    symbols.insert(get(i + 1).getSymbol());
+		}
 	    }
 	}
 	break;
@@ -1145,6 +1214,44 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
 	break;
     }
 }
+
+void expression_t::collectPossibleReads(set<symbol_t> &symbols) const
+{
+    function_t *fun;
+    frame_t parameters;
+    symbol_t symbol;
+
+    if (empty())
+    {
+	return;
+    }
+
+    for (uint32_t i = 0; i < getSize(); i++) 
+    {
+	get(i).collectPossibleReads(symbols);
+    }
+
+    switch (getKind()) 
+    {
+    case IDENTIFIER:
+	symbols.insert(getSymbol());
+	break;
+
+    case FUNCALL:
+	// Add all symbols which are used by the function	
+	symbol = get(0).getSymbol();
+	if (symbol.getType().getBase() == type_t::FUNCTION && symbol.getData())
+	{
+	    fun = (function_t*)symbol.getData();
+	    symbols.insert(fun->depends.begin(), fun->depends.end());
+	}
+	break;
+
+    default:
+	break;
+    }
+}
+
 
 expression_t expression_t::createConstant(
     const position_t &pos, int32_t value)
@@ -1408,41 +1515,40 @@ void Interpreter::evaluate(
     case ARRAY: 
     {
 	type_t type = expr[0].getType();
-	int32_t dsize = evaluate(type.getArraySize());
-	size_t esize = sizeOfType(type.getSub());
+	int32_t lower = evaluate(type.getArraySize().getRange().first);
+	int32_t upper = evaluate(type.getArraySize().getRange().second);
+	int32_t element = sizeOfType(type.getSub());
+
+	/* Evaluate index.
+	 */
+	evaluate(expr[1], result);
+	if (result.size() == 0)
+	{
+	    throw InterpreterException();
+	}
+	int32_t index = result.back();
+	result.pop_back();
+
+	if (index < lower || index > upper)
+	{
+	    throw InterpreterException();
+	}
 
 	/* Evaluate array.
 	 */
-	size = result.size();
+	int32_t first = result.size();
 	evaluate(expr[0], result);
+	int32_t last = result.size();
 
-	if (result.size() - size != dsize * esize)
+	if (last - first != element * (upper - lower + 1))
 	{
 	    throw InterpreterException();
 	}
-
-	/* Evaluate index. 
-	 */
-	size = result.size();
-	evaluate(expr[1], result);
 	
-	if (size + 1 != result.size())
-	{
-	    throw InterpreterException();
-	}
-
-	int32_t index = result.back(); 
-	result.pop_back();
-	
-	if (index < 0 || index >= dsize)
-	{
-	    throw InterpreterException();
-	}
-
 	/* Remove the things we do not want.
 	 */
-	result.erase(result.end() - (dsize - index - 1) * esize, result.end());
-	result.erase(result.end() - (index + 1) * esize, result.end() - esize);
+	result.erase(result.end() - (upper - index) * element, result.end());
+	result.erase(result.end() - (index - lower + 1) * element, result.end() - element);
 	break;
     }
 
@@ -1556,7 +1662,9 @@ size_t Interpreter::sizeOfType(type_t type) const
     }
     if (base == type_t::ARRAY) 
     {
-	int32_t size = evaluate(type.getArraySize());
+	int32_t size = 
+	    evaluate(type.getArraySize().getRange().second) -
+	    evaluate(type.getArraySize().getRange().first) + 1;
 	if (size <= 0)
 	{
 	    throw InterpreterException();

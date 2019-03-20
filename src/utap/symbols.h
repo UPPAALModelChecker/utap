@@ -69,8 +69,16 @@ namespace UTAP
 	/** Inequallity operator */
 	bool operator != (const range_t &) const;
 
+	/** Constructs the union of two ranges */
+	range_t operator| (const range_t &) const;
+
+	/** Constructs the intersection of two ranges */
+	range_t operator& (const range_t &) const;
+
 	/** Returns true if and only if the range is empty */
 	bool isEmpty() const;
+
+	uint32_t size() const;
     };
 
 
@@ -161,10 +169,10 @@ namespace UTAP
        Frames are constructed using one of the static factory methods
        of frame_t. 
 
-       In order to avoid cyclic references no counted reference to
-       the parent frame is maintained. Hence, the existence of the
-       parent frame must be ensured by other means through out the
-       lifetime of the sub-frame.
+       In order to avoid cyclic references no counted reference to the
+       parent frame is maintained. Hence, the existence of the parent
+       frame must be ensured by other means throughout the lifetime of
+       the sub-frame.
     */
     class frame_t
     {
@@ -200,7 +208,7 @@ namespace UTAP
 	symbol_t getSymbol(int32_t);
 
 	/** Returns the index of the symbol with the give name. */
-	int32_t getIndexOf(std::string name);
+	int32_t getIndexOf(std::string name) const;
 
 	/** Returns the Nth symbol in this frame. */
 	symbol_t operator[] (int32_t);
@@ -237,7 +245,9 @@ namespace UTAP
 	    CONSTANT = 4,
 	    BROADCAST = 8,
 	    REFERENCE = 16,
-	    META = 32
+	    META = 32,
+            WINNING = 64,
+            LOSING = 128
 	};
     }
 
@@ -318,13 +328,76 @@ namespace UTAP
 	type_t setPrefix(bool set, prefix::prefix_t) const;
 
 	/** Returns the size of an array */
-	expression_t getArraySize() const;
+	type_t getArraySize() const;
 
 	/** Returns the range of an integer type. */
 	std::pair<expression_t, expression_t> getRange() const;
 
+	/** Print type to the given output stream. */
+	std::string toString();
+
+	/** Returns true if this is an integer. */
+	bool isInteger() const {
+	    return getBase() == type_t::INT;
+	}
+
+	/** Returns true if this is a boolean or integer. */
+	bool isValue() const {
+	    return getBase() == type_t::INT || getBase() == type_t::BOOL;
+	}
+
+	/** Returns true if this is a scalar or integer. */
+	bool isScalar() const {
+	    return getBase() == type_t::SCALAR || isInteger();
+	}
+
+	/** Returns true if this is a clock. */
+	bool isClock() const {
+	    return getBase() == type_t::CLOCK;
+	}
+
+	/** Returns true if this is a record. */
+	bool isRecord() const {
+	    return getBase() == type_t::RECORD;
+	}
+	
+	/** Returns true if this is a clock difference. */
+	bool isDiff() const {
+	    return getBase() == type_t::DIFF;
+	}
+
+
+	/** Returns true if this is a void. */
+	bool isVoid() const {
+	    return getBase() == type_t::VOID_TYPE;
+	}
+
+	/* Returns true if this is an invariant, boolean or integer. */
+	bool isInvariant() const {
+	    return getBase() == type_t::INVARIANT || isValue();
+	}
+
+	/* Returns true if this is a guard, invariant, boolean or integer. */
+	bool isGuard() const {
+	    return getBase() == type_t::GUARD || isInvariant();
+	}
+
+	/* Returns true if this is a constraint, guard, invariant,
+	 * boolean or integer. 
+	 */
+	bool isConstraint() const {
+	    return getBase() == type_t::CONSTRAINT || isGuard();
+	}
+
+	bool isArray() const {
+	    return getBase() == type_t::ARRAY;
+	}
+
 	/** Creates and returns a new integer type with the given range */
 	static type_t createInteger(expression_t, expression_t);
+
+	/** Create and returns a new scalar set type of the given size */
+	static type_t createScalarSet(expression_t, expression_t);
 	
 	/** Creates and returns a new record type */
 	static type_t createRecord(frame_t);
@@ -333,7 +406,7 @@ namespace UTAP
 	static type_t createFunction(frame_t, type_t);
 
 	/** Creates and returns a new array type */
-	static type_t createArray(expression_t, type_t);
+	static type_t createArray(type_t, type_t);
 
 	/** Creates and returns a new named type */
 	static type_t createTypeName(type_t);
@@ -352,6 +425,7 @@ namespace UTAP
 	static type_t CLOCK;
 	static type_t INT;
 	static type_t BOOL;
+	static type_t SCALAR;
 	static type_t LOCATION;
 	static type_t CHANNEL;
 	static type_t TEMPLATE;
@@ -362,12 +436,15 @@ namespace UTAP
 	static type_t PROCESS;
 	static type_t NTYPE;
 	static type_t INVARIANT;
+	static type_t INVARIANT_WR;  /* with rate */
 	static type_t GUARD;
 	static type_t DIFF;
 	static type_t CONSTRAINT;
+	static type_t COST;
+	static type_t RATE;
     };
 }
 
-std::ostream &operator << (std::ostream &o, const UTAP::type_t &t);
+std::ostream &operator << (std::ostream &o, UTAP::type_t t);
 
 #endif

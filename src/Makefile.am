@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # libutap - Uppaal Timed Automata Parser.
-# Copyright (C) 2002-2004 Uppsala University and Aalborg University.
+# Copyright (C) 2002-2005 Uppsala University and Aalborg University.
 # 
 # This library is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -20,16 +20,20 @@
 
 VPATH = @srcdir@
 
-bin_PROGRAMS = pretty tracer
+bin_PROGRAMS = pretty tracer check ioiface
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/rangechecker.h utap/collectchangesvisitor.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h
+include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h utap/iointerface.h
 
 pretty_SOURCES = pretty.cpp
 
 tracer_SOURCES = tracer.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp rangechecker.cpp collectchangesvisitor.cpp prettyprinter.cpp
+check_SOURCES = check.cpp
+
+ioiface_SOURCES = ioiface.cpp
+
+libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp prettyprinter.cpp iointerface.cpp
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)

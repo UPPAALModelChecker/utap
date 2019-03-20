@@ -64,6 +64,18 @@ int32_t ForStatement::accept(StatementVisitor *visitor)
     return visitor->visitForStatement(this);
 }
 
+IterationStatement::IterationStatement (symbol_t sym, frame_t f, Statement *s)
+{
+    this->symbol = sym;
+    this->frame = f;
+    this->stat = s;
+}
+
+int32_t IterationStatement::accept(StatementVisitor *visitor)
+{
+    return visitor->visitIterationStatement(this);
+}
+
 WhileStatement::WhileStatement(expression_t cond,
 			       Statement* _stat)
     : Statement(), cond(cond), stat(_stat) 
@@ -125,10 +137,15 @@ BlockStatement::iterator BlockStatement::end()
     return stats.end();
 }
 
+Statement *BlockStatement::back() 
+{
+    assert(!stats.empty()); 
+    return stats.back();
+}
+
 Statement* BlockStatement::pop_stat()
 { 
-    assert(!stats.empty()); 
-    Statement* st = stats.back();
+    Statement* st = back();
     stats.pop_back();
     return st;
 }
@@ -240,6 +257,11 @@ int32_t AbstractStatementVisitor::visitForStatement(ForStatement *stat)
     return stat->stat->accept(this);
 }
 
+int32_t AbstractStatementVisitor::visitIterationStatement(IterationStatement *stat)
+{
+    return stat->stat->accept(this);
+}
+
 int32_t AbstractStatementVisitor::visitWhileStatement(WhileStatement *stat)
 {
     return stat->stat->accept(this);
@@ -297,3 +319,96 @@ int32_t AbstractStatementVisitor::visitReturnStatement(ReturnStatement *stat)
     return visitStatement(stat);
 }
 
+int32_t ExpressionVisitor::visitExprStatement(ExprStatement *stat)
+{
+    visitExpression(stat->expr);
+    return 0;
+}
+
+int32_t ExpressionVisitor::visitForStatement(ForStatement *stat)
+{
+    visitExpression(stat->init); 
+    visitExpression(stat->cond);
+    visitExpression(stat->step);
+    return stat->stat->accept(this);
+}
+
+int32_t ExpressionVisitor::visitWhileStatement(WhileStatement *stat)
+{
+    visitExpression(stat->cond);
+    return stat->stat->accept(this);
+}
+
+int32_t ExpressionVisitor::visitDoWhileStatement(DoWhileStatement *stat)
+{
+    visitExpression(stat->cond);
+    return stat->stat->accept(this);
+}
+
+int32_t ExpressionVisitor::visitBlockStatement(BlockStatement *stat)
+{
+    BlockStatement::iterator s;
+    for (s = stat->begin(); s != stat->end(); ++s) 
+    {
+	(*s)->accept(this);
+    }
+    return 0;
+}
+
+int32_t ExpressionVisitor::visitSwitchStatement(SwitchStatement *stat)
+{
+    visitExpression(stat->cond);
+    return visitBlockStatement(stat);
+}
+
+int32_t ExpressionVisitor::visitCaseStatement(CaseStatement *stat)
+{
+    visitExpression(stat->cond);
+    return visitBlockStatement(stat);
+}
+
+int32_t ExpressionVisitor::visitDefaultStatement(DefaultStatement *stat)
+{
+    return visitBlockStatement(stat);
+}
+
+int32_t ExpressionVisitor::visitIfStatement(IfStatement *stat)
+{
+    visitExpression(stat->cond);
+    stat->trueCase->accept(this);
+    if (stat->falseCase) 
+    {
+	stat->falseCase->accept(this);
+    }
+    return 0;
+}
+
+int32_t ExpressionVisitor::visitReturnStatement(ReturnStatement *stat)
+{
+    visitExpression(stat->value);
+    return 0;
+}
+
+
+CollectChangesVisitor::CollectChangesVisitor(std::set<symbol_t> &changes)
+    : changes(changes)
+{
+
+}
+
+void CollectChangesVisitor::visitExpression(expression_t expr)
+{
+    expr.collectPossibleWrites(changes);
+}
+
+CollectDependenciesVisitor::CollectDependenciesVisitor(
+    std::set<symbol_t> &dependencies)
+    : dependencies(dependencies)
+{
+
+}
+
+void CollectDependenciesVisitor::visitExpression(expression_t expr)
+{
+    expr.collectPossibleReads(dependencies);
+}

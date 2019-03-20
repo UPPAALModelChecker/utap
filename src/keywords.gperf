@@ -1,6 +1,7 @@
 struct Keyword { char *name; int token; int32_t syntax; }
 %%
 const,			T_CONST,	SYNTAX_OLD | SYNTAX_NEW
+select,			T_SELECT,	SYNTAX_NEW
 guard,			T_GUARD,	SYNTAX_OLD | SYNTAX_NEW
 sync,			T_SYNC,		SYNTAX_OLD | SYNTAX_NEW
 assign,			T_ASSIGN,	SYNTAX_OLD | SYNTAX_NEW
@@ -10,6 +11,8 @@ init,			T_INIT,		SYNTAX_OLD | SYNTAX_NEW
 trans,			T_TRANS,	SYNTAX_OLD | SYNTAX_NEW
 urgent,			T_URGENT,	SYNTAX_OLD | SYNTAX_NEW
 commit,			T_COMMIT,	SYNTAX_OLD | SYNTAX_NEW
+winning,		T_WINNING,	SYNTAX_NEW
+losing,			T_LOSING,	SYNTAX_NEW
 broadcast,       	T_BROADCAST,	SYNTAX_OLD | SYNTAX_NEW
 system,			T_SYSTEM,	SYNTAX_OLD | SYNTAX_NEW
 true,			T_TRUE,		SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
@@ -21,13 +24,13 @@ imply,			T_KW_IMPLY,	SYNTAX_OLD | SYNTAX_NEW | SYNTAX_PROPERTY
 for,			T_FOR,		SYNTAX_NEW
 while,			T_WHILE,	SYNTAX_NEW
 do, 			T_DO,		SYNTAX_NEW
-break,			T_BREAK,	SYNTAX_NEW
-continue, 		T_CONTINUE,	SYNTAX_NEW
-switch, 		T_SWITCH,	SYNTAX_NEW
+#break,			T_BREAK,	SYNTAX_NEW
+#continue, 		T_CONTINUE,	SYNTAX_NEW
+#switch, 		T_SWITCH,	SYNTAX_NEW
 if, 			T_IF,		SYNTAX_NEW
 else, 			T_ELSE,		SYNTAX_NEW
-case, 			T_CASE,		SYNTAX_NEW
-default, 		T_DEFAULT,	SYNTAX_NEW
+#case, 			T_CASE,		SYNTAX_NEW
+#default, 		T_DEFAULT,	SYNTAX_NEW
 return, 		T_RETURN,	SYNTAX_NEW
 typedef,		T_TYPEDEF,	SYNTAX_NEW
 struct,			T_STRUCT,	SYNTAX_NEW
@@ -35,6 +38,7 @@ meta,			T_META,		SYNTAX_NEW
 before_update,		T_BEFORE,	SYNTAX_NEW
 after_update,		T_AFTER,	SYNTAX_NEW
 progress,		T_PROGRESS,	SYNTAX_NEW
+forall, 		T_FORALL,	SYNTAX_NEW | SYNTAX_PROPERTY
 deadlock,		T_DEADLOCK,	SYNTAX_PROPERTY
 quit,			T_QUIT,		SYNTAX_PROPERTY
 chan_priority,		T_CHAN_PRIORITY, SYNTAX_OLD | SYNTAX_NEW

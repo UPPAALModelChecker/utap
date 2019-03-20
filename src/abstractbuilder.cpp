@@ -129,7 +129,12 @@ void AbstractBuilder::declFuncEnd()
     throw NotSupportedException("declFuncEnd is not supported");
 }
 
-void AbstractBuilder::procBegin(const char* name, uint32_t n)
+void AbstractBuilder::procTemplateSet(const char* name)
+{
+    throw NotSupportedException("procTemplateSet is not supported");
+}
+
+void AbstractBuilder::procBegin(const char* name, uint32_t n, uint32_t m)
 {
     throw NotSupportedException("procBegin is not supported");
 }
@@ -154,16 +159,37 @@ void AbstractBuilder::procStateUrgent(const char* name)
     throw NotSupportedException("procStateUrgent is not supported");
 }
 
+void AbstractBuilder::procStateWinning(const char* name)
+{
+    throw NotSupportedException("procStateWinning is not supported");
+}
+
+void AbstractBuilder::procStateLosing(const char* name)
+{
+    throw NotSupportedException("procStateLosing is not supported");
+}
+
 void AbstractBuilder::procStateInit(const char* name)
 {
     throw NotSupportedException("procStateInit is not supported");
 }
 
-void AbstractBuilder::procEdge(const char* from, const char* to)
+void AbstractBuilder::procEdgeBegin(const char* from, const char* to, const bool control)
+    
 {
-    throw NotSupportedException("procEdge is not supported");
+    throw NotSupportedException("procEdgeBegin is not supported");
+}
+
+void AbstractBuilder::procEdgeEnd(const char* from, const char* to)
+{
+    throw NotSupportedException("procEdgeEnd is not supported");
 }
  
+void AbstractBuilder::procSelect(const char* id)
+{
+    throw NotSupportedException("procSelect is not supported");
+}
+
 void AbstractBuilder::procGuard()
 {
     throw NotSupportedException("procGuard is not supported");
@@ -202,6 +228,16 @@ void AbstractBuilder::forBegin()
 void AbstractBuilder::forEnd()
 {
     throw NotSupportedException("forEnd is not supported");
+}
+
+void AbstractBuilder::iterationBegin (const char *name)
+{
+    throw NotSupportedException("iterationBegin is not supported");
+}
+
+void AbstractBuilder::iterationEnd (const char *name)
+{
+    throw NotSupportedException("iterationEnd is not supported");
 }
 
 void AbstractBuilder::whileBegin()
@@ -310,7 +346,7 @@ void AbstractBuilder::exprNat(int32_t)
     throw NotSupportedException("exprNar is not supported");
 }
 
-void AbstractBuilder::exprCallBegin(const char * functionName)
+void AbstractBuilder::exprCallBegin()
 {
     throw NotSupportedException("exprCallBegin is not supported");
 }
@@ -383,6 +419,16 @@ void AbstractBuilder::exprDot(const char *)
 void AbstractBuilder::exprDeadlock()
 {
     throw NotSupportedException("exprDeadlock is not supported");
+}
+
+void AbstractBuilder::exprForAllBegin(const char *name)
+{
+    throw NotSupportedException("exprForAllBegin is not supported");
+}
+
+void AbstractBuilder::exprForAllEnd(const char *name)
+{
+    throw NotSupportedException("exprForAllEnd is not supported");
 }
     
 void AbstractBuilder::instantiationBegin(const char*, const char*)

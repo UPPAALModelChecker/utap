@@ -13,6 +13,8 @@ init,		TAG_INIT
 transition,	TAG_TRANSITION
 urgent,		TAG_URGENT
 committed,	TAG_COMMITTED
+winning,	TAG_WINNING
+losing,		TAG_LOSING
 source,		TAG_SOURCE
 target,		TAG_TARGET
 label,		TAG_LABEL

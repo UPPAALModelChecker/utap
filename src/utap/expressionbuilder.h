@@ -22,8 +22,12 @@
 #ifndef UTAP_EXPRESSIONBUILDER_HH
 #define UTAP_EXPRESSIONBUILDER_HH
 
-#include "utap/abstractbuilder.h"
-#include "utap/utap.h"
+#include <stack>
+#include <vector>
+#include <cassert>
+
+#include "abstractbuilder.h"
+#include "utap.h"
 
 namespace UTAP
 {
@@ -41,7 +45,7 @@ namespace UTAP
 		{ data.push_back(e); }
 	    void pop()
 		{ data.pop_back(); }
-	    void pop(int n);
+	    void pop(uint32_t n);
 	    uint32_t size() { return data.size(); }
 	};
 
@@ -52,28 +56,63 @@ namespace UTAP
 	/* Pointer to the intermediate system under construction */
 	TimedAutomataSystem *system;
 
-	/* Current frame */
-	frame_t frame;
+	/* The stack of type fragments. A type fragment is a pair
+	 * consiting of a type and an optional name (the name is used
+	 * for fields of a structure).
+	 */
+	class TypeFragments 
+	{
+	private:
+	    std::vector<std::pair<type_t, char *> > data;
+	public:
+	    ~TypeFragments() 
+                { while (!data.empty()) pop(); }
+	    std::pair<type_t, char *> &operator[] (int idx)
+		{ return data[data.size() - idx - 1]; }
+	    void push(type_t value)
+		{ data.push_back(std::make_pair(value, (char*)NULL)); }
+	    void pop()
+		{ assert(!data.empty()); free(data.back().second); data.pop_back(); }
+	} typeFragments;
 
-	/* Set the current frame */
-	void setFrame(frame_t);
+	/* Current frame */
+	std::stack<frame_t> frames;
+
+	/* Push a new frame. */
+	void pushFrame(frame_t);
+	
+	/* Pop the topmost frame. */
+	void popFrame();
+
+	bool resolve(std::string, symbol_t &);
 
 	expression_t makeConstant(int value);
 
-	///////////////////////////////////////////////////////////////////
-	// allowProcessReferences()
-	///////////////////////////////////////////////////////////////////
-	// If this method returns true, it is allowed to access the 
-	// private identifiers of a process by prefixing the identifier
-	// with the process name. 
-	//
-	// This is only interesting when parsing properties. In this case
-	// the method should be overridden by a sub class.
+	/**
+	 * Given a prefix and a type, this method creates a new type
+	 * by applying the prefix. TypeExceptions might be thrown if
+	 * the combination of the prefix and the type is illegal.
+	 */
+	type_t applyPrefix(int32_t prefix, type_t type);
+
+	/**
+	 * If this method returns true, it is allowed to access the
+	 * private identifiers of a process by prefixing the
+	 * identifier with the process name.
+	 *
+	 * This is only interesting when parsing properties. In this
+	 * case the method should be overridden by a sub class.
+	 */
 	virtual bool allowProcessReferences() { return false; }
 
     public:
 	ExpressionBuilder(TimedAutomataSystem *);
 	ExpressionFragments &getExpressions();
+
+	/************************************************************
+	 * Types
+	 */
+	virtual void typeName(int32_t prefix, const char* name, int range);
 
 	/************************************************************
 	 * Query functions
@@ -88,7 +127,7 @@ namespace UTAP
 	virtual void exprFalse();
 	virtual void exprId(const char * varName);
 	virtual void exprNat(int32_t); // natural number
-	virtual void exprCallBegin(const char * functionName);
+	virtual void exprCallBegin();
 	virtual void exprCallEnd(uint32_t n); // n exprs as arguments
 	virtual void exprArg(uint32_t n); // 1 exprs as n-th argument for fn-call
 	virtual void exprArray(); // 2 expr 
@@ -103,6 +142,8 @@ namespace UTAP
 	virtual void exprComma(); // 2 expr
 	virtual void exprDot(const char *); // 1 expr
 	virtual void exprDeadlock();
+	virtual void exprForAllBegin(const char *name);
+	virtual void exprForAllEnd(const char *name);
 
     };
 }
