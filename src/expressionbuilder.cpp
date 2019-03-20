@@ -24,8 +24,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cassert>
-#include <inttypes.h>
-#include <string.h>
+#include <cinttypes>
+#include <cstring>
 #include <boost/format.hpp>
 
 #include "utap/expressionbuilder.h"
@@ -37,9 +37,6 @@ using std::vector;
 using std::string;
 using std::map;
 
-#define defaultIntMin -0x7FFF
-#define defaultIntMax 0x7FFF
-
 bool isMITL (expression_t e) {
     return (e.getKind () == MITLFORMULA ||
             e.getKind () == MITLRELEASE ||
@@ -48,7 +45,7 @@ bool isMITL (expression_t e) {
             e.getKind () == MITLDISJ ||
             e.getKind () == MITLNEXT ||
             e.getKind () == MITLATOM ||
-            e.getKind () == MITLEXISTS || 
+            e.getKind () == MITLEXISTS ||
             e.getKind () == MITLFORALL
         );
 }
@@ -71,17 +68,17 @@ ExpressionBuilder::ExpressionBuilder(TimedAutomataSystem *system)
 }
 
 void ExpressionBuilder::addPosition(
-    uint32_t position, uint32_t offset, uint32_t line, std::string path)
+    uint32_t position, uint32_t offset, uint32_t line, const string& path)
 {
     system->addPosition(position, offset, line, path);
 }
 
-void ExpressionBuilder::handleError(string msg)
+void ExpressionBuilder::handleError(const string& msg)
 {
     system->addError(position, msg);
 }
 
-void ExpressionBuilder::handleWarning(string msg)
+void ExpressionBuilder::handleWarning(const string& msg)
 {
     system->addWarning(position, msg);
 }
@@ -96,7 +93,7 @@ void ExpressionBuilder::popFrame()
     frames.pop();
 }
 
-bool ExpressionBuilder::resolve(std::string name, symbol_t &uid)
+bool ExpressionBuilder::resolve(const string& name, symbol_t &uid)
 {
     assert(!frames.empty());
     return frames.top().resolve(name, uid);
@@ -235,7 +232,7 @@ static void collectDependencies(
 void ExpressionBuilder::typeScalar(PREFIX prefix)
 {
     expression_t lower, upper;
-    
+
     exprNat(1);
     exprBinary(MINUS);
     upper = fragments[0];
@@ -476,6 +473,16 @@ void ExpressionBuilder::exprBuiltinFunction2(kind_t kind)
         kind, lvalue, rvalue, position, lvalue.getType());
 }
 
+void ExpressionBuilder::exprBuiltinFunction3(kind_t kind)
+{
+    expression_t value1 = fragments[2];
+    expression_t value2 = fragments[1];
+    expression_t value3 = fragments[0];
+    fragments.pop(2);
+    fragments[0] = expression_t::createTernary(
+        kind, value1, value2, value3, position, value1.getType());
+}
+
 void ExpressionBuilder::exprAssignment(kind_t op) // 2 expr
 {
     expression_t lvalue = fragments[1];
@@ -506,17 +513,17 @@ void ExpressionBuilder::exprBinary(kind_t binaryop) // 2 expr
     kind_t op  = binaryop;
     expression_t left = fragments[1];
     expression_t right = fragments[0];
-    if (isMITL (left ) || isMITL (right)) 
+    if (isMITL (left ) || isMITL (right))
     {
         op = mitlop;
-        if (!(isMITL (left) && isMITL (right))) 
-        {    
+        if (!(isMITL (left) && isMITL (right)))
+        {
             if (isMITL  (left) )
             {
                 op = mitlop;
                 right = toMITLAtom (right);
             }
-            else if (isMITL (right)) 
+            else if (isMITL (right))
             {
                 op = mitlop;
                 left = toMITLAtom (left);
@@ -545,7 +552,8 @@ void ExpressionBuilder::exprNary(kind_t kind, uint32_t num)
 void ExpressionBuilder::exprScenario(const char* name)
 {
     symbol_t uid;
-    assert(resolve(name, uid));
+    bool check [[maybe_unused]] = resolve(name, uid);
+    assert(check);
     expression_t scen = expression_t::createIdentifier(uid);
     expression_t expr = expression_t::createUnary(SCENARIO, scen, position);
     fragments.push(expression_t::createUnary(SCENARIO, scen, position));
@@ -554,7 +562,8 @@ void ExpressionBuilder::exprScenario(const char* name)
 expression_t ExpressionBuilder::exprScenario()
 {
     symbol_t uid;
-    assert(resolve(system->obsTA, uid));
+    bool check [[maybe_unused]] = resolve(system->obsTA, uid);
+    assert(check);
     expression_t obs = expression_t::createIdentifier(uid); //std::cout << obs << std::endl;
     int32_t i = obs.getType().findIndexOf("lmin");
     expression_t left = expression_t::createDot(obs, i, position,
@@ -606,7 +615,7 @@ void ExpressionBuilder::exprDot(const char *id)
         int32_t i  = type.findIndexOf(id);
         if (i == -1)
         {
-            std::string s = expr.toString(true);
+            string s = expr.toString(true);
             ParserBuilder::handleError("%s $has_no_member_named %s",
                                        s.c_str(), id);
         }
@@ -622,7 +631,7 @@ void ExpressionBuilder::exprDot(const char *id)
         int32_t i = type.findIndexOf(id);
         if (i == -1)
         {
-            std::string s = expr.toString(true);
+            string s = expr.toString(true);
             ParserBuilder::handleError("%s $has_no_member_named %s",
                                        s.c_str(), id);
         }
@@ -643,7 +652,7 @@ void ExpressionBuilder::exprDot(const char *id)
             expr = expression_t::createDot(expr, i, position, type);
         }
     }
-    
+
     else if (type.is (PROCESSVAR)) {
            symbol_t uid;
            //temporarily set the frame to that of its associated template
@@ -659,20 +668,20 @@ void ExpressionBuilder::exprDot(const char *id)
            }
            popFrame ();//Remove that frame again
            expression_t identifier = expression_t::createIdentifier(uid, position);
-           
+
            vector<expression_t> exprs;
            exprs.push_back (identifier);
            exprs.push_back (expr);
-           
-           expr =(expression_t::createNary (DYNAMICEVAL,exprs,position, identifier.getType ().isLocation () ? 
-                                            type_t::createPrimitive (Constants::BOOL,position) : 
-                                            
+
+           expr =(expression_t::createNary (DYNAMICEVAL,exprs,position, identifier.getType ().isLocation () ?
+                                            type_t::createPrimitive (Constants::BOOL,position) :
+
                                             identifier.getType ()));//type_t::createPrimitive (Constants::BOOL,position)));
     }
-    
+
     else
     {
-        std::string s = expr.toString(true);
+        string s = expr.toString(true);
         ParserBuilder::handleError("%s $is_not_a_structure", s.c_str());
     }
     fragments[0] = expr;
@@ -747,39 +756,34 @@ void ExpressionBuilder::exprSumEnd(const char *name)
     popFrame();
 }
 
-void ExpressionBuilder::exprProbaQualitative(int boundType,
-                                             Constants::kind_t pathType,
-                                             Constants::kind_t comp,
-                                             double proba)
+void ExpressionBuilder::exprSMCControl()
 {
-    // Stack:
-    // boundType == 2 => expr for bound name
-    // expr bound
-    // expr predicate
+    auto boundVar = fragments[2];
+    auto bound    = fragments[1];
+    auto control  = fragments[0];
+    fragments.pop(3);
+    fragments.push(expression_t::createTernary(
+                       SMC_CONTROL, boundVar, bound, control,
+                       position));
+}
 
-    std::vector<expression_t> args;
-    bool invert = (comp == LE);
-    symbol_t uid;
-    int nb;
+void ExpressionBuilder::exprProbaQualitative(Constants::kind_t pathType,
+                                             Constants::kind_t comp,
+                                             double probBound)
+{
+    auto invert = (comp == LE);
+    auto& boundTypeOrBoundedExpr = fragments[3];
+    auto& bound = fragments[2];
+    auto& runs = fragments[1];
+    auto& predicate = fragments[0];
 
-    switch(boundType)
-    {
-    case 0: // steps
-    case 1: // time
-        args.push_back(expression_t::createConstant(boundType));
-        nb = 2;
-        break;
-    default: // name
-        args.push_back(fragments[2]);
-        nb = 3;
-    }
+    auto args = std::vector<expression_t>{
+        runs, boundTypeOrBoundedExpr, bound,
+        invert ? expression_t::createUnary(NOT, predicate, position) : predicate,
+        expression_t::createDouble(invert ? 1.0-probBound : probBound, position)
+    };
 
-    args.push_back(fragments[1]);
-    args.push_back(invert
-                   ? expression_t::createUnary(NOT,fragments[0],position)
-                   : fragments[0]);
-    args.push_back(expression_t::createDouble(invert ? 1.0-proba : proba, position));
-    fragments.pop(nb);
+    fragments.pop(4);
     fragments.push(expression_t::createNary(
                        invert
                        ? (pathType == BOX ? PROBAMINDIAMOND : PROBAMINBOX)
@@ -787,549 +791,438 @@ void ExpressionBuilder::exprProbaQualitative(int boundType,
                        args, position));
 }
 
-void ExpressionBuilder::exprSMCControl(int boundType)
+void ExpressionBuilder::exprProbaQuantitative(Constants::kind_t pathType)
 {
-    expression_t boundVar;
-    int nb;
-    switch(boundType)
-    {
-    case 0: // steps
-    case 1: // time
-        boundVar = expression_t::createConstant(boundType);
-        nb = 2;
-        break;
-    default: // name
-        boundVar = fragments[2];
-        nb = 3;
-    }
-    expression_t bound = fragments[1];
-    expression_t control = fragments[0];
-    fragments.pop(nb);
-    fragments.push(expression_t::createTernary(
-                       SMC_CONTROL, boundVar, bound, control,
-                       position));
-}
+    auto& boundTypeOrBoundedExpr = fragments[4];
+    auto& bound = fragments[3];
+    auto& runs = fragments[2];
+    auto& predicate = fragments[1];
+    auto& untilCond = fragments[0];
 
-void ExpressionBuilder::exprProbaQuantitative(int boundType,
-                                              Constants::kind_t pathType,
-                                              bool stopCondition)
-{
-    // Stack:
-    // hasBoundExpr => expr for bound name
-    // expr bound
-    // expr predicate
+    auto args = std::vector<expression_t>{
+        runs, boundTypeOrBoundedExpr, bound, predicate, untilCond
+    };
 
-    std::vector<expression_t> args;
-    int nb;
-    const int predicateWithoutStop = 0;
-    const int boundWithoutStop = 1;
-    const int boundNameWithoutStop = 2;
-    
-    const int predicateWithStop = 0;
-    const int stopPredicate = 1;
-    const int boundWithStop = 2;
-    const int boundNameWithStop = 3;
-
-    if (stopCondition) 
-    {
-        switch(boundType)
-        {
-        case 0: // steps
-        case 1: // time
-            args.push_back(expression_t::createConstant(boundType));
-            nb = 3;
-            break;
-        default: // name
-            args.push_back(fragments[boundNameWithStop]);
-            nb = 4;
-        }
-        
-        args.push_back(fragments[stopPredicate]);
-        args.push_back(fragments[boundWithStop]);
-        args.push_back(fragments[predicateWithStop]);
-    }
-    else 
-    {
-        switch(boundType)
-        {
-        case 0: // steps
-        case 1: // time
-            args.push_back(expression_t::createConstant(boundType));
-            nb = 2;
-            break;
-        default: // name
-            args.push_back(fragments[boundNameWithoutStop]);
-            nb = 3;
-        }
-
-        expression_t expr = makeConstant(1);
-        expr.setType(type_t::createPrimitive(Constants::BOOL));
-        args.push_back(expr);
-        args.push_back(fragments[boundWithoutStop]); 
-        args.push_back(fragments[predicateWithoutStop]); 
-    }
-    fragments.pop(nb);
+    fragments.pop(5);
     fragments.push(expression_t::createNary(
                        (pathType == BOX ? PROBABOX : PROBADIAMOND),
                        args, position));
 }
 
-void ExpressionBuilder::exprProbaCompare(int boundType1,
-                                         Constants::kind_t pathType1,
-                                         int boundType2,
+void ExpressionBuilder::exprProbaCompare(Constants::kind_t pathType1,
                                          Constants::kind_t pathType2)
 {
-    // Stack:
-    // hasBoundExpr1 => expr for bound name
-    // expr bound
-    // expr predicate
-    // hasBoundExpr2 => expr for bound name
-    // expr bound
-    // expr predicate
+    auto& boundTypeOrBoundedExpr1 = fragments[7];
+    auto& bound1 = fragments[6];
+    auto& runs1 = fragments[5];
+    auto& predicate1 = fragments[4];
 
-    std::vector<expression_t> args;
-    int nb1 = boundType1 == 2 ? 3 : 2;
-    int nb2 = boundType2 == 2 ? 3 : 2;
+    auto& boundTypeOrBoundedExpr2 = fragments[3];
+    auto& bound2 = fragments[2];
+    auto& runs2 = fragments[1];
+    auto& predicate2 = fragments[0];
 
-    switch(boundType1)
-    {
-    case 0: // steps
-    case 1: // time
-        args.push_back(expression_t::createConstant(boundType1));
-        break;
-    default: // name
-        args.push_back(fragments[nb2+2]);
-    }
+    if (runs1.getValue()!=-1 || runs2.getValue()!=-1)
+        throw TypeException("The number of runs is not supported in probability comparison");
 
-    args.push_back(fragments[nb2+1]);
-    args.push_back(expression_t::createConstant(pathType1));
-    args.push_back(fragments[nb2]);
+    auto args = std::vector<expression_t>{
+        boundTypeOrBoundedExpr1, bound1, expression_t::createConstant(pathType1), predicate1,
+        boundTypeOrBoundedExpr2, bound2, expression_t::createConstant(pathType2), predicate2
+    };
 
-    switch(boundType2)
-    {
-    case 0: // steps
-    case 1: // time
-        args.push_back(expression_t::createConstant(boundType2));
-        break;
-    default: // name
-        args.push_back(fragments[2]);
-    }
-
-    args.push_back(fragments[1]);
-    args.push_back(expression_t::createConstant(pathType2));
-    args.push_back(fragments[0]);
-
-    fragments.pop(nb1+nb2);
+    fragments.pop(8);
     fragments.push(expression_t::createNary(PROBACMP, args, position));
 }
 
-void ExpressionBuilder::exprProbaExpected(int boundType,
-                                          const char* expectedType)
+void ExpressionBuilder::exprProbaExpected(const char* aggregatingOp)
 {
-    // Stack:
-    // hasBoundExpr => expr for bound name
-    // expr bound
-    // expr runs
-    // expr predicate
+    auto& boundTypeOrBoundedExpr = fragments[3];
+    auto& bound = fragments[2];
+    auto& runs = fragments[1];
+    auto& expression = fragments[0];
 
-    int xType;
-    if (strcmp(expectedType,"min") == 0)
-    {
-        xType = 0;
-    }
-    else if (strcmp(expectedType,"max") == 0)
-    {
-        xType = 1;
-    }
+    if (runs.getKind()==CONSTANT && runs.getType().isInteger() &&
+        runs.getValue()<0)
+        runs = expression_t::createConstant(2);
+
+    int aggOpId;
+    if (strcmp("min", aggregatingOp) == 0)
+        aggOpId = 0;
+    else if (strcmp("max", aggregatingOp) == 0)
+        aggOpId = 1;
     else throw TypeException("min or max expected");
     // TODO: add "acc" when the semantics is defined.
 
-    std::vector<expression_t> args;
-    int nb;
-
-    switch(boundType)
-    {
-    case 0: // steps
-    case 1: // time
-        args.push_back(expression_t::createConstant(boundType));
-        nb = 3;
-        break;
-    default: // name
-        args.push_back(fragments[3]);
-        nb = 4;
-    }
-
-    args.push_back(fragments[2]);
-    args.push_back(fragments[1]);
-    args.push_back(fragments[0]);
-    args.push_back(expression_t::createConstant(xType));
-    fragments.pop(nb);
+    auto args = std::vector<expression_t>{
+        runs, boundTypeOrBoundedExpr, bound,
+        expression_t::createConstant(aggOpId),
+        expression
+    };
+    fragments.pop(4);
     fragments.push(expression_t::createNary(PROBAEXP, args, position));
 }
 
-void ExpressionBuilder::exprSimulate(int nbRuns, int boundType, int nbExpr, bool hasReach, int numberOfAcceptingRuns)
+void ExpressionBuilder::exprSimulate(int nbExpr, bool hasReach,
+                                     int numberOfAcceptingRuns)
 {
     // Stack:
     // conditional bound name
     // expr bound
     // nbExpr * expr
-    // if (hasReach) => expr 
-    std::vector<expression_t> args;
-    int nb;
+    // if (hasReach) => expr
+    auto offset = nbExpr + (hasReach ? 1 : 0);
+    auto& boundTypeOrBoundedExpr = fragments[2+offset];
+    auto& bound = fragments[1+offset];
+    auto& runs = fragments[0+offset];
 
-    args.push_back(expression_t::createConstant(nbRuns));
+    auto args = std::vector<expression_t>{};
+    args.reserve(offset+4); // 3-from-above + offset*expressions + numberOfAcceptingRuns
 
-    switch(boundType)
-    {
-    case 0: // steps
-    case 1: // time
-        args.push_back(expression_t::createConstant(boundType));
-        nb = 1 + nbExpr;
-        break;
-    default: // name
-        args.push_back(fragments[nbExpr+1+(hasReach ? 1 : 0)]);
-        nb = 2 + nbExpr;
-    }
+    if (runs.getKind()==CONSTANT && runs.getType().isInteger() &&
+        runs.getValue()<0)
+        runs = expression_t::createConstant(1);
 
-    args.push_back(fragments[nbExpr+(hasReach ? 1 : 0)]);
-    for(int i = 0 ; i < nbExpr; ++i)
-    {
-        args.push_back(fragments[nbExpr-1+(hasReach ? 1 : 0)-i]); // Preserve order.
-    }
+    args.push_back(runs);
+    args.push_back(boundTypeOrBoundedExpr);
+    args.push_back(bound);
+    for(int i=0; i<nbExpr; ++i)
+        args.push_back(fragments[offset-1-i]); // recover the original order
+
     if (hasReach) {
-        nb++;
-        args.push_back(fragments[0]);
+        auto& predicate = fragments[0];
+        args.push_back(predicate);
         args.push_back(expression_t::createConstant(numberOfAcceptingRuns));
     }
 
-    fragments.pop(nb);
+    fragments.pop(offset+3);
     if (hasReach)
         fragments.push(expression_t::createNary(SIMULATEREACH, args, position));
     else
         fragments.push(expression_t::createNary(SIMULATE, args, position));
 }
 
-void ExpressionBuilder::exprMitlFormula ( ) 
+void ExpressionBuilder::exprMitlFormula()
 {
     expression_t mitl;
     mitl = fragments[0];
-    if (!isMITL (mitl))
+    if (!isMITL(mitl))
     {
-        mitl = toMITLAtom (mitl);
-    } 
+        mitl = toMITLAtom(mitl);
+    }
     fragments.pop();
-    expression_t form = expression_t::createUnary (MITLFORMULA,mitl,position);
+    expression_t form = expression_t::createUnary(MITLFORMULA,mitl,position);
     fragments.push (form);
- }
-void ExpressionBuilder::exprMitlUntil (int low, int high  ) 
+}
+
+void ExpressionBuilder::exprMitlUntil(int low, int high)
 {
     expression_t left,right,lowd,highd;
     std::vector<expression_t> args;
     left = fragments[1];
     right = fragments[0];
-    fragments.pop (2);
-    if (!isMITL (left))
+    fragments.pop(2);
+    if (!isMITL(left))
     {
-        left = toMITLAtom (left);    
-    } 
-    if (!isMITL (right)) 
+        left = toMITLAtom(left);
+    }
+    if (!isMITL(right))
     {
-        right = toMITLAtom (right);
+        right = toMITLAtom(right);
     }
     lowd = expression_t::createConstant(low);
     highd = expression_t::createConstant(high);
-    args.push_back (left);
-    args.push_back (lowd);
-    args.push_back (highd);
-    args.push_back (right);
-   
-    expression_t form = expression_t::createNary (MITLUNTIL,args,position);
-    fragments.push (form);    
+    args.push_back(left);
+    args.push_back(lowd);
+    args.push_back(highd);
+    args.push_back(right);
+
+    expression_t form = expression_t::createNary(MITLUNTIL,args,position);
+    fragments.push(form);
  }
-void ExpressionBuilder::exprMitlRelease (int low, int high )
+void ExpressionBuilder::exprMitlRelease(int low, int high )
 {
     expression_t left,right,lowd,highd;
     std::vector<expression_t> args;
     left = fragments[1];
     right = fragments[0];
-    fragments.pop (2);
-    if (!isMITL (left))
+    fragments.pop(2);
+    if (!isMITL(left))
     {
-        left = toMITLAtom (left);    
-    } 
-    if (!isMITL (right)) 
+        left = toMITLAtom(left);
+    }
+    if (!isMITL(right))
     {
-        right = toMITLAtom (right);
-    } 
+        right = toMITLAtom(right);
+    }
     lowd = expression_t::createConstant(low);
     highd = expression_t::createConstant(high);
-    args.push_back (left);
-    args.push_back (lowd);
-    args.push_back (highd);
-    args.push_back (right);
-    fragments.push (expression_t::createNary (MITLRELEASE,args,position));    
+    args.push_back(left);
+    args.push_back(lowd);
+    args.push_back(highd);
+    args.push_back(right);
+    fragments.push(expression_t::createNary(MITLRELEASE,args,position));
  }
-/*transform the diamond <>[low,high]phi into a (true U[low,high] phi) structure */ 
-void ExpressionBuilder::exprMitlDiamond (int low, int high  ) 
+/*transform the diamond <>[low,high]phi into a (true U[low,high] phi) structure */
+void ExpressionBuilder::exprMitlDiamond(int low, int high  )
 {
     expression_t left,right,lowd,highd;
     std::vector<expression_t> args;
-    left = expression_t::createUnary (MITLATOM,expression_t::createConstant (1));
+    left = expression_t::createUnary(MITLATOM,expression_t::createConstant(1));
     right = fragments[0];
-    fragments.pop (1);
-    if (!isMITL (right)) 
+    fragments.pop(1);
+    if (!isMITL(right))
     {
-        right = toMITLAtom (right);
-    } 
+        right = toMITLAtom(right);
+    }
     lowd = expression_t::createConstant(low);
     highd = expression_t::createConstant(high);
-    args.push_back (left);
-    args.push_back (lowd);
-    args.push_back (highd);
-    args.push_back (right);
-   
-    expression_t form = expression_t::createNary (MITLUNTIL,args,position);
-    fragments.push (form);    
+    args.push_back(left);
+    args.push_back(lowd);
+    args.push_back(highd);
+    args.push_back(right);
+
+    expression_t form = expression_t::createNary(MITLUNTIL,args,position);
+    fragments.push(form);
  }
 
-/*transform the diamond [][low,high]phi into a (false R[low,high] phi) structure */ 
-void ExpressionBuilder::exprMitlBox (int low, int high  ) 
+/*transform the diamond [][low,high]phi into a (false R[low,high] phi) structure */
+void ExpressionBuilder::exprMitlBox(int low, int high  )
 {
     expression_t left,right,lowd,highd;
     std::vector<expression_t> args;
-    left = expression_t::createUnary (MITLATOM,expression_t::createConstant (0));
+    left = expression_t::createUnary(MITLATOM,expression_t::createConstant(0));
     right = fragments[0];
-    fragments.pop (1);
-    if (!isMITL (right)) 
+    fragments.pop(1);
+    if (!isMITL(right))
     {
-        right = toMITLAtom (right);
-    } 
+        right = toMITLAtom(right);
+    }
     lowd = expression_t::createConstant(low);
     highd = expression_t::createConstant(high);
-    args.push_back (left);
-    args.push_back (lowd);
-    args.push_back (highd);
-    args.push_back (right);
-   
-    expression_t form = expression_t::createNary (MITLRELEASE,args,position);
-    fragments.push (form);    
+    args.push_back(left);
+    args.push_back(lowd);
+    args.push_back(highd);
+    args.push_back(right);
+
+    expression_t form = expression_t::createNary(MITLRELEASE,args,position);
+    fragments.push(form);
  }
 
-void ExpressionBuilder::exprMitlDisj () 
+void ExpressionBuilder::exprMitlDisj()
 {
     expression_t left,right;
     left = fragments[1];
     right = fragments[0];
-    fragments.pop (2);
-    expression_t form= expression_t::createBinary (MITLDISJ,left,right,position);
-    fragments.push (form);
+    fragments.pop(2);
+    expression_t form= expression_t::createBinary(MITLDISJ,left,right,position);
+    fragments.push(form);
     }
-void ExpressionBuilder::exprMitlConj () 
+void ExpressionBuilder::exprMitlConj()
 {
     expression_t left,right;
     left = fragments[1];
     right = fragments[0];
-    fragments.pop (2);
-    fragments.push (expression_t::createBinary (MITLCONJ,left,right,position));
+    fragments.pop(2);
+    fragments.push(expression_t::createBinary(MITLCONJ,left,right,position));
  }
-void ExpressionBuilder::exprMitlNext () 
+void ExpressionBuilder::exprMitlNext()
 {
     expression_t next;
     next = fragments[0];
-    fragments.pop ();
-    if (!isMITL (next)) 
+    fragments.pop();
+    if (!isMITL(next))
     {
-        next = toMITLAtom (next);
-    } 
-    
-    
-    fragments.push (expression_t::createUnary (MITLNEXT,next,position));
-    
+        next = toMITLAtom(next);
+    }
+
+
+    fragments.push(expression_t::createUnary(MITLNEXT,next,position));
+
 }
-void ExpressionBuilder::exprMitlAtom ()
+void ExpressionBuilder::exprMitlAtom()
 {
     expression_t atom;
     atom = fragments[0];
-   
-    if (!isMITL (atom)) 
-    {  
-        fragments.pop ();
-        fragments.push (expression_t::createUnary (MITLATOM,atom,position));
+
+    if (!isMITL(atom))
+    {
+        fragments.pop();
+        fragments.push(expression_t::createUnary(MITLATOM,atom,position));
     }
 }
 
-void ExpressionBuilder::exprSpawn (int n) {
+void ExpressionBuilder::exprSpawn(int n) {
     vector<expression_t> expr;
     expression_t id = fragments[n];
     for (int i = n; i >= 0; i--)
     {
         expr.push_back(fragments[i]);
     }
-    fragments.pop (n+1);
-    fragments.push (expression_t::createNary (SPAWN,expr,position,id.getType ()));
+    fragments.pop(n+1);
+    fragments.push(expression_t::createNary(SPAWN,expr,position,id.getType()));
 }
 
-void ExpressionBuilder::exprExit () {
-    
-    fragments.push (expression_t::createExit(position));  
+void ExpressionBuilder::exprExit() {
+
+    fragments.push(expression_t::createExit(position));
 }
 
-void ExpressionBuilder::exprNumOf () {
+void ExpressionBuilder::exprNumOf() {
     expression_t id = fragments[0];
     type_t t = type_t::createPrimitive(Constants::INT, position);
-    fragments.pop ();
-    fragments.push (expression_t::createUnary (NUMOF,id,position,t));  
+    fragments.pop();
+    fragments.push(expression_t::createUnary(NUMOF,id,position,t));
 }
 
 
-void ExpressionBuilder::exprForAllDynamicBegin (const char* name,const char* temp) 
+void ExpressionBuilder::exprForAllDynamicBegin(const char* name,const char* temp)
 {
     pushFrame(frame_t::createFrame(frames.top()));
-    frames.top().addSymbol (name,type_t::createPrimitive (PROCESSVAR,position));
-    template_t* templ = system->getDynamicTemplate (std::string(temp));
-    if (!templ) { 
-        throw TypeException(boost::format("Unknown dynamic template "+std::string(temp)+ " used in for all"));
+    frames.top().addSymbol(name,type_t::createPrimitive(PROCESSVAR,position));
+    template_t* templ = system->getDynamicTemplate(string(temp));
+    if (!templ) {
+        throw TypeException(boost::format("Unknown dynamic template "+string(temp)+ " used in for all"));
     }
     //dynamicFrames[name]=templ->frame;
-    pushDynamicFrameOf (templ,name);
+    pushDynamicFrameOf(templ,name);
 }
-void ExpressionBuilder::exprForAllDynamicEnd (const char* name) 
+void ExpressionBuilder::exprForAllDynamicEnd(const char* name)
 {
-    
-    //At this instant we should have expression on top of the stack and the template identifier 
+
+    //At this instant we should have expression on top of the stack and the template identifier
     //below it
     expression_t expr = fragments[0];
     expression_t process = fragments[1];
-    expression_t identifier = expression_t::createIdentifier (frames.top ()[0],position);
-    fragments.pop (2);
-    
-    bool mitl = isMITL (expr);
-    
-    if (mitl) 
+    expression_t identifier = expression_t::createIdentifier(frames.top()[0],position);
+    fragments.pop(2);
+
+    bool mitl = isMITL(expr);
+
+    if (mitl)
     {
-        if (expr.getKind () == MITLATOM) 
+        if (expr.getKind() == MITLATOM)
         {
             expr = expr.get(0).clone();
             mitl = false;
         }
     }
-    
+
     vector<expression_t> exprs;
-    exprs.push_back (identifier);
+    exprs.push_back(identifier);
     exprs.push_back(process);
     exprs.push_back(expr);
 
-    
-    fragments.push (expression_t::createNary ((mitl ? MITLFORALL : FORALLDYNAMIC),exprs,position,type_t::createPrimitive (Constants::BOOL,position)));
-    popFrame ();
-    popDynamicFrameOf (name);
+
+    fragments.push(expression_t::createNary((mitl ? MITLFORALL : FORALLDYNAMIC),exprs,position,type_t::createPrimitive(Constants::BOOL,position)));
+    popFrame();
+    popDynamicFrameOf(name);
 }
-void ExpressionBuilder::exprExistsDynamicBegin (const char* name,const char* temp) 
+void ExpressionBuilder::exprExistsDynamicBegin(const char* name,const char* temp)
 {
     pushFrame(frame_t::createFrame(frames.top()));
-    frames.top().addSymbol (name,type_t::createPrimitive (Constants::PROCESSVAR,position));
-    template_t* templ = system->getDynamicTemplate (std::string(temp)); 
-    if (!templ) { 
-        throw TypeException(boost::format("Unknown dynamic template "+std::string(temp)+ " used in  exists"));
+    frames.top().addSymbol(name,type_t::createPrimitive(Constants::PROCESSVAR,position));
+    template_t* templ = system->getDynamicTemplate(string(temp));
+    if (!templ) {
+        throw TypeException(boost::format("Unknown dynamic template "+string(temp)+ " used in  exists"));
     }
     //dynamicFrames [name]=templ->frame;
     pushDynamicFrameOf(templ,name);
 }
 
-void ExpressionBuilder::exprExistsDynamicEnd (const char* name) 
+void ExpressionBuilder::exprExistsDynamicEnd(const char* name)
 {
     expression_t expr = fragments[0];
     expression_t process = fragments[1];
-    expression_t identifier = expression_t::createIdentifier (frames.top ()[0],position);
-    fragments.pop (2);
-    
+    expression_t identifier = expression_t::createIdentifier(frames.top()[0],position);
+    fragments.pop(2);
+
     vector<expression_t> exprs;
-    bool mitl = isMITL (expr);
-    
-    if (mitl) 
+    bool mitl = isMITL(expr);
+
+    if (mitl)
     {
-        if (expr.getKind () == MITLATOM) 
+        if (expr.getKind() == MITLATOM)
         {
             expr = expr.get(0).clone();
             mitl = false;
         }
     }
 
-    exprs.push_back (identifier);
+    exprs.push_back(identifier);
     exprs.push_back(process);
     exprs.push_back(expr);
-   
-    
-    fragments.push (expression_t::createNary ((mitl ? MITLEXISTS : EXISTSDYNAMIC),exprs,position,type_t::createPrimitive (Constants::BOOL,position)));
-    popFrame ();
-    popDynamicFrameOf (name);
+
+
+    fragments.push(expression_t::createNary((mitl ? MITLEXISTS : EXISTSDYNAMIC),exprs,position,type_t::createPrimitive(Constants::BOOL,position)));
+    popFrame();
+    popDynamicFrameOf(name);
 }
-void ExpressionBuilder::exprSumDynamicBegin (const char* name,const char* temp) 
+void ExpressionBuilder::exprSumDynamicBegin(const char* name,const char* temp)
 {
     pushFrame(frame_t::createFrame(frames.top()));
-    frames.top().addSymbol (name,type_t::createPrimitive (Constants::PROCESSVAR,position));
-    template_t* templ = system->getDynamicTemplate (std::string(temp));
-    if (!templ) { 
-        throw TypeException(boost::format("Unknown dynamic template "+std::string(temp)+ " used in sum"));
+    frames.top().addSymbol(name,type_t::createPrimitive(Constants::PROCESSVAR,position));
+    template_t* templ = system->getDynamicTemplate(string(temp));
+    if (!templ) {
+        throw TypeException(boost::format("Unknown dynamic template "+string(temp)+ " used in sum"));
     }
     //dynamicFrames [name]=templ->frame;
-    pushDynamicFrameOf (templ,name);
+    pushDynamicFrameOf(templ,name);
 }
 
-void ExpressionBuilder::exprSumDynamicEnd (const char* name) 
+void ExpressionBuilder::exprSumDynamicEnd(const char* name)
 {
     expression_t expr = fragments[0];
     expression_t process = fragments[1];
-    expression_t identifier = expression_t::createIdentifier (frames.top ()[0],position);
-    fragments.pop (2);
-    
+    expression_t identifier = expression_t::createIdentifier(frames.top()[0],position);
+    fragments.pop(2);
+
     vector<expression_t> exprs;
-    exprs.push_back (identifier);
+    exprs.push_back(identifier);
     exprs.push_back(process);
     exprs.push_back(expr);
 
-    fragments.push (expression_t::createNary (SUMDYNAMIC,exprs,position,expr.getType ()));
-    popFrame ();
-    popDynamicFrameOf (name);
+    fragments.push(expression_t::createNary(SUMDYNAMIC,exprs,position,expr.getType()));
+    popFrame();
+    popDynamicFrameOf(name);
 }
 
-void ExpressionBuilder::exprForeachDynamicBegin (const char* name,const char* temp) 
+void ExpressionBuilder::exprForeachDynamicBegin(const char* name,const char* temp)
 {
     pushFrame(frame_t::createFrame(frames.top()));
-    frames.top().addSymbol (name,type_t::createPrimitive (Constants::PROCESSVAR,position));
-    if (!system->getDynamicTemplate (std::string(temp))) { 
-        throw TypeException(boost::format("Unknown dynamic template "+std::string(temp)+ " used in foreach"));
+    frames.top().addSymbol(name,type_t::createPrimitive(Constants::PROCESSVAR,position));
+    if (!system->getDynamicTemplate(string(temp))) {
+        throw TypeException(boost::format("Unknown dynamic template "+string(temp)+ " used in foreach"));
     }
-    //dynamicFrames [name]=system->getDynamicTemplate (std::string(temp))->frame;
-    pushDynamicFrameOf (system->getDynamicTemplate (std::string(temp)),name);
+    //dynamicFrames [name]=system->getDynamicTemplate(string(temp))->frame;
+    pushDynamicFrameOf(system->getDynamicTemplate(string(temp)),name);
 }
 
-void ExpressionBuilder::exprForeachDynamicEnd (const char* name) 
+void ExpressionBuilder::exprForeachDynamicEnd(const char* name)
 {
     expression_t expr = fragments[0];
     expression_t process = fragments[1];
-    expression_t identifier = expression_t::createIdentifier (frames.top ()[0],position);
-    fragments.pop (2);
-    
+    expression_t identifier = expression_t::createIdentifier(frames.top()[0],position);
+    fragments.pop(2);
+
     vector<expression_t> exprs;
-    exprs.push_back (identifier);
+    exprs.push_back(identifier);
     exprs.push_back(process);
     exprs.push_back(expr);
 
-    fragments.push (expression_t::createNary (FOREACHDYNAMIC,exprs,position,type_t::createPrimitive (Constants::INT,position)));
-    popFrame ();
-    popDynamicFrameOf (name);
+    fragments.push(expression_t::createNary(FOREACHDYNAMIC,exprs,position,type_t::createPrimitive(Constants::INT,position)));
+    popFrame();
+    popDynamicFrameOf(name);
 }
 
-void ExpressionBuilder::pushDynamicFrameOf (template_t* t, string name) 
+void ExpressionBuilder::pushDynamicFrameOf(template_t* t, const string& name)
 {
     if (!t->isDefined) {
-        throw TypeException ("Template referenced before used");
+        throw TypeException("Template referenced before used");
     }
     dynamicFrames[name] = t->frame;
 }
 
-void ExpressionBuilder::popDynamicFrameOf (string name) 
+void ExpressionBuilder::popDynamicFrameOf(const string& name)
 {
-    dynamicFrames.erase (name);
+    dynamicFrames.erase(name);
 }

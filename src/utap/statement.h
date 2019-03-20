@@ -22,7 +22,7 @@
 #ifndef UTAP_STATEMENT_H
 #define UTAP_STATEMENT_H
 
-#define INDENT "    "
+#define INDENT "\t"
 
 #include "utap/expression.h"
 #include "utap/symbols.h"
@@ -32,24 +32,24 @@ namespace UTAP
 {
     class StatementVisitor;
 
-    class Statement 
+    class Statement
     {
     public:
         virtual ~Statement() {};
         virtual int32_t accept(StatementVisitor *visitor) = 0;
         virtual bool returns() = 0;
-        virtual std::string toString(std::string prefix) const = 0;
+        virtual std::string toString(const std::string& prefix) const = 0;
     protected:
         Statement();
     };
 
-    class EmptyStatement: public Statement 
+    class EmptyStatement: public Statement
     {
     public:
         EmptyStatement();
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class ExprStatement: public Statement
@@ -57,19 +57,19 @@ namespace UTAP
     public:
         expression_t expr;
         ExprStatement(expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
-    class AssertStatement: public Statement 
+    class AssertStatement: public Statement
     {
     public:
         expression_t expr;
         AssertStatement(expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class ForStatement: public Statement
@@ -80,9 +80,9 @@ namespace UTAP
         expression_t step;
         Statement *stat;
         ForStatement(expression_t, expression_t, expression_t, Statement*);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     /**
@@ -96,21 +96,21 @@ namespace UTAP
         symbol_t symbol;
         Statement *stat;
         IterationStatement(symbol_t, frame_t, Statement *);
-         frame_t getFrame() { return frame; }
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        frame_t getFrame() { return frame; }
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
      };
 
-    class WhileStatement: public Statement 
+    class WhileStatement: public Statement
     {
     public:
         expression_t cond;
         Statement *stat;
         WhileStatement(expression_t, Statement*);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class DoWhileStatement: public Statement
@@ -119,12 +119,12 @@ namespace UTAP
         Statement *stat;
         expression_t cond;
         DoWhileStatement(Statement*, expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
-    class BlockStatement: public Statement, public declarations_t 
+    class BlockStatement: public Statement, public declarations_t
     {
     public:
         typedef std::vector<Statement *>::const_iterator const_iterator;
@@ -134,11 +134,11 @@ namespace UTAP
         frame_t frame;
     public:
         BlockStatement(frame_t);
-        virtual ~BlockStatement();
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
+        ~BlockStatement() override;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
 
-         frame_t getFrame() { return frame; }
+        frame_t getFrame() { return frame; }
         void push_stat(Statement* stat);
         Statement* pop_stat();
         Statement* back();
@@ -146,7 +146,7 @@ namespace UTAP
         const_iterator end() const;
         iterator begin();
         iterator end();
-        std::string toString(std::string prefix) const;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class SwitchStatement: public BlockStatement
@@ -154,58 +154,58 @@ namespace UTAP
     public:
         expression_t cond;
         SwitchStatement(frame_t, expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);  
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
-    class CaseStatement: public BlockStatement 
+    class CaseStatement: public BlockStatement
     {
     public:
         expression_t cond;
         CaseStatement(frame_t, expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class DefaultStatement: public BlockStatement
     {
     public:
         DefaultStatement(frame_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
     };
 
-    class IfStatement: public Statement 
+    class IfStatement: public Statement
     {
     public:
         expression_t cond;
         Statement *trueCase;
         Statement *falseCase;
-        IfStatement(expression_t, Statement*, 
-                    Statement* falseStat=NULL);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        IfStatement(expression_t, Statement*,
+                    Statement* falseStat=nullptr);
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class BreakStatement: public Statement
     {
     public:
         BreakStatement();
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
-    class ContinueStatement: public Statement 
+    class ContinueStatement: public Statement
     {
     public:
         ContinueStatement();
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class ReturnStatement: public Statement
@@ -214,9 +214,9 @@ namespace UTAP
         expression_t value;
         ReturnStatement();
         ReturnStatement(expression_t);
-        virtual int32_t accept(StatementVisitor *visitor);
-        virtual bool returns();
-        std::string toString(std::string prefix) const;
+        int32_t accept(StatementVisitor *visitor) override;
+        bool returns() override;
+        std::string toString(const std::string& prefix) const override;
     };
 
     class StatementVisitor
@@ -245,21 +245,21 @@ namespace UTAP
     protected:
         virtual int32_t visitStatement(Statement *stat);
     public:
-        virtual int32_t visitEmptyStatement(EmptyStatement *stat);
-        virtual int32_t visitExprStatement(ExprStatement *stat);
-        virtual int32_t visitAssertStatement(AssertStatement *stat);
-        virtual int32_t visitForStatement(ForStatement *stat);
-        virtual int32_t visitIterationStatement(IterationStatement *stat);
-        virtual int32_t visitWhileStatement(WhileStatement *stat);
-        virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
-        virtual int32_t visitBlockStatement(BlockStatement *stat);
-        virtual int32_t visitSwitchStatement(SwitchStatement *stat);
-        virtual int32_t visitCaseStatement(CaseStatement *stat);
-        virtual int32_t visitDefaultStatement(DefaultStatement *stat);
-        virtual int32_t visitIfStatement(IfStatement *stat);
-        virtual int32_t visitBreakStatement(BreakStatement *stat);
-        virtual int32_t visitContinueStatement(ContinueStatement *stat);
-        virtual int32_t visitReturnStatement(ReturnStatement *stat);
+        int32_t visitEmptyStatement(EmptyStatement *stat) override;
+        int32_t visitExprStatement(ExprStatement *stat) override;
+        int32_t visitAssertStatement(AssertStatement *stat) override;
+        int32_t visitForStatement(ForStatement *stat) override;
+        int32_t visitIterationStatement(IterationStatement *stat) override;
+        int32_t visitWhileStatement(WhileStatement *stat) override;
+        int32_t visitDoWhileStatement(DoWhileStatement *stat) override;
+        int32_t visitBlockStatement(BlockStatement *stat) override;
+        int32_t visitSwitchStatement(SwitchStatement *stat) override;
+        int32_t visitCaseStatement(CaseStatement *stat) override;
+        int32_t visitDefaultStatement(DefaultStatement *stat) override;
+        int32_t visitIfStatement(IfStatement *stat) override;
+        int32_t visitBreakStatement(BreakStatement *stat) override;
+        int32_t visitContinueStatement(ContinueStatement *stat) override;
+        int32_t visitReturnStatement(ReturnStatement *stat) override;
     };
 
     class ExpressionVisitor : public AbstractStatementVisitor
@@ -267,23 +267,23 @@ namespace UTAP
     protected:
         virtual void visitExpression(expression_t) = 0;
     public:
-        virtual int32_t visitExprStatement(ExprStatement *stat);
-        virtual int32_t visitAssertStatement(AssertStatement *stat);
-        virtual int32_t visitForStatement(ForStatement *stat);
-        virtual int32_t visitWhileStatement(WhileStatement *stat);
-        virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
-        virtual int32_t visitBlockStatement(BlockStatement *stat);
-        virtual int32_t visitSwitchStatement(SwitchStatement *stat);
-        virtual int32_t visitCaseStatement(CaseStatement *stat);
-        virtual int32_t visitDefaultStatement(DefaultStatement *stat);
-        virtual int32_t visitIfStatement(IfStatement *stat);
-        virtual int32_t visitReturnStatement(ReturnStatement *stat);
+        int32_t visitExprStatement(ExprStatement *stat) override;
+        int32_t visitAssertStatement(AssertStatement *stat) override;
+        int32_t visitForStatement(ForStatement *stat) override;
+        int32_t visitWhileStatement(WhileStatement *stat) override;
+        int32_t visitDoWhileStatement(DoWhileStatement *stat) override;
+        int32_t visitBlockStatement(BlockStatement *stat) override;
+        int32_t visitSwitchStatement(SwitchStatement *stat) override;
+        int32_t visitCaseStatement(CaseStatement *stat) override;
+        int32_t visitDefaultStatement(DefaultStatement *stat) override;
+        int32_t visitIfStatement(IfStatement *stat) override;
+        int32_t visitReturnStatement(ReturnStatement *stat) override;
     };
 
     class CollectChangesVisitor : public ExpressionVisitor
     {
     protected:
-        virtual void visitExpression(expression_t);
+        void visitExpression(expression_t) override;
         std::set<symbol_t> &changes;
     public:
         CollectChangesVisitor(std::set<symbol_t> &);
@@ -292,16 +292,16 @@ namespace UTAP
     class CollectDependenciesVisitor : public ExpressionVisitor
     {
     protected:
-        virtual void visitExpression(expression_t);
+        void visitExpression(expression_t) override;
         std::set<symbol_t> &dependencies;
     public:
         CollectDependenciesVisitor(std::set<symbol_t> &);
     };
-    
-    class CollectDynamicExpressions : public ExpressionVisitor 
+
+    class CollectDynamicExpressions : public ExpressionVisitor
     {
     protected:
-        virtual void visitExpression (expression_t);
+        void visitExpression (expression_t) override;
         std::list<expression_t> &expressions;
     public:
         CollectDynamicExpressions (std::list<expression_t>& );

@@ -38,8 +38,8 @@ namespace UTAP
         std::string error;
     public:
         NotSupportedException(const char *err) { error = err; }
-        virtual ~NotSupportedException() throw() {}
-        virtual const char* what() const throw() { return error.c_str(); }
+        virtual ~NotSupportedException() noexcept {}
+        const char* what() const noexcept override { return error.c_str(); }
     };
 
     class AbstractBuilder : public ParserBuilder
@@ -49,236 +49,239 @@ namespace UTAP
     public:
         AbstractBuilder();
 
-        virtual void setPosition(uint32_t, uint32_t);
+        void setPosition(uint32_t, uint32_t) override;
 
         /************************************************************
          * Query functions
          */
-        virtual bool isType(const char*);
+        bool isType(const char*) override;
 
         /************************************************************
          * Types
          */
-        virtual void typeDuplicate();
-        virtual void typePop();
-        virtual void typeBool(PREFIX);
-        virtual void typeInt(PREFIX);
-        virtual void typeDouble(PREFIX);
-        virtual void typeBoundedInt(PREFIX);
-        virtual void typeChannel(PREFIX);
-        virtual void typeClock(PREFIX);
-        virtual void typeVoid();
-        virtual void typeScalar(PREFIX);
-        virtual void typeName(PREFIX, const char* name);
-        virtual void typeStruct(PREFIX, uint32_t fields);
-        virtual void typeArrayOfSize(size_t);
-        virtual void typeArrayOfType(size_t);
-        virtual void structField(const char* name);
-        virtual void declTypeDef(const char* name);
+        void typeDuplicate() override;
+        void typePop() override;
+        void typeBool(PREFIX) override;
+        void typeInt(PREFIX) override;
+        void typeDouble(PREFIX) override;
+        void typeBoundedInt(PREFIX) override;
+        void typeChannel(PREFIX) override;
+        void typeClock(PREFIX) override;
+        void typeVoid() override;
+        void typeScalar(PREFIX) override;
+        void typeName(PREFIX, const char* name) override;
+        void typeStruct(PREFIX, uint32_t fields) override;
+        void typeArrayOfSize(size_t) override;
+        void typeArrayOfType(size_t) override;
+        void structField(const char* name) override;
+        void declTypeDef(const char* name) override;
 
         /************************************************************
          * Variable declarations
          */
-        virtual void declVar(const char* name, bool init);
-        virtual void declInitialiserList(uint32_t num); // n initialisers
-        virtual void declFieldInit(const char* name); // 1 initialiser
+        void declVar(const char* name, bool init) override;
+        void declInitialiserList(uint32_t num) override; // n initialisers
+        void declFieldInit(const char* name) override; // 1 initialiser
 
         /********************************************************************
          * Gantt chart declaration
          */
-        virtual void ganttDeclStart(const char* name);
-        virtual void ganttDeclSelect(const char *id);
-        virtual void ganttDeclEnd();
-        virtual void ganttEntryStart();
-        virtual void ganttEntrySelect(const char *id);
-        virtual void ganttEntryEnd();
+        void ganttDeclStart(const char* name) override;
+        void ganttDeclSelect(const char *id) override;
+        void ganttDeclEnd() override;
+        void ganttEntryStart() override;
+        void ganttEntrySelect(const char *id) override;
+        void ganttEntryEnd() override;
 
         /************************************************************
          * Progress measure declarations
          */
-        virtual void declProgress(bool);
+        void declProgress(bool) override;
 
         /************************************************************
          * Function declarations
          */
-        virtual void declParameter(const char* name, bool);
-        virtual void declFuncBegin(const char* name); // n paramaters
-        virtual void declFuncEnd(); // 1 block
+        void declParameter(const char* name, bool) override;
+        void declFuncBegin(const char* name) override; // n paramaters
+        void declFuncEnd() override; // 1 block
 
         /************************************************************
          * Process declarations
          */
-        virtual void procBegin(const char* name, const bool isTA = true,
-        		const std::string type = "", const std::string mode = "");
-        virtual void procEnd(); // 1 ProcBody
-        virtual void procState(const char* name, bool hasInvariant, bool hasER); // 1 expr
-        virtual void procStateCommit(const char* name); // mark previously decl. state
-        virtual void procStateUrgent(const char* name); // mark previously decl. state
-        virtual void procStateInit(const char* name); // mark previously decl. state
-        virtual void procBranchpoint(const char* name);
-        virtual void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname);
-        virtual void procEdgeEnd(const char* from, const char* to);
+        void procBegin(const char* name, const bool isTA = true,
+        		const std::string type = "", const std::string mode = "") override;
+        void procEnd() override; // 1 ProcBody
+        void procState(const char* name, bool hasInvariant, bool hasER) override; // 1 expr
+        void procStateCommit(const char* name) override; // mark previously decl. state
+        void procStateUrgent(const char* name) override; // mark previously decl. state
+        void procStateInit(const char* name) override; // mark previously decl. state
+        void procBranchpoint(const char* name) override;
+        void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname) override;
+        void procEdgeEnd(const char* from, const char* to) override;
         // 1 epxr,1sync,1expr
-        virtual void procSelect(const char *id);
-        virtual void procGuard();
-        virtual void procSync(Constants::synchronisation_t type); // 1 expr
-        virtual void procUpdate();
-        virtual void procProb();
+        void procSelect(const char *id) override;
+        void procGuard() override;
+        void procSync(Constants::synchronisation_t type) override; // 1 expr
+        void procUpdate() override;
+        void procProb() override;
         /************************************************************
          * Process declarations for LSC
          */
-        virtual void procInstanceLine();
-        virtual void instanceName(const char* name, bool templ=true);
-        virtual void instanceNameBegin(const char *name);
-        virtual void instanceNameEnd(const char *name, size_t arguments);
-        virtual void procMessage(const char* from, const char* to, const int loc, const bool pch);
-        virtual void procMessage(Constants::synchronisation_t type); // 1 expr
-        virtual void procCondition(const std::vector<char*> anchors, const int loc,
-                const bool pch, const bool hot);
-        virtual void procCondition(); // Label
-        virtual void procLscUpdate(const char* anchor, const int loc, const bool pch);
-        virtual void procLscUpdate(); // Label
-        virtual void hasPrechart(const bool pch);
+        void procInstanceLine() override;
+        void instanceName(const char* name, bool templ=true) override;
+        void instanceNameBegin(const char *name) override;
+        void instanceNameEnd(const char *name, size_t arguments) override;
+        void procMessage(const char* from, const char* to, const int loc, const bool pch) override;
+        void procMessage(Constants::synchronisation_t type) override; // 1 expr
+        void procCondition(const std::vector<char*> anchors, const int loc,
+                const bool pch, const bool hot) override;
+        void procCondition() override; // Label
+        void procLscUpdate(const char* anchor, const int loc, const bool pch) override;
+        void procLscUpdate() override; // Label
+        void hasPrechart(const bool pch) override;
 
         /************************************************************
          * Statements
          */
-        virtual void blockBegin();
-        virtual void blockEnd();
-        virtual void emptyStatement();
-        virtual void forBegin(); // 3 expr
-        virtual void forEnd(); // 1 stat
-        virtual void iterationBegin(const char *name); // 1 id, 1 type
-        virtual void iterationEnd(const char *name); // 1 stat
-        virtual void whileBegin();
-        virtual void whileEnd(); // 1 expr, 1 stat
-        virtual void doWhileBegin();
-        virtual void doWhileEnd(); // 1 stat, 1 expr
-        virtual void ifBegin();
-        virtual void ifElse();
-        virtual void ifEnd(bool); // 1 expr, 1 or 2 statements
-        virtual void breakStatement();
-        virtual void continueStatement();
-        virtual void switchBegin();
-        virtual void switchEnd(); // 1 expr, 1+ case/default
-        virtual void caseBegin();
-        virtual void caseEnd();  // 1 expr, 0+ stat
-        virtual void defaultBegin();
-        virtual void defaultEnd(); // 0+ statements
-        virtual void exprStatement(); // 1 expr
-        virtual void returnStatement(bool); // 1 expr if argument is true
-        virtual void assertStatement();
+        void blockBegin() override;
+        void blockEnd() override;
+        void emptyStatement() override;
+        void forBegin() override; // 3 expr
+        void forEnd() override; // 1 stat
+        void iterationBegin(const char *name) override; // 1 id, 1 type
+        void iterationEnd(const char *name) override; // 1 stat
+        void whileBegin() override;
+        void whileEnd() override; // 1 expr, 1 stat
+        void doWhileBegin() override;
+        void doWhileEnd() override; // 1 stat, 1 expr
+        void ifBegin() override;
+        void ifCondition() override; // 1 expr
+        void ifThen() override; // 1 statement
+        void ifEnd(bool) override; // 1 expr, 1 or 2 statements
+        void breakStatement() override;
+        void continueStatement() override;
+        void switchBegin() override;
+        void switchEnd() override; // 1 expr, 1+ case/default
+        void caseBegin() override;
+        void caseEnd() override;  // 1 expr, 0+ stat
+        void defaultBegin() override;
+        void defaultEnd() override; // 0+ statements
+        void exprStatement() override; // 1 expr
+        void returnStatement(bool) override; // 1 expr if argument is true
+        void assertStatement() override;
 
         /************************************************************
          * Expressions
          */
-        virtual void exprTrue();
-        virtual void exprFalse();
-        virtual void exprDouble(double);
-        virtual void exprId(const char * varName);
-        virtual void exprNat(int32_t); // natural number
-        virtual void exprCallBegin();
-        virtual void exprCallEnd(uint32_t n); // n exprs as arguments
-        virtual void exprArray(); // 2 expr
-        virtual void exprPostIncrement(); // 1 expr
-        virtual void exprPreIncrement(); // 1 expr
-        virtual void exprPostDecrement(); // 1 expr
-        virtual void exprPreDecrement(); // 1 expr
-        virtual void exprAssignment(Constants::kind_t op); // 2 expr
-        virtual void exprUnary(Constants::kind_t unaryop); // 1 expr
-        virtual void exprBinary(Constants::kind_t binaryop); // 2 expr
-        virtual void exprNary(Constants::kind_t, uint32_t num);
-        virtual void exprScenario(const char* name);
-        virtual void exprTernary(Constants::kind_t ternaryop, bool firstMissing); // 3 expr
-        virtual void exprInlineIf(); // 3 expr
-        virtual void exprComma(); // 2 expr
-        virtual void exprDot(const char *); // 1 expr
-        virtual void exprDeadlock();
-        virtual void exprForAllBegin(const char *name);
-        virtual void exprForAllEnd(const char *name);
-        virtual void exprExistsBegin(const char *name);
-        virtual void exprExistsEnd(const char *name);
-        virtual void exprSumBegin(const char *name);
-        virtual void exprSumEnd(const char *name);
+        void exprTrue() override;
+        void exprFalse() override;
+        void exprDouble(double) override;
+        void exprId(const char * varName) override;
+        void exprNat(int32_t) override; // natural number
+        void exprCallBegin() override;
+        void exprCallEnd(uint32_t n) override; // n exprs as arguments
+        void exprArray() override; // 2 expr
+        void exprPostIncrement() override; // 1 expr
+        void exprPreIncrement() override; // 1 expr
+        void exprPostDecrement() override; // 1 expr
+        void exprPreDecrement() override; // 1 expr
+        void exprAssignment(Constants::kind_t op) override; // 2 expr
+        void exprUnary(Constants::kind_t unaryop) override; // 1 expr
+        void exprBinary(Constants::kind_t binaryop) override; // 2 expr
+        void exprNary(Constants::kind_t, uint32_t num) override;
+        void exprScenario(const char* name) override;
+        void exprTernary(Constants::kind_t ternaryop, bool firstMissing) override; // 3 expr
+        void exprInlineIf() override; // 3 expr
+        void exprComma() override; // 2 expr
+        void exprDot(const char *) override; // 1 expr
+        void exprDeadlock() override;
+        void exprForAllBegin(const char *name) override;
+        void exprForAllEnd(const char *name) override;
+        void exprExistsBegin(const char *name) override;
+        void exprExistsEnd(const char *name) override;
+        void exprSumBegin(const char *name) override;
+        void exprSumEnd(const char *name) override;
 
-        virtual void exprSync(Constants::synchronisation_t type);
-        virtual void declIO(const char*,int,int);
+        void exprSync(Constants::synchronisation_t type) override;
+        void declIO(const char*,int,int) override;
 
-        virtual void exprSMCControl(int);
-        virtual void exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double);
-        virtual void exprProbaQuantitative(int,Constants::kind_t);
-        virtual void exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t);
-        virtual void exprProbaExpected(int,const char*);
-        virtual void exprSimulate(int,int,int);
-        virtual void exprBuiltinFunction1(Constants::kind_t);
-        virtual void exprBuiltinFunction2(Constants::kind_t);
+        void exprSMCControl() override;
+        void exprProbaQualitative(Constants::kind_t,Constants::kind_t,double) override;
+        void exprProbaQuantitative(Constants::kind_t) override;
+        void exprProbaCompare(Constants::kind_t,Constants::kind_t) override;
+        void exprProbaExpected(const char*) override;
+        void exprSimulate(int,bool=false,int = 0) override;
+        void exprBuiltinFunction1(Constants::kind_t) override;
+        void exprBuiltinFunction2(Constants::kind_t) override;
 
         //MITL
-        virtual void exprMitlFormula ( ) ;
-        virtual void exprMitlUntil (int,int ) ;
-        virtual void exprMitlRelease (int,int);
-        virtual void exprMitlDisj () ;
-        virtual void exprMitlConj ();
-        virtual void exprMitlNext ();
-        virtual void exprMitlAtom ();
+        void exprMitlFormula() override;
+        void exprMitlUntil(int,int ) override;
+        void exprMitlRelease(int,int) override;
+        void exprMitlDisj() override;
+        void exprMitlConj() override;
+        void exprMitlNext() override;
+        void exprMitlAtom() override;
 
         /************************************************************
          * System declaration
          */
-        virtual void instantiationBegin(const char*, size_t, const char*);
-        virtual void instantiationEnd(
-            const char *, size_t, const char *, size_t);
-        virtual void process(const char*);
-        virtual void processListEnd();
-        virtual void done();
+        void instantiationBegin(const char*, size_t, const char*) override;
+        void instantiationEnd(
+            const char *, size_t, const char *, size_t) override;
+        void process(const char*) override;
+        void processListEnd() override;
+        void done() override;
+
+        void handleExpect(const char* text) override;
 
         /************************************************************
          * Properties
          */
-        virtual void property();
-        virtual void scenario(const char*);// LSC
-        virtual void parse(const char*);// LSC
+        void property() override;
+        void scenario(const char*) override;// LSC
+        void parse(const char*) override;// LSC
 
         /********************************************************************
          * Guiding
          */
-        virtual void beforeUpdate();
-        virtual void afterUpdate();
+        void beforeUpdate() override;
+        void afterUpdate() override;
 
 
         /********************************************************************
          * Priority
          */
-        virtual void beginChanPriority();
-        virtual void addChanPriority(char separator);
-        virtual void defaultChanPriority();
-        virtual void incProcPriority();
-        virtual void procPriority(const char*);
+        void beginChanPriority() override;
+        void addChanPriority(char separator) override;
+        void defaultChanPriority() override;
+        void incProcPriority() override;
+        void procPriority(const char*) override;
 
-        virtual void declDynamicTemplate (std::string );
-        virtual void exprSpawn (int );
-        virtual void exprExit ();
-        virtual void exprNumOf ();
+        void declDynamicTemplate(const std::string&) override;
+        void exprSpawn(int ) override;
+        void exprExit() override;
+        void exprNumOf() override;
 
-        virtual void exprForAllDynamicBegin (const char*,const char* );
-        virtual void exprForAllDynamicEnd (const char* name);
-        virtual void exprExistsDynamicBegin (const char*,const char*);
-        virtual void exprExistsDynamicEnd (const char* name);
-        virtual void exprSumDynamicBegin (const char*,const char* );
-        virtual void exprSumDynamicEnd (const char* );
-        virtual void exprForeachDynamicBegin (const char*,const char* );
-        virtual void exprForeachDynamicEnd (const char* name);
-        virtual void exprDynamicProcessExpr (const char*);
-        virtual void exprMITLForAllDynamicBegin (const char* ,const char*);
-        virtual void exprMITLForAllDynamicEnd (const char* name);
-        virtual void exprMITLExistsDynamicBegin (const char* ,const char*);
-        virtual void exprMITLExistsDynamicEnd (const char* name);
+        void exprForAllDynamicBegin(const char*,const char* ) override;
+        void exprForAllDynamicEnd(const char* name) override;
+        void exprExistsDynamicBegin(const char*,const char*) override;
+        void exprExistsDynamicEnd(const char* name) override;
+        void exprSumDynamicBegin(const char*,const char* ) override;
+        void exprSumDynamicEnd(const char* ) override;
+        void exprForeachDynamicBegin(const char*,const char* ) override;
+        void exprForeachDynamicEnd(const char* name) override;
+        void exprDynamicProcessExpr(const char*) override;
+        void exprMITLForAllDynamicBegin(const char* ,const char*) override;
+        void exprMITLForAllDynamicEnd(const char* name) override;
+        void exprMITLExistsDynamicBegin(const char* ,const char*) override;
+        void exprMITLExistsDynamicEnd(const char* name) override;
 
         /** Verification queries */
-        virtual void queryBegin();
-        virtual void queryFormula(const char* formula, const char* location);
-        virtual void queryComment(const char* comment);
-        virtual void queryEnd();
+        void queryBegin() override;
+        void queryFormula(const char* formula, const char* location) override;
+        void queryComment(const char* comment) override;
+        void queryEnd() override;
     };
 }
 #endif

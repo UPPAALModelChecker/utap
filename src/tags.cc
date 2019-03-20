@@ -1,4 +1,4 @@
-/* C++ code produced by gperf version 3.0.4 */
+/* C++ code produced by gperf version 3.1 */
 /* Command-line: gperf -C -E -t -L C++ -c -K str -Z Tags tags.gperf  */
 /* Computed positions: -k'1,3' */
 
@@ -26,7 +26,7 @@
       && ('w' == 119) && ('x' == 120) && ('y' == 121) && ('z' == 122) \
       && ('{' == 123) && ('|' == 124) && ('}' == 125) && ('~' == 126))
 /* The character set is not based on ISO-646.  */
-#error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
+#error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gperf@gnu.org>."
 #endif
 
 #line 1 "tags.gperf"
@@ -36,13 +36,13 @@ struct Tag { const char *str; tag_t tag; };
 class Tags
 {
 private:
-  static inline unsigned int hash (const char *str, unsigned int len);
+  static inline unsigned int hash (const char *str, size_t len);
 public:
-  static const struct Tag *in_word_set (const char *str, unsigned int len);
+  static const struct Tag *in_word_set (const char *str, size_t len);
 };
 
 inline unsigned int
-Tags::hash (register const char *str, register unsigned int len)
+Tags::hash (const char *str, size_t len)
 {
   static const unsigned char asso_values[] =
     {
@@ -73,11 +73,11 @@ Tags::hash (register const char *str, register unsigned int len)
       52, 52, 52, 52, 52, 52, 52, 52, 52, 52,
       52, 52, 52, 52, 52, 52
     };
-  return len + asso_values[(unsigned char)str[2]] + asso_values[(unsigned char)str[0]];
+  return len + asso_values[static_cast<unsigned char>(str[2])] + asso_values[static_cast<unsigned char>(str[0])];
 }
 
 const struct Tag *
-Tags::in_word_set (register const char *str, register unsigned int len)
+Tags::in_word_set (const char *str, size_t len)
 {
   enum
     {
@@ -177,11 +177,11 @@ Tags::in_word_set (register const char *str, register unsigned int len)
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      register int key = hash (str, len);
+      unsigned int key = hash (str, len);
 
-      if (key <= MAX_HASH_VALUE && key >= 0)
+      if (key <= MAX_HASH_VALUE)
         {
-          register const char *s = wordlist[key].str;
+          const char *s = wordlist[key].str;
 
           if (*str == *s && !strncmp (str + 1, s + 1, len - 1) && s[len] == '\0')
             return &wordlist[key];

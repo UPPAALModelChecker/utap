@@ -62,7 +62,7 @@ namespace UTAP
         static uint32_t offset;
         static uint32_t position;
         static std::string path;
-        
+
         /** Resets position tracker to position 0. */
         static void reset();
 

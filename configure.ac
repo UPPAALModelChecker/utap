@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT([libutap], [0.93], [marius@cs.aau.dk], [libutap], [http://people.cs.aau.dk/~marius/utap/])
+AC_INIT([libutap], [0.94], [marius@cs.aau.dk], [libutap], [http://people.cs.aau.dk/~marius/utap/])
 
 AC_PREREQ(2.50)
 

@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -22,12 +22,12 @@
 #ifndef UTAP_POSITION
 #define UTAP_POSITION
 
-#include <inttypes.h>
+#include <cinttypes>
+#include <climits>
 
 #include <vector>
 #include <string>
 #include <iostream>
-#include <climits>
 
 namespace UTAP
 {
@@ -36,8 +36,8 @@ namespace UTAP
         uint32_t start, end;
         // Do NOT use UINT_MAX but INT_MAX instead because Java Integer
         // will not parse UINT_MAX.
-        position_t() : start(0), end(INT_MAX) {}
-        position_t(uint32_t start, uint32_t end) : start(start), end(end) {}
+        position_t() : start{0}, end{INT_MAX} {}
+        position_t(uint32_t s, uint32_t e) : start{s}, end{e} {}
     };
 
     /**
@@ -65,42 +65,44 @@ namespace UTAP
         {
             uint32_t position;
             uint32_t offset;
-            uint32_t line;    
+            uint32_t line;
             std::string path;
-            line_t(uint32_t position, uint32_t offset, uint32_t line, std::string path)
-                : position(position), offset(offset), line(line), path(path) {}
+            line_t(uint32_t pos, uint32_t offs, uint32_t l, std::string p)
+                : position{pos}, offset{offs}, line{l}, path{std::move(p)} {}
         };
-        
+
     private:
         std::vector<line_t> elements;
         const line_t &find(uint32_t, uint32_t, uint32_t) const;
     public:
         /** Add information about a line to the container. */
-        void add(uint32_t position, uint32_t offset, uint32_t line, std::string path);
-        
+        void add(uint32_t position, uint32_t offset, uint32_t line,
+                 const std::string& path);
+
         /**
          * Retrieves information about the line containing the given
          * position. The last line in the container is considered to
          * extend to inifinity (until another line is added).
          */
         const line_t &find(uint32_t position) const;
-        
+
         /** Dump table to stdout. */
         void dump();
     };
-    
-    
+
+
     struct error_t
     {
         Positions::line_t start;
         Positions::line_t end;
         position_t position;
-        std::string msg;
-        std::string context;
-        
-        error_t(Positions::line_t start, Positions::line_t end, 
-                position_t position, std::string msg, std::string context="")
-            : start(start), end(end), position(position), msg(msg), context(context){}
+        const std::string message;
+        const std::string context;
+
+        error_t(Positions::line_t s, Positions::line_t e,
+                position_t pos, std::string msg, std::string ctx="")
+            : start{s}, end{e}, position{pos},
+              message{std::move(msg)}, context{std::move(ctx)} {}
     };
 }
 

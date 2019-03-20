@@ -20,7 +20,7 @@
  */
 
 #include "utap/xmlwriter.h"
-#include <string.h>
+#include <cstring>
 
 using std::vector;
 using std::list;
@@ -36,13 +36,13 @@ using namespace UTAP::Constants;
 #define PI 3.1416
 #define RADIUS 80
 
-string UTAP::concat(string s, int i) {
+string UTAP::concat(const string& s, int i) {
     std::ostringstream o;
     o << s << i;
     return o.str();
 }
 
-string UTAP::concatDouble(string s, double i) {
+string UTAP::concatDouble(const string& s, double i) {
     std::ostringstream o;
     o << s << i;
     return o.str();

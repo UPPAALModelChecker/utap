@@ -19,15 +19,15 @@
    USA
 */
 
+#include "utap/abstractbuilder.h"
+
 #include <cstdarg>
-#include <vector>
+#include <cstdio>
+#include <cinttypes>
 #include <climits>
 #include <cmath>
-#include <cstdio>
 #include <cassert>
-#include <inttypes.h>
-
-#include "utap/abstractbuilder.h"
+#include <vector>
 
 using namespace UTAP;
 
@@ -398,14 +398,19 @@ void AbstractBuilder::ifBegin()
     throw NotSupportedException("ifBegin is not supported");
 }
 
-void AbstractBuilder::ifElse()
+void AbstractBuilder::ifCondition()
 {
-    throw NotSupportedException("ifElse is not supported");
+    throw NotSupportedException("ifCondition is not supported");
+}
+
+void AbstractBuilder::ifThen()
+{
+    throw NotSupportedException("ifThen is not supported");
 }
 
 void AbstractBuilder::ifEnd(bool)
 {
-    throw NotSupportedException("ifEnd is not supported");
+    throw NotSupportedException("ifThenElse is not supported");
 }
 
 void AbstractBuilder::breakStatement()
@@ -596,7 +601,7 @@ void AbstractBuilder::exprSumEnd(const char *name)
     throw NotSupportedException("exprSumEnd is not supported");
 }
 
-void AbstractBuilder::exprSimulate(int,int,int)
+void AbstractBuilder::exprSimulate(int,bool,int)
 {
     throw NotSupportedException("exprSimulate is not supported");
 }
@@ -645,27 +650,27 @@ void AbstractBuilder::exprMitlAtom () {
     throw NotSupportedException("exprMitlAtom is not supported");
 }
 
-void AbstractBuilder::exprSMCControl(int)
+void AbstractBuilder::exprSMCControl()
 {
     throw NotSupportedException("exprSMCControl is not supported");
 }
 
-void AbstractBuilder::exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double)
+void AbstractBuilder::exprProbaQualitative(Constants::kind_t,Constants::kind_t,double)
 {
     throw NotSupportedException("exprProbaQualitative is not supported");
 }
 
-void AbstractBuilder::exprProbaQuantitative(int,Constants::kind_t)
+void AbstractBuilder::exprProbaQuantitative(Constants::kind_t)
 {
     throw NotSupportedException("exprProbaQuantitative is not supported");
 }
 
-void AbstractBuilder::exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t)
+void AbstractBuilder::exprProbaCompare(Constants::kind_t,Constants::kind_t)
 {
     throw NotSupportedException("exprProbaCompare is not supported");
 }
 
-void AbstractBuilder::exprProbaExpected(int,const char*)
+void AbstractBuilder::exprProbaExpected(const char*)
 {
     throw NotSupportedException("exprProbaExpected is not supported");
 }
@@ -712,6 +717,10 @@ void AbstractBuilder::parse(const char*)
 //end LSC
 
 void AbstractBuilder::done()
+{
+}
+
+void AbstractBuilder::handleExpect(const char* text)
 {
 }
 
@@ -765,7 +774,7 @@ void AbstractBuilder::declIO(const char*,int,int)
     throw NotSupportedException("declIO is not supported");
 }
 
-void AbstractBuilder::declDynamicTemplate(std::string)
+void AbstractBuilder::declDynamicTemplate(const std::string&)
 {
     throw NotSupportedException("declDynamicTemplate is not supported");
 }

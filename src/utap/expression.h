@@ -1,8 +1,9 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2011-2018 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -22,13 +23,14 @@
 #ifndef UTAP_EXPRESSION_HH
 #define UTAP_EXPRESSION_HH
 
-#include <vector>
-#include <set>
-#include <map>
-
 #include "utap/common.h"
 #include "utap/symbols.h"
 #include "utap/position.h"
+
+#include <vector>
+#include <set>
+#include <map>
+#include <memory>
 
 namespace UTAP
 {
@@ -71,10 +73,13 @@ namespace UTAP
         expression_t(Constants::kind_t, const position_t &);
     public:
         /** Default constructor. Creates an empty expression. */
-        expression_t();
+        expression_t(){};
 
         /** Copy constructor. */
         expression_t(const expression_t &);
+
+        /** Assignment operator. */
+        expression_t& operator=(const expression_t &);
 
         /** Destructor. */
         ~expression_t();
@@ -143,9 +148,6 @@ namespace UTAP
 
         /** Returns the ith subexpression. */
         const expression_t &get(uint32_t) const;
-
-        /** Assignment operator. */
-        expression_t &operator=(const expression_t &);
 
         /** Equality operator */
         bool equal(const expression_t &) const;
@@ -259,7 +261,7 @@ namespace UTAP
 
     private:
         struct expression_data;
-        expression_data *data;
+        std::shared_ptr<expression_data> data;
         int getPrecedence() const;
         void toString(bool, char *&str, char *&end, int &size) const;
         void appendBoundType(char *&str, char*&end, int &size, expression_t e) const;
@@ -269,6 +271,3 @@ namespace UTAP
 std::ostream &operator<< (std::ostream &o, const UTAP::expression_t &e);
 
 #endif
-
-
-

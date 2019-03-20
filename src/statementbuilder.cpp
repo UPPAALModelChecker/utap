@@ -19,17 +19,17 @@
    USA
 */
 
+#include "utap/statementbuilder.h"
+
 #include <vector>
 #include <climits>
 #include <cmath>
 #include <cstdio>
 #include <cassert>
-#include <inttypes.h>
+#include <cinttypes>
 #include <stdexcept>
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
-
-#include "utap/statementbuilder.h"
 
 using namespace UTAP;
 using namespace Constants;
@@ -47,7 +47,12 @@ StatementBuilder::StatementBuilder(TimedAutomataSystem *system)
     currentFun = NULL;
     currentTemplate = NULL;
     params = frame_t::createFrame();
-};
+}
+
+StatementBuilder::~StatementBuilder()
+{
+    for (auto b: blocks) delete b;
+}
 
 void StatementBuilder::collectDependencies(
     std::set<symbol_t> &dependencies, expression_t expr)
@@ -549,14 +554,6 @@ void StatementBuilder::doWhileEnd()
     Statement* substat = blocks.back()->pop_stat();
     blocks.back()->push_stat(new DoWhileStatement(substat, fragments[0]));
     fragments.pop();
-}
-
-void StatementBuilder::ifBegin()
-{
-}
-
-void StatementBuilder::ifElse()
-{
 }
 
 void StatementBuilder::ifEnd(bool elsePart)

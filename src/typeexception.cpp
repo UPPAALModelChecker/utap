@@ -22,14 +22,3 @@
 #include "utap/builder.h"
 
 using namespace UTAP;
-
-TypeException::TypeException(std::string msg)
-    : runtime_error(msg)
-{
-
-}
-
-TypeException::TypeException(const boost::format &format) 
-    : runtime_error(format.str())
-{
-}

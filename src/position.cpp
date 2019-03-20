@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -27,7 +27,7 @@ using std::vector;
 
 using namespace UTAP;
 
-void Positions::add(uint32_t position, uint32_t offset, uint32_t line, string path)
+void Positions::add(uint32_t position, uint32_t offset, uint32_t line, const string& path)
 {
     if (!elements.empty() && position < elements.back().position)
     {
@@ -75,21 +75,21 @@ void Positions::dump()
     }
 }
 
-std::ostream &operator <<(std::ostream &out, const UTAP::error_t &e) 
+std::ostream &operator <<(std::ostream &out, const UTAP::error_t &e)
 {
     if (e.start.path.empty())
     {
-        out << e.msg << " at line "
+        out << e.message << " at line "
             << e.start.line << " column " << (e.position.start - e.start.position)
-            << " to line " 
+            << " to line "
             << e.end.line << " column " << (e.position.end - e.end.position);
     }
     else
     {
-        out << e.msg << " in " << e.start.path << " at line "
+        out << e.message << " in " << e.start.path << " at line "
             << e.start.line << " column " << (e.position.start - e.start.position)
-            << " to line " 
+            << " to line "
             << e.end.line << " column " << (e.position.end - e.end.position);
     }
     return out;
-};
+}

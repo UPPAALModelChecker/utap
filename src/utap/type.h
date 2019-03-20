@@ -22,11 +22,12 @@
 #ifndef UTAP_TYPE_HH
 #define UTAP_TYPE_HH
 
-#include <inttypes.h>
-#include <string>
-
 #include "utap/common.h"
 #include "utap/position.h"
+
+#include <cinttypes>
+#include <string>
+#include <memory> // shared_ptr
 
 namespace UTAP
 {
@@ -94,21 +95,21 @@ namespace UTAP
     private:
         struct child_t;
         struct type_data;
-        type_data *data;
+        std::shared_ptr<type_data> data;
 
-        explicit type_t(Constants::kind_t kind, 
+        explicit type_t(Constants::kind_t kind,
                         const position_t &pos, size_t size);
     public:
         /** 
          * Default constructor. This creates a null-type.
          */
-        type_t();
+        type_t(){};
 
         /** Copy constructor. */
         type_t(const type_t &);
 
         /** Destructor. */
-        ~type_t();
+        ~type_t(){};
 
         /** Assignment operator. */
         const type_t &operator = (const type_t &);
@@ -182,7 +183,7 @@ namespace UTAP
          * given label. Returns -1 if such a field does not
          * exist. @pre isRecord() or isProcess().
          */
-        int32_t findIndexOf(std::string) const;
+        int32_t findIndexOf(const std::string&) const;
 
         /**
          * Returns the range of a RANGE type. @pre isRange().
@@ -336,7 +337,7 @@ namespace UTAP
          * with a LABEL \a to. As always, a type is immutable, so a
          * copy of the type will be created.
          */
-        type_t rename(std::string from, std::string to) const;
+        type_t rename(const std::string& from, const std::string& to) const;
 
         /**
          * Substitutes any occurence of \a symbol in any expression in
@@ -352,14 +353,14 @@ namespace UTAP
         type_t createPrefix(Constants::kind_t kind, position_t = position_t()) const;
 
         /** Creates a LABEL. */
-        type_t createLabel(std::string, position_t = position_t()) const;
+        type_t createLabel(const std::string&, position_t = position_t()) const;
 
         /**  */
         type_t createPosition(position_t = position_t()) const;
 
         /** 
          */
-        static type_t createRange(type_t, expression_t, expression_t, 
+        static type_t createRange(type_t, expression_t, expression_t,
                                   position_t = position_t());
 
         /** Create a primitive type. */
@@ -370,7 +371,8 @@ namespace UTAP
         static type_t createArray(type_t sub, type_t size, position_t = position_t());
 
         /** Creates a new type definition. */
-        static type_t createTypeDef(std::string, type_t, position_t = position_t());
+        static type_t createTypeDef(const std::string&, type_t,
+                                    position_t = position_t());
 
         /** Creates a new process type. */
         static type_t createProcess(frame_t, position_t = position_t());
@@ -379,14 +381,14 @@ namespace UTAP
         static type_t createProcessSet(type_t instance, position_t = position_t());
 
         /** Creates a new record type */
-        static type_t createRecord(const std::vector<type_t> &, 
-                                   const std::vector<std::string> &, 
+        static type_t createRecord(const std::vector<type_t> &,
+                                   const std::vector<std::string> &,
                                    position_t = position_t());
 
         /** Creates a new function type */
-        static type_t createFunction(type_t, 
-                                     const std::vector<type_t> &, 
-                                     const std::vector<std::string> &, 
+        static type_t createFunction(type_t,
+                                     const std::vector<type_t> &,
+                                     const std::vector<std::string> &,
                                      position_t = position_t());
 
         /** Creates a new instance type */

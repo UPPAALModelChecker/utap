@@ -22,11 +22,7 @@
 #ifndef UTAP_COMMON_HH
 #define UTAP_COMMON_HH
 
-#ifdef __MINGW32__
-#include <stdint.h>
-#else
-#include <inttypes.h>
-#endif
+#include <cinttypes>
 #include <string>
 #include <vector>
 
@@ -82,21 +78,22 @@ namespace UTAP
             FORALL,
             EXISTS,
             SUM,
-            
+
             /********************************************************
              * Built-in functions
              */
-            COS_F,
-            SIN_F,
-            LOG_F,
-            EXP_F,
-            SQRT_F,
-            RANDOM_F,
-            FABS_F,
-            LN_F,
-            POW_F,
-            CEIL_F,
-            FLOOR_F,
+            ABS_F, FABS_F, FMOD_F, FMA_F, FMAX_F, FMIN_F, FDIM_F,
+            EXP_F, EXP2_F, EXPM1_F, LN_F, LOG_F, LOG10_F, LOG2_F, LOG1P_F,
+            POW_F, SQRT_F, CBRT_F, HYPOT_F,
+            SIN_F, COS_F, TAN_F, ASIN_F, ACOS_F, ATAN_F, ATAN2_F,
+            SINH_F, COSH_F, TANH_F, ASINH_F, ACOSH_F, ATANH_F,
+            ERF_F, ERFC_F, TGAMMA_F, LGAMMA_F,
+            CEIL_F, FLOOR_F, TRUNC_F, ROUND_F, FINT_F,
+            LDEXP_F, ILOGB_F, LOGB_F, NEXTAFTER_F, COPYSIGN_F,
+            FPCLASSIFY_F, ISFINITE_F, ISINF_F, ISNAN_F, ISNORMAL_F, SIGNBIT_F,
+            ISUNORDERED_F,
+            RANDOM_F, RANDOM_ARCSINE_F, RANDOM_BETA_F, RANDOM_GAMMA_F,
+            RANDOM_NORMAL_F, RANDOM_POISSON_F, RANDOM_WEIBULL_F, RANDOM_TRI_F,
 
             /********************************************************
              * Assignment operators
@@ -127,10 +124,10 @@ namespace UTAP
             EF_R_Piotr,
             A_BUCHI,
             PMAX,
-            PROBAMINBOX,
-            PROBAMINDIAMOND,
-            PROBABOX,
-            PROBADIAMOND,
+            PROBAMINBOX,    //#runs,(boundType|bounded-expr),bound,predicate,prob-bound
+            PROBAMINDIAMOND,//#runs,(boundType|bounded-expr),bound,predicate,prob-bound
+            PROBABOX,       //#runs,(boundType|bounded-expr),bound,predicate,until-pred
+            PROBADIAMOND,   //#runs,(boundType|bounded-expr),bound,predicate,until-pred
             PROBACMP,
             PROBAEXP,
             SIMULATE,
@@ -266,7 +263,11 @@ namespace UTAP
             SYNC_BANG,
             SYNC_CSP
         };
+
     }
+
+    /** Synchronization usage options: I/O (with ? or !) or CSP (plain) */
+    enum class sync_use_t { unused, io, csp };
 
     /** Type for specifying which XTA part to parse (syntax switch) */
     typedef enum

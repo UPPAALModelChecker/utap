@@ -98,7 +98,7 @@ range_t range_t::operator& (const range_t &r) const
 
 bool range_t::contains(const range_t &r) const
 {
-    return lower <= r.lower && r.upper <= r.upper;
+    return lower <= r.lower && r.upper <= upper;
 }
 
 bool range_t::contains(int32_t value) const
@@ -127,7 +127,7 @@ struct symbol_t::symbol_data
     string name;        // The name of the symbol
 };
 
-symbol_t::symbol_t(void *frame, type_t type, string name, void *user)
+symbol_t::symbol_t(void *frame, type_t type, const string& name, void *user)
 {
     data = new symbol_data;
     data->count = 1;
@@ -230,7 +230,7 @@ string symbol_t::getName() const
     return data->name;
 }
 
-void symbol_t::setName(string name)
+void symbol_t::setName(const string& name)
 {
     data->name = name;
 }
@@ -349,7 +349,7 @@ const symbol_t frame_t::operator[](int32_t n) const
 }
 
 /* Adds a symbol of the given name and type to the frame */
-symbol_t frame_t::addSymbol(string name, type_t type, void *user)
+symbol_t frame_t::addSymbol(const string& name, type_t type, void *user)
 {
     symbol_t symbol(data, type, name, user);
     data->symbols.push_back(symbol);
@@ -418,7 +418,7 @@ void frame_t::remove(symbol_t s)
     }
 }
 
-int32_t frame_t::getIndexOf(string name) const
+int32_t frame_t::getIndexOf(const string& name) const
 {
     map<string, int32_t>::const_iterator i = data->mapping.find(name);
     return (i == data->mapping.end() ? -1 : i->second);
@@ -443,7 +443,7 @@ int32_t frame_t::getIndexOf(symbol_t symbol) const
    Resolves the name in this frame or the parent frame and
    returns the corresponding symbol.
 */
-bool frame_t::resolve(string name, symbol_t &symbol)
+bool frame_t::resolve(const string& name, symbol_t &symbol)
 {
     int32_t idx = getIndexOf(name);
     if (idx == -1)
@@ -455,7 +455,7 @@ bool frame_t::resolve(string name, symbol_t &symbol)
 }
 
 /* Returns the parent frame */
-frame_t frame_t::getParent() throw (NoParentException)
+frame_t frame_t::getParent() // throw (NoParentException)
 {
     if (!data->hasParent)
     {

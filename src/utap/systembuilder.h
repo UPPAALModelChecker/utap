@@ -22,12 +22,12 @@
 #ifndef UTAP_SYSTEMBUILDER_H
 #define UTAP_SYSTEMBUILDER_H
 
-#include <cassert>
-#include <vector>
-#include <inttypes.h>
-
 #include "utap/statementbuilder.h"
 #include "utap/utap.h"
+
+#include <cinttypes>
+#include <cassert>
+#include <vector>
 
 namespace UTAP
 {
@@ -100,9 +100,9 @@ namespace UTAP
 
         declarations_t *getCurrentDeclarationBlock();
 
-        virtual variable_t *addVariable(type_t type, const char*  name,
-                                        expression_t init);
-        virtual bool addFunction(type_t type, const char* name);
+        variable_t *addVariable(type_t type, const char*  name,
+                                        expression_t init) override;
+        bool addFunction(type_t type, const char* name) override;
 
         void addSelectSymbolToFrame(const char* name, frame_t&);
         void declHybridRec(expression_t);
@@ -110,62 +110,62 @@ namespace UTAP
     public:
         SystemBuilder(TimedAutomataSystem *);
 
-        virtual void ganttDeclStart(const char* name);
-        virtual void ganttDeclSelect(const char *id);
-        virtual void ganttDeclEnd();
-        virtual void ganttEntryStart();
-        virtual void ganttEntrySelect(const char *id);
-        virtual void ganttEntryEnd();
-        virtual void declProgress(bool);
-        virtual void procBegin(const char* name, const bool isTA = true,
-                const std::string type = "", const std::string mode = "");
-        virtual void procEnd();
-        virtual void procState(const char* name, bool hasInvariant, bool hasER);
-        virtual void procStateCommit(const char* name);
-        virtual void procStateUrgent(const char* name);
-        virtual void procStateInit(const char* name);
-        virtual void procBranchpoint(const char* name);
-        virtual void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname);
-        virtual void procEdgeEnd(const char* from = 0, const char* to = 0);
-        virtual void procSelect(const char *id);
-        virtual void procGuard();
-        virtual void procSync(Constants::synchronisation_t type);
-        virtual void procUpdate();
-        virtual void procProb();
-        virtual void instantiationBegin(const char*, size_t, const char*);
-        virtual void instantiationEnd(
-            const char *, size_t, const char *, size_t);
-        virtual void process(const char*);
-        virtual void processListEnd();
-        virtual void done();
-        virtual void beforeUpdate();
-        virtual void afterUpdate();
-        virtual void beginChanPriority();
-        virtual void addChanPriority(char separator);
-        virtual void defaultChanPriority();
-        virtual void incProcPriority();
-        virtual void procPriority(const char*);
-        virtual void procInstanceLine();
-        virtual void instanceName(const char* name, bool templ=true);
-        virtual void instanceNameBegin(const char *name);
-        virtual void instanceNameEnd(const char *name, size_t arguments);
-        virtual void procMessage(const char* from, const char* to, const int loc, const bool pch);
-        virtual void procMessage(Constants::synchronisation_t type);
-        virtual void procCondition(const std::vector<char*> anchors, const int loc,
-        		const bool pch, const bool hot);
-        virtual void procCondition(); // Label
-        virtual void procLscUpdate(const char* anchor, const int loc, const bool pch);
-        virtual void procLscUpdate(); // Label
-        virtual void hasPrechart(const bool pch);
+        void ganttDeclStart(const char* name) override;
+        void ganttDeclSelect(const char *id) override;
+        void ganttDeclEnd() override;
+        void ganttEntryStart() override;
+        void ganttEntrySelect(const char *id) override;
+        void ganttEntryEnd() override;
+        void declProgress(bool) override;
+        void procBegin(const char* name, const bool isTA = true,
+                const std::string type = "", const std::string mode = "") override;
+        void procEnd() override;
+        void procState(const char* name, bool hasInvariant, bool hasER) override;
+        void procStateCommit(const char* name) override;
+        void procStateUrgent(const char* name) override;
+        void procStateInit(const char* name) override;
+        void procBranchpoint(const char* name) override;
+        void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname) override;
+        void procEdgeEnd(const char* from = 0, const char* to = 0) override;
+        void procSelect(const char *id) override;
+        void procGuard() override;
+        void procSync(Constants::synchronisation_t type) override;
+        void procUpdate() override;
+        void procProb() override;
+        void instantiationBegin(const char*, size_t, const char*) override;
+        void instantiationEnd(
+            const char *, size_t, const char *, size_t) override;
+        void process(const char*) override;
+        void processListEnd() override;
+        void done() override;
+        void beforeUpdate() override;
+        void afterUpdate() override;
+        void beginChanPriority() override;
+        void addChanPriority(char separator) override;
+        void defaultChanPriority() override;
+        void incProcPriority() override;
+        void procPriority(const char*) override;
+        void procInstanceLine() override;
+        void instanceName(const char* name, bool templ=true) override;
+        void instanceNameBegin(const char *name) override;
+        void instanceNameEnd(const char *name, size_t arguments) override;
+        void procMessage(const char* from, const char* to, const int loc, const bool pch) override;
+        void procMessage(Constants::synchronisation_t type) override;
+        void procCondition(const std::vector<char*> anchors, const int loc,
+        		const bool pch, const bool hot) override;
+        void procCondition() override; // Label
+        void procLscUpdate(const char* anchor, const int loc, const bool pch) override;
+        void procLscUpdate() override; // Label
+        void hasPrechart(const bool pch) override;
 
-        virtual void exprSync(Constants::synchronisation_t type);
-        virtual void declIO(const char*,int,int);
-        virtual void declDynamicTemplate (std::string);
+        void exprSync(Constants::synchronisation_t type) override;
+        void declIO(const char*,int,int) override;
+        void declDynamicTemplate(const std::string&) override;
 
-        virtual void queryBegin();
-        virtual void queryFormula(const char* formula, const char* location);
-        virtual void queryComment(const char* comment);
-        virtual void queryEnd();
+        void queryBegin() override;
+        void queryFormula(const char* formula, const char* location) override;
+        void queryComment(const char* comment) override;
+        void queryEnd() override;
     };
 }
 #endif

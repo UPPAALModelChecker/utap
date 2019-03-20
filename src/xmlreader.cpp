@@ -19,6 +19,13 @@
    USA
  */
 
+#include "libparser.h"
+#ifdef ENABLE_SBML
+#include "utap/sbmlconverter.h"
+#endif
+
+#include "utap/position.h"
+
 #include <libxml/xmlreader.h>
 #include <libxml/xpath.h>
 #include <libxml/parser.h>
@@ -26,20 +33,13 @@
 #include <stdexcept>
 #include <cstdarg>
 #include <cctype>
+#include <cstring>
 #include <cassert>
 #include <algorithm>
 #include <list>
 #include <vector>
 #include <map>
 #include <sstream>
-
-#include "libparser.h"
-#ifdef ENABLE_SBML
-#include "utap/sbmlconverter.h"
-#endif
-
-#include <string.h>
-#include "utap/position.h"
 
 using std::map;
 using std::vector;
@@ -1000,7 +1000,7 @@ namespace UTAP {
                 string name = getName(ref);
                 try {
                     parser->procStateInit(name.c_str());
-                } catch (TypeException te) {
+                } catch (TypeException& te) {
                     parser->handleError(te.what());
                 }
             } else {

@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2015 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -24,25 +24,10 @@
 #include "utap/typechecker.h"
 #include "utap/system.h"
 
+#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <string>
-
-#if defined(__MINGW32__) || defined(__CYGWIN32__) || !defined(HAVE_UNISTD_H) 
-extern "C" {
-    extern int getopt(int argc, char * const argv[], const char *optstring);
-    extern char *optarg;
-    extern int optind, opterr, optopt;
-}
-#endif
-
-#ifdef __MINGW32__
-#include <stdint.h>
-#include <windows.h>
-#else
-#include <inttypes.h>
-#include <sys/param.h>
-#endif
 
 using UTAP::ParserBuilder;
 using UTAP::SystemBuilder;
@@ -156,7 +141,7 @@ int main(int argc, char *argv[])
             parseXTA(argv[optind], &system, !old);
         }
     }
-    catch (TypeException e)
+    catch (TypeException& e)
     {
         cerr << e.what() << endl;
     }

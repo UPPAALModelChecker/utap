@@ -19,18 +19,18 @@
    USA
 */
 
+#include "utap/systembuilder.h"
+
 #include <vector>
 #include <climits>
 #include <cmath>
 #include <cstring>
 #include <cstdio>
 #include <cassert>
-#include <inttypes.h>
+#include <cinttypes>
 #include <stdexcept>
 #include <sstream>
 #include <boost/tuple/tuple.hpp>
-
-#include "utap/systembuilder.h"
 
 using namespace UTAP;
 using namespace Constants;
@@ -42,8 +42,8 @@ using std::min;
 using std::max;
 using std::string;
 
-SystemBuilder::SystemBuilder(TimedAutomataSystem *system)
-    : StatementBuilder(system)
+SystemBuilder::SystemBuilder(TimedAutomataSystem *_system)
+    : StatementBuilder(_system)
 {
     currentEdge = NULL;
     currentGantt = NULL;
@@ -180,7 +180,7 @@ void SystemBuilder::procBegin(const char* name, const bool isTA,
         const string type, const string mode)
 {
     currentTemplate = system->getDynamicTemplate (std::string(name));
-    if (currentTemplate) {      
+    if (currentTemplate) {
 /* check if parameters match */
         if (currentTemplate->parameters.getSize () != params.getSize ()) {
             handleError("Inconsistent parameters");
@@ -190,23 +190,23 @@ void SystemBuilder::procBegin(const char* name, const bool isTA,
                 if (params[i].getName () != currentTemplate->parameters[i].getName () || params[i].getType ().getKind() != currentTemplate->parameters[i].getType ().getKind ())
                     handleError("Inconsistent parameters");
             }
-            
+
         }
         currentTemplate->isDefined = true;
     }
     else {
-    
+
         if (frames.top().getIndexOf(name) != -1)
         {
             boost::format err = boost::format("$Duplicate_definition_of %1%") % name;
             handleError(err.str());
         }
-        
+
         vector<string>::iterator result;
-        
+
         //we search if the given name is a name of LSC
         result = find( lscTemplateNames.begin(), lscTemplateNames.end(), string(name));
-        
+
         bool b = (!isTA)? false : (result == lscTemplateNames.end());
         if (b) //TA
         {
@@ -404,9 +404,9 @@ void SystemBuilder::instantiationEnd(
 {
     /* Parameters are at the top of the frame stack.
      */
-    frame_t params = frames.top();
+    frame_t pars = frames.top();
     popFrame();
-    assert(parameters == params.getSize());
+    assert(parameters == pars.getSize());
 
     /* Lookup symbol. In case of failure, instantiationBegin already
      * reported the problem.
@@ -444,8 +444,8 @@ void SystemBuilder::instantiationEnd(
             /* Create template composition.
              */
             instance_t &new_instance = (id.getType().getKind() == INSTANCE) ?
-                    system->addInstance(name, *old_instance, params, exprs) :
-                    system->addLscInstance(name, *old_instance, params, exprs);
+                    system->addInstance(name, *old_instance, pars, exprs) :
+                    system->addLscInstance(name, *old_instance, pars, exprs);
 
             /* Propagate information about restricted variables. The
              * variables used in arguments to restricted parameters of
@@ -607,9 +607,9 @@ void SystemBuilder::instanceNameEnd(const char *name, size_t arguments)
     vector<expression_t>::const_iterator itr;
     /* Parameters are at the top of the frame stack.
      */
-    frame_t params = frames.top();
+    frame_t pars = frames.top();
     popFrame();
-    //assert(parameters == params.getSize());
+    //assert(parameters == pars.getSize());
 
     /* Lookup symbol. In case of failure, instanceNameBegin already
      * reported the problem.
@@ -655,7 +655,7 @@ void SystemBuilder::instanceNameEnd(const char *name, size_t arguments)
             instanceName(i_name.c_str()); //std::cout << "instance line name: " << i_name << std::endl;
             /* Create template composition.
              */
-            currentInstanceLine->addParameters(*old_instance, params, exprs);
+            currentInstanceLine->addParameters(*old_instance, pars, exprs);
 
             /* Propagate information about restricted variables. The
              * variables used in arguments to restricted parameters of
@@ -747,7 +747,8 @@ void SystemBuilder::procCondition()
 /**
  * Add an update to the current template.
  */
-void SystemBuilder::procLscUpdate(const char* anchor, const int loc, const bool pch){
+void SystemBuilder::procLscUpdate(const char* anchor, const int loc, const bool pch)
+{
     symbol_t anchorid;
 
     if (!resolve(anchor, anchorid) || !anchorid.getType().isInstanceLine())
@@ -811,30 +812,32 @@ void SystemBuilder::declIO(const char* name, int nbParam, int nbSync)
     currentIODecl = NULL;
 }
 
-void SystemBuilder::declDynamicTemplate (std::string name) {
+void SystemBuilder::declDynamicTemplate(const std::string& name)
+{
     assert(!currentTemplate);
     /* check if name already exists */
-    if (frames.top().getIndexOf(name) != -1) 
+    if (frames.top().getIndexOf(name) != -1)
     {
         boost::format err = boost::format("$Duplicate_definition_of %1%") % name;
         handleError(err.str());
     }
 
-    for (size_t i = 0;i<params.getSize ();i++) 
-    {
-        if (!params[i].getType ().isInteger () && !params[i].getType ().isBoolean ()  && !(params[i].getType().is(REF) && params[i].getType ()[0].is (BROADCAST)))
-            handleError ("Parameters to a dynamic template must be either booleans or integers and cannot be references");
-    }  
-    
-    
-    system->addDynamicTemplate (name,params);
+    for (size_t i = 0; i<params.getSize(); ++i)
+        if (!params[i].getType().isInteger() &&
+            !params[i].getType().isBoolean() &&
+            !(params[i].getType().is(REF) &&
+              params[i].getType()[0].is(BROADCAST)))
+            handleError("Parameters to a dynamic template must be either booleans or integers and cannot be references");
 
-    params = frame_t::createFrame (); //reset params
+    system->addDynamicTemplate(name,params);
+
+    params = frame_t::createFrame(); //reset params
 }
 
-void SystemBuilder::queryBegin(){
+void SystemBuilder::queryBegin() {
     currentQuery = new query_t;
 }
+
 void SystemBuilder::queryFormula(const char* formula, const char* location)
 {
     if (formula) {
@@ -844,13 +847,15 @@ void SystemBuilder::queryFormula(const char* formula, const char* location)
         currentQuery->location = location;
     }
 }
+
 void SystemBuilder::queryComment(const char* comment)
 {
     if (comment) {
         currentQuery->comment = comment;
     }
 }
-void SystemBuilder::queryEnd(){
+void SystemBuilder::queryEnd()
+{
     system->addQuery(*currentQuery);
     delete currentQuery;
     currentQuery = NULL;

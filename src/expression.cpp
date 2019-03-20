@@ -1,8 +1,9 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2011-2018 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -18,16 +19,15 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA
 */
-
-#include <cassert>
-#include <algorithm>
-#include <stdexcept>
-
 #include "utap/builder.h"
 #include "utap/system.h"
 #include "utap/expression.h"
+#include "utap/statement.h" // ExpressionVisitor for function call analysis
 
-#include <string.h>
+#include <algorithm>
+#include <stdexcept>
+#include <cassert>
+#include <cstring>
 
 using namespace UTAP;
 using namespace Constants;
@@ -45,10 +45,9 @@ using Constants::synchronisation_t;
 
 struct expression_t::expression_data
 {
-    int count;                  /**< Reference counter */
     position_t position;        /**< The position of the expression */
     kind_t kind;                /**< The kind of the node */
-    union 
+    union
     {
         int32_t value;          /**< The value of the node */
         int32_t index;
@@ -57,31 +56,26 @@ struct expression_t::expression_data
     };
     symbol_t symbol;            /**< The symbol of the node */
     type_t type;                /**< The type of the expression */
-    expression_t *sub;          /**< Subexpressions */
+    std::vector<expression_t> sub;/**< Subexpressions */
+//    expression_data(){}
+    expression_data(position_t p, kind_t k, int32_t v):
+        position(p), kind(k), value(v) {}
 };
-
-expression_t::expression_t()
-{
-    data = NULL;
-}
 
 expression_t::expression_t(kind_t kind, const position_t &pos)
 {
-    data = new expression_data;
-    data->count = 1;
-    data->kind = kind;
-    data->position = pos;
-    data->value = 0;
-    data->sub = NULL;
+    data = std::make_shared<expression_data>(pos, kind, 0);
 }
 
 expression_t::expression_t(const expression_t &e)
 {
+    *this = e;
+}
+
+expression_t& expression_t::operator=(const expression_t &e)
+{
     data = e.data;
-    if (data)
-    {
-        data->count++;
-    }
+    return *this;
 }
 
 expression_t expression_t::clone() const
@@ -90,11 +84,8 @@ expression_t expression_t::clone() const
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
-    if (data->sub)
-    {
-        expr.data->sub = new expression_t[getSize()];
-        std::copy(data->sub, data->sub + getSize(), expr.data->sub);
-    }
+    expr.data->sub.reserve(data->sub.size());
+    expr.data->sub.assign(data->sub.begin(), data->sub.end());
     return expr;
 }
 
@@ -104,12 +95,11 @@ expression_t expression_t::deeperClone() const
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
-    if (data->sub)
+    if (!data->sub.empty())
     {
-        expr.data->sub = new expression_t[getSize()];
-        for (unsigned int i = 0; i < getSize(); ++i) {
-            expr.data->sub[i] = data->sub[i].deeperClone();
-        }
+        expr.data->sub.reserve(data->sub.size());
+        for (const auto& s: data->sub)
+            expr.data->sub.push_back(s.deeperClone());
     }
     return expr;
 }
@@ -119,17 +109,13 @@ expression_t expression_t::deeperClone(symbol_t from, symbol_t to) const
     expression_t expr(data->kind, data->position);
     expr.data->value = data->value;
     expr.data->type = data->type;
-    if (data->symbol == from) {
-        expr.data->symbol = to;
-    } else {
-    	expr.data->symbol = data->symbol;
-    }
-    if (data->sub)
+    expr.data->symbol = (data->symbol == from) ? to : data->symbol;
+
+    if (!data->sub.empty())
     {
-        expr.data->sub = new expression_t[getSize()];
-        for (unsigned int i = 0; i < getSize(); ++i) {
-            expr.data->sub[i] = data->sub[i].deeperClone(from, to);
-        }
+        expr.data->sub.reserve(data->sub.size());
+        for (const auto& s: data->sub)
+            expr.data->sub.push_back(s.deeperClone(from, to));
     }
     return expr;
 }
@@ -143,7 +129,8 @@ expression_t expression_t::deeperClone(frame_t frame, frame_t select) const
     if (data->symbol != symbol_t())
     {
         bool res = frame.resolve(data->symbol.getName(), uid);
-        if (!res && select != frame_t()) {
+        if (!res && select != frame_t())
+        {
             res = select.resolve(data->symbol.getName(), uid);
         }
         assert(res);
@@ -154,12 +141,11 @@ expression_t expression_t::deeperClone(frame_t frame, frame_t select) const
         expr.data->symbol = data->symbol;
     }
 
-    if (data->sub)
+    if (!data->sub.empty())
     {
-        expr.data->sub = new expression_t[getSize()];
-        for (unsigned int i = 0; i < getSize(); ++i) {
-            expr.data->sub[i] = data->sub[i].deeperClone(frame, select);
-        }
+        expr.data->sub.reserve(data->sub.size());
+        for (const auto& s: data->sub)
+            expr.data->sub.push_back(s.deeperClone(frame, select));
     }
     return expr;
 }
@@ -191,15 +177,6 @@ expression_t expression_t::subst(symbol_t symbol, expression_t expr) const
 
 expression_t::~expression_t()
 {
-    if (data) 
-    {
-        data->count--;
-        if (data->count == 0) 
-        {
-            delete[] data->sub;
-            delete data;
-        }
-    }
 }
 
 kind_t expression_t::getKind() const
@@ -214,6 +191,23 @@ const position_t &expression_t::getPosition() const
     return data->position;
 }
 
+class FPStatementVisitor: public ExpressionVisitor
+{
+    bool seenFP = false;
+protected:
+    void visitExpression(expression_t expr) override {
+        seenFP |= expr.usesFP();
+    };
+public:
+    bool operator()(Statement* s) {
+        seenFP = false;
+        s->accept(this);
+        return seenFP;
+    }
+};
+
+bool checkForFP(Statement* s) { return FPStatementVisitor{}(s); }
+
 bool expression_t::usesFP() const
 {
     if (empty())
@@ -226,19 +220,76 @@ bool expression_t::usesFP() const
     }
     switch(data->kind)
     {
-    case COS_F:
-    case SIN_F:
-    case EXP_F:
-    case LOG_F:
-    case SQRT_F:
-    case RANDOM_F:
-    case LN_F:
     case FABS_F:
+    case FMOD_F:
+    case FMA_F:
+    case FMAX_F:
+    case FMIN_F:
+    case FDIM_F:
+    case EXP_F:
+    case EXP2_F:
+    case EXPM1_F:
+    case LN_F:
+    case LOG_F:
+    case LOG10_F:
+    case LOG2_F:
+    case LOG1P_F:
+    case POW_F:
+    case SQRT_F:
+    case CBRT_F:
+    case HYPOT_F:
+    case SIN_F:
+    case COS_F:
+    case TAN_F:
+    case ASIN_F:
+    case ACOS_F:
+    case ATAN_F:
+    case ATAN2_F:
+    case SINH_F:
+    case COSH_F:
+    case TANH_F:
+    case ASINH_F:
+    case ACOSH_F:
+    case ATANH_F:
+    case ERF_F:
+    case ERFC_F:
+    case TGAMMA_F:
+    case LGAMMA_F:
     case CEIL_F:
     case FLOOR_F:
-    case POW_F:
+    case TRUNC_F:
+    case ROUND_F:
+    case FINT_F:
+    case LDEXP_F:
+    case ILOGB_F:
+    case LOGB_F:
+    case NEXTAFTER_F:
+    case COPYSIGN_F:
+    case FPCLASSIFY_F:
+    case ISFINITE_F:
+    case ISINF_F:
+    case ISNAN_F:
+    case ISNORMAL_F:
+    case SIGNBIT_F:
+    case ISUNORDERED_F:
+    case RANDOM_F:
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_POISSON_F:
+    case RANDOM_TRI_F:
+    case RANDOM_WEIBULL_F:
         return true;
-
+    case FUNCALL: {
+        auto& symbol = get(0).getSymbol();
+        if (symbol.getType().isFunction() && symbol.getData())
+        {
+            auto* fun = (function_t*)symbol.getData();
+            if (fun && fun->body && checkForFP(fun->body))
+                return true;
+        }
+    }
     default: ;
     }
 
@@ -275,13 +326,13 @@ bool expression_t::usesClock() const
     return false;
 }
 
-bool expression_t::isDynamic() const 
+bool expression_t::isDynamic() const
 {
     if (empty())
     {
         return false;
     }
-    else 
+    else
     {
         switch (data->kind)
         {
@@ -294,12 +345,12 @@ bool expression_t::isDynamic() const
             return true;
         default:
             ;
-        }   
+        }
     }
-    return false;   
+    return false;
 }
 
-bool expression_t::hasDynamicSub() const 
+bool expression_t::hasDynamicSub() const
 {
     bool hasIt = false;
     size_t n = getSize ();
@@ -309,13 +360,13 @@ bool expression_t::hasDynamicSub() const
     }
     else
     {
-        for (size_t i = 0;i<n;++i) 
+        for (size_t i = 0;i<n;++i)
         {
             if (get(i).isDynamic ())
             {
                 return true;
             }
-            else 
+            else
             {
                 hasIt |= get(i).hasDynamicSub ();
             }
@@ -332,7 +383,7 @@ size_t expression_t::getSize() const
         return 0;
     }
 
-    switch (data->kind) 
+    switch (data->kind)
     {
     case MINUS:
     case PLUS:
@@ -381,7 +432,22 @@ size_t expression_t::getSize() const
     case SUP_VAR:
     case INF_VAR:
     case FRACTION:
+    case FMOD_F:
+    case FMAX_F:
+    case FMIN_F:
+    case FDIM_F:
     case POW_F:
+    case HYPOT_F:
+    case ATAN2_F:
+    case LDEXP_F:
+    case NEXTAFTER_F:
+    case COPYSIGN_F:
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_WEIBULL_F:
+        assert(data->sub.size() == 2);
         return 2;
 
     case UNARY_MINUS:
@@ -395,24 +461,63 @@ size_t expression_t::getSize() const
     case RATE:
     case SPECIFICATION:
     case IMPLEMENTATION:
-    case COS_F:
-    case SIN_F:
-    case EXP_F:
-    case LOG_F:
-    case SQRT_F:
-    case RANDOM_F:
+    case ABS_F:
     case FABS_F:
+    case EXP_F:
+    case EXP2_F:
+    case EXPM1_F:
     case LN_F:
+    case LOG_F:
+    case LOG10_F:
+    case LOG2_F:
+    case LOG1P_F:
+    case SQRT_F:
+    case CBRT_F:
+    case SIN_F:
+    case COS_F:
+    case TAN_F:
+    case ASIN_F:
+    case ACOS_F:
+    case ATAN_F:
+    case SINH_F:
+    case COSH_F:
+    case TANH_F:
+    case ASINH_F:
+    case ACOSH_F:
+    case ATANH_F:
+    case ERF_F:
+    case ERFC_F:
+    case TGAMMA_F:
+    case LGAMMA_F:
     case CEIL_F:
     case FLOOR_F:
+    case TRUNC_F:
+    case ROUND_F:
+    case FINT_F:
+    case ILOGB_F:
+    case LOGB_F:
+    case FPCLASSIFY_F:
+    case ISFINITE_F:
+    case ISINF_F:
+    case ISNAN_F:
+    case ISNORMAL_F:
+    case SIGNBIT_F:
+    case ISUNORDERED_F:
+    case RANDOM_F:
+    case RANDOM_POISSON_F:
+        assert(data->sub.size() == 1);
         return 1;
 
     case IDENTIFIER:
     case CONSTANT:
     case DEADLOCK:
+        assert(data->sub.size() == 0);
         return 0;
 
     case INLINEIF:
+    case FMA_F:
+    case RANDOM_TRI_F:
+        assert(data->sub.size() == 3);
         return 3;
 
     case FUNCALL:
@@ -424,7 +529,7 @@ size_t expression_t::getSize() const
     case SYNTAX_COMPOSITION:
     case SPAWN:
         return data->value;
-    
+
     case EG:
     case AG:
     case EF:
@@ -436,6 +541,7 @@ size_t expression_t::getSize() const
     case CONTROL_TOPT_DEF2:
     case PMAX:
     case SCENARIO:
+        assert(data->sub.size() == 1);
         return 1;
 
     case LEADSTO:
@@ -445,38 +551,45 @@ size_t expression_t::getSize() const
     case A_BUCHI:
     case PO_CONTROL:
     case CONTROL_TOPT_DEF1:
+        assert(data->sub.size() == 2);
         return 2;
 
     case CONTROL_TOPT:
     case SMC_CONTROL:
+        assert(data->sub.size() == 3);
         return 3;
     case PROBABOX:
     case PROBADIAMOND:
-        return 4;
-
     case PROBAMINBOX:
     case PROBAMINDIAMOND:
-        return 4;
+        assert(data->sub.size() == 5);
+        return 5;
 
     case PROBAEXP:
+        assert(data->sub.size() == 5);
         return 5;
 
     case PROBACMP:
-
+        assert(data->sub.size() == 8);
         return 8;
     case MITLFORMULA:
     case MITLATOM:
     case MITLNEXT:
+        assert(data->sub.size() == 1);
         return 1;
     case MITLDISJ:
     case MITLCONJ:
+        assert(data->sub.size() == 2);
         return 2;
     case MITLUNTIL:
     case MITLRELEASE:
+        assert(data->sub.size() == 4);
         return 4;
     case EXIT:
+        assert(data->sub.size() == 0);
         return 0;
     case NUMOF:
+        assert(data->sub.size() == 1);
         return 1;
     case EXISTSDYNAMIC:
     case FORALLDYNAMIC:
@@ -484,15 +597,17 @@ size_t expression_t::getSize() const
     case MITLEXISTS:
     case MITLFORALL:
     case FOREACHDYNAMIC:
-        return 3;    
+        assert(data->sub.size() == 3);
+        return 3;
     case DYNAMICEVAL:
+        assert(data->sub.size() == 2);
         return 2;
     default:
         assert(0);
         return 0;
     }
 }
-        
+
 type_t expression_t::getType() const
 {
     assert(data);
@@ -534,7 +649,7 @@ expression_t &expression_t::operator[](uint32_t i)
     assert(data && 0 <= i && i < getSize());
     return data->sub[i];
 }
-        
+
 const expression_t expression_t::operator[](uint32_t i) const
 {
     assert(data && 0 <= i && i < getSize());
@@ -565,7 +680,7 @@ bool expression_t::isTrue() const
 
 
 /** Two expressions are identical iff all the sub expressions
-    are identical and if the kind, value and symbol of the 
+    are identical and if the kind, value and symbol of the
     root are identical. */
 bool expression_t::equal(const expression_t &e) const
 {
@@ -593,25 +708,6 @@ bool expression_t::equal(const expression_t &e) const
     return true;
 }
 
-expression_t &expression_t::operator=(const expression_t &e)
-{
-    if (data) 
-    {
-        data->count--;
-        if (data->count == 0) 
-        {
-            delete[] data->sub;
-            delete data;
-        }
-    }
-    data = e.data;
-    if (data)
-    {
-        data->count++;
-    }
-    return *this;
-}
-        
 /**
    Returns the symbol of a variable reference. The expression must be
    a left-hand side value. The symbol returned is the symbol of the
@@ -619,7 +715,7 @@ expression_t &expression_t::operator=(const expression_t &e)
    case of inline if, the symbol referenced by the 'true' part is
    returned.
 */
-symbol_t expression_t::getSymbol() 
+symbol_t expression_t::getSymbol()
 {
     return ((const expression_t*)this)->getSymbol();
 }
@@ -628,24 +724,24 @@ const symbol_t expression_t::getSymbol() const
 {
     assert(data);
 
-    switch (getKind()) 
+    switch (getKind())
     {
     case IDENTIFIER:
         return data->symbol;
-      
+
     case DOT:
         return get(0).getSymbol();
-      
+
     case ARRAY:
         return get(0).getSymbol();
-      
+
     case PREINCREMENT:
     case PREDECREMENT:
         return get(0).getSymbol();
-    
+
     case INLINEIF:
         return get(1).getSymbol();
-      
+
     case COMMA:
         return get(1).getSymbol();
 
@@ -678,12 +774,12 @@ const symbol_t expression_t::getSymbol() const
 
 void expression_t::getSymbols(std::set<symbol_t> &symbols) const
 {
-    if (empty()) 
+    if (empty())
     {
         return;
     }
 
-    switch (getKind()) 
+    switch (getKind())
     {
     case IDENTIFIER:
         symbols.insert(data->symbol);
@@ -692,21 +788,21 @@ void expression_t::getSymbols(std::set<symbol_t> &symbols) const
     case DOT:
         get(0).getSymbols(symbols);
         break;
-      
+
     case ARRAY:
         get(0).getSymbols(symbols);
         break;
-      
+
     case PREINCREMENT:
     case PREDECREMENT:
         get(0).getSymbols(symbols);
         break;
-    
+
     case INLINEIF:
         get(1).getSymbols(symbols);
         get(2).getSymbols(symbols);
         break;
-      
+
     case COMMA:
         get(1).getSymbols(symbols);
         break;
@@ -727,7 +823,7 @@ void expression_t::getSymbols(std::set<symbol_t> &symbols) const
 
     case SYNC:
         get(0).getSymbols(symbols);
-        break;        
+        break;
 
     default:
         // Do nothing
@@ -740,8 +836,8 @@ void expression_t::getSymbols(std::set<symbol_t> &symbols) const
 bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
 {
     std::set<symbol_t> s;
-    getSymbols(s);    
-    return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end()) 
+    getSymbols(s);
+    return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end())
         != symbols.end();
 }
 
@@ -774,32 +870,32 @@ int expression_t::getPrecedence() const
     return getPrecedence(data->kind);
 }
 
-int expression_t::getPrecedence(kind_t kind) 
+int expression_t::getPrecedence(kind_t kind)
 {
-    switch (kind) 
+    switch (kind)
     {
     case PLUS:
     case MINUS:
         return 70;
-            
+
     case MULT:
     case DIV:
     case MOD:
         return 80;
-            
+
     case BIT_AND:
         return 37;
-            
+
     case BIT_OR:
         return 30;
-            
+
     case BIT_XOR:
         return 35;
 
     case BIT_LSHIFT:
     case BIT_RSHIFT:
         return 60;
-            
+
     case AND:
         return 25;
     case OR:
@@ -828,13 +924,13 @@ int expression_t::getPrecedence(kind_t kind)
     case REFINEMENT_GE:
     case SIMULATE:
         return 50;
-            
+
     case IDENTIFIER:
     case CONSTANT:
     case DEADLOCK:
     case FUNCALL:
         return 110;
-            
+
     case DOT:
     case ARRAY:
     case RATE:
@@ -843,7 +939,7 @@ int expression_t::getPrecedence(kind_t kind)
     case UNARY_MINUS:
     case NOT:
         return 90;
-            
+
     case FRACTION:
         return 14;
     case INLINEIF:
@@ -910,7 +1006,7 @@ int expression_t::getPrecedence(kind_t kind)
     case SUP_VAR:
     case INF_VAR:
         return 3;
-        
+
     case SYNC:
         return 0;
 
@@ -918,17 +1014,67 @@ int expression_t::getPrecedence(kind_t kind)
     case POSTDECREMENT:
     case PREINCREMENT:
     case POSTINCREMENT:
-    case COS_F:
-    case SIN_F:
+    case ABS_F:
+    case FABS_F:
+    case FMOD_F:
+    case FMA_F:
+    case FMAX_F:
+    case FMIN_F:
+    case FDIM_F:
     case EXP_F:
+    case EXP2_F:
+    case EXPM1_F:
+    case LN_F:
     case LOG_F:
+    case LOG10_F:
+    case LOG2_F:
+    case LOG1P_F:
+    case POW_F:
     case SQRT_F:
-    case RANDOM_F:
+    case CBRT_F:
+    case HYPOT_F:
+    case SIN_F:
+    case COS_F:
+    case TAN_F:
+    case ASIN_F:
+    case ACOS_F:
+    case ATAN_F:
+    case ATAN2_F:
+    case SINH_F:
+    case COSH_F:
+    case TANH_F:
+    case ASINH_F:
+    case ACOSH_F:
+    case ATANH_F:
+    case ERF_F:
+    case ERFC_F:
+    case TGAMMA_F:
+    case LGAMMA_F:
     case CEIL_F:
     case FLOOR_F:
-    case FABS_F:
-    case POW_F:
-    case LN_F:
+    case TRUNC_F:
+    case ROUND_F:
+    case FINT_F:
+    case LDEXP_F:
+    case ILOGB_F:
+    case LOGB_F:
+    case NEXTAFTER_F:
+    case COPYSIGN_F:
+    case FPCLASSIFY_F:
+    case ISFINITE_F:
+    case ISINF_F:
+    case ISNAN_F:
+    case ISNORMAL_F:
+    case SIGNBIT_F:
+    case ISUNORDERED_F:
+    case RANDOM_F:
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_POISSON_F:
+    case RANDOM_WEIBULL_F:
+    case RANDOM_TRI_F:
         return 100;
 
     case MITLFORMULA:
@@ -945,11 +1091,11 @@ int expression_t::getPrecedence(kind_t kind)
     case FORALLDYNAMIC:
     case EXISTSDYNAMIC:
     case FOREACHDYNAMIC:
-    case SUMDYNAMIC:    
+    case SUMDYNAMIC:
     case PROCESSVAR:
     case DYNAMICEVAL:
         return -1; // TODO
-        
+
     default:
         throw std::runtime_error("Strange expression");
     }
@@ -963,7 +1109,7 @@ static void ensure(char *&str, char *&end, int &size, int len)
     {
         size *= 2;
     }
-        
+
     char *nstr = new char[size];
     strncpy(nstr, str, end - str);
     end = nstr + (end - str);
@@ -979,12 +1125,12 @@ static void append(char *&str, char *&end, int &size, const char *s)
         *(end++) = *(s++);
     }
 
-    if (end == str + size) 
+    if (end == str + size)
     {
         ensure(str, end, size, 2 * size);
         append(str, end, size, s);
-    } 
-    else 
+    }
+    else
     {
         *end = 0;
     }
@@ -992,7 +1138,7 @@ static void append(char *&str, char *&end, int &size, const char *s)
 
 static void append(char *&str, char *&end, int &size, char c)
 {
-    if (size - (end - str) < 2) 
+    if (size - (end - str) < 2)
     {
         ensure(str, end, size, size + 2);
     }
@@ -1019,6 +1165,30 @@ void expression_t::appendBoundType(char *&str, char*&end, int &size, expression_
     append(str, end, size, "<=");
 }
 
+static
+const char* getBuiltinFunName(kind_t kind)
+{
+    // the order must match declarations in include/utap/common.h
+    static const char* funNames[] = {
+        "abs", "fabs", "fmod", "fma", "fmax", "fmin", "fdim",
+        "exp", "exp2", "expm1", "ln", "log", "log10", "log2", "log1p",
+        "pow", "sqrt", "cbrt", "hypot",
+        "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
+        "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+        "erf", "erfc", "tgamma", "lgamma",
+        "ceil", "floor", "trunc", "round", "fint",
+        "ldexp", "ilogb", "logb", "nextafter", "copysign",
+        "fpclassify", "isfinite", "isinf", "isnan", "isnormal", "signbit",
+        "isunordered", "random", "random_arcsine", "random_beta",
+        "random_gamma", "random_normal", "random_poisson",
+        "random_weibull", "random_tri"
+    };
+    static_assert(RANDOM_TRI_F-ABS_F+1 == sizeof(funNames)/sizeof(funNames[0]),
+        "Builtin function name list is wrong");
+    assert(ABS_F <= kind && kind <= RANDOM_TRI_F);
+    return funNames[kind-ABS_F];
+}
+
 void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 {
     char s[64];
@@ -1026,18 +1196,20 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     bool flag = false;
     int nb;
 
-    switch (data->kind) 
+    switch (data->kind)
     {
     case PROBAMINBOX:
         flag = true;
     case PROBAMINDIAMOND:
         append(str,end, size, "Pr[");
-        appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
-        append(str,end, size, flag ? "]([] " : "](<> ");
+        appendBoundType(str, end, size, get(1));
         get(2).toString(old, str, end, size);
+        if (get(0).getValue()>0)
+            get(0).toString(old, str, end, size);
+        append(str,end, size, flag ? "]([] " : "](<> ");
+        get(3).toString(old, str, end, size);
         append(str,end, size, ") >= ");
-        snprintf(s,sizeof(s),"%f",get(3).getDoubleValue());
+        snprintf(s,sizeof(s),"%f",get(4).getDoubleValue());
         append(str,end, size, s);
         break;
 
@@ -1045,22 +1217,24 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         flag = true;
     case PROBADIAMOND:
         append(str, end, size, "Pr[");
-        appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
-        append(str, end, size, flag ? "]([] " : "](<> ");
+        appendBoundType(str, end, size, get(1));
         get(2).toString(old, str, end, size);
+        if (get(0).getValue()>0)
+            get(0).toString(old, str, end, size);
+        append(str, end, size, flag ? "]([] " : "](<> ");
+        get(3).toString(old, str, end, size);
         append(str, end, size, ") ?");
         break;
 
     case PROBAEXP:
         append(str, end, size, "E[");
-        appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
-        append(str, end, size, "; ");
+        appendBoundType(str, end, size, get(1));
         get(2).toString(old, str, end, size);
+        append(str, end, size, "; ");
+        get(0).toString(old, str, end, size);
         append(str, end, size, "] (");
-        append(str, end, size, get(4).getValue() ? "max: " : "min: ");
-        get(3).toString(old, str, end, size);
+        append(str, end, size, get(3).getValue() ? "max: " : "min: ");
+        get(4).toString(old, str, end, size);
         append(str, end, size, ")");
         break;
 
@@ -1074,7 +1248,8 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         nb = getValue() - 3;
         for(int i = 0; i < nb; ++i)
         {
-            if (i > 0) append(str, end, size, ", ");
+            if (i > 0)
+                append(str, end, size, ", ");
             get(3+i).toString(old, str, end, size);
         }
         append(str, end, size, "}");
@@ -1085,7 +1260,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     case TIOCOMPOSITION:
         append(str, end, size, "(");
         get(0).toString(old, str, end, size);
-        for (uint32_t i = 1; i < getSize(); i++) 
+        for (uint32_t i = 1; i < getSize(); i++)
         {
             append(str, end, size, flag ? " && " : " || ");
             get(i).toString(old, str, end, size);
@@ -1096,7 +1271,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     case SYNTAX_COMPOSITION:
         append(str, end, size, "(");
         get(0).toString(old, str, end, size);
-        for (uint32_t i = 1; i < getSize(); i++) 
+        for (uint32_t i = 1; i < getSize(); i++)
         {
             append(str, end, size, " + ");
             get(i).toString(old, str, end, size);
@@ -1196,8 +1371,8 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         {
             append(str, end, size, ')');
         }
-        
-        switch (data->kind) 
+
+        switch (data->kind)
         {
         case FRACTION:
             append(str, end, size, " : ");
@@ -1308,7 +1483,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         default:
             assert(0);
         }
-        
+
         if (precedence >= get(1).getPrecedence())
         {
             append(str, end, size, '(');
@@ -1323,7 +1498,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     case IDENTIFIER:
         append(str, end, size, data->symbol.getName().c_str());
         break;
-                
+
     case CONSTANT:
         if (getType().is(Constants::DOUBLE))
         {
@@ -1342,13 +1517,13 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         break;
 
     case ARRAY:
-        if (precedence > get(0).getPrecedence()) 
+        if (precedence > get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(0).toString(old, str, end, size);
         }
@@ -1356,16 +1531,16 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         get(1).toString(old, str, end, size);
         append(str, end, size, ']');
         break;
-            
+
     case UNARY_MINUS:
         append(str, end, size, '-');
-        if (precedence > get(0).getPrecedence()) 
+        if (precedence > get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(0).toString(old, str, end, size);
         }
@@ -1373,72 +1548,101 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
     case POSTDECREMENT:
     case POSTINCREMENT:
-        if (precedence > get(0).getPrecedence()) 
+        if (precedence > get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
-        } 
-        else 
+        }
+        else
         {
             get(0).toString(old, str, end, size);
         }
         append(str, end, size, getKind() == POSTDECREMENT ? "--" : "++");
         break;
-    
-    case COS_F:
-        append(str, end, size, "cos(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
 
-    case SIN_F:
-        append(str, end, size, "sin(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
-    case EXP_F:
-        append(str, end, size, "exp(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
-    case LOG_F:
-        append(str, end, size, "log(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
-    case LN_F:
-        append(str, end, size, "ln(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
+    case ABS_F:
     case FABS_F:
-        append(str, end, size, "fabs(");
+    case EXP_F:
+    case EXP2_F:
+    case EXPM1_F:
+    case LN_F:
+    case LOG_F:
+    case LOG10_F:
+    case LOG2_F:
+    case LOG1P_F:
+    case SQRT_F:
+    case CBRT_F:
+    case SIN_F:
+    case COS_F:
+    case TAN_F:
+    case ASIN_F:
+    case ACOS_F:
+    case ATAN_F:
+    case SINH_F:
+    case COSH_F:
+    case TANH_F:
+    case ASINH_F:
+    case ACOSH_F:
+    case ATANH_F:
+    case ERF_F:
+    case ERFC_F:
+    case TGAMMA_F:
+    case LGAMMA_F:
+    case CEIL_F:
+    case FLOOR_F:
+    case TRUNC_F:
+    case ROUND_F:
+    case FINT_F:
+    case ILOGB_F:
+    case LOGB_F:
+    case FPCLASSIFY_F:
+    case ISFINITE_F:
+    case ISINF_F:
+    case ISNAN_F:
+    case ISNORMAL_F:
+    case SIGNBIT_F:
+    case ISUNORDERED_F:
+    case RANDOM_F:
+    case RANDOM_POISSON_F:
+        append(str, end, size, getBuiltinFunName(data->kind));
+        append(str, end, size, "(");
         get(0).toString(old, str, end, size);
         append(str, end, size, ')');
         break;
 
+    case FMOD_F:
+    case FMAX_F:
+    case FMIN_F:
+    case FDIM_F:
     case POW_F:
-        append(str, end, size, "pow(");
+    case HYPOT_F:
+    case ATAN2_F:
+    case LDEXP_F:
+    case NEXTAFTER_F:
+    case COPYSIGN_F:
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_WEIBULL_F:
+        append(str, end, size, getBuiltinFunName(data->kind));
+        append(str, end, size, "(");
         get(0).toString(old, str, end, size);
         append(str, end, size, ',');
         get(1).toString(old, str, end, size);
         append(str, end, size, ')');
         break;
 
-    case CEIL_F:
-        append(str, end, size, "ceil(");
+    case FMA_F:
+    case RANDOM_TRI_F:
+        append(str, end, size, getBuiltinFunName(data->kind));
+        append(str, end, size, "(");
         get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
-    case FLOOR_F:
-        append(str, end, size, "floor(");
-        get(0).toString(old, str, end, size);
+        append(str, end, size, ',');
+        get(1).toString(old, str, end, size);
+        append(str, end, size, ',');
+        get(2).toString(old, str, end, size);
         append(str, end, size, ')');
         break;
 
@@ -1450,28 +1654,16 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append(str, end, size, ')');
         break;
 
-    case SQRT_F:
-        append(str, end, size, "sqrt(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
-    case RANDOM_F:
-        append(str, end, size, "random(");
-        get(0).toString(old, str, end, size);
-        append(str, end, size, ')');
-        break;
-
     case PREDECREMENT:
     case PREINCREMENT:
         append(str, end, size, getKind() == PREDECREMENT ? "--" : "++");
-        if (precedence > get(0).getPrecedence()) 
+        if (precedence > get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
-        } 
-        else 
+        }
+        else
         {
             get(0).toString(old, str, end, size);
         }
@@ -1479,13 +1671,13 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
     case NOT:
         append(str, end, size, '!');
-        if (precedence > get(0).getPrecedence()) 
+        if (precedence > get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(0).toString(old, str, end, size);
         }
@@ -1496,64 +1688,64 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         type_t type = get(0).getType();
         if (type.isProcess() || type.isRecord())
         {
-            if (precedence > get(0).getPrecedence()) 
+            if (precedence > get(0).getPrecedence())
             {
                 append(str, end, size, '(');
                 get(0).toString(old, str, end, size);
                 append(str, end, size, ')');
-            } 
-            else 
+            }
+            else
             {
                 get(0).toString(old, str, end, size);
             }
             append(str, end, size, '.');
             append(str, end, size, type.getRecordLabel(data->value).c_str());
-        } 
-        else 
+        }
+        else
         {
             assert(0);
         }
         break;
-    }        
-            
+    }
+
     case INLINEIF:
-        if (precedence >= get(0).getPrecedence()) 
+        if (precedence >= get(0).getPrecedence())
         {
             append(str, end, size, '(');
             get(0).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(0).toString(old, str, end, size);
         }
 
         append(str, end, size, " ? ");
 
-        if (precedence >= get(1).getPrecedence()) 
+        if (precedence >= get(1).getPrecedence())
         {
             append(str, end, size, '(');
             get(1).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(1).toString(old, str, end, size);
         }
 
         append(str, end, size, " : ");
 
-        if (precedence >= get(2).getPrecedence()) 
+        if (precedence >= get(2).getPrecedence())
         {
             append(str, end, size, '(');
             get(2).toString(old, str, end, size);
             append(str, end, size, ')');
         }
-        else 
+        else
         {
             get(2).toString(old, str, end, size);
         }
-        
+
         break;
 
     case COMMA:
@@ -1561,10 +1753,10 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append(str, end, size, ", ");
         get(1).toString(old, str, end, size);
         break;
-            
+
     case SYNC:
         get(0).toString(old, str, end, size);
-        switch (data->sync) 
+        switch (data->sync)
         {
         case SYNC_QUE:
             append(str, end, size, '?');
@@ -1584,7 +1776,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
     case LIST:
         get(0).toString(old, str, end, size);
-        for (uint32_t i = 1; i < getSize(); i++) 
+        for (uint32_t i = 1; i < getSize(); i++)
         {
             append(str, end, size, ", ");
             get(i).toString(old, str, end, size);
@@ -1593,24 +1785,24 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
     case FUNCALL:
         get(0).toString(old, str, end, size);
-         append(str, end, size, '(');
-         if (getSize() > 1) 
+        append(str, end, size, '(');
+        if (getSize() > 1)
         {
-             get(1).toString(old, str, end, size);
-             for (uint32_t i = 2; i < getSize(); i++) 
+            get(1).toString(old, str, end, size);
+            for (uint32_t i = 2; i < getSize(); i++)
             {
-                 append(str, end, size, ", ");
-                 get(i).toString(old, str, end, size);
-             }
-         }
-         append(str, end, size, ')');
-         break;
+                append(str, end, size, ", ");
+                get(i).toString(old, str, end, size);
+            }
+        }
+        append(str, end, size, ')');
+        break;
 
     case RATE:
         get(0).toString(old, str, end, size);
         append(str, end, size, "'");
         break;
-        
+
     case EF:
         append(str, end, size, "E<> ");
         get(0).toString(old, str, end, size);
@@ -1740,7 +1932,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append(str, end, size, "control_t*: ");
         get(0).toString(old, str, end, size);
         break;
-        
+
     case SUP_VAR:
         append(str, end, size, "sup{");
         get(0).toString(old, str, end, size);
@@ -1769,7 +1961,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         append (str,end,size,"]");
         get(3).toString (old,str,end,size);
         break;
-    
+
     case MITLDISJ:
         get(0).toString (old,str,end,size);
         append (str,end,size,"\\/");
@@ -1797,7 +1989,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
         break;
     case NUMOF:
-        
+
         append (str,end,size,"numof(");
         get(0).toString(old,str,end,size);
         append (str,end,size,")");
@@ -1847,9 +2039,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
         get(2).toString (old,str,end,size);
         append (str,end,size,")");
         break;
-   
-        
-            
+
     default:
         throw std::runtime_error("Strange exception");
     }
@@ -1859,7 +2049,7 @@ bool expression_t::operator < (const expression_t e) const
 {
     return data != NULL && e.data != NULL && data < e.data;
 }
- 
+
 bool expression_t::operator == (const expression_t e) const
 {
     return data == e.data;
@@ -1871,11 +2061,11 @@ bool expression_t::operator == (const expression_t e) const
     expression is empty. */
 std::string expression_t::toString(bool old) const
 {
-    if (empty()) 
+    if (empty())
     {
         return std::string();
-    } 
-    else 
+    }
+    else
     {
          int size = 16;
          char *s, *end;
@@ -1899,12 +2089,12 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
         return;
     }
 
-    for (uint32_t i = 0; i < getSize(); i++) 
+    for (uint32_t i = 0; i < getSize(); i++)
     {
         get(i).collectPossibleWrites(symbols);
     }
 
-    switch (getKind()) 
+    switch (getKind())
     {
     case ASSIGN:
     case ASSPLUS:
@@ -1923,7 +2113,7 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
     case PREDECREMENT:
         get(0).getSymbols(symbols);
         break;
-      
+
     case FUNCALL:
         // Add all symbols which are changed by the function
         symbol = get(0).getSymbol();
@@ -1961,19 +2151,19 @@ void expression_t::collectPossibleReads(set<symbol_t> &symbols, bool collectRand
         return;
     }
 
-    for (uint32_t i = 0; i < getSize(); i++) 
+    for (uint32_t i = 0; i < getSize(); i++)
     {
         get(i).collectPossibleReads(symbols);
     }
 
-    switch (getKind()) 
+    switch (getKind())
     {
     case IDENTIFIER:
         symbols.insert(getSymbol());
         break;
 
     case FUNCALL:
-        // Add all symbols which are used by the function        
+        // Add all symbols which are used by the function
         symbol = get(0).getSymbol();
         if (symbol.getType().isFunction() && symbol.getData())
         {
@@ -1983,8 +2173,29 @@ void expression_t::collectPossibleReads(set<symbol_t> &symbols, bool collectRand
         break;
 
     case RANDOM_F:
+    case RANDOM_POISSON_F:
         if (collectRandom)
         {
+            symbols.insert(symbol_t());
+        }
+        break;
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_WEIBULL_F:
+        if (collectRandom)
+        {
+            symbols.insert(symbol_t());
+            symbols.insert(symbol_t());
+        }
+        break;
+
+    case RANDOM_TRI_F:
+        if (collectRandom)
+        {
+            symbols.insert(symbol_t());
+            symbols.insert(symbol_t());
             symbols.insert(symbol_t());
         }
         break;
@@ -2039,12 +2250,9 @@ expression_t expression_t::createNary(
 {
     expression_t expr(kind, pos);
     expr.data->value = sub.size();
-    expr.data->sub = new expression_t[sub.size()];
+    expr.data->sub.reserve(sub.size());
+    expr.data->sub.assign(sub.begin(), sub.end());
     expr.data->type = type;
-    for (uint32_t i = 0; i < sub.size(); i++)
-    {
-        expr.data->sub[i] = sub[i];
-    }
     return expr;
 }
 
@@ -2052,33 +2260,32 @@ expression_t expression_t::createUnary(
     kind_t kind, expression_t sub, position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
-    expr.data->sub = new expression_t[1];
-    expr.data->sub[0] = sub;
+    expr.data->sub.push_back(sub);
     expr.data->type = type;
     return expr;
 }
 
 expression_t expression_t::createBinary(
-    kind_t kind, expression_t left, expression_t right, 
+    kind_t kind, expression_t left, expression_t right,
     position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
-    expr.data->sub = new expression_t[2];
-    expr.data->sub[0] = left;
-    expr.data->sub[1] = right;
+    expr.data->sub.reserve(2);
+    expr.data->sub.push_back(left);
+    expr.data->sub.push_back(right);
     expr.data->type = type;
     return expr;
 }
 
 expression_t expression_t::createTernary(
-    kind_t kind, expression_t e1, expression_t e2, expression_t e3, 
+    kind_t kind, expression_t e1, expression_t e2, expression_t e3,
     position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
-    expr.data->sub = new expression_t[3];
-    expr.data->sub[0] = e1;
-    expr.data->sub[1] = e2;
-    expr.data->sub[2] = e3;
+    expr.data->sub.reserve(3);
+    expr.data->sub.push_back(e1);
+    expr.data->sub.push_back(e2);
+    expr.data->sub.push_back(e3);
     expr.data->type = type;
     return expr;
 }
@@ -2088,8 +2295,7 @@ expression_t expression_t::createDot(
 {
     expression_t expr(DOT, pos);
     expr.data->index = idx;
-    expr.data->sub = new expression_t[1];
-    expr.data->sub[0] = e;
+    expr.data->sub.push_back(e);
     expr.data->type = type;
     return expr;
 }
@@ -2099,8 +2305,7 @@ expression_t expression_t::createSync(
 {
     expression_t expr(SYNC, pos);
     expr.data->sync = s;
-    expr.data->sub = new expression_t[1];
-    expr.data->sub[0] = e;
+    expr.data->sub.push_back(e);
     return expr;
 }
 
@@ -2111,7 +2316,7 @@ expression_t expression_t::createDeadlock(position_t pos)
     return expr;
 }
 
-ostream &operator<< (ostream &o, const expression_t &e) 
+ostream &operator<< (ostream &o, const expression_t &e)
 {
     o << e.toString();
     return o;

@@ -19,9 +19,10 @@
    USA
 */
 
+#include <boost/format.hpp>
+
 #include "utap/type.h"
 #include "utap/expression.h"
-#include <boost/format.hpp>
 
 using std::string;
 using std::vector;
@@ -37,67 +38,28 @@ struct type_t::child_t
 
 struct type_t::type_data
 {
-    int32_t count;              // Reference count
     kind_t kind;                // Kind of type object
     position_t position;        // Position in the input file
-    expression_t expr;          // 
-    size_t size;                // Number of children
-    child_t *children;          // The children
+    expression_t expr;          //
+    std::vector<child_t> children;
 };
-
-type_t::type_t()
-{
-    data = NULL;
-}
 
 type_t::type_t(kind_t kind, const position_t &pos, size_t size)
 {
-    data = new type_data;
-    data->count = 1;
+    data = std::make_shared<type_data>();
     data->kind = kind;
     data->position = pos;
-    data->size = size;
-    data->children = new child_t[size];
+    data->children.resize(size);
 }
 
 type_t::type_t(const type_t &type)
 {
-    data = type.data;
-    if (data)
-    {
-        data->count++;
-    }
+    *this = type;
 }
 
-type_t::~type_t()
+const type_t& type_t::operator = (const type_t &type)
 {
-    if (data) 
-    {
-        data->count--;
-        if (data->count == 0)
-        {
-            delete[] data->children;
-            delete data;
-        }
-    }
-}
-
-const type_t &type_t::operator = (const type_t &type)
-{
-    if (data) 
-    {
-        data->count--;
-        if (data->count == 0)
-        {
-            delete[] data->children;
-            delete data;
-        }
-    }
     data = type.data;
-    if (data) 
-    {
-        data->count++;
-    }
     return *this;
 }
 
@@ -119,7 +81,7 @@ bool type_t::operator < (const type_t &type) const
 size_t type_t::size() const
 {
     assert(data);
-    return data->size;
+    return data->children.size();
 }
 
 const type_t type_t::operator[](uint32_t i) const
@@ -140,7 +102,7 @@ const std::string &type_t::getLabel(uint32_t i) const
     return data->children[i].label;
 }
 
-int32_t type_t::findIndexOf(std::string label) const
+int32_t type_t::findIndexOf(const std::string& label) const
 {
     assert(isRecord() || isProcess());
     type_t type = strip();
@@ -220,7 +182,7 @@ bool type_t::is(kind_t kind) const
     if (getKind () == Constants::DOUBLEINVGUARD) 
     {
         return kind == Constants::DOUBLEINVGUARD;
-    }    
+    }
     return (getKind() == kind)
         || (isPrefix() && get(0).is(kind))
         || (getKind() == RANGE && get(0).is(kind))
@@ -256,7 +218,7 @@ type_t type_t::getSub(size_t i) const
     {
         return get(0).getSub(i).createPrefix(getKind());
     }
-    else 
+    else
     {
         return get(i);
     }
@@ -334,7 +296,7 @@ type_t type_t::strip() const
 
 type_t type_t::stripArray() const
 {
-    type_t type = strip(); 
+    type_t type = strip();
     while (type.getKind() == ARRAY)
     {
         type = type.get(0).strip();
@@ -342,11 +304,11 @@ type_t type_t::stripArray() const
     return type;
 }
 
-type_t type_t::rename(std::string from, std::string to) const
+type_t type_t::rename(const std::string& from, const std::string& to) const
 {
     type_t type(getKind(), getPosition(), size());
     type.data->expr = getExpression();
-    for (size_t i = 0; i < size(); i++)
+    for (size_t i = 0; i < size(); ++i)
     {
         type.data->children[i].child = get(i).rename(from, to);
         type.data->children[i].label = getLabel(i);
@@ -510,7 +472,7 @@ type_t type_t::createArray(type_t sub, type_t size, position_t pos)
     return type;
 }
 
-type_t type_t::createTypeDef(std::string label, type_t type, position_t pos)
+type_t type_t::createTypeDef(const std::string& label, type_t type, position_t pos)
 {
     type_t t(TYPEDEF, pos, 1);
     t.data->children[0].label = label;
@@ -574,7 +536,7 @@ type_t type_t::createPrefix(kind_t kind, position_t pos) const
     return type;
 }
 
-type_t type_t::createLabel(string label, position_t pos) const
+type_t type_t::createLabel(const string& label, position_t pos) const
 {
     type_t type(LABEL, pos, 1);
     type.data->children[0].child = *this;
@@ -584,8 +546,7 @@ type_t type_t::createLabel(string label, position_t pos) const
 
 string type_t::toString() const
 {
-    std::string str;
-    std::string kind;
+    auto kind = std::string();
 
     if (data == NULL)
     {
@@ -594,7 +555,7 @@ string type_t::toString() const
 
     if (!data->expr.empty())
     {
-        return string("\"") + data->expr.toString() + string("\"");
+        return string("\"") + data->expr.toString() + "\"";
     }
 
     switch (getKind())
@@ -606,7 +567,7 @@ string type_t::toString() const
     case Constants::RANGE:
         kind = "range";
         break;
-        
+
     case Constants::ARRAY:
         kind = "array";
         break;
@@ -614,15 +575,15 @@ string type_t::toString() const
     case Constants::RECORD:
         kind = "struct";
         break;
-        
+
     case Constants::CONSTANT:
         kind = "const";
         break;
-        
+
     case Constants::REF:
         kind = "ref";
         break;
-        
+
     case Constants::URGENT:
         kind = "urgent";
         break;
@@ -702,7 +663,7 @@ string type_t::toString() const
     case Constants::PROCESS:
         kind = "process";
         break;
-        
+
     case Constants::INSTANCE:
         kind = "instance";
         break;
@@ -751,7 +712,8 @@ string type_t::toString() const
         break;
     }
 
-    str = "(";
+    auto str = std::string("(");
+
     str += kind;
     for (uint32_t i = 0; i < size(); i++)
     {
@@ -764,19 +726,18 @@ string type_t::toString() const
         str += get(i).toString();
     }
     str += ")";
-    
+
     return str;
 }
 
 
 string type_t::toDeclarationString() const
 {
-    std::string str;
-    std::string kind;
-    bool range = false;
-    bool array = false;
-    bool label = false;
-    bool typeDef = false;
+    auto kind = std::string();
+    auto range = false;
+    auto array = false;
+    auto label = false;
+    auto typeDef = false;
 
     if (data == NULL)
     {
@@ -785,7 +746,7 @@ string type_t::toDeclarationString() const
 
     if (!data->expr.empty())
     {
-        return string("");
+        return "";
     }
 
     switch (getKind())
@@ -910,11 +871,13 @@ string type_t::toDeclarationString() const
         break;
     }
 
-    str = "";
+    auto str = std::string();
+
     if (range)
     {
         str += get(0).toDeclarationString();
-        if (getRange().first.getValue() != -32767)
+        if (getRange().first.getValue() != -32768 ||
+            getRange().second.getValue() != 32767)
         {
             str += "[";
             str += getRange().first.toString();

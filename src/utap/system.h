@@ -1,6 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2011-2018 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -22,16 +23,16 @@
 #ifndef UTAP_INTERMEDIATE_HH
 #define UTAP_INTERMEDIATE_HH
 
+#include "utap/symbols.h"
+#include "utap/expression.h"
+#include "utap/position.h"
+
 #include <list>
 #include <deque>
 #include <vector>
 #include <map>
 #include <exception>
 #include <algorithm>
-
-#include "utap/symbols.h"
-#include "utap/expression.h"
-#include "utap/position.h"
 
 namespace UTAP
 {
@@ -169,7 +170,7 @@ namespace UTAP
         std::list<gantt_t> ganttChart;
 
         /** Add function declaration. */
-        bool addFunction(type_t type, std::string, function_t *&);
+        bool addFunction(type_t type, const std::string&, function_t *&);
         /** The following methods are used to write the declarations in an XML file */
         std::string toString(bool global = false) const;
         std::string getConstants() const;
@@ -186,26 +187,24 @@ namespace UTAP
      */
     struct message_t
     {
-        int nr;                        /**< Placement in input file */
+        int nr = -1;                   /**< Placement in input file */
         int location;
         instanceLine_t *src;           /**< Pointer to source instance line */
         instanceLine_t *dst;           /**< Pointer to destination instance line */
         expression_t label;            /**< The label */
         bool isInPrechart;
-        message_t() : nr(-1) {};
     };
     /** Information about a condition. Conditions have an anchor instance lines.
      * The label is stored as an expression.
      */
     struct condition_t
     {
-        int nr;                        /**< Placement in input file */
+        int nr = -1;                        /**< Placement in input file */
         int location;
         std::vector<instanceLine_t*> anchors;       /**< Pointer to anchor instance lines *///TODO
         expression_t label;            /**< The label */
         bool isInPrechart;
         bool isHot;
-        condition_t() : nr(-1) {};
     };
 
     /** Information about an update. Update have an anchor instance line.
@@ -213,12 +212,11 @@ namespace UTAP
      */
     struct update_t
     {
-        int nr;                        /**< Placement in input file */
+        int nr = -1;                   /**< Placement in input file */
         int location;
         instanceLine_t *anchor;        /**< Pointer to anchor instance line */
         expression_t label;            /**< The label */
         bool isInPrechart;
-        update_t() : nr(-1) {};
     };
 
     struct simregion_t
@@ -362,22 +360,23 @@ namespace UTAP
         std::deque<edge_t> edges;                /**< Edges */
         std::vector<expression_t> dynamicEvals;
         bool isTA;
-        
+
         int addDynamicEval (expression_t t) {
             dynamicEvals.push_back (t);
             return dynamicEvals.size()-1;
         }
-        
+
         std::vector<expression_t>& getDynamicEval () {return dynamicEvals;}
 
         /** Add another location to template. */
-        state_t &addLocation(std::string, expression_t inv, expression_t er);
+        state_t &addLocation(const std::string&, expression_t inv, expression_t er);
 
         /** Add another branchpoint to template. */
-        branchpoint_t &addBranchpoint(std::string);
+        branchpoint_t &addBranchpoint(const std::string&);
 
         /** Add edge to template. */
-        edge_t &addEdge(symbol_t src, symbol_t dst, bool type, std::string actname);
+        edge_t &addEdge(symbol_t src, symbol_t dst, bool type,
+                        const std::string& actname);
 
         std::deque<instanceLine_t> instances;    /**< Instance Lines */
         std::deque<message_t> messages;          /**< Messages */
@@ -482,7 +481,7 @@ namespace UTAP
         /** Returns the templates of the system. */
         std::list<template_t> &getTemplates();
         std::vector<template_t*> &getDynamicTemplates ();
-        template_t* getDynamicTemplate (const std::string name);
+        template_t* getDynamicTemplate(const std::string& name);
 
         /** Returns the processes of the system. */
         std::list<instance_t> &getProcesses();
@@ -491,26 +490,28 @@ namespace UTAP
         queries_t &getQueries();
 
         void addPosition(
-            uint32_t position, uint32_t offset, uint32_t line, std::string path);
+            uint32_t position, uint32_t offset, uint32_t line, const std::string& path);
         const Positions::line_t &findPosition(uint32_t position) const;
 
         variable_t *addVariableToFunction(
-            function_t *, frame_t, type_t, std::string, expression_t initital);
+            function_t *, frame_t, type_t, const std::string&, expression_t initital);
         variable_t *addVariable(
-            declarations_t *, type_t type, std::string, expression_t initial);
+            declarations_t *, type_t type, const std::string&, expression_t initial);
         void addProgressMeasure(
-                declarations_t *, expression_t guard, expression_t measure);
+            declarations_t *, expression_t guard, expression_t measure);
 
-        template_t &addTemplate(std::string, frame_t params, const bool isTA = true,
-                const std::string type = "", const std::string mode = "");
-        template_t &addDynamicTemplate(std::string, frame_t params);
-        
+        template_t &addTemplate(const std::string&, frame_t params,
+                                const bool isTA = true,
+                                const std::string& type = "",
+                                const std::string& mode = "");
+        template_t &addDynamicTemplate(const std::string&, frame_t params);
+
         instance_t &addInstance(
-                std::string name, instance_t &instance, frame_t params,
-                const std::vector<expression_t> &arguments);
+            const std::string& name, instance_t &instance, frame_t params,
+            const std::vector<expression_t> &arguments);
 
         instance_t &addLscInstance(
-                std::string name, instance_t &instance, frame_t params,
+                const std::string& name, instance_t &instance, frame_t params,
                 const std::vector<expression_t> &arguments);
         void removeProcess(instance_t &instance); //LSC
 
@@ -568,8 +569,8 @@ namespace UTAP
 
         void clockGuardRecvBroadcast() { hasGuardOnRecvBroadcast = true; }
         bool hasClockGuardRecvBroadcast() const { return hasGuardOnRecvBroadcast; }
-        void setSyncUsed(int s) { syncUsed = s; }
-        int getSyncUsed() const { return syncUsed; }
+        void setSyncUsed(sync_use_t s) { syncUsed = s; }
+        sync_use_t getSyncUsed() const { return syncUsed; }
 
         void setUrgentTransition() { hasUrgentTrans = true; }
         bool hasUrgentTransition() const { return hasUrgentTrans; }
@@ -586,7 +587,7 @@ namespace UTAP
         int defaultChanPriority;
         std::list<chan_priority_t> chanPriorities;
         std::map<std::string,int> procPriority;
-        int syncUsed; // see typechecker
+        sync_use_t syncUsed; // see typechecker
 
         // The list of templates.
         std::list<template_t> templates;
@@ -612,13 +613,13 @@ namespace UTAP
 
         variable_t *addVariable(
             std::list<variable_t> &variables, frame_t frame,
-            type_t type, std::string);
-        
+            type_t type, const std::string&);
+
         std::string location;
-        
+
     public:
-        void addError(position_t, std::string, std::string context="");
-        void addWarning(position_t, std::string);
+        void addError(position_t, const std::string& msg, const std::string& ctx="");
+        void addWarning(position_t, const std::string& msg, const std::string& ctx="");
         bool hasErrors() const;
         bool hasWarnings() const;
         const std::vector<error_t> &getErrors() const;

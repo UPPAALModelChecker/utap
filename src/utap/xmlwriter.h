@@ -22,37 +22,37 @@
 #ifndef XMLWRITER_H
 #define	XMLWRITER_H
 
-#include <stdio.h>
+#include "utap/system.h"
+#include "utap/common.h"
+
 #include <libxml/encoding.h>
 #include <libxml/xmlwriter.h>
 #include <libxml/xmlreader.h>
 
-#include <stdexcept>
+#include <cstdio>
 #include <cstdarg>
 #include <cctype>
+#include <cmath>
 #include <cassert>
+#include <stdexcept>
 #include <list>
 #include <sstream>
 
-#include "utap/system.h"
-#include "utap/common.h"
-//#include <string>
-#include <cmath>
-
 namespace UTAP {
-    
+
     xmlChar * ConvertInput(const char *in, const char *encoding);
 
     /**
      * concatenates a string and an int
      */
-    std::string concat(std::string s, int i);
+    std::string concat(const std::string& s, int i);
     /**
      * concatenates a string and a double
      */
-    std::string concatDouble(std::string s, double i);
+    std::string concatDouble(const std::string& s, double i);
 
-    class XMLWriter {
+    class XMLWriter
+    {
     public: // was private - needed for derived class SBMLtoXMLWriter
         xmlTextWriterPtr writer; /**< The underlying xmlTextWriter */
         TimedAutomataSystem* taSystem; /**< The system to write */

@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2003 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -25,11 +25,11 @@
 #include "utap/system.h"
 #include "utap/statement.h"
 
+#include <cstring>
 #include <list>
 #include <set>
 #include <map>
 #include <stack>
-#include <string.h>
 #include <algorithm>
 
 namespace UTAP
@@ -112,7 +112,7 @@ namespace UTAP
         virtual void printVarsForDot(std::ostream &os, bool ranked, bool erd);
         /* prints edges representing writes to variables */
         virtual void printVarsWriteForDot(std::ostream &os);
-        /* prints edges representing reads from variables */        
+        /* prints edges representing reads from variables */
         virtual void printVarsReadForDot(std::ostream &os);
         /* prints channel communication as labels on I/O edges */
         virtual void printChansOnEdgesForDot(std::ostream &os);
@@ -143,28 +143,28 @@ namespace UTAP
  * erd -- puts boxes and diamonds rather than (compact) ellipses.
  * cEdged -- channels are printed on edges rather than separate nodes.
  */
-        virtual void printForDot(std::ostream &os, bool ranked, bool erd, 
+        virtual void printForDot(std::ostream &os, bool ranked, bool erd,
                                  bool cEdged);
 
 /**
  * System visitor pattern extracts read/write information from UCode.
  * This is actually "const" visitor and should contain "const Statement *stat".
  */
-        int32_t visitEmptyStatement(EmptyStatement *stat);
-        int32_t visitExprStatement(ExprStatement *stat);
-        int32_t visitForStatement(ForStatement *stat);
-        int32_t visitIterationStatement(IterationStatement *stat);
-        int32_t visitWhileStatement(WhileStatement *stat);
-        int32_t visitDoWhileStatement(DoWhileStatement *stat);
-        int32_t visitBlockStatement(BlockStatement *stat);
-        int32_t visitSwitchStatement(SwitchStatement *stat);
-        int32_t visitCaseStatement(CaseStatement *stat);
-        int32_t visitDefaultStatement(DefaultStatement *stat);
-        int32_t visitIfStatement(IfStatement *stat);
-        int32_t visitBreakStatement(BreakStatement *stat);
-        int32_t visitContinueStatement(ContinueStatement *stat);
-        int32_t visitReturnStatement(ReturnStatement *stat);
-        int32_t visitAssertStatement(UTAP::AssertStatement *stat);
+        int32_t visitEmptyStatement(EmptyStatement *stat) override;
+        int32_t visitExprStatement(ExprStatement *stat) override;
+        int32_t visitForStatement(ForStatement *stat) override;
+        int32_t visitIterationStatement(IterationStatement *stat) override;
+        int32_t visitWhileStatement(WhileStatement *stat) override;
+        int32_t visitDoWhileStatement(DoWhileStatement *stat) override;
+        int32_t visitBlockStatement(BlockStatement *stat) override;
+        int32_t visitSwitchStatement(SwitchStatement *stat) override;
+        int32_t visitCaseStatement(CaseStatement *stat) override;
+        int32_t visitDefaultStatement(DefaultStatement *stat) override;
+        int32_t visitIfStatement(IfStatement *stat) override;
+        int32_t visitBreakStatement(BreakStatement *stat) override;
+        int32_t visitContinueStatement(ContinueStatement *stat) override;
+        int32_t visitReturnStatement(ReturnStatement *stat) override;
+        int32_t visitAssertStatement(UTAP::AssertStatement *stat) override;
     };
 
 /**
@@ -249,31 +249,31 @@ namespace UTAP
 
         int partition(const strs_t& inputs, const strs_t& outputs);
         int partition(std::istream& ioinfo);
-        void printForDot(std::ostream &os, bool ranked, bool erd, bool cEdged);
+        void printForDot(std::ostream &os, bool ranked, bool erd, bool cEdged) override;
         void printViolation(const proc_t* process, const char* variable);
         void fillWithEnvProcs(strs_t& procs);
         void fillWithIUTProcs(strs_t& procs);
     };
-    
+
 /**
  * DistanceCalculator is used in TargetFirst heuristic search order of Uppaal.
- * Current implementation calculates complexity distances from a process to 
- * the given set of "needles"  (e.g. variables or process location mentioned 
- * in query). In the future this can be refined to take the process-local 
- * information into account (e.g. calculate distance for individual edges 
+ * Current implementation calculates complexity distances from a process to
+ * the given set of "needles"  (e.g. variables or process location mentioned
+ * in query). In the future this can be refined to take the process-local
+ * information into account (e.g. calculate distance for individual edges
  * within the process rather than just process).
  */
-    class DistanceCalculator: public SignalFlow 
+    class DistanceCalculator: public SignalFlow
     {
         strs_t varNeedles; // set of variables of interest
         strs_t procNeedles; // set of processes of interest
         bool distancesUpToDate;
 
         struct dist_t // distance structure
-        { 
+        {
             uint32_t hops; // number of hops to closest needle
             uint32_t complexity; // complexity of this entity
-            uint32_t distance; // accumulated complexity|hops to closest needle 
+            uint32_t distance; // accumulated complexity|hops to closest needle
             dist_t(int h, int c, int d): hops(h), complexity(c), distance(d) {}
             dist_t(): hops(0), complexity(1), distance(0) {}
         };
@@ -282,7 +282,7 @@ namespace UTAP
 
         str2dist_t distances;
 
-        void updateDistancesFromVariable(const char* name, 
+        void updateDistancesFromVariable(const char* name,
                                          const dist_t* distance);
         void updateDistancesFromProcess(const char* name,
                                         const dist_t* distance);
@@ -291,9 +291,9 @@ namespace UTAP
     protected:
         TimedAutomataSystem& taSystem;
         /* overwrite how processes appear */
-        virtual void printProcsForDot(std::ostream &os, bool erd);
+        void printProcsForDot(std::ostream &os, bool erd) override;
         /* overwrite how variables appear */
-        virtual void printVarsForDot(std::ostream &os, bool ranked, bool erd);
+        void printVarsForDot(std::ostream &os, bool ranked, bool erd) override;
 
     public:
         DistanceCalculator(const char* _title, TimedAutomataSystem& ta):
@@ -309,8 +309,8 @@ namespace UTAP
         uint32_t getDistance(const char* element);
 
         /* overwritten to update the distances on demand. */
-        virtual void printForDot(std::ostream &os, bool ranked, bool erd, 
-                                 bool cEdged);
+        void printForDot(std::ostream &os, bool ranked, bool erd,
+                         bool cEdged) override;
 
     };
 }

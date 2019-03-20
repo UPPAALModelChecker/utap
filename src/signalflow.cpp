@@ -28,7 +28,7 @@
 #include <iterator>
 #include <algorithm>
 #include <functional>
-#include <assert.h>
+#include <cassert>
 
 using std::list;
 using std::deque;

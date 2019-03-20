@@ -39,8 +39,9 @@ namespace UTAP
     class TypeException : public std::runtime_error
     {
     public:
-        TypeException(std::string);
-        TypeException(const boost::format &);
+        TypeException(const std::string& msg): std::runtime_error(msg) {}
+        TypeException(const boost::format& format):
+            std::runtime_error(format.str()) {}
     };
 
     /**
@@ -99,7 +100,8 @@ namespace UTAP
          * element.
          */
         virtual void addPosition(
-            uint32_t position, uint32_t offset, uint32_t line, std::string path) = 0;
+            uint32_t position, uint32_t offset, uint32_t line,
+            const std::string& path) = 0;
 
         /**
          * Sets the current position. The current position indicates
@@ -109,10 +111,10 @@ namespace UTAP
         virtual void setPosition(uint32_t a, uint32_t b) = 0;
 
         // Called when an error is detected
-        virtual void handleError(std::string) = 0;
+        virtual void handleError(const std::string&) = 0;
 
         // Called when a warning is issued
-        virtual void handleWarning(std::string) = 0;
+        virtual void handleWarning(const std::string&) = 0;
 
         void handleWarning(const char *msg, ...);
 
@@ -293,8 +295,9 @@ namespace UTAP
         virtual void doWhileBegin() = 0;
         virtual void doWhileEnd() = 0; // 1 stat, 1 expr
         virtual void ifBegin() = 0;
-        virtual void ifElse() = 0;
-        virtual void ifEnd(bool) = 0; // 1 expr, 1 or 2 statements
+        virtual void ifCondition() = 0; // 1 expr
+        virtual void ifThen() = 0;      // 1 expr, 1 (then)
+        virtual void ifEnd(bool elsePart) = 0; // 1 expr, 1 or 2 statements
         virtual void breakStatement() = 0;
         virtual void continueStatement() = 0;
         virtual void switchBegin() = 0;
@@ -344,13 +347,17 @@ namespace UTAP
         virtual void declIO(const char*,int,int) = 0;
 
         // Extension for SMC.
-        virtual void exprSMCControl(int) = 0;
-        virtual void exprProbaQualitative(int,Constants::kind_t,Constants::kind_t,double) = 0;
-        virtual void exprProbaQuantitative(int,Constants::kind_t,bool=false) = 0;
-        virtual void exprProbaCompare(int,Constants::kind_t,int,Constants::kind_t) = 0;
-        virtual void exprProbaExpected(int,const char*) = 0;
+        virtual void exprSMCControl() = 0;
+        virtual void exprProbaQualitative(Constants::kind_t pathQuant,
+                                          Constants::kind_t compType,
+                                          double probBound) = 0;
+        virtual void exprProbaQuantitative(Constants::kind_t pathQuant) = 0;
+        virtual void exprProbaCompare(Constants::kind_t pathQuant1,
+                                      Constants::kind_t pathQuant2) = 0;
+        virtual void exprProbaExpected(const char* aggregatingOp) = 0;
         virtual void exprBuiltinFunction1(Constants::kind_t) = 0;
         virtual void exprBuiltinFunction2(Constants::kind_t) = 0;
+        virtual void exprBuiltinFunction3(Constants::kind_t) = 0;
 
         //MITL Extensions
         virtual void exprMitlFormula ( ) = 0;
@@ -363,7 +370,7 @@ namespace UTAP
         virtual void exprMitlDiamond (int,int) = 0;
         virtual void exprMitlBox (int,int) = 0;
 
-        virtual void exprSimulate(int,int,int,bool=false,int = 0) = 0;
+        virtual void exprSimulate(int,bool=false,int = 0) = 0;
 
         /********************************************************************
          * System declaration
@@ -375,7 +382,9 @@ namespace UTAP
         virtual void process(const char*) = 0;
         virtual void processListEnd() = 0;
         virtual void done() = 0; // marks the end of the file
-        
+
+        virtual void handleExpect(const char* text) = 0;
+
         /********************************************************************
          * Properties
          */
@@ -398,23 +407,23 @@ namespace UTAP
         virtual void incProcPriority() = 0;
         virtual void procPriority(const char*) = 0;
         /** Dynamic */
-        virtual void declDynamicTemplate (std::string) = 0;
-        virtual void exprSpawn (int ) = 0;
-        virtual void exprExit () = 0;
-        virtual void exprNumOf () = 0;
-        virtual void exprForAllDynamicBegin (const char* ,const char*)=0;
-        virtual void exprForAllDynamicEnd (const char* name)=0;    
-        virtual void exprExistsDynamicBegin (const char*,const char* )=0;
-        virtual void exprExistsDynamicEnd (const char* name)=0;
-        virtual void exprSumDynamicBegin (const char*,const char* )=0;
-        virtual void exprSumDynamicEnd (const char* name)=0;
-        virtual void exprForeachDynamicBegin (const char*,const char* )=0;
-        virtual void exprForeachDynamicEnd (const char* name)=0;
-        virtual void exprMITLForAllDynamicBegin (const char*,const char* )=0;
-        virtual void exprMITLForAllDynamicEnd (const char* name)=0;    
-        virtual void exprMITLExistsDynamicBegin (const char*,const char*)=0;
-        virtual void exprMITLExistsDynamicEnd (const char* name)=0;
-        virtual void exprDynamicProcessExpr (const char*) = 0;
+        virtual void declDynamicTemplate(const std::string&) = 0;
+        virtual void exprSpawn(int ) = 0;
+        virtual void exprExit() = 0;
+        virtual void exprNumOf() = 0;
+        virtual void exprForAllDynamicBegin(const char* ,const char*)=0;
+        virtual void exprForAllDynamicEnd(const char* name)=0;
+        virtual void exprExistsDynamicBegin(const char*,const char* )=0;
+        virtual void exprExistsDynamicEnd(const char* name)=0;
+        virtual void exprSumDynamicBegin(const char*,const char* )=0;
+        virtual void exprSumDynamicEnd(const char* name)=0;
+        virtual void exprForeachDynamicBegin(const char*,const char* )=0;
+        virtual void exprForeachDynamicEnd(const char* name)=0;
+        virtual void exprMITLForAllDynamicBegin(const char*,const char* )=0;
+        virtual void exprMITLForAllDynamicEnd(const char* name)=0;
+        virtual void exprMITLExistsDynamicBegin(const char*,const char*)=0;
+        virtual void exprMITLExistsDynamicEnd(const char* name)=0;
+        virtual void exprDynamicProcessExpr(const char*) = 0;
 
         /** Verification queries */
         virtual void queryBegin()=0;
@@ -422,7 +431,7 @@ namespace UTAP
         virtual void queryComment(const char* comment)=0;
         virtual void queryEnd()=0;
     };
-   
+
 }
 
 /**
@@ -444,7 +453,8 @@ int32_t parseXTA(const char*, UTAP::ParserBuilder *, bool newxta);
  * function returns with a positive value.
  */
 int32_t parseXTA(const char*, UTAP::ParserBuilder *,
-                 bool newxta, UTAP::xta_part_t part, std::string xpath);
+                 bool newxta, UTAP::xta_part_t part,
+                 const std::string& xpath);
 
 
 /**
@@ -473,7 +483,8 @@ int32_t parseXMLFile(const char *filename, UTAP::ParserBuilder *, bool newxta);
  * ErrorHandler.
  */
 int32_t parseProperty(const char *str,
-                      UTAP::ParserBuilder *aParserBuilder, const std::string& xpath="");
+                      UTAP::ParserBuilder *aParserBuilder,
+                      const std::string& xpath="");
 
 /**
  * Parse properties from a file. The properties are reported using the

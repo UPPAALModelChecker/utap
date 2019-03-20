@@ -22,12 +22,12 @@
 #ifndef UTAP_SYMBOLS_HH
 #define UTAP_SYMBOLS_HH
 
-#include <inttypes.h>
-#include <exception>
-
 #include "utap/common.h"
 #include "utap/position.h"
 #include "utap/type.h"
+
+#include <cinttypes>
+#include <exception>
 
 namespace UTAP
 {
@@ -111,14 +111,14 @@ namespace UTAP
         symbol_data *data;
     protected:
         friend class frame_t;
-        symbol_t(void *frame, type_t type, std::string name, void *user);
+        symbol_t(void *frame, type_t type, const std::string& name, void *user);
     public:
         /** Default constructor */
-        symbol_t() : data(NULL) {}
+        symbol_t() : data(nullptr) {}
 
         /** Copy constructor */
         symbol_t(const symbol_t &);
-        
+
         /** Destructor */
         ~symbol_t();
 
@@ -153,7 +153,7 @@ namespace UTAP
         std::string getName() const;
 
         /** Alters the name of this symbol */
-        void setName(std::string);
+        void setName(const std::string&);
 
         /** Sets the user data of this symbol */
         void setData(void *);
@@ -214,7 +214,7 @@ namespace UTAP
         symbol_t getSymbol(int32_t);
 
         /** Returns the index of the symbol with the given name. */
-        int32_t getIndexOf(std::string name) const;
+        int32_t getIndexOf(const std::string& name) const;
 
         /** Returns the index of a symbol or -1 if not present. */
         int32_t getIndexOf(symbol_t) const;
@@ -226,7 +226,7 @@ namespace UTAP
         const symbol_t operator[] (int32_t) const;
 
         /** Adds a symbol of the given name and type to the frame */
-        symbol_t addSymbol(std::string name, type_t, void *user = NULL);
+        symbol_t addSymbol(const std::string& name, type_t, void *user = NULL);
 
         /** Add all symbols from the given frame */
         void add(symbol_t);
@@ -241,10 +241,10 @@ namespace UTAP
         void remove(symbol_t s);
 
         /** Resolves a name in this frame or a parent frame. */
-        bool resolve(std::string name, symbol_t &symbol);
+        bool resolve(const std::string& name, symbol_t &symbol);
 
         /** Returns the parent frame */
-        frame_t getParent() throw (NoParentException);
+        frame_t getParent(); // throw (NoParentException);
 
         /** Returns true if this frame has a parent */
         bool hasParent() const;

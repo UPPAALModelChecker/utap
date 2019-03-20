@@ -19,26 +19,22 @@
    USA
 */
 
-#include <stack>
-#include <algorithm>
-#include <cstdio>
-#include <climits>
-#include <cassert>
-#include <sstream>
-
-#include <boost/bind.hpp>
-
 #include "utap/builder.h"
 #include "utap/system.h"
 #include "utap/statement.h"
 #include "libparser.h"
 
-#include <string.h>
+#include <stack>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <climits>
+#include <cassert>
+#include <sstream>
 
 using namespace UTAP;
 using namespace Constants;
 
-using boost::bind;
 using std::list;
 using std::stack;
 using std::vector;
@@ -131,7 +127,7 @@ string variable_t::toString() const
     return str;
 }
 
-bool declarations_t::addFunction(type_t type, string name, function_t *&fun)
+bool declarations_t::addFunction(type_t type, const string& name, function_t *&fun)
 {
     bool duplicate = frame.getIndexOf(name) != -1;
     functions.push_back(function_t());
@@ -288,7 +284,7 @@ std::string instance_t::writeArguments() const
     return str;
 }
 
-state_t &template_t::addLocation(string name, expression_t inv, expression_t er)
+state_t &template_t::addLocation(const string& name, expression_t inv, expression_t er)
 {
     bool duplicate = frame.getIndexOf(name) != -1;
 
@@ -309,7 +305,7 @@ state_t &template_t::addLocation(string name, expression_t inv, expression_t er)
 
 // FIXME: like for unnamed locations, a name is autegenerated
 // this name may conflict with user-defined names
-branchpoint_t &template_t::addBranchpoint(string name)
+branchpoint_t &template_t::addBranchpoint(const string& name)
 {
     bool duplicate = frame.getIndexOf(name) != -1;
 
@@ -326,7 +322,7 @@ branchpoint_t &template_t::addBranchpoint(string name)
     return branchpoint;
 }
 
-edge_t &template_t::addEdge(symbol_t src, symbol_t dst, bool control, string actname)
+edge_t &template_t::addEdge(symbol_t src, symbol_t dst, bool control, const string& actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edges.push_back(edge_t());
@@ -918,7 +914,7 @@ string chan_priority_t::toString() const
     return stream.str();
 }
 
-TimedAutomataSystem::TimedAutomataSystem(): syncUsed(0)
+TimedAutomataSystem::TimedAutomataSystem(): syncUsed(UTAP::sync_use_t::unused)
 {
     global.frame = frame_t::createFrame();
     addVariable(&global, type_t::createPrimitive(CLOCK), "t(0)", expression_t());
@@ -972,8 +968,8 @@ declarations_t &TimedAutomataSystem::getGlobals()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t &TimedAutomataSystem::addTemplate(string name, frame_t params,
-        const bool isTA, const string typeLSC, const string mode)
+template_t &TimedAutomataSystem::addTemplate(const string& name, frame_t params,
+        const bool isTA, const string& typeLSC, const string& mode)
 {
     type_t type = (isTA) ? type_t::createInstance(params) :
         type_t::createLscInstance(params);
@@ -995,41 +991,43 @@ template_t &TimedAutomataSystem::addTemplate(string name, frame_t params,
     return templ;
 }
 
-template_t& TimedAutomataSystem::addDynamicTemplate (std::string name,frame_t params) {
+template_t& TimedAutomataSystem::addDynamicTemplate(const string& name,
+                                                    frame_t params)
+{
     type_t type = type_t::createInstance (params);
-    dynamicTemplates.push_back (template_t());
-    template_t &templ = dynamicTemplates.back ();
+    dynamicTemplates.push_back(template_t());
+    template_t &templ = dynamicTemplates.back();
     templ.parameters = params;
-    templ.frame = frame_t::createFrame (global.frame);
+    templ.frame = frame_t::createFrame(global.frame);
     templ.frame.add (params);
     templ.templ = &templ;
-    templ.uid = global.frame.addSymbol (name,type,(instance_t*)&templ);
+    templ.uid = global.frame.addSymbol(name,type,(instance_t*)&templ);
     templ.arguments = 0;
-    templ.unbound = params.getSize ();
+    templ.unbound = params.getSize();
     templ.isTA = true;
     templ.dynamic = true;
-    templ.dynindex = dynamicTemplates.size ()-1;
+    templ.dynindex = dynamicTemplates.size()-1;
     templ.isDefined = false;
     return templ;
-   
 }
 
-std::vector<template_t*> & TimedAutomataSystem::getDynamicTemplates () {
+std::vector<template_t*> & TimedAutomataSystem::getDynamicTemplates()
+{
     if (dynamicTemplatesVec.size () != dynamicTemplates.size()) {
         dynamicTemplatesVec.clear ();
         std::list<template_t>::iterator it;
-        for (it = dynamicTemplates.begin ();it!=dynamicTemplates.end ();it++) {
+        for (it = dynamicTemplates.begin(); it!=dynamicTemplates.end(); ++it) {
             dynamicTemplatesVec.push_back(&(*it));
         }
     }
-        
     return dynamicTemplatesVec;
 }
 
-template_t* TimedAutomataSystem::getDynamicTemplate (const std::string name) {
+template_t* TimedAutomataSystem::getDynamicTemplate(const std::string& name)
+{
     std::list<template_t>::iterator it;
-    for (it = dynamicTemplates.begin ();it!=dynamicTemplates.end ();it++) {
-        if (it->uid.getName () == name)
+    for (it = dynamicTemplates.begin(); it!=dynamicTemplates.end(); ++it) {
+        if (it->uid.getName() == name)
             return &(*it);
     }
     return NULL;
@@ -1037,7 +1035,7 @@ template_t* TimedAutomataSystem::getDynamicTemplate (const std::string name) {
 }
 
 instance_t &TimedAutomataSystem::addInstance(
-    string name, instance_t &inst, frame_t params,
+    const string& name, instance_t &inst, frame_t params,
     const vector<expression_t> &arguments)
 {
     type_t type = type_t::createInstance(params);
@@ -1061,7 +1059,7 @@ instance_t &TimedAutomataSystem::addInstance(
 }
 
 instance_t &TimedAutomataSystem::addLscInstance(
-    string name, instance_t &inst, frame_t params,
+    const string& name, instance_t &inst, frame_t params,
     const vector<expression_t> &arguments)
 {
     type_t type = type_t::createLscInstance(params);
@@ -1133,7 +1131,7 @@ queries_t & TimedAutomataSystem::getQueries(){
 
 // Add a regular variable
 variable_t *TimedAutomataSystem::addVariable(
-    declarations_t *context, type_t type, string name, expression_t initial)
+    declarations_t *context, type_t type, const string& name, expression_t initial)
 {
     variable_t *var;
     var = addVariable(context->variables, context->frame, type, name);
@@ -1142,7 +1140,7 @@ variable_t *TimedAutomataSystem::addVariable(
 }
 
 variable_t *TimedAutomataSystem::addVariableToFunction(
-    function_t *function, frame_t frame, type_t type, string name,
+    function_t *function, frame_t frame, type_t type, const string& name,
     expression_t initial)
 {
     variable_t *var;
@@ -1153,7 +1151,7 @@ variable_t *TimedAutomataSystem::addVariableToFunction(
 
 // Add a regular variable
 variable_t *TimedAutomataSystem::addVariable(
-    list<variable_t> &variables, frame_t frame, type_t type, string name)
+    list<variable_t> &variables, frame_t frame, type_t type, const string& name)
 {
     bool duplicate = frame.getIndexOf(name) != -1;
     variable_t *var;
@@ -1243,52 +1241,33 @@ void TimedAutomataSystem::accept(SystemVisitor &visitor)
     visitor.visitSystemBefore(this);
     visit(visitor, global.frame);
 
-    list<template_t>::iterator t;
-    for (t = templates.begin(); t != templates.end();t++)
-    {
-        if (visitor.visitTemplateBefore(*t))
+    auto visit_template = [&visitor](template_t& t) {
+        if (visitor.visitTemplateBefore(t))
         {
-            visit(visitor, t->frame);
-
-            for_each(t->edges.begin(), t->edges.end(),
-                    bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(),
-                    bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(),
-                    bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(),
-                    bind(&SystemVisitor::visitCondition, &visitor, _1));
-
-            visitor.visitTemplateAfter(*t);
+            visit(visitor, t.frame);
+            for (auto& edge: t.edges)
+                visitor.visitEdge(edge);
+            for (auto& message: t.messages)
+                visitor.visitMessage(message);
+            for (auto& update: t.updates)
+                visitor.visitUpdate(update);
+            for (auto& condition: t.conditions)
+                visitor.visitCondition(condition);
+            visitor.visitTemplateAfter(t);
         }
-    }
+    };
 
+    for (auto& t: templates)
+        visit_template(t);
 
-    
-    for (t = dynamicTemplates.begin(); t != dynamicTemplates.end();t++)
-    {
-        if (visitor.visitTemplateBefore(*t))
-        {
-            visit(visitor, t->frame);
-
-            for_each(t->edges.begin(), t->edges.end(),
-                    bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(),
-                    bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(),
-                    bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(),
-                    bind(&SystemVisitor::visitCondition, &visitor, _1));
-
-            visitor.visitTemplateAfter(*t);
-        }
-    }
-
+    for (auto& t: dynamicTemplates)
+        visit_template(t);
 
     for (size_t i = 0; i < global.frame.getSize(); i++)
     {
-        type_t type = global.frame[i].getType();
-        void *data = global.frame[i].getData();
+        auto frame = global.frame[i];
+        type_t type = frame.getType();
+        void *data = frame.getData();
         type = type.stripArray();
 
         if (type.is(PROCESS) || type.is(PROCESSSET))
@@ -1305,25 +1284,15 @@ void TimedAutomataSystem::accept(SystemVisitor &visitor)
         }
     }
 
-    for(list<iodecl_t>::iterator i = global.iodecl.begin();
-        i != global.iodecl.end(); ++i)
-    {
-        visitor.visitIODecl(*i);
-    }
+    for (auto& iodecl: global.iodecl)
+        visitor.visitIODecl(iodecl);
 
     // Maybe not ideal place for this:
+    for (auto& progress: global.progress)
+        visitor.visitProgressMeasure(progress);
 
-    for(list<progress_t>::iterator p = global.progress.begin();
-        p != global.progress.end(); ++p)
-    {
-        visitor.visitProgressMeasure(*p);
-    }
-
-    for(list<gantt_t>::iterator g = global.ganttChart.begin();
-        g != global.ganttChart.end(); ++g)
-    {
-        visitor.visitGanttChart(*g);
-    }
+    for (auto& gantt: global.ganttChart)
+        visitor.visitGanttChart(gantt);
 
     visitor.visitSystemAfter(this);
 }
@@ -1421,7 +1390,7 @@ void TimedAutomataSystem::recordStrictLowerBoundOnControllableEdges()
 }
 
 void TimedAutomataSystem::addPosition(
-    uint32_t position, uint32_t offset, uint32_t line, std::string path)
+    uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
 {
     positions.add(position, offset, line, path);
 }
@@ -1431,19 +1400,20 @@ const Positions::line_t &TimedAutomataSystem::findPosition(uint32_t position) co
     return positions.find(position);
 }
 
-void TimedAutomataSystem::addError(position_t position, std::string msg, std::string context)
+void TimedAutomataSystem::addError(position_t position, const std::string& msg,
+                                   const std::string& context)
 {
-    errors.push_back(error_t(positions.find(position.start),
-                             positions.find(position.end),
-                             position, msg,
-                             context));
+    errors.emplace_back(positions.find(position.start),
+                        positions.find(position.end),
+                        position, msg, context);
 }
 
-void TimedAutomataSystem::addWarning(position_t position, std::string msg)
+void TimedAutomataSystem::addWarning(position_t position, const std::string& msg,
+                                     const std::string& context)
 {
-    warnings.push_back(error_t(positions.find(position.start),
-                               positions.find(position.end),
-                               position, msg));
+    warnings.emplace_back(positions.find(position.start),
+                          positions.find(position.end),
+                          position, msg, context);
 }
 
 // Returns the errors
