@@ -25,7 +25,6 @@
 #include <string>
 #include <strings.h>
 
-#include "utap/sbmlconverter.h"
 #include "utap/prettyprinter.h"
 
 using namespace std;
@@ -38,7 +37,7 @@ static bool newSyntax = (getenv("UPPAAL_OLD_SYNTAX") == NULL);
  */
 int main(int argc, char *argv[])
 {
-    try 
+    try
     {
         std::string filename;
 
@@ -57,20 +56,20 @@ int main(int argc, char *argv[])
         {
             parseXMLFile(filename.c_str(), &pretty, newSyntax);
         }
-        else 
+        else
         {
             FILE *file = fopen(filename.c_str(), "r");
-            if (file == NULL) 
+            if (file == NULL)
             {
                 char msg[256];
                 snprintf(msg, 255, "Error opening %s", filename.c_str());
                 perror(msg);
                 return 1;
             }
-            
+
             parseXTA(file, &pretty, newSyntax);
         }
-    } 
+    }
     catch (std::exception &e)
     {
         std::cerr << "Caught exception: " << e.what() << std::endl;

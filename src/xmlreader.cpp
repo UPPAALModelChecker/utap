@@ -469,7 +469,6 @@ namespace UTAP {
                 throw std::runtime_error("Invalid nesting in XML document");
             }
         }
-
         if (xmlTextReaderRead(reader) != 1) {
             /* Premature end of document. */
             throw std::runtime_error("Unexpected end of XML document");
@@ -1240,6 +1239,7 @@ namespace UTAP {
                 text = xmlTextReaderConstValue(reader);
             }
             parse(text, S_SYSTEM);
+            while (!end(TAG_SYSTEM)) read();
         } else {
             string s = (nta) ? path.get(TAG_NTA) : path.get(TAG_PROJECT);
             PositionTracker::setPath(parser, s);
@@ -1311,7 +1311,9 @@ namespace UTAP {
             while (lscTempl());
             instantiation();
             system();
-            queries();
+            read(); // look ahead one tag
+            if ((nta && !end(TAG_NTA)) || (!nta && !end(TAG_PROJECT)))
+                queries();
             parser->done();
         }
     }

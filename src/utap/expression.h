@@ -32,7 +32,7 @@
 
 namespace UTAP
 {
-    /** 
+    /**
         A reference to an expression.
 
         An expression is a tree of operations and is identified by the
@@ -47,14 +47,14 @@ namespace UTAP
         the range of the result value. Use the TypeChecker and
         RangeChecker classes to determine these informations.
 
-        All nodes have the following attributes: 
+        All nodes have the following attributes:
 
         kind     indicates the kind of operation
         position indicates the position of the expression in the input file.
         type     the type of the result of evaluating the expression
         size     the number of subexpressions
         sub      the subexpressions
-        
+
         Some nodes have extra attributes (depending on the kind):
 
         value    the value of a CONSTANT node
@@ -65,7 +65,7 @@ namespace UTAP
         Expressions are created by using the static factory methods.
     */
 
-    class expression_t 
+    class expression_t
     {
     private:
         expression_t(Constants::kind_t, const position_t &);
@@ -104,8 +104,8 @@ namespace UTAP
         size_t getSize() const;
 
         /** Returns the position of this expression. */
-        const position_t &getPosition() const;        
-        
+        const position_t &getPosition() const;
+
         /** Returns the type of the expression. */
         type_t getType() const;
 
@@ -134,7 +134,7 @@ namespace UTAP
 
         /** Returns the ith subexpression. */
         expression_t &operator[](uint32_t);
-        
+
         /** Returns the ith subexpression. */
         const expression_t operator[](uint32_t) const;
 
@@ -149,8 +149,8 @@ namespace UTAP
 
         /** Equality operator */
         bool equal(const expression_t &) const;
-        
-        /** 
+
+        /**
          *  Returns the symbol of a variable reference. The expression
          *  must be a left-hand side value. In case of
          *  dot-expressions, the record/process symbol is returned. In
@@ -162,7 +162,7 @@ namespace UTAP
          */
         symbol_t getSymbol();
 
-        /** 
+        /**
          * Returns the set of symbols this expression might resolve
          * into. In case of inline if, both the 'true' and 'false'
          * branch is added. In case of dot-expressions, both the left
@@ -189,7 +189,7 @@ namespace UTAP
         /** True if this expression can change any variable at all. */
         bool changesAnyVariable() const;
 
-        /** True if the evaluation of this expression depends on 
+        /** True if the evaluation of this expression depends on
             any of the symbols in the given set. */
         bool dependsOn(const std::set<symbol_t> &) const;
 
@@ -199,14 +199,14 @@ namespace UTAP
          /** Less-than operator. Makes it possible to put expression_t
              objects into an STL set. */
          bool operator < (const expression_t) const;
- 
+
          /** Equality operator. Returns true if the two references point
              to the same expression object. */
          bool operator == (const expression_t) const;
 
         expression_t subst(symbol_t, expression_t) const;
- 
-         static int getPrecedence(Constants::kind_t); 
+
+        static int getPrecedence(Constants::kind_t);
 
         /** Create a CONSTANT expression. */
         static expression_t createConstant(int32_t, position_t = position_t());
@@ -228,32 +228,32 @@ namespace UTAP
                                          type_t = type_t());
 
         /** Create a ternary expression */
-        static expression_t createTernary(Constants::kind_t, expression_t, 
+        static expression_t createTernary(Constants::kind_t, expression_t,
                                           expression_t, expression_t,
                                           position_t = position_t(),
                                           type_t = type_t());
 
         /** Create an n-ary expression */
-        static expression_t createNary(Constants::kind_t, 
+        static expression_t createNary(Constants::kind_t,
                                        const std::vector<expression_t> &,
                                        position_t = position_t(),
                                        type_t = type_t());
 
         /** Create a DOT expression */
         static expression_t createDot(expression_t, int32_t = -1,
-                                      position_t = position_t(), 
+                                      position_t = position_t(),
                                       type_t = type_t());
 
         /** Create a SYNC expression */
-        static expression_t createSync(expression_t, 
+        static expression_t createSync(expression_t,
                                        Constants::synchronisation_t,
                                        position_t = position_t());
 
         /** Create a DEADLOCK expression */
         static expression_t createDeadlock(position_t = position_t());
-        
+
         static expression_t createExit(position_t = position_t());
-        
+
         // true if empty or equal to 1.
         bool isTrue() const;
 

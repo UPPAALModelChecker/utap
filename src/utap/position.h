@@ -22,15 +22,7 @@
 #ifndef UTAP_POSITION
 #define UTAP_POSITION
 
-#include "config.h"
-
-#ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#elif defined(HAVE_STDINT_H)
-#include <stdint.h>
-#else
-#error "No inttypes.h or stdint.h"
-#endif
 
 #include <vector>
 #include <string>

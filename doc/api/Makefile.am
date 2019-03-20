@@ -8,3 +8,6 @@ VPATH=@srcdir@
 
 index.html: @PACKAGE@.doxygen
 	doxygen $<
+
+clean:
+	rm -Rf *.html *.png *.css *.js *.map *.md5 search

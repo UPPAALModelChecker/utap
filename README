@@ -1,6 +1,7 @@
-libutap, version 0.92
+libutap, version 0.93
 Mini HOWTO
 Gerd Behrmann
+Marius Mikucionis
 
 
 1. What is libutap
@@ -27,30 +28,32 @@ libutap is licensed under the LGPL.
 2. Compiling
 
 libutap uses automake and autoconf to make compilation on various
-platforms easy. You will need gcc 3.3 or newer, GNU make and
-libxml2 from http://www.xmlsoft.org (libxml needs to be at least
-version 2.6.10). Simply run:
+platforms easy. You will need gcc 3.3 or newer, GNU make,
+libxml2 from http://www.xmlsoft.org (at least version 2.6.10),
+libsbml from http://www.sbml.org.
+Simply run to compile libutap and use it:
 
 ./configure
 make
 
-to compile libutap and use 
+Run the following to install libutap:
 
 make install
 
-to install it. Read the INSTALL file in the distribution for more
-information on how to compile.
+Read the INSTALL file in the distribution for more information on
+how to compile.
 
 NOTE: if you want to regenerate automatically created files like the
 configure script and Makefile, use autoreconf -i. Do *not* run
 autoconf directly, it will mess up your Makefile. You need autoconf
 version 2.53 or newer and automake.
 
+
 3. Simple use
 
 There are two ways one can use the library. In its simplest form, one
 calls one of the top level parsing functions defined in utap/utap.h,
-e.g.
+e.g. example.cpp:
 
 #include <stdio.h>
 #include "utap/utap.h"
@@ -58,19 +61,29 @@ e.g.
 int main()
 {
   UTAP::TimedAutomataSystem system;
-  FILE *file = fopen("myfile.ta", "r");
-  parseXTA(file, &system, false);
+  parseXMLFile("myfile.xml", &system, true);
 }
-
 
 The first argument is the file to read. The second is the output of
 the parser and the third is a flag indicating whether we want to use
 the new or the old syntax (the old syntax is the one used in Uppaal
-3.4, the new is the one that will be used in Uppaal 3.6).
+3.4, the new is the one that will be used since Uppaal 3.6).
 
-After the call to parseXTA, one can access the network of timed
+After the call to parseXMLFile, one can access the network of timed
 automata in the system variable. Take a look at utap/system.h to see
 what kind of structures you can access.
+Distribution also includes pretty.cpp for pretty-printing a model files.
+See also doxygen API documentation in doc/api/index.html.
+
+Use the following command to compile the example:
+
+g++ example.cpp -o example -lutap -lxml2
+
+If UTAP was configured with --prefix=$MYPATH to install in custom location
+then use the following to compile:
+
+g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
+
 
 4. Architecture
 
@@ -98,7 +111,7 @@ the library.
  | TAS  |                                           |
  |      |      +---------------+                    |
  |      | <--- | SystemBuilder |<--[ParserBuilder]--/
- |      |      +---------------+                     
+ |      |      +---------------+
  +------+
 
 
@@ -137,6 +150,6 @@ operations. Each node is referenced using an expression_t object.
 5. Contact
 
 If you have questions or comments to libutap, you can contact me on
-the following email address: uppaal@list.it.uu.se. For a list of known
+the following email address: marius@cs.aau.dk. For a list of known
 bugs or for reporting new bugs take a look at the UPPAAL bugzilla
 installation at http://www.uppaal.org/.

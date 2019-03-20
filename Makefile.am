@@ -21,3 +21,10 @@
 
 SUBDIRS=src doc
 
+docdir = $(datadir)/doc/@PACKAGE@
+doc_DATA = README
+
+install-data-hook:
+	cp -R doc/api $(docdir)/
+	chmod a+rx $(docdir)/api
+	chmod a+r $(docdir)/api/*

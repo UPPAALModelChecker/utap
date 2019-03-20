@@ -1,5 +1,5 @@
 # libutap - Uppaal Timed Automata Parser.
-# Copyright (C) 2002 Uppsala University and Aalborg University.
+# Copyright (C) 2002-2015 Uppsala University and Aalborg University.
 # 
 # This library is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -16,15 +16,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT(UPPAAL TA Parser Library, 0.92, uppaal@list.it.uu.se, libutap)
+AC_INIT([libutap], [0.93], [marius@cs.aau.dk], [libutap], [http://people.cs.aau.dk/~marius/utap/])
 
 AC_PREREQ(2.50)
 
 AC_CONFIG_AUX_DIR(.)
-AM_INIT_AUTOMAKE(libutap, 0.92)
-AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/pretty.cpp)
-     
+AM_INIT_AUTOMAKE([1.9 tar-ustar])
+AM_CONFIG_HEADER(config.h)
+
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
@@ -70,24 +70,25 @@ AC_ARG_ENABLE(cora,
 AS_HELP_STRING([--enable-cora], [enable UPPAAL CORA extensions]),
 OPT_FLAGS="${OPT_FLAGS} -DENABLE_PRICED"
 )
- 
+
 dnl Checks for libraries.
-     
+
 dnl Checks for header files.
 AC_STDC_HEADERS
 AC_CHECK_HEADERS(string.h fcntl.h sys/file.h sys/param.h)
 
 AC_CHECK_HEADERS(boost/bind.hpp boost/lambda/lambda.hpp boost/lambda/bind.hpp,,
 				AC_MSG_ERROR("boost header files not found"))
-     
+
+
 dnl Checks for library functions.
 AC_FUNC_ALLOCA
-     
+
 dnl Check for st_blksize in struct stat
 AC_ST_BLKSIZE
-     
+
 dnl Check for libxml2
-AC_ARG_WITH(libxml2-prefix, 
+AC_ARG_WITH(libxml2-prefix,
 [  --with-libxml2-prefix=[=DIR] set prefix for libxml2 installation],
 [
   AC_PATH_PROG(XML_CONFIG, xml2-config, , $withval/bin)

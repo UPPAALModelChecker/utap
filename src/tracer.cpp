@@ -471,6 +471,15 @@ void State::allocate()
     }
 }
 
+class Edge
+{
+public:
+    int process;
+    int edge;
+    vector<int> select;
+    Edge(int p, int e): process(p), edge(e) {}
+};
+
 /* A transition consists of one or more edges. Edges are indexes from
  * 0 in the order they appear in the input file.
  */
@@ -479,28 +488,36 @@ class Transition
 public:
     Transition(FILE *);
     ~Transition();
-
-    int getEdge(int process) const { return edges[process]; }
-private:
-    int *edges;
+    vector<Edge> edges;
 };
 
 Transition::Transition(FILE *file)
 {
-    edges = new int[processCount];
-    fill(edges, edges + processCount, -1);
-
-    int process, edge;
-    while (fscanf(file, "%d %d.\n", &process, &edge) == 2) 
+    int process, edge, select, c;
+    while (fscanf(file, "%d %d", &process, &edge) == 2)
     {
-        edges[process] = edge - 1;
+        Edge e(process, edge);
+        while (' ' == (c=fgetc(file)));
+        while (c!='\n' && c!=';') {
+            ungetc(c, file);
+            if (scanf("%d", &select)==1) {
+                e.select.push_back(select);
+            } else {
+                cerr << "Transition format error" << endl;
+                exit(1);
+            }
+            while (' ' == (c=fgetc(file)));
+        }
+        if (c=='\n') { // old format without ';'
+            e.edge--;
+        }
+        edges.push_back(e);
     }
     fscanf(file, ".\n");
 }
 
 Transition::~Transition()
 {
-    delete[] edges;
 }
 
 /* Output operator for a symbolic state. Prints the location vector,
@@ -551,25 +568,26 @@ ostream &operator << (ostream &o, const State &state)
  */
 ostream &operator << (ostream &o, const Transition &t)
 {
-    for (size_t p = 0; p < processCount; p++) 
+    for (vector<Edge>::const_iterator i=t.edges.begin(), e=t.edges.end(); i!=e; ++i)
     {
-        int idx = t.getEdge(p);
-        if (idx > -1) 
-        {
-            int edge = processes[p].edges[idx];
-            int src = edges[edge].source;
-            int dst = edges[edge].target;
-            int guard = edges[edge].guard;
-            int sync = edges[edge].sync;
-            int update = edges[edge].update;
-
-            cout << processes[p].name << '.' << layout[src].name 
-                 << " -> "
-                 << processes[p].name << '.' << layout[dst].name 
-                 << " {"
-                 << expressions[guard] << "; " << expressions[sync] << "; " << expressions[update]
-                 << ";} ";
+        int edge = processes[i->process].edges[i->edge];
+        int src = edges[edge].source;
+        int dst = edges[edge].target;
+        int guard = edges[edge].guard;
+        int sync = edges[edge].sync;
+        int update = edges[edge].update;
+        cout << processes[i->process].name << '.' << layout[src].name
+             << " -> "
+             << processes[i->process].name << '.' << layout[dst].name;
+        if (!i->select.empty()) {
+            vector<int>::const_iterator s=i->select.begin(), se=i->select.end();
+            cout << " [" << *s;
+            while (++s != se) cout << "," << *s;
+            cout << "]";
         }
+        cout << " {"
+             << expressions[guard] << "; " << expressions[sync] << "; " << expressions[update]
+             << ";} ";
     }
 
     return o;

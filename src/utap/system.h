@@ -617,7 +617,7 @@ namespace UTAP
         std::string location;
         
     public:
-        void addError(position_t, std::string, std::string location="");
+        void addError(position_t, std::string, std::string context="");
         void addWarning(position_t, std::string);
         bool hasErrors() const;
         bool hasWarnings() const;

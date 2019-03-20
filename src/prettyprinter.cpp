@@ -1274,16 +1274,20 @@ void PrettyPrinter::exprSimulate(int nbRuns,
     st.push_back(ss.str());
 }
 
-/** Verification queries */
-void PrettyPrinter::queryBegin() {
+/** Built-in verification queries if any */
+void PrettyPrinter::queryBegin()
+{
     *o.top() << "\n/* Query begin: */" << endl;
 }
-void PrettyPrinter::queryFormula(const char* formula){
+void PrettyPrinter::queryFormula(const char* formula, const char* location)
+{
     *o.top() << "/* Formula: "<<formula << "*/" << endl;
 }
-void PrettyPrinter::queryComment(const char* comment){
+void PrettyPrinter::queryComment(const char* comment)
+{
     *o.top() << "/* Comment: " << comment << "*/" << endl;
 }
-void PrettyPrinter::queryEnd(){
+void PrettyPrinter::queryEnd()
+{
     *o.top() << "/* Query end. */" << endl;
 }

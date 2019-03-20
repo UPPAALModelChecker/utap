@@ -161,8 +161,8 @@ namespace UTAP
 
         /** Verification queries */
         virtual void queryBegin();
-        virtual void queryFormula(const char*);
-        virtual void queryComment(const char*);
+        virtual void queryFormula(const char* formula, const char* location);
+        virtual void queryComment(const char* comment);
         virtual void queryEnd();
     };
 }

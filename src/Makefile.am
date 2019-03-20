@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 # libutap - Uppaal Timed Automata Parser.
-# Copyright (C) 2002-2005 Uppsala University and Aalborg University.
+# Copyright (C) 2002-2015 Uppsala University and Aalborg University.
 # 
 # This library is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -20,20 +20,20 @@
 
 VPATH = @srcdir@
 
-bin_PROGRAMS = pretty tracer syntaxcheck taflow
+bin_PROGRAMS = pretty syntaxcheck taflow tracer
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/position.h utap/prettyprinter.h utap/signalflow.h utap/statement.h utap/statementbuilder.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h utap/xmlwriter.h utap/SBMLtoXMLWriter.h utap/sbmlconverter.h
+include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/position.h utap/prettyprinter.h utap/signalflow.h utap/statement.h utap/statementbuilder.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h utap/xmlwriter.h
 
 pretty_SOURCES = pretty.cpp
-
-tracer_SOURCES = tracer.cpp
 
 syntaxcheck_SOURCES = syntaxcheck.cpp
 
 taflow_SOURCES = taflow.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expression.cpp expressionbuilder.cpp position.cpp prettyprinter.cpp signalflow.cpp statement.cpp statementbuilder.cpp symbols.cpp system.cpp systembuilder.cpp type.cpp typechecker.cpp typeexception.cpp xmlreader.cpp tags.gperf parser.yy libparser.h 
+tracer_SOURCES = tracer.cpp
+
+libutap_a_SOURCES = abstractbuilder.cpp expression.cpp expressionbuilder.cpp position.cpp prettyprinter.cpp signalflow.cpp statement.cpp statementbuilder.cpp symbols.cpp system.cpp systembuilder.cpp type.cpp typechecker.cpp typeexception.cpp xmlreader.cpp xmlwriter.cpp tags.gperf parser.yy libparser.h
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 pretty_LDADD = libutap.a $(XML_LIBS)

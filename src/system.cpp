@@ -1431,12 +1431,12 @@ const Positions::line_t &TimedAutomataSystem::findPosition(uint32_t position) co
     return positions.find(position);
 }
 
-void TimedAutomataSystem::addError(position_t position, std::string msg, std::string location)
+void TimedAutomataSystem::addError(position_t position, std::string msg, std::string context)
 {
     errors.push_back(error_t(positions.find(position.start),
                              positions.find(position.end),
-                             position, msg, 
-                             location));
+                             position, msg,
+                             context));
 }
 
 void TimedAutomataSystem::addWarning(position_t position, std::string msg)

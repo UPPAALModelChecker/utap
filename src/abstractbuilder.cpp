@@ -717,138 +717,142 @@ void AbstractBuilder::done()
 
 void AbstractBuilder::property()
 {
-    throw NotSupportedException("property");
+    throw NotSupportedException("property is not supported");
 }
 
 void AbstractBuilder::beforeUpdate()
 {
-    throw NotSupportedException("beforeUpdate");
+    throw NotSupportedException("beforeUpdate is not supported");
 }
 
 void AbstractBuilder::afterUpdate()
 {
-    throw NotSupportedException("afterUpdate");
+    throw NotSupportedException("afterUpdate is not supported");
 }
 
 void AbstractBuilder::beginChanPriority()
 {
-    throw NotSupportedException("beginChanPriority");
+    throw NotSupportedException("beginChanPriority is not supported");
 }
 
 void AbstractBuilder::addChanPriority(char separator)
 {
-    throw NotSupportedException("addChanPriority");
+    throw NotSupportedException("addChanPriority is not supported");
 }
 
 void AbstractBuilder::defaultChanPriority()
 {
-    throw NotSupportedException("defaultChanPriority");
+    throw NotSupportedException("defaultChanPriority is not supported");
 }
 
 void AbstractBuilder::incProcPriority()
 {
-    throw NotSupportedException("incProcPriority");
+    throw NotSupportedException("incProcPriority is not supported");
 }
 
 void AbstractBuilder::procPriority(const char*)
 {
-    throw NotSupportedException("procPriority");
+    throw NotSupportedException("procPriority is not supported");
 }
 
 void AbstractBuilder::exprSync(Constants::synchronisation_t type)
 {
-    throw NotSupportedException("exprSync");
+    throw NotSupportedException("exprSync is not supported");
 }
 
 void AbstractBuilder::declIO(const char*,int,int)
 {
-    throw NotSupportedException("declIO");
+    throw NotSupportedException("declIO is not supported");
 }
 
 void AbstractBuilder::declDynamicTemplate(std::string)
 {
-    throw NotSupportedException("declDynamicTemplate");
+    throw NotSupportedException("declDynamicTemplate is not supported");
 }
 
 void AbstractBuilder::exprSpawn (int ) {
-    throw NotSupportedException("exprSpawn");
+    throw NotSupportedException("exprSpawn is not supported");
 }
 
 void AbstractBuilder::exprExit ( ) {
-    throw NotSupportedException("exprExit");
+    throw NotSupportedException("exprExit is not supported");
 }
 
 void AbstractBuilder::exprNumOf ( ) {
-    throw NotSupportedException("exprNumOf");
+    throw NotSupportedException("exprNumOf is not supported");
 }
 
 
-void AbstractBuilder::exprForAllDynamicBegin (const char*,const char* ) 
+void AbstractBuilder::exprForAllDynamicBegin (const char*,const char* )
 {
-    throw NotSupportedException("exprForAllDynamicBegin");
+    throw NotSupportedException("exprForAllDynamicBegin is not supported");
 }
-void AbstractBuilder::exprForAllDynamicEnd (const char* name) 
+void AbstractBuilder::exprForAllDynamicEnd (const char* name)
 {
-    throw NotSupportedException("exprForAllDynamicEnd");
+    throw NotSupportedException("exprForAllDynamicEnd is not supported");
 }
-void AbstractBuilder::exprExistsDynamicBegin (const char* ,const char*) 
+void AbstractBuilder::exprExistsDynamicBegin (const char* ,const char*)
 {
-    throw NotSupportedException("exprExistsAllDynamicBegin");
-}
-
-void AbstractBuilder::exprExistsDynamicEnd (const char* name) 
-{
-    throw NotSupportedException("exprExistsAllDynamicEnd");
-}
-void AbstractBuilder::exprSumDynamicBegin (const char* ,const char*) 
-{
-    throw NotSupportedException("exprSumDynamicBegin");
+    throw NotSupportedException("exprExistsAllDynamicBegin is not supported");
 }
 
-void AbstractBuilder::exprSumDynamicEnd (const char* name) 
+void AbstractBuilder::exprExistsDynamicEnd (const char* name)
 {
-    throw NotSupportedException("exprSumDynamicEnd");
+    throw NotSupportedException("exprExistsAllDynamicEnd is not supported");
 }
-void AbstractBuilder::exprForeachDynamicBegin (const char* ,const char*) 
+void AbstractBuilder::exprSumDynamicBegin (const char* ,const char*)
 {
-    throw NotSupportedException("exprForeachDynamicBegin");
+    throw NotSupportedException("exprSumDynamicBegin is not supported");
 }
 
-void AbstractBuilder::exprForeachDynamicEnd (const char* name) 
+void AbstractBuilder::exprSumDynamicEnd (const char* name)
 {
-    throw NotSupportedException("exprForeachDynamicEnd");
+    throw NotSupportedException("exprSumDynamicEnd is not supported");
+}
+void AbstractBuilder::exprForeachDynamicBegin (const char* ,const char*)
+{
+    throw NotSupportedException("exprForeachDynamicBegin is not supported");
+}
+
+void AbstractBuilder::exprForeachDynamicEnd (const char* name)
+{
+    throw NotSupportedException("exprForeachDynamicEnd is not supported");
 }
 void AbstractBuilder::exprDynamicProcessExpr (const char*)
 {
-    throw NotSupportedException("exprDynamicProcessExpr");
+    throw NotSupportedException("exprDynamicProcessExpr is not supported");
 }
 
 void AbstractBuilder::exprMITLForAllDynamicBegin (const char*,const char*)
 {
-    throw NotSupportedException("exprMITLDynamicForAllBegin");
+    throw NotSupportedException("exprMITLDynamicForAllBegin is not supported");
 }
 
 void AbstractBuilder::exprMITLForAllDynamicEnd (const char* name)
 {
-    throw NotSupportedException("exprMITLDynamicForAllEnd");
+    throw NotSupportedException("exprMITLDynamicForAllEnd is not supported");
 }
-void AbstractBuilder::exprMITLExistsDynamicBegin (const char*,const char*) 
+void AbstractBuilder::exprMITLExistsDynamicBegin (const char*,const char*)
 {
-    throw NotSupportedException("exprMITLDynamicExistsBegin");
+    throw NotSupportedException("exprMITLDynamicExistsBegin is not supported");
 }
 void AbstractBuilder::exprMITLExistsDynamicEnd (const char* name)
 {
-    throw NotSupportedException("exprMITLDynamicExistsEnd");
+    throw NotSupportedException("exprMITLDynamicExistsEnd is not supported");
 }
-void AbstractBuilder::queryBegin(){
-    throw NotSupportedException("queryBegin");
+void AbstractBuilder::queryBegin()
+{
+    throw NotSupportedException("queryBegin not implemented is not supported");
 }
-void AbstractBuilder::queryEnd(){
-    throw NotSupportedException("queryEnd");
+void AbstractBuilder::queryEnd()
+{
+    throw NotSupportedException("queryEnd is not supported");
 }
-void AbstractBuilder::queryFormula(const char*, const char*){
-    throw NotSupportedException("queryFormula");
+void AbstractBuilder::queryFormula(const char*, const char*)
+{
+    throw NotSupportedException("queryFormula is not supported");
 }
-void AbstractBuilder::queryComment(const char*){
-    throw NotSupportedException("queryComment");
+void AbstractBuilder::queryComment(const char*)
+{
+    throw NotSupportedException("queryComment is not supported");
 }

@@ -1,3 +1,37 @@
+2015-10-05 14:44  marius
+
+	* [r5809] utap/tests/pretty.cpp, utap/typechecker.cpp,
+	  utap/xmlwriter.cpp: UTAP: clean up from trivial errors and
+	  warnings
+
+2015-10-05 14:30  marius
+
+	* [r5808] include/utap/position.h, include/utap/prettyprinter.h,
+	  utap/abstractbuilder.cpp, utap/prettyprinter.cpp,
+	  utap/release/Makefile.am, utap/release/NEWS, utap/release/README,
+	  utap/release/configure.ac, utap/release/doc/api/Makefile.am,
+	  utap/release/doc/api/libutap.doxygen, utap/release/release.sh,
+	  utap/release/src/Makefile.am, utap/tests/pretty.cpp: UTAP: fixed
+	  handling of embedded queries and updated release scripts.
+
+2015-10-05 14:30  marius
+
+	* [r5807] base/platform.c, socketserver/tests/socketserver.c,
+	  tracer/tests/tracer.cpp: UTAP: fixed tracer utility to read the
+	  new transition format with selects
+
+2015-04-22 09:32  marius
+
+	* [r5794] utap/xmlreader.cpp, verifier/tests/verifyta.cpp: utap:
+	  fixed parsing of xml files without queries and formulas with line
+	  breaks
+
+2015-04-07 02:12  marius
+
+	* [r5791] include/utap/expression.h, include/utap/system.h,
+	  utap/system.cpp, verifier/Compiler.cpp: added possibility for
+	  output-synchronization on branching-out edges
+
 2015-03-13 11:26  marius
 
 	* [r5778] statmc/tests/CItest.cpp, utap/typechecker.cpp,
@@ -1793,6 +1827,13 @@
 	* [r4366] include/utap/symbols.h, utap/symbols.cpp,
 	  utap/systembuilder.cpp, verifier/Symbol.cpp: Fixed bug 474.
 
+2009-05-19 14:42  adavid
+
+	* [r4322] tiga/tests/server.cpp, tiga/tests/verifytga.cpp,
+	  tracer/tests/tracer.cpp, verifier/tests/verifyta.cpp: Updated the
+	  tracer & verifiers accordingly.
+	  Updated the Gantt chart extension.
+
 2009-05-14 15:43  adavid
 
 	* [r4320] dbm/fed_dbm.cpp, include/dbm/fed.h,
@@ -2743,6 +2784,11 @@
 	* [r2328] utap/tests/check.cpp, utap/tests/syntaxcheck.cpp: Renamed
 	  check utility to syntaxcheck.
 
+2006-06-27 20:16  behrmann
+
+	* [r2300] tracer/tests/tracer.cpp: Updated tracer to handle four
+	  argument instructions.
+
 2006-06-27 17:53  fleury
 
 	* [r2294] include/system/System.h, include/utap/common.h,
@@ -3059,6 +3105,31 @@
 
 	* [r1968] utap/xmlreader.cpp: Removed #ifdef ENABLE_GAMES since the
 	  addition was non-intrusive.
+
+2006-06-02 19:34  adavid
+
+	* [r1966] cora, cora/tests, satcompiler, satcompiler/tests,
+	  satsolver, satsolver/tests, socketserver, socketserver/tests,
+	  system, system/tests, tracer, tracer/tests, tron, tron/tests, vm,
+	  vm/tests: This time the property really seems to work.
+
+2006-06-02 19:29  adavid
+
+	* [r1965] satcompiler, satcompiler/tests, satsolver,
+	  satsolver/tests, socketserver, socketserver/tests, system,
+	  system/tests, tracer, tracer/tests, tron, tron/tests: New try for
+	  setting the property for .depend *and* Makefile.
+
+2006-06-02 19:24  adavid
+
+	* [r1964] satcompiler/tests, satsolver/tests, socketserver/tests,
+	  system/tests, tracer/tests, tron/tests: Property svn:ignore for
+	  .depend & Makefile.
+
+2006-06-02 19:23  adavid
+
+	* [r1963] satcompiler, satsolver, socketserver, system, tracer,
+	  tron: Added svn:ignore property for .depend & Makefile.
 
 2006-06-01 17:31  behrmann
 

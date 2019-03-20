@@ -1,3 +1,10 @@
+New in 0.93
+This is a snapshot of UTAP as used in prerelease of UPPAAL 4.1.20.
+Notable changes:
+- Fixed tracer for newer engine trace format.
+- Fixed pretty printer handling of embedded queries.
+
+
 New in 0.91
 
 This is a snapshot of UTAP in the latest development version of 
