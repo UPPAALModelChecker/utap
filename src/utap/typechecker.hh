@@ -119,7 +119,7 @@ namespace UTAP
 	    void push(type_t value)
 		{ data.push_back(value); }
 	    void pop()
-		{ data.pop_back(); }
+		{ assert(!data.empty()); data.pop_back(); }
 	} typeFragments;
 
 	// 
@@ -142,9 +142,16 @@ namespace UTAP
 	int32_t guard;
 	int32_t sync;
 	int32_t update;
+
+	//
+	// Fields for function call and template instantiation handling
+	//
 	
-        // stack of <function id, expr type> for function call handling
-	std::vector<std::pair<int32_t, int32_t> > fnCalls; 
+	// list of expected arguments 
+	std::list<std::vector<type_t> > expectedArguments;
+
+        // stack of function or template uids
+	std::vector<int32_t> identifierStack;
 
 	//
 	// Private functions
@@ -187,7 +194,9 @@ namespace UTAP
 	    int32_t left, uint32_t op, int32_t right);    
 	uint32_t typeOfUnaryMinus(uint32_t type);
 	int getArraySize(int32_t type);
+	int32_t getBaseType(int32_t type);
 	int32_t findFieldInRecord(const std::vector<std::pair<char *, int> > &, const char *);
+	void checkGuardSynchronisationConflict();
 
 	//
 	// Methods for handling expressions

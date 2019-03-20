@@ -24,7 +24,7 @@ Keywords::hash (register const char *str, register unsigned int len)
       72, 72, 72, 72, 72, 72, 72, 72, 72, 72,
       72, 72, 72, 72, 72, 72, 72, 72, 72, 72,
       72, 72, 72, 72, 72, 72, 72, 72, 72, 72,
-      72, 72, 72, 72,  0, 72, 72, 72, 72, 72,
+      72, 72, 72, 72, 72, 72, 72, 72, 72, 72,
       72, 72, 72, 72, 72, 72, 72, 40, 30, 10,
        0, 15,  5,  5, 20, 20, 72,  5, 72, 15,
       25,  0, 10,  0, 30,  0,  0,  5, 72, 10,
@@ -53,7 +53,7 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
     {
       TOTAL_KEYWORDS = 33,
       MIN_WORD_LENGTH = 2,
-      MAX_WORD_LENGTH = 28,
+      MAX_WORD_LENGTH = 9,
       MIN_HASH_VALUE = 2,
       MAX_HASH_VALUE = 71
     };
@@ -95,14 +95,12 @@ Keywords::in_word_set (register const char *str, register unsigned int len)
       {"imply",			T_IMPLY,	SYNTAX_PROPERTY},
       {""}, {""},
       {"for",			T_FOR,		SYNTAX_NEW},
-      {""},
+      {"broadcast",       	T_BROADCAST,	SYNTAX_OLD | SYNTAX_NEW},
       {"break",			T_BREAK,	SYNTAX_NEW},
       {""}, {""},
       {"and",			T_BOOL_AND,	SYNTAX_PROPERTY},
       {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
-      {""}, {""}, {""}, {""}, {""},
-      {"broadcast       \011T_BROADCAST",	SYNTAX_NEW},
-      {""}, {""},
+      {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
       {"return", 		T_RETURN,	SYNTAX_NEW},
       {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""}, {""},
       {"assign",			T_ASSIGN,	SYNTAX_OLD | SYNTAX_NEW}

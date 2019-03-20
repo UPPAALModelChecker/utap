@@ -55,7 +55,7 @@ namespace UTAP
 
 	    error_t(const error_t &err)
 		: fline(err.fline), fcolumn(err.fcolumn),
-		  lline(err.lline), lcolumn(err.lline),
+		  lline(err.lline), lcolumn(err.lcolumn),
 		  xpath(copy(err.xpath)), msg(copy(err.msg)) {}
 
 	    ~error_t() { delete [] xpath; delete[] msg; }
@@ -127,6 +127,8 @@ namespace UTAP
 	    BIT_RSHIFT = 9,
 	    AND = 10,
 	    OR = 11,
+	    MIN = 12,
+	    MAX = 13,
 
 	    /********************************************************
 	     * Relational operators

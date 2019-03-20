@@ -58,14 +58,9 @@ using namespace std;
 using namespace UTAP;
 using namespace Constants;
 
-typedef struct position_t
+typedef struct position_t 
 {
     int32_t first_line, first_column, last_line, last_column;
-    position_t() { reset(); }
-    position_t(const position_t &loc): 
-	first_line(loc.first_line), first_column(loc.first_column),
-	last_line(loc.last_line), last_column(loc.last_column) {};
-    ~position_t(){ };
     void reset() {
 	first_column = first_line = 1; 
 	last_column = last_line = 1; 
@@ -103,14 +98,11 @@ static const char* PE_ARGLIST_ = "one more argument expression expected";
 static const char* PE_ARROW = "'->' expected";
 static const char* PE_ASSIGN = "'=' expected";
 static const char* PE_ASSIGN_EXP = "assignment expression expected";
-static const char* PE_ASSIGN_EXP_ = "one more assignment expression expected";
-static const char* PE_ASSIGNOLD = "':=' expected";
 static const char* PE_BANG = "'!' expected";
 static const char* PE_BANGQUE = "'!' or '?' expected";
 static const char* PE_COLON = "':' expected";
 static const char* PE_COMMA = "',' expected";
 static const char* PE_CONST_EXP = "constant expression expected";
-static const char* PE_CONSTID = "constant identifier expected";
 static const char* PE_CONSTID_ = "one more constant identifier expected";
 static const char* PE_DECL_STAT = "variable declaration or statement expected";
 static const char* PE_EXPR = "expression expected";
@@ -118,7 +110,6 @@ static const char* PE_EXPR_ = "one more expression expected";
 static const char* PE_EXPR_SEMI = "expression or ';' expected";
 static const char* PE_GUARD_EXP = "guard expression expected";
 static const char* PE_GUARD_EXP_ = "one more guard expression expected";
-static const char* PE_ID_ = "one more identifier expected";
 static const char* PE_INIT = "'init' expected";
 static const char* PE_INITIAL = "initialiser expected";
 static const char* PE_INITIAL_ = "one more initialiser expected";
@@ -157,7 +148,6 @@ static const char* PE_TRANS_DECL_ = "one more transition declaration expected";
 static const char* PE_TYPE_DEF = "type definition expected";
 static const char* PE_TYPEID = "type identifier expected";
 static const char* PE_TYPEID_= "one more type identifier expected";
-static const char* PE_VAR_DECL = "variable declaration expected";
 static const char* PE_VARID = "variable identifier expected";
 static const char* PE_VARID_ ="one more variable identifier expected" ;
 
@@ -193,7 +183,7 @@ static int32_t g_parameter_count;
 
 
 /* Assignments: */
-%token T_ASSIGNMENT T_ASSIGNOLD T_ASSPLUS 
+%token T_ASSIGNMENT T_ASSPLUS 
 %token T_ASSMINUS T_ASSMULT T_ASSDIV T_ASSMOD 
 %token T_ASSOR T_ASSAND T_ASSXOR 
 %token T_ASSLSHIFT T_ASSRSHIFT
@@ -204,7 +194,7 @@ static int32_t g_parameter_count;
 %token T_INCREMENT T_DECREMENT
 
 /* Binary operations: */
-%token T_PLUS T_MINUS T_MULT T_DIV 
+%token T_PLUS T_MINUS T_MULT T_DIV  T_MIN T_MAX
 %token T_MOD T_OR T_XOR T_LSHIFT T_RSHIFT 
 %token T_BOOL_AND T_BOOL_OR T_BOOL_NOT T_IMPLY
 
@@ -217,7 +207,7 @@ static int32_t g_parameter_count;
 
 /* Variable type declaration keywords: */
 %token T_TYPEDEF T_STRUCT 
-%token T_CONST T_URGENT T_BROADCAST T_TRUE T_FALSE
+%token T_CONST T_OLDCONST T_URGENT T_BROADCAST T_TRUE T_FALSE
 
 /* Uppaal keywords */
 %token T_SYSTEM T_PROCESS T_STATE T_COMMIT T_INIT T_TRANS T_ARROW 
@@ -244,7 +234,7 @@ static int32_t g_parameter_count;
 %type <number> UnaryOp Quantifier
 %type <number> Type AssignOp TypePrefix 
 %type <string> Id
-%type <number> OldDeclIdList OldConstDeclIdList
+%type <number> OldConstDeclIdList
 %type <flag> VarInit Range
 
 %right T_ASSIGNMENT T_ASSPLUS T_ASSMINUS T_ASSMULT T_ASSDIV T_ASSMOD T_ASSAND T_ASSOR T_ASSLSHIFT T_ASSRSHIFT T_ASSXOR
@@ -257,6 +247,7 @@ static int32_t g_parameter_count;
 %left '&'
 %left T_EQ T_NEQ 
 %left T_LT T_LEQ T_GEQ T_GT
+%left T_MIN T_MAX
 %left T_LSHIFT T_RSHIFT
 %left T_MINUS T_PLUS
 %left T_MULT T_DIV T_MOD
@@ -291,11 +282,11 @@ Uppaal:
 	| T_OLD OldXTA { CALL(@2, @2, done()); }
 	| T_OLD_DECLARATION OldDeclaration { }
 	| T_OLD_LOCAL_DECL OldVarDeclList { }
-	| T_OLD_INST OldInst { }
-	| T_OLD_PARAMETERS OldProcParamList { g_parameter_count = $2; }
+	| T_OLD_INST Inst { }
+        | T_OLD_PARAMETERS OldProcParamList { g_parameter_count = $2; }
 	| T_OLD_INVARIANT OldInvariant { }
 	| T_OLD_GUARD OldGuardList { CALL(@2, @2, procGuard()); }
-	| T_OLD_ASSIGN OldAssignmentList { CALL(@2, @2, procUpdate()); }
+	| T_OLD_ASSIGN ExprList { CALL(@2, @2, procUpdate()); }
         | T_PROPERTY PropertyList {}
 	;
 
@@ -307,7 +298,7 @@ Inst:
 	/* empty */
 	| Inst T_ID T_ASSIGNMENT T_ID '(' {
           CALL(@2, @4, instantiationBegin($2, $4));
-	} ArgList ')' ';' { 
+	} ArgList ')' ';' {
 	  CALL(@2, @9, instantiationEnd($2, $4, $7));
 	}
 	| Inst T_ID T_ASSIGNMENT T_ID '(' error ')' ';' { 
@@ -325,8 +316,8 @@ Inst:
 	;
 
 System:
-	T_SYSTEM IdList ';'
-        | T_SYSTEM IdList error ';' {
+	T_SYSTEM ProcessList ';'
+        | T_SYSTEM ProcessList error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
 	}
         | T_SYSTEM error ';' {
@@ -334,10 +325,10 @@ System:
 	}
 	;
 
-IdList:
+ProcessList:
 	T_ID { CALL(@1, @1, process($1)); }
-	| IdList ',' T_ID { CALL(@3, @3, process($3)); }
-	| IdList ',' error {
+	| ProcessList ',' T_ID { CALL(@3, @3, process($3)); }
+	| ProcessList ',' error {
 	  REPORT_ERROR(last_loc, TypeException(PE_PROCID_));
 	}
 	;
@@ -1399,6 +1390,12 @@ Expression:
 	} Expression {
 	  CALL(@3, @3, exprBinary(OR));
 	}
+        | Expression T_MIN Expression {
+	    CALL(@1, @3, exprBinary(MIN));
+        }
+        | Expression T_MAX Expression {
+	    CALL(@1, @3, exprBinary(MAX));
+        }
 	;
 
 
@@ -1447,28 +1444,7 @@ ArgList:
  */
 
 OldXTA: 
-	OldDeclaration OldInst System;
-
-OldInst:
-	/* empty */ 
-	| OldInst T_ID T_ASSIGNOLD T_ID '(' {
-	  CALL(@2, @4, instantiationBegin($2, $4));
-        } ArgList ')' ';' {
-	  CALL(@2, @9, instantiationEnd($2, $4, $7));	    
-	}
-	| OldInst T_ID T_ASSIGNOLD T_ID '(' error ')' ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ARGLIST));
-	}
-	| OldInst T_ID T_ASSIGNOLD T_ID '(' error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	}
-	| OldInst T_ID T_ASSIGNOLD T_ID error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LPAREN));
-	}
-	| OldInst T_ID error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGNOLD));
-	}
-	;
+	OldDeclaration Inst System;
 
 
 OldDeclaration:
@@ -1478,67 +1454,12 @@ OldDeclaration:
 	;
 
 OldVarDecl:
-	OldType OldDeclIdList ';' {
-	  CALL(@1, @3, declVarEnd());
-	}
-        | OldType OldDeclIdList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  yyclearin; yyerrok;
-	  CALL(@1, @4, declVarEnd());
-	}
-        | OldType error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_VARID));
-	  yyclearin; yyerrok;
-	  CALL(@1, @3, declVarEnd());
-	}
-        | error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_VAR_DECL));
-	  yyclearin; yyerrok;
-	}
-	| T_CONST { 
+	VariableDecl
+	| T_OLDCONST { 
 	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", 0));
-	}
-        OldConstDeclIdList ';' { 
-	  CALL(@2, @3, declVarEnd());
-	}
-	| T_CONST error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_CONSTID));
-	}
-	;
-
-OldDeclIdList:
-	OldDeclId  { $$=1; }
-	| OldDeclIdList ',' OldDeclId { $$=$1+1; }
-	| OldDeclIdList ',' error { 
-	  $$=$1+1; 
-	  REPORT_ERROR(last_loc, TypeException(PE_ID_))
-	}
-	;
-
-OldDeclId:
-	Id { 
-	  CALL(@1, @1, declVar($1, 0, false));
-	}
-	| Id '[' Expression ']' {
-	  CALL(@1, @4, declVar($1, 1, false));
-	}
-	| Id '[' Expression error {
-	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
-	  CALL(@1, @4, declVar($1, 1, false));
-	}
-	| Id '[' error ']' {
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @4, declVar($1, 1, false));
-	}
-	| Id T_ASSIGNOLD Expression { 
-	  CALL(@1, @3, declVar($1, 0, true));
-	}
-	| Id T_ASSIGNOLD error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  yyclearin; yyerrok;
-	  CALL(@1, @3, declVar($1, 0, true));
-	}
-	;
+	} OldConstDeclIdList ';' { 
+	  CALL(@1, @3, declVarEnd());
+	};
 
 OldConstDeclIdList:
 	OldConstDeclId { $$=1; }
@@ -1550,22 +1471,13 @@ OldConstDeclIdList:
 	;
 
 OldConstDeclId:
-	T_ID Expression { 
-	  CALL(@1, @2, declVar($1, 0, true));
+	T_ID ArrayDecl Initializer { 
+	  CALL(@1, @3, declVar($1, $2, true));
 	}
 	| T_ID error {
 	  ch->exprTrue();
 	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));	  
 	  CALL(@1, @2, declVar($1, 0, true));
-	}
-	;
-
-OldType:
-	T_URGENT T_TYPENAME { 
-	  CALL(@1, @2, declType(ParserBuilder::PREFIX_URGENT, $2, false));
-	}
-	| T_TYPENAME Range { 
-	  CALL(@1, @2, declType(ParserBuilder::PREFIX_NONE, $1, $2));
 	}
 	;
 
@@ -1645,23 +1557,16 @@ OldProcParamList:
 	;
 
 OldProcParam:
-	OldType T_ID ArrayDecl { 
-	  CALL(@1, @3, declParameter($2, true, $3));
+	Type T_ID ArrayDecl {
+          CALL(@1, @3, declParameter($2, $3 == 0, $3));
 	}
-	| T_CONST T_ID ArrayDecl {
+	| T_OLDCONST T_ID ArrayDecl {
 	  CALL(@1, @1, declType(ParserBuilder::PREFIX_CONST, "int", false));
 	  CALL(@2, @3, declParameter($2, false, $3));
 	}
-	| T_CONST error {
-	  REPORT_ERROR(last_loc, TypeException(PE_PARAMID));
-	}
 	| OldProcParam ',' T_ID ArrayDecl { 
-	  CALL(@1, @4, declParameter($3, true, $4));
-	}
-	| OldProcParam ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PARAMID));
-	  CALL(@1, @3, declParameter("_", true, 0));
-	}
+	  CALL(@1, @4, declParameter($3, $4 == 0, $4));
+	} 
 	;
 
 OldProcBody:
@@ -1756,26 +1661,26 @@ OldTransitionList:
 	;
 
 OldTransition:
-	T_ID T_ARROW T_ID '{' OldGuard Sync OldAssign '}' { 
+	T_ID T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
 	  strcpy(rootTransId, $1);
 	  CALL(@1, @8, procTransition($1, $3));
 	}
-        | T_ID T_ARROW T_ID '{' OldGuard Sync OldAssign error '}' { 
+        | T_ID T_ARROW T_ID '{' OldGuard Sync Assign error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  strcpy(rootTransId, $1);
 	  CALL(@1, @9, procTransition($1, $3));
 	}
-        | T_ID T_ARROW T_ID '{' OldGuard Sync OldAssign error { 
+        | T_ID T_ARROW T_ID '{' OldGuard Sync Assign error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  strcpy(rootTransId, $1); 
 	  CALL(@1, @8, procTransition($1, $3));
 	}
-        | T_ID T_ARROW T_ID error '{' OldGuard Sync OldAssign '}' { 
+        | T_ID T_ARROW T_ID error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
 	  strcpy(rootTransId, $1); 
 	  CALL(@1, @9, procTransition($1, $3));
 	}
-        | T_ID error T_ARROW T_ID '{' OldGuard Sync OldAssign '}' { 
+        | T_ID error T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_ARROW));
 	  strcpy(rootTransId, $1); 
 	  CALL(@1, @9, procTransition($1, $4));
@@ -1784,26 +1689,26 @@ OldTransition:
 
 
 OldTransitionOpt:
-	T_ARROW T_ID '{' OldGuard Sync OldAssign '}' { 
+	T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
 	  CALL(@1, @7, procTransition(rootTransId, $2));
 	}
-        | T_ARROW T_ID '{' OldGuard Sync OldAssign error { 
+        | T_ARROW T_ID '{' OldGuard Sync Assign error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  CALL(@1, @7, procTransition(rootTransId, $2));
 	}
-        | T_ARROW T_ID '{' OldGuard Sync OldAssign error '}' { 
+        | T_ARROW T_ID '{' OldGuard Sync Assign error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  CALL(@1, @8, procTransition(rootTransId, $2));
 	}
-	| T_ARROW T_ID error '{' OldGuard Sync OldAssign '}' { 
+	| T_ARROW T_ID error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
 	  CALL(@1, @8, procTransition(rootTransId, $2));
 	}
-	| T_ARROW error T_ID '{' OldGuard Sync OldAssign '}' { 
+	| T_ARROW error T_ID '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
 	  CALL(@1, @8, procTransition(rootTransId, $3));
 	}
-	| T_ARROW error '{' OldGuard Sync OldAssign '}' { 
+	| T_ARROW error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
 	  CALL(@1, @7, procTransition(rootTransId, "_"));
 	}
@@ -1838,54 +1743,6 @@ OldGuardList:
 	  CALL(@1, @3, exprBinary(AND));
 	}
         ;
-
-OldAssign:
-        /* empty */
-	| T_ASSIGN OldAssignmentList ';' {
-	  CALL(@$, @$, procUpdate());
-	}
-	| T_ASSIGN OldAssignmentList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@$, @$, procUpdate());
-	}
-	| T_ASSIGN OldAssignmentList error {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@$, @$, procUpdate());
-	}
-	| T_ASSIGN error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN_EXP));
-	}
-	| T_ASSIGN error {
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN_EXP));
-	}
-	;
-
-OldAssignmentList:
-	OldAssignment
-	| OldAssignmentList ',' OldAssignment { 
-	  CALL(@1, @3, exprComma());
-	}
-	| OldAssignmentList ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN_EXP_));
-	}
-	;
-
-OldAssignment:
-	Expression T_ASSIGNOLD Expression { 
-	  CALL(@1, @3, exprAssignment(ASSIGN));
-	}
-        | Expression T_ASSIGNOLD error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
-	  CALL(@1, @3, exprAssignment(ASSIGN));
-	}
-        | Expression error Expression { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGNOLD));
-	  CALL(@1, @3, exprAssignment(ASSIGN));
-	}
-        | Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGNOLD));
-	}
-	;
 
 PropertyList:
           PropertyList2 Property;

@@ -29,6 +29,14 @@
 #include "utap/builder.hh"
 #include "utap/typechecker.hh"
 
+#if defined(__MINGW32__) || defined(__CYGWIN32__) || !defined(HAVE_UNISTD_H) 
+extern "C" {
+    extern int getopt(int argc, char * const argv[], const char *optstring);
+    extern char *optarg;
+    extern int optind, opterr, optopt;
+}
+#endif
+
 using UTAP::ParserBuilder;
 using UTAP::TypeChecker;
 using UTAP::TypeException;
@@ -607,6 +615,12 @@ public:
 	    break;
 	case MOD:
 	    st.back().s = '(' + exp1.s + " % " + exp2.s + ')';
+	    break;
+	case MIN:
+	    st.back().s = '(' + exp1.s + " <? " + exp2.s + ')';
+	    break;
+	case MAX:
+	    st.back().s = '(' + exp1.s + " >? " + exp2.s + ')';
 	    break;
 	case LT:
 	    st.back().s = '(' + exp1.s + " < " + exp2.s + ')';

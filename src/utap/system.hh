@@ -103,6 +103,7 @@ namespace UTAP
 	// must be instantiated before we know the index of local
 	// variables and parameters in the IntegerTable.
 	struct template_t {
+	    int32_t uid;
 	    int32_t frame;
 	    std::list<state_t> states;
 	    std::list<variable_t> variables;
@@ -119,7 +120,8 @@ namespace UTAP
 	    int32_t uid;
 	    int32_t nr;
 	    template_t *templ;
-	    int32_t stateOffset, variableOffset, clockOffset, channelOffset;
+	    int32_t stateOffset, variableOffset, clockOffset, channelOffset,
+		constOffset;
 	};
 
     };
@@ -132,6 +134,9 @@ namespace UTAP
 
 	TypeSystem &getTypeSystem();
 	SymbolTable &getSymbolTable();
+
+	const char *getName(int32_t uid) const;
+	
 	std::list<template_t> &getTemplates();
 	std::list<process_t> &getProcesses();
 	template_t &getGlobals();
@@ -146,8 +151,8 @@ namespace UTAP
 	void addChannel(int32_t type, const char *name);
 	function_t &addFunction(int32_t type, const char *name);
 
-	template_t &addTemplate(int32_t frame);
-	state_t &addState(int32_t uid, ExpressionProgram &inv);
+	template_t &addTemplate(type_t type, const char *name);
+	state_t &addLocation(const char *name, ExpressionProgram &inv);
 	transition_t &addTransition(int32_t src, int32_t dst);
 	process_t &addProcess(int32_t uid, template_t &);
 
@@ -156,10 +161,12 @@ namespace UTAP
 	char *expressionToString(const ExpressionProgram &);
 	char *expressionToString(const SubExpression &);
 
-	int32_t evaluateConstantExpression(const SubExpression expr);
-	void evaluateConstantExpression(
-	    const SubExpression expr,
-	    std::vector<int32_t> &s);
+	// Evaluate constant expression (must be computable at parse time)
+	bool evaluateConstantExpression(const SubExpression &, int32_t &);
+	bool evaluateExpression(
+	    const SubExpression &,
+	    std::map<int32_t, ExpressionProgram> &,
+	    std::vector<int32_t> &);
 
 	int32_t sizeOfType(int32_t type);
   
@@ -175,6 +182,9 @@ namespace UTAP
 	// List of processes used in the system line
 	std::list<process_t> processes;
 
+	// Keep track of the values of constants
+	std::map<int32_t, ExpressionProgram> constantMapping;
+
 	// Not really a template, only used to keep track of global variables
 	template_t global;
 
@@ -185,7 +195,7 @@ namespace UTAP
 	    ExpressionProgram::const_iterator first,
 	    ExpressionProgram::const_iterator last);
 
-	int32_t evaluateConstantBinary(int32_t left, int32_t op, int32_t right);
+	int32_t evaluateBinary(int32_t left, int32_t op, int32_t right);
     };
 }
 #endif

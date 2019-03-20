@@ -26,6 +26,7 @@
 #include <list>
 #include <stack>
 #include <vector>
+#include <climits>
 
 #include <inttypes.h>
 #include <math.h>
@@ -91,9 +92,17 @@ void TypeChecker::clear_params(vector<pair<char*, int32_t> > &params)
     params.clear();
 }
     
-// checks whether parameter type is compatible to function argument type
+// checks whether parameter type is compatible to argument type
 char* TypeChecker::isParameterCompatible(int32_t param, int32_t argument)
 {
+    if (!types.isConstant(param) && types.isConstant(argument)) {
+	return "non-constant argument expected here";
+    }
+
+    if (!types.isReference(param) && !types.isConstant(argument)) {
+	return "constant argument expected here";
+    }
+    
     if (types.isReference(param) && !types.isConstant(param) &&
 	!types.isReference(argument))
     {
@@ -106,29 +115,22 @@ char* TypeChecker::isParameterCompatible(int32_t param, int32_t argument)
 	    return "clock argument expected";
 	break;
     case TypeSystem::INT:
-	if (types.getClass(argument) != TypeSystem::INT)
+	if (types.getClass(argument) != TypeSystem::INT) {
 	    return "integer argument expected";
-	else {
-	    const pair<int32_t,int32_t> lrange = 
-		types.getIntegerRange(param);
-	    const pair<int32_t,int32_t> rrange = 
-		types.getIntegerRange(argument);
-
-	    // FIXME: This really depends on whether we are talking
-	    // reference parameters or not.
-	    if (strict_range) {
-		// The range of the right side must be contained in 
-		// the range of the left side
-		if (!(lrange.first <= rrange.first && 
-		      rrange.second <= lrange.second)) {
-		    return "StrictRange: argument value possibly outside "
-			"parameter range";
-		}
-	    } else { // Non-strict range checking 
-		// We just require overlap
-		if (!(lrange.first <= rrange.second || 
-		      rrange.first <= lrange.second)) {
-		    return "argument value outside parameter range";
+	} else {
+	    // Check the range of the argument: It must be within the
+	    // range of the parameter. For non constant reference parameters
+	    // the range must be an exact match, since the process/function
+	    // might update the variable referenced in the argument.
+	    pair<int32_t,int32_t> prange = types.getIntegerRange(param);
+	    pair<int32_t,int32_t> arange = types.getIntegerRange(argument);
+	    if (!(prange.first <= arange.first && 
+		  arange.second <= prange.second)) {
+		return "argument has incompatible range";
+	    }
+	    if (types.isReference(param) && !types.isConstant(param)) {
+		if (prange != arange) {
+		    return "argument has incompatible range";
 		}
 	    }
 	}
@@ -136,31 +138,39 @@ char* TypeChecker::isParameterCompatible(int32_t param, int32_t argument)
     case TypeSystem::RECORD:
 	if (types.getClass(argument) == TypeSystem::RECORD) {
 	    if (types.clearFlags(param) != types.clearFlags(argument))
-		    return "argument  value type does not match "
+		    return "argument value type does not match "
 			"parameter type";
-	} else
+	} else {
 	    return "record argument expected";
+	}
 	break;
     case TypeSystem::ARRAY:
-	if (types.getClass(param) == TypeSystem::ARRAY) {
-	    const pair<int32_t,int32_t> lrange = 
-		types.getIntegerRange(types.getFirstSubType(argument));
-	    const pair<int32_t,int32_t> rrange = 
-		types.getIntegerRange(types.getFirstSubType(param));
-	    if (lrange.first != rrange.first || lrange.second != rrange.second)
-		return "parameter value array range does not match argument "
-		    "array range";
+	do {
+	    if (types.getClass(argument) != TypeSystem::ARRAY) {
+		return "Incompatible argument to array parameter";
+	    }
 
-	    const pair<int32_t,int32_t> ldomain = 
-		types.getIntegerRange(types.getSecondSubType(argument));
-	    const pair<int32_t,int32_t> rdomain = 
-		types.getIntegerRange(types.getSecondSubType(param));
-	    if (ldomain.first > rdomain.first || 
-		ldomain.second < rdomain.second)
-		return "parameter value array domain does not "
-		    "match argument array domain";
-	} else
-	    return "array argument expected";
+	    pair<int32_t,int32_t> asize =
+		types.getIntegerRange(types.getFirstSubType(argument));
+	    pair<int32_t,int32_t> psize = 
+		types.getIntegerRange(types.getFirstSubType(param));
+	    if (asize != psize)
+		return "parameter array size does not match argument array size";
+	    param = types.getSecondSubType(param);
+	    argument = types.getSecondSubType(argument);	    
+	} while (types.getClass(param) == TypeSystem::ARRAY);
+
+	if (types.getClass(argument) != types.getClass(param)) 
+	    return "Incompatible argument to array parameter";
+
+	if (types.getClass(argument) == TypeSystem::INT) {
+	    pair<int32_t, int32_t> prange = types.getIntegerRange(param);
+	    pair<int32_t, int32_t> arange = types.getIntegerRange(argument);
+	    if (prange != arange) {
+		return "Argument has incompatible range";
+	    }
+	}   
+
 	break;
     case TypeSystem::CHANNEL:
 	if (types.getClass(argument) != TypeSystem::CHANNEL)
@@ -178,7 +188,7 @@ char* TypeChecker::isParameterCompatible(int32_t param, int32_t argument)
 	if (types.getClass(argument) != TypeSystem::UBCHANNEL)
 	    return "urgent broadcast channel argument expected";
 	break;
-    case TypeSystem::VOID:
+    case TypeSystem::VOID_TYPE:
     case TypeSystem::LOCATION:
     case TypeSystem::CLOCATION:
     case TypeSystem::ULOCATION:
@@ -186,7 +196,7 @@ char* TypeChecker::isParameterCompatible(int32_t param, int32_t argument)
     case TypeSystem::TEMPLATE:
     case TypeSystem::FUNCTION:
     default:
-	throw unsupported;
+	throw TypeException(unsupported);
     }
     return NULL;
 }
@@ -199,7 +209,7 @@ void TypeChecker::checkAssignmentCompatible(int32_t lvalue, int32_t rvalue)
     checkLValue(lvalue, "Left side value is a constant or not a reference");
     
     switch (types.getClass(lvalue)) {
-    case TypeSystem::VOID:
+    case TypeSystem::VOID_TYPE:
 	throw TypeException("Cannot assign type VOID");
     case TypeSystem::CLOCK:
     {
@@ -404,7 +414,14 @@ int TypeChecker::getArraySize(int32_t type)
 {
     return types.getIntegerRange(types.getFirstSubType(type)).second + 1;
 }
-    
+
+int32_t TypeChecker::getBaseType(int32_t type)
+{
+    while (types.getClass(type) == TypeSystem::ARRAY)
+	type = types.getSecondSubType(type);
+    return type;
+}
+
 /********************************************************************
  * Query functions (these are used by the lexical analyzer)
  */
@@ -441,7 +458,13 @@ uint32_t TypeChecker::buildArrayType(uint32_t type, uint32_t dim)
     uint32_t i;
     try {
 	for (i = 0; i < dim; i++) {
-	    int32_t n = system->evaluateConstantExpression(fragments[0]);
+	    int32_t n = 1;
+	    if (!system->evaluateConstantExpression(fragments[0], n))
+		errorHandler->handleError("Array size incomputable at parse time.");
+	    if (n < 1) {
+		errorHandler->handleError("Invalid array size");
+		n = 1;
+	    }
 	    type = makeConstantIf(
 		types.isConstant(type),
 		types.addArray(types.addInteger(0, n - 1), type));
@@ -462,11 +485,11 @@ uint32_t TypeChecker::buildArrayType(uint32_t type, uint32_t dim)
 int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 {    
     switch (types.getClass(type)) {
-    case TypeSystem::VOID:
+    case TypeSystem::VOID_TYPE:
     case TypeSystem::CLOCK:
-	if (prefix != PREFIX_NONE)
-	    throw TypeException("Invalid prefix");
-	return type;
+	if (prefix == PREFIX_NONE)
+	    return type;
+	break;
 
     case TypeSystem::INT:
     case TypeSystem::ARRAY:
@@ -476,10 +499,9 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 	    return type;
 	case PREFIX_CONST:
 	    return types.makeConstant(type);
-	default:
-	    throw TypeException("Invalid prefix");
-	}      
-
+	}
+	break;
+	
     case TypeSystem::CHANNEL:
 	switch (prefix) {
 	case PREFIX_NONE:
@@ -490,9 +512,9 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 	    return TypeSystem::BCHANNEL;
 	case PREFIX_URGENT_BROADCAST:
 	    return TypeSystem::UBCHANNEL;
-	default:
-	    throw TypeException("Invalid prefix");	
 	}
+	break;
+	
     case TypeSystem::UCHANNEL:
 	switch (prefix) {
 	case PREFIX_NONE:
@@ -501,9 +523,9 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 	case PREFIX_BROADCAST:
 	case PREFIX_URGENT_BROADCAST:
 	    return TypeSystem::UBCHANNEL;
-	default:
-	    throw TypeException("Invalid prefix");	
 	}
+	break;
+	
     case TypeSystem::BCHANNEL:
 	switch (prefix) {
 	case PREFIX_NONE:
@@ -512,9 +534,9 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 	case PREFIX_URGENT:
 	case PREFIX_URGENT_BROADCAST:
 	    return TypeSystem::UBCHANNEL;
-	default:
-	    throw TypeException("Invalid prefix");	
 	}
+	break;
+	
     case TypeSystem::UBCHANNEL:
 	switch (prefix) {
 	case PREFIX_NONE:
@@ -522,18 +544,12 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 	case PREFIX_URGENT:
 	case PREFIX_URGENT_BROADCAST:
 	    return TypeSystem::UBCHANNEL;
-	default:
-	    throw TypeException("Invalid prefix");	
 	}
-    case TypeSystem::LOCATION:
-    case TypeSystem::CLOCATION:
-    case TypeSystem::ULOCATION:
-    case TypeSystem::NTYPE:
-    case TypeSystem::TEMPLATE:
-    case TypeSystem::FUNCTION:
-    default:
-	throw TypeException(unsupported);
+	break;
     }
+
+    errorHandler->handleError("Invalid prefix");
+    return type;
 }
 
 // Push a new type onto the type stack. This type might subsequently
@@ -543,36 +559,41 @@ int32_t TypeChecker::applyPrefix(uint32_t prefix, int32_t type)
 // the expression stack.
 void TypeChecker::declType(uint32_t prefix, const char* name, bool range)
 {
-    // Pop arguments of stack
-    int32_t lower = 0, upper = 0;
-    if (range) {
-	lower = system->evaluateConstantExpression(fragments[1]);
-	upper = system->evaluateConstantExpression(fragments[0]);
-	fragments.pop();
-	fragments.pop();
-	// Check if this is a valid range. In fact, equality would
-	// also be rather useless, but it is semantically well
-	// defined.
-	if (lower > upper)
-	    throw TypeException("Invalid integer range");
-    }
-
-    // Resolve type
     int32_t uid = symbols.resolve(name);
-    if (uid == -1) 
-	throw TypeException("%s: Identifier unknown", name);
+    type_t type = symbols.getType(uid);
+    type_t stype = types.getFirstSubType(type);
 
-    int32_t type = symbols.getType(uid);
-    if (types.getClass(type) != TypeSystem::NTYPE)
-	throw TypeException("%s: Not a type", name);
+    assert(types.getClass(type) == TypeSystem::NTYPE);
 
-    int32_t stype = types.getFirstSubType(type);
-
-    // Apply range
     if (range) {
-	if (types.getClass(stype) != TypeSystem::INT) 
-	    throw TypeException("Range is only valid with integer types");
-	stype = types.addInteger(lower, upper);
+	try {
+	    if (types.getClass(stype) != TypeSystem::INT) 
+		throw TypeException("Range is only valid with integer types");
+	    
+	    int32_t lower, upper;
+	    if (!system->evaluateConstantExpression(fragments[1], lower)) 
+		throw TypeException("Lower bound incomputable at parse time");
+	    if (!system->evaluateConstantExpression(fragments[0], upper))
+		throw TypeException("Upper bound incomputable at parse time");
+
+	    // Check if this is a valid range. In fact, equality would
+	    // also be rather useless, but it is semantically well
+	    // defined.
+	    if (lower > upper) {
+		errorHandler->handleError("Invalid integer range");
+		upper = lower;
+	    }
+
+	    stype = types.addInteger(lower, upper);
+	    
+	    fragments.pop(2);
+	} catch (TypeException &e) {
+	    fragments.pop(2);
+	    typeFragments.push(stype);	
+	    throw e;
+	}
+    } else if (prefix == PREFIX_CONST && types.getClass(stype) == TypeSystem::INT) {
+	stype = types.addInteger(INT_MIN, INT_MAX);
     }
 
     // Apply prefix and push result on the fragment stack
@@ -607,9 +628,7 @@ void TypeChecker::declField(const char* name, uint32_t dim)
 	throw TypeException("Constant fields not allowed in struct");
 
     // Get base type
-    int32_t basetype = type;
-    while (types.getClass(basetype) == TypeSystem::ARRAY)
-	basetype = types.getSecondSubType(basetype);
+    int32_t basetype = getBaseType(type);
 
     // Check base type
     switch (types.getClass(basetype)) {
@@ -679,7 +698,6 @@ void TypeChecker::declVar(const char* name, uint32_t dim, bool init)
     // Construct type
     int32_t type = buildArrayType(typeFragments[0], dim);
 
-    // TODO: Missing initialisers on constants should only be a warning.
     if (types.isConstant(type) && !init)
 	throw TypeException("Constants must have an initialiser");
 
@@ -687,10 +705,7 @@ void TypeChecker::declVar(const char* name, uint32_t dim, bool init)
 	checkInitialiser(type, init_expr, types.isConstant(type));
 
     // find base type
-    int32_t basetype = type;
-    while (types.getClass(basetype) == TypeSystem::ARRAY) {
-	basetype = types.getSecondSubType(basetype);
-    }
+    int32_t basetype = getBaseType(type);
 
     // switch on base type
     switch (types.getClass(basetype)) {
@@ -699,12 +714,17 @@ void TypeChecker::declVar(const char* name, uint32_t dim, bool init)
 	break;
     case TypeSystem::RECORD:
     case TypeSystem::INT:
-	if (!init)
-	    insertDefault(init_expr, init_expr.end(), type);
-	if (types.isConstant(type))
+	if (types.isConstant(type)) {
+	    if (types.getClass(type) == TypeSystem::INT) {
+		pair<int32_t, int32_t> range = types.getIntegerRange(init_expr.getType());
+		type = types.makeConstant(types.addInteger(range.first, range.second));
+	    }
 	    system->addConstant(type, name, init_expr);
-	else
+	} else {
+	    if (!init)
+		insertDefault(init_expr, init_expr.end(), type);
 	    system->addVariable(type, name, init_expr);
+	}
 	break;
     case TypeSystem::CHANNEL:
     case TypeSystem::UCHANNEL:
@@ -712,7 +732,7 @@ void TypeChecker::declVar(const char* name, uint32_t dim, bool init)
     case TypeSystem::UBCHANNEL:
 	system->addChannel(type, name);
 	break;
-    case TypeSystem::VOID:
+    case TypeSystem::VOID_TYPE:
 	throw TypeException("Cannot declare void variable");
     case TypeSystem::LOCATION:
     case TypeSystem::CLOCATION:
@@ -840,12 +860,19 @@ void TypeChecker::checkInitialiser(
 	if (types.getClass(init.getType()) != TypeSystem::INT)
 	    throw TypeException("Invalid initialiser");
 	pair<int32_t, int32_t> range = types.getIntegerRange(init.getType());
+
+	// If possible, reduce range of integer to an exact value
 	if (range.first != range.second) {
-	    range.first = range.second = 
-		system->evaluateConstantExpression(init);
-	    init.setType(types.makeSideEffectFree(
-		types.makeConstant(types.addInteger(range.first, range.second))));
+	    int n;
+	    if (system->evaluateConstantExpression(init, n)) {
+		range.first = range.second = n;
+		init.setType(types.makeSideEffectFree(
+				 types.makeConstant(types.addInteger(range.first, range.second))));
+	    }
 	}
+
+	// Make sure the initialisers range is within that of the variable
+	// being initialised.
 	pair<int32_t, int32_t> target = types.getIntegerRange(type);
 	if (!(target.first <= range.first && range.first <= target.second)) 
 	    throw TypeException("Initialiser is out of range");
@@ -947,7 +974,7 @@ void TypeChecker::checkInitialiser(
 
 void TypeChecker::declFieldInit(const char *name)
 {
-    int32_t type = fragments[0].getType();
+    type_t type = fragments[0].getType();
     vector<pair<char *, int32_t> > record;
     record.push_back(make_pair((char*)name, type));
     fragments[0].back().type = 
@@ -961,7 +988,7 @@ void TypeChecker::declInitialiserList(uint32_t num)
     // Compute new type (each fragment has a singular record type)
     vector<pair<char *, int> > record;
     for (int32_t i = num - 1; i >= 0; i--) {
-	int32_t type = fragments[i].getType(); // This is the sing. rec.
+	type_t type = fragments[i].getType(); // This is the sing. rec.
 	record.push_back(types.getRecord(type)[0]);
 	fragments[i].back().type = type = record.back().second; // Restore type of field
 	constant &= types.isConstant(type);
@@ -978,17 +1005,43 @@ void TypeChecker::declInitialiserList(uint32_t num)
 /********************************************************************
  * Function declarations
  */
-void TypeChecker::declParameter(const char* name, bool reference, uint32_t dim) 
+void TypeChecker::declParameter(const char* name, bool reference, uint32_t dim)
 {
-    int32_t type =
-	makeReferenceIf(reference, buildArrayType(typeFragments[0], dim));
+    int32_t type = buildArrayType(typeFragments[0], dim);
 
-    params.push_back(make_pair(strcpy(new char[strlen(name)+1], name),type));
+    // For compatibility with C and C++, array parameters are always
+    // reference parameters. Putting an explicit ampersand in the
+    // declaration is invalid (at least according to gcc).
+    if (types.getClass(type) == TypeSystem::ARRAY) {
+	if (reference)
+	    errorHandler->handleError("declaration of array of references");
+	reference = true;
+    }
+
+    // Append parameter to list of parameters
+    type = makeReferenceIf(reference, type);
+    params.push_back(make_pair(strcpy(new char[strlen(name)+1], name), type));
+
+    // In case it is not a reference parameter, make sure we are not
+    // dealing with channels or clocks (as these must be reference
+    // parameters!).
+    if (!reference) {
+	int32_t basetype = getBaseType(type);
+	switch (types.getClass(basetype)) {
+	case TypeSystem::CHANNEL:
+	case TypeSystem::UCHANNEL:
+	case TypeSystem::BCHANNEL:
+	case TypeSystem::UBCHANNEL:
+	    throw TypeException("Channels must be reference parameters");
+	case TypeSystem::CLOCK:
+	    throw TypeException("Clocks must be reference parameters");
+	}
+    }
 }
 
 // 1 type, dim array sizes
 void TypeChecker::declParameterEnd() 
-{ 
+{
     typeFragments.pop(); // pop parameter type
 }
 
@@ -1034,8 +1087,8 @@ void TypeChecker::declFuncEnd()
 	blocks.pop_back();
 
 	//bool retVal = currentFun->body->retDefined();
-	int32_t type = symbols.getType(currentFun->uid);
-	int32_t range = types.getSecondSubType(type);
+	type_t type = symbols.getType(currentFun->uid);
+//	type_t range = types.getSecondSubType(type);
 	StatementSideEffectFree check(types);
 	
 	symbols.setType(currentFun->uid, 
@@ -1044,7 +1097,7 @@ void TypeChecker::declFuncEnd()
 
 	symbols.activateFrame(symbols.getParentFrame());	
 	currentFun = NULL;
-        //if (!retVal && types.getClass(range) != TypeSystem::VOID) 
+        //if (!retVal && types.getClass(range) != TypeSystem::VOID_TYPE) 
         //  errorHandler->handleWarning("the return value is not always defined");
     } else { // something was wrong with fn declaration, we ignore
 	blocks.pop_back();
@@ -1056,15 +1109,9 @@ void TypeChecker::declFuncEnd()
  */
 void TypeChecker::procBegin(const char* name, uint32_t n)
 { // n parameters      
-    template_t &current = system->addTemplate(symbols.addFrame());
-    system->setCurrentTemplate(current);
-
     int32_t type = types.addTemplate(types.addRecord(params));
-    int32_t uid = symbols.addSymbol(name, type, &current);
-    if (uid == -1) {
-        throw TypeException("Duplicate definition of %s", name);
-    } 
-
+    template_t &current = system->addTemplate(type, name);
+    system->setCurrentTemplate(current);
     symbols.activateFrame(current.frame);
 
     // Add parameters to the frame
@@ -1076,26 +1123,24 @@ void TypeChecker::procBegin(const char* name, uint32_t n)
     
 void TypeChecker::procEnd() // 1 ProcBody
 {
+    template_t &templ = system->getCurrentTemplate();
     system->setCurrentTemplate(system->getGlobals());
     symbols.activateFrame(SymbolTable::ROOT);
+    if (templ.init == -1)
+	throw TypeException("Missing initial state");
 }
 
 // Add a state to the current template. An invariant expression is
 // expected on and popped from the expression stack.
 void TypeChecker::procState(const char* name) // 1 expr
 {
-    int32_t uid = symbols.addSymbol(name, TypeSystem::LOCATION);
-    if (uid == -1) {
-	fragments.pop(); // invariant
-	throw TypeException("Duplicate definition of %s", name);
-    }
+    ExpressionProgram inv = fragments[0];
+    fragments.pop();
 
-    state_t &state = system->addState(uid, fragments[0]);
-    symbols.setData(uid, &state);
-    fragments.pop(); // invariant
-
-    if (!isInvariant(state.invariant.getType()))
+    if (!isInvariant(inv.getType()))
 	throw TypeException("Invalid invariant");
+    
+    system->addLocation(name, inv);
 }
     
 void TypeChecker::procStateCommit(const char* name) 
@@ -1121,13 +1166,14 @@ void TypeChecker::procStateUrgent(const char* name)
 void TypeChecker::procStateInit(const char* name) 
 {
     int32_t uid = symbols.resolve(name);
+
     checkClass(symbols.getType(uid), TypeSystem::LOCATION,
 	       "Location expected here");
     system->getCurrentTemplate().init = uid;
 }
     
 void TypeChecker::procTransition(const char* from, const char* to)
-{ // 1 epxr,1sync,1expr
+{
     int32_t fid = symbols.resolve(from);
     int32_t tid = symbols.resolve(to);
 
@@ -1157,31 +1203,42 @@ void TypeChecker::procTransition(const char* from, const char* to)
     fragments.pop(3);
 
     guard = sync = update = -1;
+}
 
-    // Type check assignment
-    switch (types.getClass(tran.assign.getType())) {
-    case TypeSystem::INT:
-    case TypeSystem::ARRAY:
-    case TypeSystem::RECORD:
-	break;
-    default:
-	throw TypeException("Invalid assignment expression");	
+void TypeChecker::checkGuardSynchronisationConflict()
+{
+    assert(guard != -1 && sync != -1);
+    
+    type_t syncType = fragments[fragments.size() - sync].getType();
+    type_t guardType = fragments[fragments.size() - guard].getType();
+    if (types.getClass(guardType) != TypeSystem::INT) {
+	switch (types.clearFlags(syncType)) {
+	case TypeSystem::CHANNEL:
+	    // This is ok
+	    break;
+	case TypeSystem::UCHANNEL:
+	case TypeSystem::UBCHANNEL:
+	    throw TypeException("Clock guards are not allowed on "
+				"urgent transitions.");
+	case TypeSystem::BCHANNEL:
+	    if (fragments[fragments.size() - sync].back().value == SYNC_QUE) 
+		throw TypeException("Clock guards are not allowed on broadcast receivers.");
+	    break;
+	default:
+	    assert(0);
+	}
     }
-
-    // Type check guard
-    if (!isGuard(tran.guard.getType()))
-	throw TypeException("Invalid guard");
-    if (!types.isSideEffectFree(tran.guard.getType()))
-	throw TypeException("Guard must be side effect free");
-
-//     cerr << system->expressionToString(tran.guard) << endl
-//     	 << system->expressionToString(tran.sync) << endl
-//     	 << system->expressionToString(tran.assign) << endl;
 }
 
 void TypeChecker::procGuard()
 {
     guard = fragments.size();
+    if (!isGuard(fragments[0].getType()))
+	throw TypeException("Invalid guard");
+    if (!types.isSideEffectFree(fragments[0].getType()))
+	throw TypeException("Guard must be side effect free");
+    if (sync != -1)
+	checkGuardSynchronisationConflict();
 }
 
 void TypeChecker::procSync(uint32_t type)
@@ -1208,11 +1265,23 @@ void TypeChecker::procSync(uint32_t type)
 						  
     };
     sync = fragments.size();
+    if (guard != -1)
+	checkGuardSynchronisationConflict();
 }
 
 void TypeChecker::procUpdate()
 {
     update = fragments.size();
+
+    switch (types.getClass(fragments[0].getType())) {
+    case TypeSystem::INT:
+    case TypeSystem::ARRAY:
+    case TypeSystem::RECORD:
+    case TypeSystem::CLOCK:
+	break;
+    default:
+	throw TypeException("Invalid assignment expression");	
+    }
 }
 
 /*********************************************************************
@@ -1311,7 +1380,6 @@ void TypeChecker::ifElse()
 
 void TypeChecker::ifEnd(bool elsePart)
 { // 1 expr, 1 or 2 statements
-    ExpressionProgram *ep;
     Statement *falseCase = NULL;
     if (elsePart) falseCase = blocks.back()->pop_stat();
 
@@ -1362,7 +1430,6 @@ void TypeChecker::caseBegin()
 
 void TypeChecker::caseEnd()
 { // 0+ stat
-    ExpressionProgram *ep;
     BlockStatement *block = blocks.back();
     blocks.pop_back();
     blocks.back()->push_stat(block);
@@ -1392,7 +1459,7 @@ void TypeChecker::returnStatement(bool args)
     assert(currentFun!=NULL);
     int range = types.getSecondSubType(symbols.getType(currentFun->uid));
     if (args) {
-	int ret = fragments[0].getType();
+	type_t ret = fragments[0].getType();
 	ReturnStatement* retstat = new ReturnStatement(blocks.back()->frameId, 
 						       fragments[0]);
 	fragments.pop();
@@ -1400,7 +1467,7 @@ void TypeChecker::returnStatement(bool args)
 	blocks.back()->setRetDefined(true);
 
 	switch (types.getClass(range)) {
-	case TypeSystem::VOID:
+	case TypeSystem::VOID_TYPE:
 	    throw TypeException("void function does not return any value");
 	    break;
 	case TypeSystem::CLOCK:
@@ -1478,7 +1545,7 @@ void TypeChecker::returnStatement(bool args)
 	}
 	if (types.isReference(range) && isTemporary(fragments[0]))
 	    throw TypeException("returns local variable reference");
-    } else if (TypeSystem::VOID != types.getClass(range))
+    } else if (TypeSystem::VOID_TYPE != types.getClass(range))
 	throw TypeException("non-void function must return a value");
 }
 
@@ -1499,16 +1566,17 @@ void TypeChecker::exprId(const char * name)
 {
     int32_t uid = symbols.resolve(name);
     if (uid == -1) {
-	fragments.push(ExpressionProgram(IDENTIFIER, -1, TypeSystem::VOID));
+	fragments.push(ExpressionProgram(IDENTIFIER, -1, TypeSystem::VOID_TYPE));
 	throw TypeException("%s: Unknown identifier", name);
     }
 
-    int32_t type = symbols.getType(uid);
+    type_t type = symbols.getType(uid);
 
     fragments.push(
 	ExpressionProgram(
-	    IDENTIFIER, uid, types.makeSideEffectFree(
-		makeReferenceIf(!types.isConstant(type), type))));
+	    IDENTIFIER, uid, 
+	    types.makeSideEffectFree(
+		types.makeReference(type))));
 
     switch (types.getClass(type)) {
     case TypeSystem::INT:
@@ -1548,94 +1616,79 @@ void TypeChecker::exprNat(int32_t n)
     fragments.push(ExpressionProgram(makeConstant(n)));
 }
 
-void TypeChecker::exprCallBegin(const char * functionName) 
+void TypeChecker::exprCallBegin(const char *functionName) 
 {
-    int32_t err = -1; // error msg number, -1 - if no error
-    uint32_t par = 0;
-    char* paramError = NULL;
+    int32_t id = symbols.resolve(functionName);
+    identifierStack.push_back(id);
 
-    int32_t fid = symbols.resolve(functionName);
-    int32_t exprType;
-
-    if (fid >= 0) {
-	int32_t ftype = symbols.getType(fid);
-	int32_t frange = types.getSecondSubType(ftype);
-	exprType = makeReferenceIf(types.isReference(frange), frange);
-	exprType = makeConstantIf(types.isConstant(frange), exprType);
-        exprType = makeSideEffectFreeIf(types.isSideEffectFree(ftype), exprType);
-    } else {
-	exprType = TypeSystem::VOID;
-    }
-
-    fnCalls.push_back(make_pair(fid, exprType)); // remember function call
-
-    if (fid < 0)
+    expectedArguments.push_back(vector<type_t>());
+    
+    if (id < 0)
 	throw TypeException("function '%s' not declared", functionName);
 
-    if (currentFun != NULL) // we are inside function body
-	if (currentFun->uid < fid) // check for recursive call
-	    throw TypeException("function '%s' must be declared earlier", functionName);
-	else if (currentFun->uid == fid)
-	    throw TypeException("recursion is not allowed", functionName);
+    if (types.getClass(symbols.getType(id)) != TypeSystem::FUNCTION)
+	throw TypeException("Not a function: %s", functionName);
+    
+    if (currentFun != NULL && currentFun->uid <= id)
+	throw TypeException("recursion is not allowed", functionName);
+
+    type_t domain = types.getFirstSubType(symbols.getType(id));
+    const vector<pair<char*, type_t> > &params = types.getRecord(domain);
+    for (int i = params.size() - 1; i >= 0; i--)
+	expectedArguments.back().push_back(params[i].second);
 }
 
+// expects n argument expressions on the stack
 void TypeChecker::exprCallEnd(uint32_t n) 
-{ // n expressions as arguments
-    assert(!fnCalls.empty());
+{
+    int32_t id = identifierStack.back();
+    identifierStack.pop_back();
 
-    int32_t fid = fnCalls.back().first;
-    int32_t exprType = fnCalls.back().second;
-    fnCalls.pop_back();
+    if (!expectedArguments.back().empty())
+	errorHandler->handleError("Too few arguments");
 
-    if (n > 1)
-	fragments.merge(n);
-    fragments[0].append(FUNCALL, fid, exprType);
+    expectedArguments.pop_back();
+    
+    if (id == -1)
+	return;
+    
+    // Compute result type
+    bool constant = true;
+    bool sideEffectFree = true;
+    int32_t type = types.getSecondSubType(symbols.getType(id));
 
-    if (fid < 0)
-	throw TypeException("not declared function call");
+    for (uint32_t i = 0; i < n; i++) {
+	constant &= types.isConstant(fragments[i].getType());
+	sideEffectFree &= types.isSideEffectFree(fragments[i].getType());
+    }
+    
+    type = makeSideEffectFreeIf(sideEffectFree, types.clearFlags(type));
+    type = makeConstantIf(constant, type);
 
-    int32_t ftype = symbols.getType(fid);
-    int32_t fdomain = types.getFirstSubType(ftype);
-    const vector<pair<char*, int> > &args = types.getRecord(fdomain);
-    if (args.size() > n)
-	throw TypeException("too many arguments for function call");
+    // Merge arguments and append function call instruction
+    fragments.merge(n);
+    fragments[0].append(FUNCALL, id, type);
 }
 
+// expects 1 expression on the stack
 void TypeChecker::exprArg(uint32_t n) 
-{ // 1 expressions as n-th argument for function call
-    assert(n > 0); // arguments are counted from 1 to n
-    int32_t id = fnCalls.back().first;
-
-    // If function is not declared, ignore argument
-    if (id < 0)
-	return;
-
-    int32_t type = symbols.getType(id);
-    int32_t domain = types.getFirstSubType(type);
-	
-    const vector<pair<char*, int> > &args = types.getRecord(domain);
-    if (args.size() < n)
-	throw TypeException("no more arguments expected");
-
-    int32_t exprType = fnCalls.back().second;
-    int32_t parType = fragments[0].getType();
-    exprType = makeConstantIf(types.isConstant(parType) && 
-			      types.isConstant(exprType), exprType);
-    exprType = makeSideEffectFreeIf(types.isSideEffectFree(parType) && 
-				    types.isSideEffectFree(exprType), 
-				    exprType);
-    fnCalls.back().second = exprType;
-
-    const char *paramError = isParameterCompatible(args[n-1].second, parType);
-    if (paramError != NULL)
-	throw TypeException("%s", paramError);
+{
+    if (expectedArguments.back().empty())
+	throw TypeException("Too many arguments");
+    
+    type_t argument = fragments[0].getType();
+    const char *error = isParameterCompatible(
+	expectedArguments.back().back(), argument);
+    expectedArguments.back().pop_back();
+    if (error != NULL)
+	errorHandler->handleError(error);
 }
 
 // 2 expr     // array[index]
 void TypeChecker::exprArray() 
 {
-    int index = fragments[0].getType();
-    int array = fragments[1].getType();
+    type_t index = fragments[0].getType();
+    type_t array = fragments[1].getType();
 
     fragments.merge(2);
 	
@@ -1657,13 +1710,13 @@ void TypeChecker::exprArray()
 	&& types.isSideEffectFree(index), type);
     fragments[0].append(ARRAY, array, type);
 
+    if (arange.second < irange.first || arange.first > irange.second)
+	throw TypeException("The index is out of range");
+
     if (arange.first > irange.first || irange.second > arange.second)
     {
 	errorHandler->handleWarning("Index potentially out of range");
-    }
-    
-    if (arange.second < irange.first || arange.first > irange.second)
-	throw TypeException("The index is out of range");
+    }   
 }
 
 // 1 expr
@@ -1671,7 +1724,7 @@ void TypeChecker::exprPostIncrement()
 {
     ExpressionProgram &expr = fragments[0];
 
-    int32_t type = symbols.getType(expr.getType());
+    type_t type = expr.getType();
 
     checkClass(type, TypeSystem::INT, "Invalid type in increment");
     checkLValue(type, "Invalid left value in increment");
@@ -1690,7 +1743,7 @@ void TypeChecker::exprPreIncrement()
 {
     ExpressionProgram &expr = fragments[0];
 
-    int32_t type = symbols.getType(expr.getType());
+    type_t type = expr.getType();
 
     checkClass(type, TypeSystem::INT, "Invalid type in increment");
     checkLValue(type, "Invalid left value in increment");
@@ -1708,7 +1761,7 @@ void TypeChecker::exprPostDecrement() // 1 expr
 {
     ExpressionProgram &expr = fragments[0];
 
-    int32_t type = symbols.getType(expr.getType());
+    type_t type = expr.getType();
 
     checkClass(type, TypeSystem::INT, "Invalid type in decrement");
     checkLValue(type, "Invalid left value in decrement");
@@ -1726,7 +1779,7 @@ void TypeChecker::exprPreDecrement()
 {
     ExpressionProgram &expr = fragments[0];
 
-    int32_t type = symbols.getType(expr.getType());
+    type_t type = expr.getType();
 
     checkClass(type, TypeSystem::INT, "Invalid type in decrement");
     checkLValue(type, "Invalid left value in decrement");
@@ -1743,8 +1796,8 @@ void TypeChecker::exprPreDecrement()
 void TypeChecker::exprAssignment(uint32_t op) // 2 expr
 {
     bool temp = isTemporary(fragments[1]);
-    int rvalue = fragments[0].getType();
-    int lvalue = fragments[1].getType();
+    type_t rvalue = fragments[0].getType();
+    type_t lvalue = fragments[1].getType();
 
     fragments.merge(2);
 
@@ -1754,7 +1807,7 @@ void TypeChecker::exprAssignment(uint32_t op) // 2 expr
 	temp
 	&& types.isSideEffectFree(lvalue)
 	&& types.isSideEffectFree(rvalue),
-	types.clearFlags(rvalue));
+	types.makeReference(types.clearFlags(lvalue)));
 
     switch (op) {
     case ASSIGN:
@@ -1771,7 +1824,7 @@ void TypeChecker::exprAssignment(uint32_t op) // 2 expr
     case ASSLSHIFT:
     case ASSRSHIFT:
 	if ( !(isInteger(lvalue) && isInteger(rvalue)) ) {
-	    throw TypeException("Can only use regular assignment operator for non-integers");
+	    throw TypeException("Non-integer types must use regular assignment operator.");
 	}
 	fragments[0].append(op, 0, type);
 	break;
@@ -1792,7 +1845,7 @@ uint32_t TypeChecker::typeOfUnaryMinus(uint32_t type)
 
 void TypeChecker::exprUnary(uint32_t unaryop) // 1 expr
 {
-    int expr = fragments[0].getType();
+    type_t expr = fragments[0].getType();
     int32_t type;
 	
 	
@@ -1827,8 +1880,8 @@ int32_t TypeChecker::typeOfBinaryIntExpression(
 
     switch (op) {
     case MINUS:
-	type = types.addInteger(lrange.first - rrange.first,
-				lrange.second - rrange.second);
+	type = types.addInteger(lrange.first - rrange.second,
+				lrange.second - rrange.first);
 	break;
     case PLUS:
 	type = types.addInteger(lrange.first + rrange.first,
@@ -1843,10 +1896,15 @@ int32_t TypeChecker::typeOfBinaryIntExpression(
 				max(max(t1, t2), max(t3, t4)));
 	break;
     case DIV:
-	t1 = lrange.first / rrange.first;
-	t2 = lrange.first / rrange.second;
-	t3 = lrange.second / rrange.first;
-	t4 = lrange.second / rrange.second;
+	if (rrange.first == 0 && rrange.second == 0) 
+	    throw TypeException("Denominator is zero");
+	if (rrange.first <= 0 && 0 <= rrange.second)
+	    errorHandler->handleWarning("Denominator can be zero");
+
+	t1 = lrange.first / (rrange.first == 0 ? 1 : rrange.first);
+	t2 = lrange.first / (rrange.second == 0 ? -1 : rrange.second);
+	t3 = lrange.second / (rrange.first == 0 ? 1 : rrange.first);
+	t4 = lrange.second / (rrange.second == 0 ? -1 : rrange.second);
 	type = types.addInteger(min(min(t1, t2), min(t3, t4)),
 				max(max(t1, t2), max(t3, t4)));
 	break;
@@ -1854,6 +1912,14 @@ int32_t TypeChecker::typeOfBinaryIntExpression(
 	t1 = max(abs(rrange.first), abs(rrange.second));
 	type = types.addInteger(min(max(lrange.first, -t1), 0),
 				max(min(lrange.second, t1), 0));
+	break;
+    case MIN:
+	type = types.addInteger(min(lrange.first, rrange.first),
+				min(lrange.second, rrange.second));
+	break;
+    case MAX:
+	type = types.addInteger(max(lrange.first, rrange.first),
+				max(lrange.second, rrange.second));
 	break;
     case BIT_AND:
 	t1 = max(max(abs(lrange.first), abs(lrange.second)),
@@ -1932,7 +1998,7 @@ void TypeChecker::normaliseConstraint(
     normalisation_t &data, SubExpression op, bool left)
 {
     if (types.getClass(op.getType()) == TypeSystem::INT) {
-	int32_t type = (data.first ? 0 : data.value.getType());
+	type_t type = (data.first ? 0 : data.value.getType());
 	data.value.append(op);
 	if (left)
 	    data.value.append(UNARY_MINUS, 0, 
@@ -1976,7 +2042,7 @@ void TypeChecker::normaliseConstraint(ExpressionProgram &expr)
     normaliseConstraint(data, sub[1], false);
 
     uint32_t op = sub.getKind();
-    int type = sub.getType();
+    type_t type = sub.getType();
 
     expr.clear();
 
@@ -2046,7 +2112,7 @@ void TypeChecker::normaliseConstraint(ExpressionProgram &expr)
 
 void TypeChecker::exprBinaryNonInt(int left, uint32_t binaryop, int right)
 {
-    int32_t type = TypeSystem::VOID;
+    int32_t type = TypeSystem::VOID_TYPE;
     bool normalise = false;
     
     switch (binaryop) {
@@ -2145,7 +2211,7 @@ void TypeChecker::exprBinaryNonInt(int left, uint32_t binaryop, int right)
 	normalise = true;
 	break;
     }
-    if (type == TypeSystem::VOID)
+    if (type == TypeSystem::VOID_TYPE)
 	throw TypeException("Invalid operands to binary operator");	
     
     type = makeConstantIf(
@@ -2162,8 +2228,8 @@ void TypeChecker::exprBinaryNonInt(int left, uint32_t binaryop, int right)
     
 void TypeChecker::exprBinary(uint32_t binaryop) // 2 expr
 {
-    int right = fragments[0].getType();
-    int left = fragments[1].getType();
+    type_t right = fragments[0].getType();
+    type_t left = fragments[1].getType();
 
     fragments.merge(2);
 
@@ -2215,9 +2281,9 @@ int32_t TypeChecker::combineInlineTypes(int32_t t, int32_t e)
 void TypeChecker::exprInlineIf()
 {
     // Get size of three topmost expressions
-    int32_t c = fragments[2].getType();
-    int32_t t = fragments[1].getType();
-    int32_t e = fragments[0].getType();
+    type_t c = fragments[2].getType();
+    type_t t = fragments[1].getType();
+    type_t e = fragments[0].getType();
 
     // Merge 3 expressions
     fragments.merge(3);
@@ -2247,7 +2313,7 @@ void TypeChecker::exprComma()
 void TypeChecker::exprDot(const char *id)
 {
     ExpressionProgram &expr = fragments[0];
-    int type = expr.getType();
+    type_t type = expr.getType();
     switch (types.getClass(type)) {
     case TypeSystem::RECORD:
     {
@@ -2276,7 +2342,7 @@ void TypeChecker::exprDot(const char *id)
 	if (uid == -1)
 	    throw TypeException("%s: Unknown identifier", id);
 
-	int32_t subtype = symbols.getType(uid);
+	type_t subtype = symbols.getType(uid);
 
 	switch (types.getClass(subtype)) {
 	case TypeSystem::INT:
@@ -2309,42 +2375,68 @@ void TypeChecker::exprDot(const char *id)
 // Prepares for the instantiations of a process
 void TypeChecker::instantiationBegin(const char* name, const char* templ_name)
 {
-    int32_t tid = symbols.resolve(templ_name);
-    if (tid == -1) {
-	throw TypeException("No such template: %s", templ_name);
-    }
-    if (types.getClass(symbols.getType(tid)) != TypeSystem::TEMPLATE) {
-	throw TypeException("Not a template: %s", templ_name);
-    }
+    int32_t id = symbols.resolve(templ_name);
+    identifierStack.push_back(id);
 
-    fnCalls.push_back(make_pair(tid, TypeSystem::VOID));
+    expectedArguments.push_back(vector<int>());
+    
+    if (id == -1) 
+	throw TypeException("No such template: %s", templ_name);
+    
+    if (types.getClass(symbols.getType(id)) != TypeSystem::TEMPLATE) 
+	throw TypeException("Not a template: %s", templ_name);
+
+    type_t domain = types.getFirstSubType(symbols.getType(id));
+    const vector<pair<char*, type_t> > &params = types.getRecord(domain);
+    for (int i = params.size() - 1; i >= 0; i--)
+	expectedArguments.back().push_back(params[i].second);
 }
 
 void TypeChecker::instantiationEnd(const char *name, const char *templ_name, uint32_t n)
 {
-    try {
-	int32_t tid = fnCalls.back().first;
-	fnCalls.pop_back();
+    int32_t id = identifierStack.back();
+    identifierStack.pop_back();
+
+    if (!expectedArguments.back().empty())
+	errorHandler->handleError("Too few arguments");
+
+    expectedArguments.pop_back();
+
+    if (id == -1)
+	return;
 	
+    try {
 	// Copy template (the new template does not have parameters)
-	int32_t ttype = symbols.getType(tid);
+	type_t ttype = symbols.getType(id);
 	const vector<pair<char *, int32_t> > &parameters =
 	    types.getRecord(types.getFirstSubType(ttype));
-	template_t &templ = system->addTemplate(0);
-	templ = *static_cast<template_t*>(symbols.getData(tid));
 	int32_t type = types.addTemplate(
 	    types.addRecord(vector<pair<char*,int32_t> >()));
-	int32_t uid = symbols.addSymbol(name, type, &templ);
+	template_t &templ = system->addTemplate(type, name);
+	templ = *static_cast<template_t*>(symbols.getData(id));
 
-	// Check arguments and add to map
-	if (parameters.size() != n) {
-	    throw TypeException("Wrong number of arguments to template.");
+	// If two many arguments, pop the rest
+	if (n > parameters.size()) {
+	    fragments.pop(n - parameters.size());
+	    n = parameters.size();
 	}
-
+	
+	// Check arguments and add to map
 	int32_t frame = symbols.getActiveFrame();
 	symbols.activateFrame(templ.frame);
 	while (n--) {
 	    int32_t param = symbols.resolve(parameters[n].first);
+	    if (!types.isReference(symbols.getType(param))
+		&& !types.isConstant(fragments[0].getType()))
+	    {
+		// Alternatively one could use the initial value of
+		// the expression.
+		errorHandler->handleError("Non-constant argument used where constant argument was expected.");
+	    }
+
+	    if (!types.isSideEffectFree(fragments[0].getType()))
+		errorHandler->handleError("Arguments must be side effect free");
+
 	    templ.mapping[param] = fragments[0];
 	    fragments.pop();
 	}
@@ -2366,7 +2458,7 @@ void TypeChecker::process(const char* name)
 	throw TypeException("No such template: %s", name);
     }    
 
-    int32_t type = symbols.getType(sym);
+    type_t type = symbols.getType(sym);
     if (types.getClass(type) != TypeSystem::TEMPLATE) {
 	throw TypeException("Not a template: %s", name);
     } 
@@ -2395,7 +2487,7 @@ void TypeChecker::property(uint32_t kind, int line)
     // TODO: check type; must be side effect free constraint
     if (kind == LEADSTO) {
 	fragments.merge(2);
-	fragments[0].append(LEADSTO, 0, TypeSystem::VOID);
+	fragments[0].append(LEADSTO, 0, TypeSystem::VOID_TYPE);
     }
     property(kind, line, fragments[0]);
     fragments.pop();

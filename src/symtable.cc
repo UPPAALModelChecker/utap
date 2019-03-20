@@ -27,10 +27,41 @@ using namespace UTAP;
 using std::map;
 using std::vector;
 
+SymbolTable::symbol_t::symbol_t(int type, int frame,
+				const char *symbol, void *user_data)
+    : type(type), frame(frame), user_data(user_data)
+{
+    name = strcpy(new char[strlen(symbol) + 1], symbol);
+}
+
+SymbolTable::symbol_t::symbol_t(const symbol_t &s)
+    : type(s.type), frame(s.frame), user_data(s.user_data)
+{
+    name = strcpy(new char[strlen(s.name) + 1], s.name);
+}
+
+SymbolTable::symbol_t::~symbol_t()
+{
+    delete[] name;
+}
+
 SymbolTable::SymbolTable()
 { 
     frames.push_back(new frame_t(-1));
     current = ROOT;
+}
+
+SymbolTable::SymbolTable(const SymbolTable &st)
+{
+    for (uint32_t i = 0; i < st.frames.size(); i++) {
+	frames.push_back(new frame_t(st.frames[i]->parent));
+    }
+    for (uint32_t i = 0; i < st.symbols.size(); i++) {
+	symbol_t *s = new symbol_t(*st.symbols[i]);
+	symbols.push_back(s);
+	frames[s->frame]->symbols[s->name] = i;
+    }
+    current = st.current;
 }
 
 SymbolTable::~SymbolTable()
@@ -39,94 +70,82 @@ SymbolTable::~SymbolTable()
 	delete frames.back();
 	frames.pop_back();
     }
+    while (!symbols.empty()) {
+	delete symbols.back();
+	symbols.pop_back();
+    }
 }
 
 int SymbolTable::addSymbol(const char *name, int type, void *data) 
 {  
-    if (resolveLocal(name, current)==-1) { // localy unique name
-	index.push_back(current); // remember that new symbol is in current frame
-	frames[current]->nsymbols[index.size()-1] = new symbol_t(type, name, data);
-	return index.size()-1;
-    } else {
+    if (resolveLocal(name, current) != -1) 
 	throw TypeException("symbol '%s' is already declared", name);
-    }
-} 
 
+    int uid = symbols.size();
+    symbol_t *s = new symbol_t(type, current, name, data);
+    symbols.push_back(s);
+    frames[current]->symbols[s->name] = uid;
+    return uid;
+} 
 
 int SymbolTable::resolve(const char *name) const 
 {
     int frame = current;
-    int id = -1;
+    int id;
     while (frame != -1) {
 	id = resolveLocal(name, frame);
-	if (id != -1) break;
-	else frame = frames[frame]->parent;
+	if (id != -1)
+	    return id;
+	frame = frames[frame]->parent;
     }
-    /*  if (id == -1)
-	throw TypeException("Symbol not found: resolve(%s)", name);
-	else 
-    */
-    return id;
+    return -1;
 }
 
 const char* SymbolTable::getName(int uid) const 
 {
-    if (static_cast<int>(index.size())>uid) {
-	symbol_t *s = frames[index[uid]]->nsymbols.find(uid)->second;
-	assert(s);
-	return s->name;
-    } else 
+    if (validUID(uid)) {
+	return symbols[uid]->name;
+    } else {
 	return NULL;
-    //  throw TypeException("Bad symbol id for getName(%d)", uid); 
+    }
 }
 
 void SymbolTable::setType(int uid, int type)
 {
-    if (static_cast<int>(index.size())>uid) {
-	symbol_t *s = frames[index[uid]]->nsymbols.find(uid)->second;
-	assert(s);
-	s->type = type;
-    } else
+    if (!validUID(uid)) 
 	throw TypeException("Bad symbol id for setType(%d, %d)", uid, type);
+    symbols[uid]->type = type;
 }
 
 int SymbolTable::getType(int uid) const
 {
-    if (static_cast<int>(index.size())>uid) {
-	symbol_t *s = frames[index[uid]]->nsymbols.find(uid)->second;
-	assert(s);
-	return s->type;
-    } else
+    if (validUID(uid)) {
+	return symbols[uid]->type;
+    } else {
 	return -1;
-    //    throw TypeException("Bad symbol id for getType(%d)", uid);
+    }
 }
 
 void SymbolTable::setData(int uid, void* data)
 {
-    if (static_cast<int>(index.size())>uid) {
-	symbol_t *s = frames[index[uid]]->nsymbols.find(uid)->second;
-	assert(s);
-	s->body = data;
-    } else
+    if (!validUID(uid)) 
 	throw TypeException("Bad symbol id for setData(%d, %x)", uid, data);
+    symbols[uid]->user_data = data;
 }
-
 
 void *SymbolTable::getData(int uid)
 {
-    if (static_cast<int>(index.size())>uid) {
-	symbol_t *s = frames[index[uid]]->nsymbols.find(uid)->second;
-	assert(s);
-	return s->body;
-    } else
+    if (validUID(uid)) {
+	return symbols[uid]->user_data;
+    } else {
 	return NULL;
-    //    throw TypeException("Bad symbol id for getData(%d)", uid);
+    }
 }
 
 int SymbolTable::addFrame() 
 {
     frames.push_back(new frame_t(current));
-    return frames.size()-1;
+    return frames.size() - 1;
 }
 
 int SymbolTable::getActiveFrame() const 
@@ -136,7 +155,7 @@ int SymbolTable::getActiveFrame() const
 
 void SymbolTable::activateFrame(int uid) 
 {
-    assert(uid>=0 && uid<static_cast<int>(frames.size()));
+    assert(0 <= uid && uid < static_cast<int>(frames.size()));
     current = uid;
 }
 
@@ -147,22 +166,25 @@ int SymbolTable::getParentFrame() const
 
 int SymbolTable::getParentFrame(int frameId) const 
 {
-    assert(frameId<frames.size() && frameId>=0);
+    assert(0 <= frameId && frameId < static_cast<int>(frames.size()));
     return frames[frameId]->parent;
+}
+
+int SymbolTable::getFrameOf(int uid) const
+{
+    assert(validUID(uid));
+    return symbols[uid]->frame;
 }
 
 int SymbolTable::resolveLocal(const char *name, int frame) const
 {
-    assert(frame>=0);
-    map<int, symbol_t*>::iterator s = frames[frame]->nsymbols.begin(),
-	f = frames[frame]->nsymbols.end();    
-    while (s != f) {
-	assert (s->second);
-	if (strcmp(s->second->name, name) == 0) 
-	    return s->first;
-	s++;
-    }
-    return -1;
+    assert(0 <= frame && frame < static_cast<int>(frames.size()));
+    map<const char *, int, ltstr>::const_iterator s =
+	frames[frame]->symbols.find(name);
+    if (s == frames[frame]->symbols.end())
+	return -1;
+    else
+	return s->second;
 }
 
 #ifdef SYMTABLE_TEST

@@ -30,13 +30,8 @@ using std::ostream;
 
 TypeException::TypeException(const char *fmt, ...) {
   va_list ap;
-#if defined(__MINGW32__) || defined(__CYGWIN32__)
-  va_start((void *)ap, fmt);
-  vsprintf(_what, fmt, ap);
-#else
   va_start(ap, fmt);
   vsnprintf(_what, 256, fmt, ap);
-#endif
   va_end(ap);
 }
   

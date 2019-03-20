@@ -31,7 +31,7 @@ using std::make_pair;
 
 TypeSystem::TypeSystem()
 {
-    for(int i = 0; i < NO_PREDEFINED; i++)
+    for (int i = 0; i < NO_PREDEFINED; i++)
 	types.push_back(new typeinfo_t(i));
 }
 
@@ -40,6 +40,27 @@ TypeSystem::~TypeSystem()
     while (!types.empty()) {
 	delete types.back();
 	types.pop_back();
+    }
+}
+
+TypeSystem::TypeSystem(const TypeSystem &ts)
+{
+    for (uint32_t i = 0; i < ts.types.size(); i++) {
+	types.push_back(new typeinfo_t(*ts.types[i]));
+    }
+}
+
+TypeSystem::typeinfo_t::typeinfo_t(const typeinfo_t &t) : type(t.type)
+{
+    range = t.range;
+    subtype = t.subtype;
+    if (t.record) {
+	record = new vector<pair<char *, type_t> >;
+	for (uint32_t i = 0; i < t.record->size(); i++) {
+	    pair<char *, type_t> &p = (*t.record)[i];
+	    record->push_back(make_pair(strcpy(new char[strlen(p.first) + 1],
+					       p.first), p.second));
+	}
     }
 }
 
@@ -92,14 +113,14 @@ type_t TypeSystem::addTemplate(type_t arg)
     if (clearFlags(arg) >= (int32_t)types.size() || getClass(arg) != RECORD)
 	throw TypeException("Bad type for addTemplate(%d)",arg);
 
-    typeinfo_t* type = new typeinfo_t(TEMPLATE, arg, VOID);
+    typeinfo_t* type = new typeinfo_t(TEMPLATE, arg, VOID_TYPE);
     types.push_back(type);
     return types.size() - 1;
 }
 
 type_t TypeSystem::addNamedType(type_t id)
 {
-    typeinfo_t* type = new typeinfo_t(NTYPE, id, VOID);
+    typeinfo_t* type = new typeinfo_t(NTYPE, id, VOID_TYPE);
     types.push_back(type);
     return types.size() - 1;
 }
@@ -181,7 +202,7 @@ type_t TypeSystem::getFirstSubType(type_t type) const
     case ARRAY:
 	return types[id]->subtype.first; 
     default:
-	return VOID;    
+	return VOID_TYPE;    
     }
 }
 
@@ -196,7 +217,7 @@ type_t TypeSystem::getSecondSubType(type_t type) const
     case ARRAY:
 	return types[id]->subtype.second; 
     default:
-	return VOID;    
+	return VOID_TYPE;    
     }
 }
 

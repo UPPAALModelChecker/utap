@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT(UPPAAL TA Parser Library, 0.10, behrmann@cs.auc.dk, libutap)
+AC_INIT(UPPAAL TA Parser Library, 0.20, behrmann@cs.auc.dk, libutap)
 
-AC_PREREQ(2.5)
+AC_PREREQ(2.50)
 
-AM_INIT_AUTOMAKE(libutap, 0.10)
+AM_INIT_AUTOMAKE(libutap, 0.20)
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/pretty.cc)
 AC_CONFIG_AUX_DIR(.)
@@ -103,6 +103,14 @@ no)
 *)
   AC_MSG_ERROR([bad value ${enableval} --enable-assertions, needs yes or no])
   ;;
+esac
+
+dnl Check target os
+case "$target_alias" in
+  *mingw32)
+     LIBS="-liberty $LIBS"
+     AC_MSG_RESULT([using liberty library for mingw32 target])
+     ;;
 esac
 
 CFLAGS="$OPT_FLAGS"

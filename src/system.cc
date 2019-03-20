@@ -31,8 +31,11 @@ using namespace Constants;
 using std::list;
 using std::stack;
 using std::vector;
+using std::map;
 using std::pair;
 using std::make_pair;
+using std::min;
+using std::max;
 
 #define defaultIntMin -0x7FFF
 #define defaultIntMax 0x7FFF
@@ -69,6 +72,11 @@ SymbolTable &TimedAutomataSystem::getSymbolTable()
     return symbols;
 }
 
+const char *TimedAutomataSystem::getName(int32_t uid) const
+{
+    return symbols.getName(uid);
+}
+
 list<TimedAutomataSystem::template_t> &TimedAutomataSystem::getTemplates()
 {
     return templates;
@@ -85,22 +93,35 @@ TimedAutomataSystem::template_t &TimedAutomataSystem::getGlobals()
 }
 
 TimedAutomataStructures::template_t &
-TimedAutomataSystem::addTemplate(int32_t frame)
+TimedAutomataSystem::addTemplate(type_t type, const char *name)
 {
     templates.push_back(template_t());
-    templates.back().frame = frame;
-    templates.back().init = -1;
-    return templates.back();
+    template_t &templ = templates.back();
+    templ.uid = symbols.addSymbol(name, type, &templ);
+    templ.frame = symbols.addFrame();
+    templ.init = -1;
+
+    if (templ.uid == -1) {
+        throw TypeException("Duplicate definition of %s", name);
+    } 
+
+    return templ;
 }
 
 TimedAutomataStructures::state_t &
-TimedAutomataSystem::addState(int32_t uid, ExpressionProgram &inv)
+TimedAutomataSystem::addLocation(const char *name, ExpressionProgram &inv)
 {
     current_template->states.push_back(state_t());
-    current_template->states.back().uid = uid;
-    current_template->states.back().locNr = current_template->states.size() - 1;
-    current_template->states.back().invariant = inv;
-    return current_template->states.back();
+    state_t &state = current_template->states.back();
+    state.uid = symbols.addSymbol(name, TypeSystem::LOCATION, &state);
+    state.locNr = current_template->states.size() - 1;
+    state.invariant = inv;
+
+    if (state.uid == -1) {
+	throw TypeException("Duplicate definition of %s", name);
+    }
+
+    return state;
 }
 
 TimedAutomataStructures::transition_t &
@@ -157,9 +178,7 @@ int32_t TimedAutomataSystem::sizeOfType(int32_t type)
     }
 }
 
-
-
-int32_t TimedAutomataSystem::evaluateConstantBinary(int32_t left, int32_t op, int32_t right) {
+int32_t TimedAutomataSystem::evaluateBinary(int32_t left, int32_t op, int32_t right) {
     switch (op) {
     case PLUS:
 	return left + right;
@@ -197,30 +216,42 @@ int32_t TimedAutomataSystem::evaluateConstantBinary(int32_t left, int32_t op, in
 	return left >= right;
     case GT:
 	return left > right;
+    case MIN:
+	return min(left, right);
+    case MAX:
+	return max(left, right);
     default:
 	throw TypeException(unsupported);
     }
 }
 
-int32_t TimedAutomataSystem::evaluateConstantExpression(const SubExpression expr)
+bool TimedAutomataSystem::evaluateConstantExpression(
+    const SubExpression &expr, int32_t &result)
 {
+    map<int32_t, ExpressionProgram> emptyMap;
+    vector<int32_t> s;
     if (types.getClass(expr.getType()) != TypeSystem::INT)
 	throw TypeException("Integer expression expected");
-    vector<int32_t> s;
-    evaluateConstantExpression(expr, s);
-    return s.back();
+    if (!types.isConstant(expr.getType()))
+	return false;
+    if (!evaluateExpression(expr, emptyMap, s))
+	return false;
+    if (s.size() == 0)
+	return false;
+    result = s.back();
+    return true;
 }
 
-// Evaluate the constant expression represented by the operations from
-// first to last. Notice that last should be the last operation of the
-// expression (and not an element after the last expression).
-void TimedAutomataSystem::evaluateConstantExpression(const SubExpression expr, vector<int32_t> &s)
+// Evaluate the expression. Use the mapping to assign meaning to
+// identifiers. Identifiers not mapped by the given mapping are mapped
+// using the build-in constantMapping. The result will be stored in
+// the vector (the result cave have size bigger than one).
+bool TimedAutomataSystem::evaluateExpression(
+    const SubExpression &expr, map<int32_t, ExpressionProgram> &mapping,
+    vector<int32_t> &s)
 {
     ExpressionProgram::const_iterator first, last;
     int32_t left, right;
-
-    if (!types.isConstant(expr.getType()))
-	throw TypeException("Constant expression expected");
 
     first = expr.begin();
     last = expr.end();
@@ -247,7 +278,7 @@ void TimedAutomataSystem::evaluateConstantExpression(const SubExpression expr, v
 	case GT:
 	    right = s.back(); s.pop_back();
 	    left = s.back(); s.pop_back();
-	    s.push_back(evaluateConstantBinary(left, first->kind, right));
+	    s.push_back(evaluateBinary(left, first->kind, right));
 	    break;
 
 	case IDENTIFIER:
@@ -256,8 +287,15 @@ void TimedAutomataSystem::evaluateConstantExpression(const SubExpression expr, v
 	    case TypeSystem::INT:
 	    case TypeSystem::RECORD:
 	    {
-		variable_t *var = static_cast<variable_t*>(symbols.getData(first->value));
-		evaluateConstantExpression(var->expr, s);
+		map<int32_t, ExpressionProgram>::iterator i
+		    = mapping.find(first->value);
+		if (i == mapping.end()) {
+		    i = constantMapping.find(first->value);
+		    if (i == constantMapping.end())
+			return false;
+		}
+		if (!evaluateExpression(i->second, mapping, s))
+		    return false;
 		break;
 	    }
 	    default:
@@ -326,6 +364,7 @@ void TimedAutomataSystem::evaluateConstantExpression(const SubExpression expr, v
 
 	++first;
     }
+    return true;
 }
 
 // Add clock to current_template (which might be the "global"
@@ -380,7 +419,6 @@ void TimedAutomataSystem::addVariable(
     var->uid = symbols.addSymbol(name, type, var);
     if (var->uid == -1) 
 	throw TypeException("Duplicate definition of identifier %s", name);
-
 }
 
 void TimedAutomataSystem::addConstant(
@@ -388,18 +426,29 @@ void TimedAutomataSystem::addConstant(
 {	
     constant_t *constant;
 
+    int32_t offset;
+    if (current_template->constants.empty()) {
+	offset = 0;
+    } else {
+	offset =
+	    current_template->constants.back().offset
+	    + current_template->constants.back().size;
+    }
+
     // Add variable
     current_template->constants.push_back(constant_t());
     constant = &current_template->constants.back();
     constant->expr = initial;
     constant->size = sizeOfType(type);
     constant->global = (current_template == &global);
+    constant->offset = offset;
 
     // Add symbol
     constant->uid = symbols.addSymbol(name, type, constant);
     if (constant->uid == -1) 
 	throw TypeException("Duplicate definition of identifier %s", name);
 
+    constantMapping[constant->uid] = initial;
 }
 
 // Add a channel to current_template (which might be the "global"
@@ -475,6 +524,10 @@ int TimedAutomataSystem::getPrecedence(int kind)
     case NEQ:
 	return 40;
 
+    case MIN:
+    case MAX:
+	return 55;
+
     case LT:
     case LE:
     case GE:
@@ -499,6 +552,16 @@ int TimedAutomataSystem::getPrecedence(int kind)
 	return 15;
 
     case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
 	return 10;
 
     case COMMA:
@@ -506,6 +569,12 @@ int TimedAutomataSystem::getPrecedence(int kind)
 
     case SYNC:
 	return 0;
+
+    case PREDECREMENT:
+    case POSTDECREMENT:
+    case PREINCREMENT:
+    case POSTINCREMENT:
+	return 100;
 	    
     default:
 	throw TypeException(unsupported);
@@ -554,10 +623,22 @@ char *TimedAutomataSystem::expressionToString(
 	case GE:
 	case GT:
 	case ASSIGN:
+	case ASSPLUS:
+	case ASSMINUS:
+	case ASSDIV:
+	case ASSMOD:
+	case ASSMULT:
+	case ASSAND:
+	case ASSOR:
+	case ASSXOR:
+	case ASSLSHIFT:
+	case ASSRSHIFT:
+	case MIN:
+	case MAX:
 	    right = st.top(); st.pop();
 	    left = st.top(); st.pop();
 
-	    s = new char[strlen(left.second) + strlen(right.second) + 9];
+	    s = new char[strlen(left.second) + strlen(right.second) + 10];
 	    st.push(make_pair(precedence, s));
 
 	    if (precedence > left.first)
@@ -623,6 +704,42 @@ char *TimedAutomataSystem::expressionToString(
 	    case ASSIGN:
 		strcat(s, " = ");
 		break;
+	    case ASSPLUS:
+		strcat(s, " += ");
+		break;
+	    case ASSMINUS:
+		strcat(s, " -= ");
+		break;
+	    case ASSDIV:
+		strcat(s, " /= ");
+		break;
+	    case ASSMOD:
+		strcat(s, " %= ");
+		break;
+	    case ASSMULT:
+		strcat(s, " *= ");
+		break;
+	    case ASSAND:
+		strcat(s, " &= ");
+		break;
+	    case ASSOR:
+		strcat(s, " |= ");
+		break;
+	    case ASSXOR:
+		strcat(s, " ^= ");
+		break;
+	    case ASSLSHIFT:
+		strcat(s, " <<= ");
+		break;
+	    case ASSRSHIFT:
+		strcat(s, " >>= ");
+		break;
+	    case MIN:
+		strcat(s, " <? ");
+		break;
+	    case MAX:
+		strcat(s, " >? ");
+		break;
 	    default:
 		throw TypeException(unsupported);
 	    }
@@ -667,6 +784,46 @@ char *TimedAutomataSystem::expressionToString(
 		sprintf(s, "-(%s)", st.top().second);
 	    else
 		sprintf(s, "-%s", st.top().second);
+	    delete[] st.top().second;
+	    st.top() = make_pair(precedence, s);
+	    break;
+
+	case POSTDECREMENT:
+	    s = new char[strlen(st.top().second) + 5];
+	    if (precedence > st.top().first)
+		sprintf(s, "(%s)--", st.top().second);
+	    else
+		sprintf(s, "%s--", st.top().second);
+	    delete[] st.top().second;
+	    st.top() = make_pair(precedence, s);
+	    break;
+
+	case POSTINCREMENT:
+	    s = new char[strlen(st.top().second) + 5];
+	    if (precedence > st.top().first)
+		sprintf(s, "(%s)++", st.top().second);
+	    else
+		sprintf(s, "%s++", st.top().second);
+	    delete[] st.top().second;
+	    st.top() = make_pair(precedence, s);
+	    break;
+	    
+	case PREDECREMENT:
+	    s = new char[strlen(st.top().second) + 5];
+	    if (precedence > st.top().first)
+		sprintf(s, "--(%s)", st.top().second);
+	    else
+		sprintf(s, "--%s", st.top().second);
+	    delete[] st.top().second;
+	    st.top() = make_pair(precedence, s);
+	    break;
+
+	case PREINCREMENT:
+	    s = new char[strlen(st.top().second) + 5];
+	    if (precedence > st.top().first)
+		sprintf(s, "++(%s)", st.top().second);
+	    else
+		sprintf(s, "++%s", st.top().second);
 	    delete[] st.top().second;
 	    st.top() = make_pair(precedence, s);
 	    break;

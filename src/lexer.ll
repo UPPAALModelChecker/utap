@@ -18,6 +18,7 @@
 */
 
 %option nodefault
+%option nounput
 %{
 
 #include <iostream>
@@ -32,7 +33,8 @@ using std::ostream;
  * http://www.lrde.epita.fr/people/akim/compil/gnuprog2/Advanced-Use-of-Flex.html
  */
 
-#define YY_USER_ACTION  yylloc.last_column+=yyleng; 
+#define YY_USER_INIT yylloc.reset();
+#define YY_USER_ACTION yylloc.step(); yylloc.last_column+=yyleng; 
 #define YY_FATAL_ERROR(msg) { throw TypeException(msg); }
 
 %}
@@ -45,14 +47,8 @@ idchr	[a-zA-Z0-9_$#]
 
 %%
 
-%{
-  /* At each yylex invocation, mark the current position as the
-     start of the next token.  */
-  yylloc.step();
-%}
-
 <comment>{
-  \n           { yylloc.lines(yyleng); yylloc.step(); }
+  \n           { yylloc.lines(1); }
   "*/"         { BEGIN(INITIAL); }
   "//"[^\n]*   /* Single line comments take precedence over multilines */;
   <<EOF>>      { yyerror("Unclosed comment."); }
@@ -62,18 +58,16 @@ idchr	[a-zA-Z0-9_$#]
 
 "\\"[\t ]*"\n"  { /* Use \ as continuation character */ 
                   yylloc.lines(1); 
-                  yylloc.step();
                 } 
 
-"//"[^\n]*            /* ignore (singleline comment)*/;
+"//"[^\n]*      /* ignore (singleline comment)*/;
 
-[ \t]+		{ yylloc.step(); }
+[ \t]+		
 
 "/*"            { BEGIN(comment); }
 
 \n+		{
                   yylloc.lines(yyleng); 
- 		  yylloc.step();
 		  if (syntax == SYNTAX_PROPERTY)
 		    return '\n';
                 }
@@ -92,8 +86,16 @@ idchr	[a-zA-Z0-9_$#]
 "!"		{ return T_EXCLAM; }
 
 "->"		{ return T_ARROW; }
-"="		{ return T_ASSIGNMENT; }
-":="		{ return T_ASSIGNOLD; }
+"="		{ if (syntax == SYNTAX_NEW)
+			return T_ASSIGNMENT; 
+		  utap_error("Unknown symbol");
+		  return T_ERROR;
+ 		}
+":="		{ if (syntax == SYNTAX_OLD)
+			return T_ASSIGNMENT;
+		  utap_error("Unknown symbol");
+                  return T_ERROR; 
+                }
 "+="            { return T_ASSPLUS; }
 "-="            { return T_ASSMINUS; }
 "*="            { return T_ASSMULT; }
@@ -104,6 +106,8 @@ idchr	[a-zA-Z0-9_$#]
 "^="            { return T_ASSXOR; }
 "<<="           { return T_ASSLSHIFT; }
 ">>="           { return T_ASSRSHIFT; }
+"<?"		{ return T_MIN; }
+">?"		{ return T_MAX; }
 
 "+"		{ return T_PLUS; }
 "-"		{ return T_MINUS; }
@@ -141,6 +145,8 @@ idchr	[a-zA-Z0-9_$#]
 		  const Keyword *keyword
 		    = Keywords::in_word_set(utap_text, strlen(utap_text));
 		  if (keyword != NULL && (syntax & keyword->syntax)) {
+		    if (keyword->token == T_CONST && (syntax & SYNTAX_OLD))
+		      return T_OLDCONST;
 		    return keyword->token;	  
 	          } else if (ch->isType(utap_text)) {
 		    strncpy(utap_lval.string, utap_text, MAXLEN);
@@ -165,7 +171,7 @@ idchr	[a-zA-Z0-9_$#]
                 }
 
 .               { 
-                  std::cerr << "Unknown symbol '" << utap_text << "'" << std::endl; 
+		  utap_error("Unknown symbol");
                   return T_ERROR; 
                 }
 

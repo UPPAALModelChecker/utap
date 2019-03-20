@@ -53,54 +53,46 @@ namespace UTAP
 	void activateFrame(int uid);
 
 	SymbolTable();
+	SymbolTable(const SymbolTable &);
 	~SymbolTable();
 
-	int getFrameOf(int uid) {
-	    assert(uid >= 0 && uid < (int32_t)index.size());
-	    return index[uid];
-	}
+	int getFrameOf(int uid) const;
 
     protected:
 
+	struct ltstr
+	{
+	    bool operator()(const char* s1, const char* s2) const {
+		return strcmp(s1, s2) < 0;
+	    }
+	};
+
 	typedef struct symbol_t
 	{
-	    int type; // typeid registered in TypeSystem
-	    const char *name; // copy of the name
-	    /* getType(type)==TypeSystem::LOCATION => Expression
-	       getType(type)==TypeSystem::FUNCTION => Statement
-	       getType(type)==TypeSystem::TEMPLATE => TransitionList */
-	    void *body; // just a pointer, no copy
+	    int32_t type; // typeid registered in TypeSystem
+	    char *name; // copy of the name
+	    int32_t frame;
+	    void *user_data; 
       
-	    symbol_t(const int t, const char *symbol, void *data):
-		type(t), name(strdup(symbol)), body(data)
-		{};
-	    ~symbol_t() 
-		{
-		    assert (name);
-		    free((char*)name);
-		}
+	    symbol_t(int type, int frame, const char *symbol, void *user_data);
+	    symbol_t(const symbol_t &);
+	    ~symbol_t();
 	};
 
 	typedef struct frame_t
 	{
 	    const int parent; // -1 for root frame
-	    std::map<const int, symbol_t*> nsymbols;
-	    frame_t(const int parentFrame): parent(parentFrame) 
-		{ };
-	    ~frame_t()
-		{
-		    while (!nsymbols.empty()) {
-			symbol_t *s = nsymbols.begin()->second;
-			assert(s);
-			delete s;
-			nsymbols.erase(nsymbols.begin());
-		    }
-		}
+	    std::map<const char *, int, ltstr> symbols;
+	    frame_t(const int parentFrame) : parent(parentFrame) { }
 	};
 
+	std::vector<symbol_t *> symbols;	
 	std::vector<frame_t*> frames;
-	std::vector<int> index; // [symbol uid] => frameid, size is uid generator
 	int current;
+
+	bool validUID(int uid) const {
+	    return (0 <= uid && uid < static_cast<int>(symbols.size()));
+	}
     };
 
 }

@@ -1,4 +1,92 @@
-2002-12-12  Gerd Behrmann  <behrmann@cs.auc.dk>
+2003-02-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Enlarged "default domain" of a constant (since a constant is 
+	  a normal integer, it has a domain)
+	* Fixed problem with constant arguments to non-constant integer
+	  reference parameters.
+	* Fixed problem with array parameters
+	* Fixed false assumption: Previously, the value of constants was
+	  thought to be known. This is not always the case, since it might
+	  depend on the parameters of a template. Values derived from such
+	  constants are now disallowed in array sizes and integer ranges.
+	* Fixed bug which caused some identifier expressions to be
+	  marked as non-reference types.
+	* Fixed bug in InternalBuilder which caused inline-ifs that mixed
+          reference and non-reference types to fail
+	* Fixed bug in InternalBuilder which caused a wrong offset to be
+	  computed for constant arrays.
+	* Fixed bug in range estimation for subtractions
+
+2003-02-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added min and max operators
+	* Added new array constructs to old syntax
+	* Fixed memory allocation bugs
+	* Moved declaration of assert into error.h and removed assert.h
+	  (due to conflicts with the system assert.h)
+        * Fixed validation problems when loading ta/xta files
+	* Made type checker detect possible division by zero
+	* Fixed problem with empty <instantiation> and <system> tags
+
+2003-01-30  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* C++ compatibility fixes
+	* Windows fixes
+
+2003-01-28  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added support for +=, -=, etc.
+
+2003-01-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added pre/post decrement/increment operators
+	* Made := and = behave the same
+	* Cleaned up use of type_t
+	* Changed addState to addLocation
+	* Fixed/cleaned up handling of arguments in function calls and
+	  template instantiations.
+	* Added check to make sure that arguments to templates are side 
+	  effect free.
+
+2003-01-24  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed more segfaults
+	* Fixed bug in throw statement
+
+2003-01-18  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed XPath construction
+
+2003-01-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed segfault in case of missing initial state
+
+2003-01-13  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed C++ compatibility issues
+
+2003-01-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed position tracking
+	* Reimplemented symbol table for speed
+	* Implemented copy constructor for TypeSystem
+	* Fixed error handling problem in XML parser
+
+2003-12-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Moved typecheck of assignment from procTransition() to
+ 	  procUpdate()
+	* Added check for non-constant arguments to non-reference
+	  paramters
+
+2003-12-23  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed lexer problem with 'broadcast' keyword
+	* Added check for clock guards on transitions with urgent or
+	  broadcast synchronisations 
+	* Added check for non-reference clock and channel parameters
+
+2002-12-20  Gerd Behrmann  <behrmann@cs.auc.dk>
 
 	* Initial release
 

@@ -49,6 +49,8 @@ int ExpressionProgram::getNumberOfSubExpressions(const expression_t &expr) const
     case NEQ:
     case GE:
     case GT:
+    case MIN:
+    case MAX:
       return 2;
     case UNARY_MINUS:
     case NOT:
@@ -74,11 +76,26 @@ int ExpressionProgram::getNumberOfSubExpressions(const expression_t &expr) const
     case LEADSTO:
     case COMMA:
     case ASSIGN:
+    case ASSPLUS:
+    case ASSMINUS:
+    case ASSDIV:
+    case ASSMOD:
+    case ASSMULT:
+    case ASSAND:
+    case ASSOR:
+    case ASSXOR:
+    case ASSLSHIFT:
+    case ASSRSHIFT:
       return 2;
     case SYNC:
       return ((uint32_t)expr.value == SYNC_TAU ? 0 : 1);
     case DEADLOCK:
       return 0;
+    case PREINCREMENT:
+    case POSTINCREMENT:
+    case PREDECREMENT:
+    case POSTDECREMENT:
+	return 1;
     default:
       throw TypeException("BUG: Unknown expression kind (%d)", expr.kind);
     }

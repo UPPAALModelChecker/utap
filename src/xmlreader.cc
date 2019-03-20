@@ -28,11 +28,11 @@
 
 #include <vector>
 #include <map>
-#include <strstream>
+#include <sstream>
 
 using namespace UTAP;
 
-using std::strstream;
+using std::ostringstream;
 using std::make_pair;
 using std::map;
 using std::vector;
@@ -72,7 +72,7 @@ static int32_t the_size_of_the_page = 1024;
  */
 typedef enum 
 {
-    ERROR, // unrecoverable error state (something is realy wrong here)
+    ERR, // unrecoverable error state (something is realy wrong here)
     UNKNOWN, // state for tracking the unknown tags which are allowed by DTD
     INITIAL, // the initial state before reading the document
     NTA, IMPORTS, DECLARATION, TEMPLATE, INSTANTIATION, SYSTEM, 
@@ -136,6 +136,16 @@ static bool isempty(const char *p)
     return true;
 }
 
+static bool isAlpha(char c)
+{
+    return isalpha(c) || c == '_';
+}
+
+static bool isIdChr(char c)
+{
+    return isalnum(c) || c == '_' || c == '$' || c == '#';
+}
+
 /**
  * Extracts the alpha-numerical symbol used for variable/type
  * identifiers.  Identifier starts with alpha and further might
@@ -149,10 +159,10 @@ static char* symbol(const char *str)
     if (str == NULL)
   	return NULL;
     while (*str && isspace(*str)) str++;
-    if (!*str || !isalpha(*str))
+    if (!*str || !isAlpha(*str))
      	return NULL;
     const char *end = str;
-    while (*end && isalnum(*end)) end++;
+    while (*end && isIdChr(*end)) end++;
     const char *p = end;
     while (*p && isspace(*p)) p++;
     if (*p)
@@ -176,9 +186,10 @@ static char* symbol(const char *str)
  */
 static const char* retrieve(const char **attrs, const char *name)
 {
-    for (int i = 0; attrs[i]; i += 2)
-	if (strcmp(attrs[i], name) == 0) 
-	    return attrs[i+1];
+    if (attrs)
+	for (int i = 0; attrs[i]; i += 2)
+	    if (strcmp(attrs[i], name) == 0) 
+		return attrs[i+1];
     return NULL;
 }
 
@@ -229,8 +240,8 @@ public:
     vector<vector<state_t> > siblings; // tracks the order and amount of siblings
 
     int32_t unknown; // the unknown tag level count
-    state_t errorpos; // erronious tag if state = ERROR
-    char *errormsg; // error message if state = ERROR
+    state_t errorpos; // erronious tag if state = ERR
+    char *errormsg; // error message if state = ERR
     ErrorHandler *errorHandler;
 
     ParserBuilder *parser;
@@ -254,18 +265,18 @@ public:
   
     int32_t parameter_count; // holds the count of template parameters parsed
 
-    char *sourceRef; // source idref inside transition, destroy with delete []
-    char *targetRef; // target idref inside transition, destroy with delete []
+    const char *sourceRef; // source idref inside transition
+    const char *targetRef; // target idref inside transition
 
     int32_t lasterror;
 
     ParserState(ParserBuilder *, ErrorHandler *, bool newxta_);
-    ~ParserState();    
+    virtual ~ParserState();    
 
     char *get() const;
 protected:
     // counts current state appearances in siblings:
-    int32_t count_states(const vector<state_t> &, const state_t &) const; 
+    int32_t count_states(const vector<state_t> &, const state_t) const; 
 };
 
 ParserState::ParserState(
@@ -279,7 +290,8 @@ ParserState::ParserState(
     errorHandler->setCurrentPath(this);
     
     labelkind = L_NONE;
-    id = sourceRef = targetRef = NULL;
+    id = NULL;
+    sourceRef = targetRef = NULL;
     guard = sync = assign = false;
 }
 
@@ -288,9 +300,6 @@ ParserState::~ParserState()
     delete [] body;
     delete [] invariant;
     delete [] tname;
-    delete [] id;
-    delete [] sourceRef;
-    delete [] targetRef;
     delete [] errormsg;
 
     locationmap_t::iterator it;
@@ -300,7 +309,7 @@ ParserState::~ParserState()
     }
 }
 
-int32_t ParserState::count_states(const vector<state_t> &states, const state_t &state) const
+int32_t ParserState::count_states(const vector<state_t> &states, const state_t state) const
 {
     int32_t res = 0;
     for (vector<state_t>::const_iterator it = states.begin(); it != states.end(); it++)
@@ -310,66 +319,38 @@ int32_t ParserState::count_states(const vector<state_t> &states, const state_t &
 
 char *ParserState::get() const
 {
-    strstream path;
+    ostringstream path;
     vector<vector<state_t> >::const_iterator sit = siblings.begin();
     vector<pair<state_t, tag_t> >::const_iterator hit;
     for (hit=history.begin(); hit!=history.end(); hit++, sit++)
-	switch (hit->first) {
-	case INITIAL:       break;
-	case NTA:           path << "/nta"; break; 
-	case IMPORTS:       path << "/imports"; break;
-	case DECLARATION:   path << "/declaration"; break;
-	case TEMPLATE:      path << "/template[" <<
+	switch (hit->second) {
+	case TAG_NTA:           path << "/nta"; break; 
+	case TAG_IMPORTS:       path << "/imports"; break;
+	case TAG_DECLARATION:   path << "/declaration"; break;
+	case TAG_TEMPLATE:      path << "/template[" <<
 				(count_states(*sit, TEMPLATE)+1) << "]"; break;
-	case INSTANTIATION: path << "/instantiation"; break;
-	case SYSTEM:        path << "/system"; break;
-	case NAME:          path << "/name"; break;
-	case PARAMETER:     path << "/parameter"; break;
-	case LOCATION:      path << "/location[" << 
+	case TAG_INSTANTIATION: path << "/instantiation"; break;
+	case TAG_SYSTEM:        path << "/system"; break;
+	case TAG_NAME:          path << "/name"; break;
+	case TAG_PARAMETER:     path << "/parameter"; break;
+	case TAG_LOCATION:      path << "/location[" << 
 				(count_states(*sit, LOCATION)+1) << "]"; break;
-	case INIT:          path << "/init"; break;
-	case TRANSITION:    path << "/transition" <<
+	case TAG_INIT:          path << "/init"; break;
+	case TAG_TRANSITION:    path << "/transition[" <<
 				(count_states(*sit, TRANSITION)+1) << "]"; break;
-	case LABEL:         path << "/label[" <<
+	case TAG_LABEL:         path << "/label[" <<
 				(count_states(*sit, LABEL)+1) << "]"; break;
-	case URGENT:        path << "/urgent"; break;
-	case COMMITTED:     path << "/committed"; break;
-	case SOURCE:        path << "/source"; break;
-	case TARGET:        path << "/target"; break;
-	case NAIL:          path << "/nail[" <<
+	case TAG_URGENT:        path << "/urgent"; break;
+	case TAG_COMMITTED:     path << "/committed"; break;
+	case TAG_SOURCE:        path << "/source"; break;
+	case TAG_TARGET:        path << "/target"; break;
+	case TAG_NAIL:          path << "/nail[" <<
 				(count_states(*sit, NAIL)+1) << "]"; break;
 	default: path << "/???"; break;
 	}
-
-    switch (state) {
-    case INITIAL:       break;
-    case NTA:           path << "/nta"; break; 
-    case IMPORTS:       path << "/imports"; break;
-    case DECLARATION:   path << "/declaration"; break;
-    case TEMPLATE:      path << "/template[" <<
-			    (count_states(*sit, TEMPLATE)+1) << "]"; break;
-    case INSTANTIATION: path << "/instantiation"; break;
-    case SYSTEM:        path << "/system"; break;
-    case NAME:          path << "/name"; break;
-    case PARAMETER:     path << "/parameter"; break;
-    case LOCATION:      path << "/location[" << 
-			    (count_states(*sit, LOCATION)+1) << "]"; break;
-    case INIT:          path << "/init"; break;
-    case TRANSITION:    path << "/transition" <<
-			    (count_states(*sit, TRANSITION)+1) << "]"; break;
-    case LABEL:         path << "/label[" <<
-			    (count_states(*sit, LABEL)+1) << "]"; break;
-    case URGENT:        path << "/urgent"; break;
-    case COMMITTED:     path << "/committed"; break;
-    case SOURCE:        path << "/source"; break;
-    case TARGET:        path << "/target"; break;
-    case NAIL:          path << "/nail[" <<
-			    (count_states(*sit, NAIL)+1) << "]"; break;
-    default: path << "/???"; break;
-    }
     path << '\0'; // avoids garbage in the stream
 
-    char *s = path.str();
+    const char *s = path.str().c_str();
     return strcpy(new char[strlen(s) + 1], s);
 }
 
@@ -393,8 +374,8 @@ static void NTA_startDocument(void *user_data)
 static void NTA_endDocument(void *user_data)
 {    
     ParserState* s = (ParserState*) user_data;
-    if (s->state != INITIAL) s->state = ERROR;
     s->siblings.pop_back();
+    if (s->state != INITIAL) s->state = ERR;
     try { s->parser->done(); } 
     catch(TypeException &te) {
 	s->errorHandler->handleError(te.what());
@@ -418,7 +399,7 @@ static void NTA_characters(void *user_data, const CHAR *ch, int32_t len)
     case LABEL:
 	s->body = append(s->body, s->len, ch, len);
 	break;
-    case ERROR:
+    case ERR:
 	printf("ERROR!\n");
 
     case NTA:
@@ -442,7 +423,7 @@ static bool checkSiblings(ParserState *s, bool cond)
 {
     if (!cond) {
 	s->errorpos = s->state;
-	s->state = ERROR;
+	s->state = ERR;
 	s->errormsg = mystrdup("sibling ordering or quantity incorrect"); 
     }
     return cond;
@@ -458,19 +439,20 @@ static void NTA_startElement(void *user_data, const CHAR *n, const CHAR **attrs)
 				       strlen((const char *)n));
     if (name == NULL) {
 	s->errorpos = s->state;
-	s->state = ERROR;
+	s->state = ERR;
 	sprintf(errormsg, "unknown tag %s", (const char *)n);
 	s->errormsg = mystrdup(errormsg);
 	return;
     }
 	
     s->history.push_back(make_pair(s->state, name->tag));
+
     switch (s->state) {
     case INITIAL:
 	if (name->tag == TAG_NTA) {
 	    s->state = NTA;
 	} else {
-	    s->state = ERROR;
+	    s->state = ERR;
 	    s->errorpos = INITIAL;
 	    sprintf(errormsg, "nta tag expected but %s found", name->str);
 	    s->errormsg = mystrdup(errormsg); 
@@ -561,9 +543,15 @@ static void NTA_startElement(void *user_data, const CHAR *n, const CHAR **attrs)
 			       s->siblings.back().back() == LOCATION)))
 	    {
 		const char *initRef = retrieve((const char**) attrs, "ref");
-		try { s->parser->procStateInit(s->locations.find((char*)initRef)->second); }
-		catch(TypeException te) {
-		    s->errorHandler->handleError(te.what());
+		if (initRef) {
+		    locationmap_t::iterator l =
+			s->locations.find((char*)initRef);
+		    if (l != s->locations.end()) 
+			try {
+			    s->parser->procStateInit(l->second);
+			} catch(TypeException te) {
+			    s->errorHandler->handleError(te.what());
+			}
 		}
 		s->state = INIT;
 	    }
@@ -663,17 +651,16 @@ static void NTA_startElement(void *user_data, const CHAR *n, const CHAR **attrs)
 	    checkSiblings(s, false);
 	}
 	break;
-    case ERROR:
+    case ERR:
 	printf("ERROR!\n");
 	break;
     default:
 	s->errorpos = s->state;
-	s->state = ERROR;
+	s->state = ERR;
 	sprintf(errormsg, "invalid tag %s at this position", name->str);
 	s->errormsg = mystrdup(errormsg); 
 	break;
     }
-
     s->siblings.push_back(vector<state_t>());
 }
 
@@ -688,7 +675,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 					strlen((const char *)n));
     if (name == NULL) {
 	s->errorpos = s->state;
-	s->state = ERROR;
+	s->state = ERR;
 	sprintf(errormsg, "unknown tag %s", (const char *)n);
 	s->errormsg = mystrdup(errormsg);
 	return;
@@ -696,7 +683,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 
     if (s->history.empty() || name->tag != s->history.back().second) {
 	s->errorpos = s->state;
-	s->state = ERROR;
+	s->state = ERR;
 	sprintf(errormsg, "cannot use %s end tag", name->str);
 	s->errormsg = mystrdup(errormsg);
     } else {
@@ -716,7 +703,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	    default:
 		// This should be unreachable!
 		s->errorpos = s->state;
-		s->state = ERROR;
+		s->state = ERR;
 		sprintf(errormsg, "declaration tag is not allowed here");
 		s->errormsg = mystrdup(errormsg);
 	    }
@@ -730,11 +717,15 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	    s->tname=NULL;
 	    break;
 	case INSTANTIATION: {
-	    parseXTA(s->body, s->parser, s->errorHandler, s->newxta, S_INST);
+	    if (!isempty(s->body)) {
+		parseXTA(s->body, s->parser, s->errorHandler, s->newxta, S_INST);
+	    }
 	    break;
 	}
 	case SYSTEM: {
-	    parseXTA(s->body, s->parser, s->errorHandler, s->newxta, S_SYSTEM);
+	    if (!isempty(s->body)) {
+		parseXTA(s->body, s->parser, s->errorHandler, s->newxta, S_SYSTEM);
+	    }
 	    break;
 	}
 	case NAME:
@@ -790,6 +781,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	    delete [] s->invariant;
 	    s->invariant = NULL;
 	    s->lname = NULL;
+	    s->id = NULL;
 	    break;
 	case TRANSITION:
 	    try { s->parser->procTransition(s->sourceRef, s->targetRef); }
@@ -842,7 +834,7 @@ static void NTA_endElement(void *user_data, const CHAR *n)
 	    }
 	    break;
 	}
-	case ERROR:
+	case ERR:
 	    printf("ERROR!\n");
 	    break;
 	default:
@@ -876,32 +868,25 @@ static xmlEntityPtr NTA_getEntity(void *user_data, const CHAR *name)
  */
 static void NTA_warning(void *user_data, const char *msg, ...) 
 {
-    va_list args;
-    va_start(args, msg);
-    vprintf(msg, args);
-    va_end(args);
+    ((ParserState*) user_data)->errorHandler->handleWarning(msg);
 }
+
 /**
  * SAX passes its errors here
  */
 static void NTA_error(void *user_data, const char *msg, ...) 
 {
-    va_list args;
-
-    va_start(args, msg);
-    vprintf(msg, args);
-    va_end(args);
+    ((ParserState*) user_data)->errorHandler->handleError(msg);
+    ((ParserState*) user_data)->result = -1;
 }
+
 /**
  * SAX passes its fatal errors here
  */
 static void NTA_fatalError(void *user_data, const char *msg, ...) 
 {
-    va_list args;
-
-    va_start(args, msg);
-    vprintf(msg, args);
-    va_end(args);
+    ((ParserState*) user_data)->errorHandler->handleError(msg);
+    ((ParserState*) user_data)->result = -1;
 }
 
 /**
@@ -941,7 +926,8 @@ static xmlSAXHandler handler =
  * The actual parsing interface function
  */
 int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb,
-		       ErrorHandler *errHandler, bool newxta) {
+		       ErrorHandler *errHandler, bool newxta)
+{
     ParserState state(pb, errHandler, newxta);
     state.state = INITIAL;
     state.history.clear();
@@ -949,9 +935,6 @@ int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb,
     state.errorpos = INITIAL;
     state.result = 0;
 
-    state.locations.empty(); // destroy compiler debug optimizations
-    state.locations.size(); // destroy compiler debug optimizations
- 
     int32_t ret = 0;
     xmlParserCtxtPtr ctxt;
 
@@ -960,18 +943,16 @@ int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb,
     ctxt->sax = &handler;
     ctxt->userData = &state;
 
-    xmlParseDocument(ctxt);
-
-    if (ctxt->wellFormed) 
-        ret = state.result;
-    else {
-	if (state.errormsg) {
-	    printf(errormsg);
-	    delete [] state.errormsg;
-	}
+    if (xmlParseDocument(ctxt) != 0) {
+	ret = -1;
+    } else if (!ctxt->wellFormed) {
         ret = -1;
+    } else {
+	ret = state.result;
     }
-    if (ctxt->sax != NULL) ctxt->sax = NULL;
+
+    if (ctxt->sax != NULL)
+	ctxt->sax = NULL;
     xmlFreeParserCtxt(ctxt);
     
     return ret;
@@ -989,9 +970,6 @@ int32_t parseXMLFile(const char *filename, ParserBuilder *pb,
     state.errorpos = INITIAL;
     state.result = 0;
 
-    state.locations.empty(); // destroy compiler debug optimizations
-    state.locations.size(); // destroy compiler debug optimizations
- 
     int32_t ret = 0;
     xmlParserCtxtPtr ctxt;
 
