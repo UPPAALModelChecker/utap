@@ -219,7 +219,7 @@ void loadIF(istream& file)
             cell_t cell;
             while (read(file, str) && !str.empty() && !isspace(str[0]))
             {
-                char s[5];
+                char s[6];
                 auto cstr = str.c_str();
 
                 if (sscanf(cstr, "%d:clock:%d:%31s", &index,
