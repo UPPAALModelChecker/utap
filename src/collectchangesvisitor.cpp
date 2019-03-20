@@ -71,7 +71,8 @@ int32_t CollectChangesVisitor::visitDoWhileStatement(DoWhileStatement *stat)
 int32_t CollectChangesVisitor::visitBlockStatement(BlockStatement *stat)
 {
     BlockStatement::iterator s;
-    for (s = stat->begin(); s != stat->end(); ++s) {
+    for (s = stat->begin(); s != stat->end(); ++s) 
+    {
 	(*s)->accept(this);
     }
     return 0;
@@ -98,7 +99,8 @@ int32_t CollectChangesVisitor::visitIfStatement(IfStatement *stat)
 {
     collectFromExpression(stat->cond);
     stat->trueCase->accept(this);
-    if (stat->falseCase) {
+    if (stat->falseCase) 
+    {
 	stat->falseCase->accept(this);
     }
     return 0;

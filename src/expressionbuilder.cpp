@@ -98,11 +98,6 @@ void ExpressionBuilder::exprId(const char *name)
 
     type_t base = uid.getType().getBase();
 
-    if (base == type_t::PROCESS && !allowProcessReferences())
-    {
-	throw TypeException("Process references are not allowed");
-    }
-
     if (base != type_t::INT
 	&& base != type_t::BOOL
 	&& base != type_t::ARRAY
@@ -128,20 +123,14 @@ void ExpressionBuilder::exprNat(int32_t n)
 
 void ExpressionBuilder::exprCallBegin(const char *functionName) 
 {
-    /* For function calls we leave the type checking to the type
-     * checker. To avoid that exprArg() is producing errors, we push
-     * MAX_INT as the expected number of arguments.
-     */
-    expectedArguments.push_back(INT_MAX);
-
     /* Resolve identifier. If unknown, we leave a symbol_t() on the
-     * stack.
+     * stack. TODO: This could be moved to exprCallEnd().
      */
     symbol_t id;
     bool found = frame.resolve(functionName, id);
     fragments.push(expression_t::createIdentifier(position, id));
 
-    if (!found) 
+    if (!found)
     {
 	throw TypeException("Unknown identifier: %s", functionName);
     }
@@ -150,8 +139,6 @@ void ExpressionBuilder::exprCallBegin(const char *functionName)
 // expects n argument expressions on the stack
 void ExpressionBuilder::exprCallEnd(uint32_t n) 
 {
-    expectedArguments.pop_back();
- 
     /* exprCallBegin() pushes symbol_t() if and only if the identifier
      * is undeclared: In that case we pop the fragments and push a
      * dummy expression to recover from the error.
@@ -191,8 +178,7 @@ void ExpressionBuilder::exprCallEnd(uint32_t n)
 // expects 1 expression on the stack
 void ExpressionBuilder::exprArg(uint32_t n) 
 {
-    if (n >= expectedArguments.back())
-	throw TypeException("Too many arguments");
+
 }
 
 // 2 expr     // array[index]
@@ -305,9 +291,9 @@ void ExpressionBuilder::exprDot(const char *id)
 	int i = fields.getIndexOf(id);
 	if (i == -1) 
 	{
-	    char *s = expr.toString(true);
-	    errorHandler->handleError("%s has no member named %s", s, id);
-	    delete[] s;
+	    std::string s = expr.toString(true);
+	    errorHandler->handleError("%s has no member named %s",
+				      s.c_str(), id);
 	    expr = expression_t::createDot(position, expr);
 	} 
 	else if (fields[i].getType().getBase() == type_t::LOCATION) 

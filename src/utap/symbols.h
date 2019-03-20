@@ -100,7 +100,7 @@ namespace UTAP
 	symbol_data *data;
     protected:
 	friend class frame_t;
-	symbol_t(void *frame, type_t &type, const char *name, void *user);
+	symbol_t(void *frame, type_t &type, std::string name, void *user);
     public:
 	/** Default constructor */
 	symbol_t();
@@ -139,7 +139,7 @@ namespace UTAP
 	const void *getData() const;
 
 	/** Returns the name (identifier) of this symbol */
-	const char *getName() const;
+	std::string getName() const;
 	
 	/** Sets the user data of this symbol */
 	void setData(void *);
@@ -200,7 +200,7 @@ namespace UTAP
 	symbol_t getSymbol(int32_t);
 
 	/** Returns the index of the symbol with the give name. */
-	int32_t getIndexOf(const char *name);
+	int32_t getIndexOf(std::string name);
 
 	/** Returns the Nth symbol in this frame. */
 	symbol_t operator[] (int32_t);
@@ -209,13 +209,13 @@ namespace UTAP
 	const symbol_t operator[] (int32_t) const;
 
 	/** Adds a symbol of the given name and type to the frame */
-	symbol_t addSymbol(const char *, type_t, void *user = NULL);
+	symbol_t addSymbol(std::string name, type_t, void *user = NULL);
 
 	/** Add all symbols from the given frame */
 	void add(frame_t);
 	
 	/** Resolves a name in this frame or a parent frame. */
-	bool resolve(const char *name, symbol_t &symbol);
+	bool resolve(std::string name, symbol_t &symbol);
 
 	/** Returns the parent frame */
 	frame_t getParent() throw (NoParentException);
@@ -236,7 +236,8 @@ namespace UTAP
 	    COMMITTED = 2,
 	    CONSTANT = 4,
 	    BROADCAST = 8,
-	    REFERENCE = 16
+	    REFERENCE = 16,
+	    META = 32
 	};
     }
 

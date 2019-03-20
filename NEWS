@@ -1,3 +1,16 @@
+New in 0.70
+* This is a backport of the internal development code
+* This is the parser used in Uppaal 3.4.8.
+* Requires at least libxml2 2.6.10.
+* The top level parser invocation functions like parseXTA now only
+  run the type checker if the previous pass over the input did not
+  produce any errors. This should make the parser much more robust.
+* As always, we have fixed a lot of bugs.
+* Most of the changes relate to the new syntax (which is used in 
+  future versions of Uppaal).
+* The most visible API change is that transition_t has been renamed 
+  to edge_t.
+
 New in 0.60
 * This is a backport of the internal development code
 * API changes include a split of SystemBuilder into several

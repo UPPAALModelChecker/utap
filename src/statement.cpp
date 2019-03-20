@@ -218,4 +218,82 @@ ReturnStatement::ReturnStatement(expression_t value)
 int32_t ReturnStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitReturnStatement(this);
-};
+}
+
+int32_t AbstractStatementVisitor::visitStatement(Statement *stat)
+{
+    return 0;
+}
+
+int32_t AbstractStatementVisitor::visitEmptyStatement(EmptyStatement *stat)
+{
+    return visitStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitExprStatement(ExprStatement *stat)
+{
+    return visitStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitForStatement(ForStatement *stat)
+{
+    return stat->stat->accept(this);
+}
+
+int32_t AbstractStatementVisitor::visitWhileStatement(WhileStatement *stat)
+{
+    return stat->stat->accept(this);
+}
+
+int32_t AbstractStatementVisitor::visitDoWhileStatement(DoWhileStatement *stat)
+{
+    return stat->stat->accept(this);
+}
+
+int32_t AbstractStatementVisitor::visitBlockStatement(BlockStatement *stat)
+{
+    int result = 0;
+    BlockStatement::iterator i;
+    for (i = stat->begin(); i != stat->end(); i++)
+    {
+	result = (*i)->accept(this);
+    }
+    return result;
+}
+
+int32_t AbstractStatementVisitor::visitSwitchStatement(SwitchStatement *stat)
+{
+    return visitBlockStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitCaseStatement(CaseStatement *stat)
+{
+    return visitBlockStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitDefaultStatement(DefaultStatement *stat)
+{
+    return visitBlockStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitIfStatement(IfStatement *stat)
+{
+    stat->trueCase->accept(this);
+    return stat->falseCase->accept(this);
+}
+
+int32_t AbstractStatementVisitor::visitBreakStatement(BreakStatement *stat)
+{
+    return visitStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitContinueStatement(ContinueStatement *stat)
+{
+    return visitStatement(stat);
+}
+
+int32_t AbstractStatementVisitor::visitReturnStatement(ReturnStatement *stat)
+{
+    return visitStatement(stat);
+}
+

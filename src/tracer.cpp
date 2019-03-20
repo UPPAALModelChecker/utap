@@ -350,7 +350,7 @@ ostream &operator << (ostream &o, const Transition &t)
 	if (idx > -1) 
 	{
 	    const process_t &process = ith(ta.getProcesses(), i);
-	    const transition_t &edge = ith(process.templ->transitions, idx);
+	    const edge_t &edge = ith(process.templ->edges, idx);
       
 	    cout << process.uid.getName() << '.' << edge.src->uid.getName() 
 		 << " -> "

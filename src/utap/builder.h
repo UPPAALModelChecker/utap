@@ -97,6 +97,7 @@ namespace UTAP
 	static const int32_t PREFIX_BROADCAST = 4;
 	static const int32_t PREFIX_URGENT_BROADCAST = 
 	PREFIX_URGENT | PREFIX_BROADCAST;
+	static const int32_t PREFIX_META = 8;
 
 	virtual ~ParserBuilder() {}
 
@@ -176,6 +177,12 @@ namespace UTAP
 	virtual void declVarEnd() = 0;
 	virtual void declInitialiserList(uint32_t num) = 0; // n initialisers
 	virtual void declFieldInit(const char* name) = 0; // 1 initialiser
+	
+	/**
+	 * Guard progress measure declaration. Requires two
+	 * expressions if \a hasGuard is true, otherwise one.
+	 */
+	virtual void declProgress(bool hasGuard) = 0;
   
 	/********************************************************************
 	 * Function declarations
@@ -196,7 +203,7 @@ namespace UTAP
 	virtual void procStateCommit(const char* name) = 0; // mark previously decl. state
 	virtual void procStateUrgent(const char* name) = 0; // mark previously decl. state
 	virtual void procStateInit(const char* name) = 0; // mark previously decl. state
-	virtual void procTransition(const char* from, const char* to) = 0; 
+	virtual void procEdge(const char* from, const char* to) = 0; 
 	virtual void procGuard() = 0; // 1 expr
 	virtual void procSync(Constants::synchronisation_t type) = 0; // 1 expr
 	virtual void procUpdate() = 0; // 1 expr

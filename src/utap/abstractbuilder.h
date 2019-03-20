@@ -22,17 +22,17 @@
 #ifndef UTAP_ABSTRACTBUILDER_HH
 #define UTAP_ABSTRACTBUILDER_HH
 
-#include <exception>
+#include <stdexcept>
 
-#include "builder.h"
-#include "utap.h"
+#include "utap/builder.h"
+#include "utap/utap.h"
 
 namespace UTAP
 {
-    class NotSupportedException : public std::exception 
+    class NotSupportedException : public std::logic_error
     {
     public:
-	NotSupportedException(const char *) {}
+	NotSupportedException(const char *msg) : std::logic_error(msg) {}
 
     };
 
@@ -78,7 +78,12 @@ namespace UTAP
 	virtual void declVarEnd();
 	virtual void declInitialiserList(uint32_t num); // n initialisers
 	virtual void declFieldInit(const char* name); // 1 initialiser
-    
+
+	/************************************************************
+	 * Progress measure declarations
+	 */
+	virtual void declProgress(bool);
+	
 	/************************************************************
 	 * Function declarations
 	 */
@@ -98,7 +103,7 @@ namespace UTAP
 	virtual void procStateCommit(const char* name); // mark previously decl. state
 	virtual void procStateUrgent(const char* name); // mark previously decl. state
 	virtual void procStateInit(const char* name); // mark previously decl. state
-	virtual void procTransition(const char* from, const char* to); 
+	virtual void procEdge(const char* from, const char* to); 
 	// 1 epxr,1sync,1expr
 	virtual void procGuard();
 	virtual void procSync(Constants::synchronisation_t type); // 1 expr

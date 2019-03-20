@@ -19,6 +19,7 @@
 
 %option nodefault
 %option nounput
+%option never-interactive
 %{
 
 #include <iostream>
@@ -92,16 +93,8 @@ idchr	[a-zA-Z0-9_$#]
 "!"		{ return T_EXCLAM; }
 
 "->"		{ return T_ARROW; }
-"="		{ if (syntax & SYNTAX_NEW)
-			return T_ASSIGNMENT; 
-		  utap_error("Unknown symbol");
-		  return T_ERROR;
- 		}
-":="		{ if (syntax & SYNTAX_OLD)
-			return T_ASSIGNMENT;
-		  utap_error("Unknown symbol");
-                  return T_ERROR; 
-                }
+"="		{ return T_ASSIGNMENT; }
+":="		{ return T_ASSIGNMENT; }
 "+="            { return T_ASSPLUS; }
 "-="            { return T_ASSMINUS; }
 "*="            { return T_ASSMULT; }
@@ -129,10 +122,22 @@ idchr	[a-zA-Z0-9_$#]
 "&&"            { return T_BOOL_AND; }
 
 "<="		{ return T_LEQ; }
-"=<"		{ return T_LEQ; } // TODO: Remove from new syntax
+">="		{ return T_GEQ; }
+"=<"		{ if (syntax & SYNTAX_OLD)
+                  {
+                      return T_LEQ;
+                  }
+                  utap_error("Unknown symbol");
+                  return T_ERROR;
+                }
+"=>"		{ if (syntax & SYNTAX_OLD)
+                  {
+                      return T_GEQ;
+                  }
+                  utap_error("Unknown symbol");
+                  return T_ERROR;
+                }
 "<"		{ return T_LT; }
-">="		{ return T_GEQ; } // TODO: Remove from new syntax
-"=>"		{ return T_GEQ; }
 ">"		{ return T_GT; }
 "=="		{ return T_EQ; }
 "!="		{ return T_NEQ; }

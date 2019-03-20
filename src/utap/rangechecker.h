@@ -30,9 +30,11 @@
 
 namespace UTAP
 {
-    class UndefinedRangeException : public std::exception {
+    class UndefinedRangeException : public std::exception 
+    {
     public:
-	const char *what() const throw() {
+	const char *what() const throw() 
+	{
 	    return "UndefinedRangeException"; 
 	}
     };

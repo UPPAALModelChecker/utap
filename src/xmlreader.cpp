@@ -37,6 +37,7 @@ using std::map;
 using std::vector;
 using std::list;
 using std::ostringstream;
+using std::string;
 
 /**
  * Enumeration type for tags. We use gperf to generate a perfect hash
@@ -155,7 +156,7 @@ public:
     Path();
     void push(tag_t);
     tag_t pop();
-    virtual char *get() const;
+    virtual string get() const;
 };
 
 Path::Path()
@@ -176,7 +177,7 @@ tag_t Path::pop()
 }
 
 /** Returns the XPath encoding of the current path. */
-char *Path::get() const
+string Path::get() const
 {
     ostringstream str;
     list<vector<tag_t> >::const_iterator i;
@@ -245,9 +246,7 @@ char *Path::get() const
 	    throw -1;
 	}
     }
-    str << '\0';
-    const char *s = str.str().c_str();
-    return strcpy(new char[strlen(s) + 1], s);
+    return str.str();
 }
 
 /**
@@ -608,28 +607,34 @@ bool XMLReader::init()
 	/* Get reference attribute. 
 	 */
 	xmlChar *ref = xmlTextReaderGetAttribute(reader, (const xmlChar*)"ref");
-	if (ref) 
+
+	/* Find location name for the reference. 
+	 */
+	const char *name;
+	if (ref && (name = getLocation(ref)))
 	{
-	    /* Find location name for the reference. 
+	    /* Found it. Now push it to the parser builder.
 	     */
-	    const char *name = getLocation(ref);
-	    if (name)
+	    try 
 	    {
-		/* Found it. Now push it to the parser builder.
-		 */
-		try 
-		{
-		    parser->procStateInit(name);
-		}
-		catch (TypeException te) 
-		{
-		    errorHandler->handleError(te.what());
-		}
+		parser->procStateInit(name);
 	    }
+	    catch (TypeException te) 
+	    {
+		errorHandler->handleError(te.what());
+	    }
+	}
+	else
+	{
+	    errorHandler->handleError("Missing initial state");
 	}
 	xmlFree(ref);
 	read();
 	return true;
+    } 
+    else
+    {
+	errorHandler->handleError("Missing initial state");
     }
     return false;
 }
@@ -679,7 +684,7 @@ bool XMLReader::transition()
 	    to = target();
 	    while (label());
 	    while (begin(TAG_NAIL));
-	    parser->procTransition(from, to);
+	    parser->procEdge(from, to);
 	}
 	catch (TypeException &e)
 	{
@@ -738,7 +743,10 @@ bool XMLReader::templ()
 	    init();
 	    while (transition());
 	    
-	    /* Push template end to parser builder. */
+	    /* Push template end to parser builder.  FIXME: In case of
+	     * errors thrown in procEnd, the path no longer points to
+	     * the template.
+	     */
 	    parser->procEnd();
 	}
 	catch (TypeException &e) 

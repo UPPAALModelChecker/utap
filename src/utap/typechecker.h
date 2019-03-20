@@ -62,18 +62,11 @@ namespace UTAP
 	TimedAutomataSystem *system;
 	PersistentVariables persistentVariables;
     
-	void annotate(expression_t expr);
+	bool annotate(expression_t expr);
 	void checkInitialiser(variable_t &var);
 	expression_t checkInitialiser(type_t type, expression_t init);
 	bool areAssignmentCompatible(type_t lvalue, type_t rvalue);
 	bool areInlineIfCompatible(type_t thenArg, type_t elseArg);
-	bool isInteger(expression_t) const;
-	bool isClock(expression_t) const;
-	bool isRecord(expression_t) const;
-	bool isDiff(expression_t) const;
-	bool isInvariant(expression_t) const;
-	bool isGuard(expression_t) const;
-	bool isConstraint(expression_t) const;
 	bool isSideEffectFree(expression_t) const;
 	bool isLHSValue(expression_t) const;
 	bool isUniqueReference(expression_t expr) const;
@@ -102,10 +95,9 @@ namespace UTAP
     public:
 	TypeChecker(TimedAutomataSystem *system, ErrorHandler *handler);
 	virtual ~TypeChecker() {}
-	virtual void visitSystemBefore(TimedAutomataSystem *);
 	virtual void visitVariable(variable_t &);
 	virtual void visitState(state_t &);
-	virtual void visitTransition(transition_t &);
+	virtual void visitEdge(edge_t &);
 	virtual void visitInstance(instance_t &);
 	virtual void visitProperty(expression_t);
 	virtual void visitFunction(function_t &);
@@ -123,6 +115,15 @@ namespace UTAP
 	virtual int32_t visitBreakStatement(BreakStatement *stat);
 	virtual int32_t visitContinueStatement(ContinueStatement *stat);
 	virtual int32_t visitReturnStatement(ReturnStatement *stat);
+
+        static bool isVoid(expression_t);
+        static bool isInteger(expression_t);
+        static bool isClock(expression_t);
+        static bool isRecord(expression_t);
+        static bool isDiff(expression_t);
+        static bool isInvariant(expression_t);
+        static bool isGuard(expression_t);
+        static bool isConstraint(expression_t);
 
 	/** Type check an expression */
 	void checkExpression(expression_t);

@@ -23,13 +23,13 @@ VPATH = @srcdir@
 bin_PROGRAMS = pretty tracer
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/rangechecker.h utap/collectchangesvisitor.h utap/abstractbuilder.h utap/expressionbuilder.h
+include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/rangechecker.h utap/collectchangesvisitor.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h
 
 pretty_SOURCES = pretty.cpp
 
 tracer_SOURCES = tracer.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp rangechecker.cpp collectchangesvisitor.cpp
+libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp rangechecker.cpp collectchangesvisitor.cpp prettyprinter.cpp
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 LDADD = libutap.a $(XML_LIBS)

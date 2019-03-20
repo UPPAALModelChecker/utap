@@ -24,6 +24,7 @@
 #include <cstdio>
 #include <climits>
 #include <cassert>
+#include <sstream>
 
 #include "utap/builder.h"
 #include "utap/system.h"
@@ -42,6 +43,7 @@ using std::make_pair;
 using std::min;
 using std::max;
 using std::set;
+using std::string;
 
 static const char *const unsupported
 = "Internal error: Feature not supported in this mode.";
@@ -52,15 +54,55 @@ function_t::~function_t()
     delete body; 
 }
 
+bool declarations_t::addFunction(type_t type, string name, function_t *&fun)
+{	
+    bool duplicate = frame.getIndexOf(name) != -1;
+    functions.push_back(function_t());
+    fun = &functions.back();
+    fun->uid = frame.addSymbol(name, type, fun); // Add symbol
+    return !duplicate;
+}
+
+state_t &template_t::addLocation(string name, expression_t inv)
+{
+    bool duplicate = frame.getIndexOf(name) != -1;
+    
+    states.push_back(state_t());
+    state_t &state = states.back();
+    state.uid = frame.addSymbol(name, type_t::LOCATION, &state);
+    state.locNr = states.size() - 1;
+    state.invariant = inv;
+
+    if (duplicate) 
+    {
+	throw TypeException("Duplicate definition of %s", name.c_str());
+    }
+
+    return state;
+}
+
+edge_t &template_t::addEdge(symbol_t src, symbol_t dst)
+{
+    int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
+    edges.push_back(edge_t());
+    edges.back().src = static_cast<state_t*>(src.getData());
+    edges.back().dst = static_cast<state_t*>(dst.getData());
+    edges.back().nr = nr;
+    return edges.back();
+}
+
 TimedAutomataSystem::TimedAutomataSystem()
 {
-    setDeclarationBlock(&global);
     global.frame = frame_t::createFrame();
     global.frame.addSymbol("bool", type_t::createTypeName(type_t::BOOL));
     global.frame.addSymbol("int", type_t::createTypeName(type_t::INT));
     global.frame.addSymbol("chan", type_t::createTypeName(type_t::CHANNEL));
     global.frame.addSymbol("clock", type_t::createTypeName(type_t::CLOCK));
-    addVariable(type_t::CLOCK, "t(0)", expression_t());
+#ifdef ENABLE_PRICD
+    global.frame.addSymbol("cost", type_t::COST);
+#endif
+    global.frame.addSymbol("void", type_t::createTypeName(type_t::VOID_TYPE));
+    addVariable(&global, type_t::CLOCK, "t(0)", expression_t());
 
 #ifdef ENABLE_PRIORITY
     /* Initially false: set by priority declarations. */
@@ -98,7 +140,7 @@ const set<symbol_t> &TimedAutomataSystem::getConstants() const
  *  new template is set to be the current template. The method does
  *  not check for duplicate declarations.
  */
-template_t &TimedAutomataSystem::addTemplate(const char *name, frame_t params)
+template_t &TimedAutomataSystem::addTemplate(string name, frame_t params)
 {
     int nr = templates.empty() ? 0 : templates.back().nr + 1;
     type_t type = type_t::createTemplate(params);
@@ -109,41 +151,11 @@ template_t &TimedAutomataSystem::addTemplate(const char *name, frame_t params)
     templ.frame = frame_t::createFrame(global.frame);
     templ.frame.add(params);
     templ.nr = nr;
-    setDeclarationBlock(&templ);
     return templ;
 }
 
-state_t &TimedAutomataSystem::addLocation(const char *name, expression_t inv)
-{
-    bool duplicate = current->frame.getIndexOf(name) != -1;
-    
-    current->states.push_back(state_t());
-    state_t &state = current->states.back();
-    state.uid = current->frame.addSymbol(name, type_t::LOCATION, &state);
-    state.locNr = current->states.size() - 1;
-    state.invariant = inv;
-
-    if (duplicate) 
-    {
-	throw TypeException("Duplicate definition of %s", name);
-    }
-
-    return state;
-}
-
-transition_t &TimedAutomataSystem::addTransition(symbol_t src, symbol_t dst)
-{
-    list<transition_t> &trans = current->transitions;
-    int32_t nr = trans.empty() ? 0 : trans.back().nr + 1;
-    trans.push_back(transition_t());
-    trans.back().src = static_cast<state_t*>(src.getData());
-    trans.back().dst = static_cast<state_t*>(dst.getData());
-    trans.back().nr = nr;
-    return trans.back();
-}
-
 instance_t &TimedAutomataSystem::addInstance(
-    const char *name, const template_t *templ)
+    string name, const template_t *templ)
 {
     instances.push_back(instance_t());
     instance_t *instance = &instances.back();
@@ -171,7 +183,7 @@ process_t &TimedAutomataSystem::addProcess(symbol_t uid)
 	if (type.getParameters().getSize() > 0) 
 	{
 	    throw TypeException("Invalid use of parameterised template: %s", 
-				uid.getName());
+				uid.getName().c_str());
 	}
 
 	processes.push_back(process_t());
@@ -180,10 +192,10 @@ process_t &TimedAutomataSystem::addProcess(symbol_t uid)
     } 
     else 
     {
-	throw TypeException("Not a template: %s", uid.getName());
+	throw TypeException("Not a template: %s", uid.getName().c_str());
     }
 
-    uid = current->frame.addSymbol(
+    uid = global.frame.addSymbol(
 	uid.getName(), type_t::createProcess(process->templ->frame), process);
 
     process->nr = nr;
@@ -192,26 +204,13 @@ process_t &TimedAutomataSystem::addProcess(symbol_t uid)
     return *process;
 }
 
-void TimedAutomataSystem::setDeclarationBlock(declarations_t *value)
-{
-    current = value;
-}
-
 // Add a regular variable
 variable_t *TimedAutomataSystem::addVariable(
-    type_t type, const char *name, expression_t initial)
+    declarations_t *context, type_t type, string name, expression_t initial)
 {
-    bool duplicate = current->frame.getIndexOf(name) != -1;
     variable_t *var;
-
-    // Add variable
-    current->variables.push_back(variable_t());
-    var = &current->variables.back();
+    var = addVariable(context->variables, context->frame, type, name);
     var->expr = initial;
-    var->global = (current == &global);
-
-    // Add symbol
-    var->uid = current->frame.addSymbol(name, type, var);
 
     if (type.hasPrefix(prefix::CONSTANT)) 
     {
@@ -219,23 +218,49 @@ variable_t *TimedAutomataSystem::addVariable(
 	constantValuation[var->uid] = initial;
     }
 
+    return var;
+}
+
+variable_t *TimedAutomataSystem::addVariableToFunction(
+    function_t *function, frame_t frame, type_t type, string name,
+    expression_t initial)
+{
+    variable_t *var;
+    var = addVariable(function->variables, frame, type, name);
+    var->expr = initial;
+    return var;
+}
+
+// Add a regular variable
+variable_t *TimedAutomataSystem::addVariable(
+    list<variable_t> &variables, frame_t frame, type_t type, string name)
+{
+    bool duplicate = frame.getIndexOf(name) != -1;
+    variable_t *var;
+
+    // Add variable
+    variables.push_back(variable_t());
+    var = &variables.back();
+
+    // Add symbol
+    var->uid = frame.addSymbol(name, type, var);
+
     if (duplicate)
     {
-	throw TypeException("Duplicate definition of identifier %s", name);
+	throw TypeException("Duplicate definition of identifier %s", 
+			    name.c_str());
     }
 
     return var;
 }
 
-// Add a function 
-bool TimedAutomataSystem::addFunction(type_t type, const char *name, function_t *&fun)
-{	
-    bool duplicate = current->frame.getIndexOf(name) != -1;
-    current->functions.push_back(function_t());
-    fun = &current->functions.back();
-    fun->global = (current == &global);
-    fun->uid = current->frame.addSymbol(name, type, fun); // Add symbol
-    return !duplicate;
+void TimedAutomataSystem::addProgressMeasure(
+    declarations_t *context, expression_t guard, expression_t measure)
+{
+    progress_t p;
+    p.guard = guard;
+    p.measure = measure;
+    context->progress.push_back(p);
 }
 
 void TimedAutomataSystem::accept(SystemVisitor &visitor)
@@ -260,8 +285,8 @@ void TimedAutomataSystem::accept(SystemVisitor &visitor)
 		 other_mem_fun(&visitor, &SystemVisitor::visitFunction));
 	for_each(i->states.begin(), i->states.end(),
 		 other_mem_fun(&visitor, &SystemVisitor::visitState));
-	for_each(i->transitions.begin(), i->transitions.end(),
-		 other_mem_fun(&visitor, &SystemVisitor::visitTransition));
+	for_each(i->edges.begin(), i->edges.end(),
+		 other_mem_fun(&visitor, &SystemVisitor::visitEdge));
 	visitor.visitTemplateAfter(*i);
     }
 
@@ -281,6 +306,26 @@ map<symbol_t, expression_t> &TimedAutomataSystem::getConstantValuation()
 const map<symbol_t, expression_t> &TimedAutomataSystem::getConstantValuation() const
 {
     return constantValuation;
+}
+
+void TimedAutomataSystem::setBeforeUpdate(expression_t e)
+{
+    beforeUpdate = e;
+}
+
+expression_t TimedAutomataSystem::getBeforeUpdate()
+{
+    return beforeUpdate;
+}
+
+void TimedAutomataSystem::setAfterUpdate(expression_t e)
+{
+    afterUpdate = e;
+}
+
+expression_t TimedAutomataSystem::getAfterUpdate()
+{
+    return afterUpdate;
 }
 
 #ifdef ENABLE_PRIORITY
@@ -342,42 +387,61 @@ void ContextVisitor::setContextDeclaration()
 {
     if (currentTemplate == -1) 
     {
-	strncpy(path, "/nta/declaration", 256);
+	path = "/nta/declaration";
     }
     else 
     {
-	snprintf(path, 256, "/nta/template[%d]/declaration", currentTemplate + 1);
+	std::ostringstream str;
+	str << "/nta/template[" << currentTemplate + 1 << "]/declaration";
+	path = str.str();
     }
 }
 
 void ContextVisitor::setContextParameters()
 {
-    snprintf(path, 256, "/nta/template[%d]/parameter", currentTemplate + 1);
+    std::ostringstream str;
+    str << "/nta/template[" << currentTemplate + 1 << "]/parameter";
+    path = str.str();
 }
 
 void ContextVisitor::setContextInvariant(state_t &state)
 {
-    snprintf(path, 256, "/nta/template[%d]/location[%d]/label[@kind=\"invariant\"]", currentTemplate + 1, state.locNr + 1);
+    std::ostringstream str;
+    str << "/nta/template[" << currentTemplate + 1 << "]/location["
+	<< state.locNr + 1 << "]/label[@kind=\"invariant\"]";
+    path = str.str();
 }
 
-void ContextVisitor::setContextGuard(transition_t &transition)
+void ContextVisitor::setContextGuard(edge_t &edge)
 {
-    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"guard\"]", currentTemplate + 1, transition.nr + 1);
+    std::ostringstream str;
+    str << "/nta/template[" << currentTemplate + 1
+	<< "]/transition[" << edge.nr + 1
+	<< "]/label[@kind=\"guard\"]";
+    path = str.str();
 }
 
-void ContextVisitor::setContextSync(transition_t &transition)
+void ContextVisitor::setContextSync(edge_t &edge)
 {
-    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"synchronisation\"]", currentTemplate + 1, transition.nr + 1);
+    std::ostringstream str;
+    str << "/nta/template[" << currentTemplate + 1
+	<< "]/transition[" << edge.nr + 1
+	<< "]/label[@kind=\"synchronisation\"]";
+    path = str.str();
 }
 
-void ContextVisitor::setContextAssignment(transition_t &transition)
+void ContextVisitor::setContextAssignment(edge_t &edge)
 {
-    snprintf(path, 256, "/nta/template[%d]/transition[%d]/label[@kind=\"assignment\"]", currentTemplate + 1, transition.nr + 1);
+    std::ostringstream str;
+    str << "/nta/template[" << currentTemplate + 1
+	<< "]/transition[" << edge.nr + 1
+	<< "]/label[@kind=\"assignment\"]";
+    path = str.str();
 }
 
 void ContextVisitor::setContextInstantiation()
 {
-    strncpy(path, "/nta/instantiation", 256);
+    path = "/nta/instantiation";
 }
 
 bool ContextVisitor::visitTemplateBefore(template_t &templ)
@@ -391,27 +455,27 @@ void ContextVisitor::visitTemplateAfter(template_t &templ)
     currentTemplate = -1;
 }
 
-char *ContextVisitor::get() const
-{
-    return strcpy(new char[strlen(path) + 1], path);
-}
-
-void ContextVisitor::handleWarning(expression_t expr, const char *msg)
+void ContextVisitor::handleWarning(expression_t expr, string msg)
 {
     if (errorHandler) 
     {
 	errorHandler->setCurrentPath(this);	
 	errorHandler->setCurrentPosition(expr.getPosition());
-	errorHandler->handleWarning(msg);
+	errorHandler->handleWarning(msg.c_str());
     }
 }
 
-void ContextVisitor::handleError(expression_t expr, const char *msg)
+void ContextVisitor::handleError(expression_t expr, string msg)
 {
     if (errorHandler) 
     {
 	errorHandler->setCurrentPath(this);	
 	errorHandler->setCurrentPosition(expr.getPosition());
-	errorHandler->handleError(msg);
+	errorHandler->handleError(msg.c_str());
     }
+}
+
+string ContextVisitor::get() const
+{
+    return path;
 }

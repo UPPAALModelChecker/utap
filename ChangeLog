@@ -1,3 +1,17 @@
+2005-02-17  Gerd Behrmann <behrmann@cs.aau.dk>
+	* Added support for constant reference parameters.
+	* Bugfix in xpath generation.
+	* Added rate expressions.
+	* Moved PrettyPrinter class into the library.
+	* Added meta variables and global assignment parsing.
+	* Switch from ANSI C string to ANSI C++ strings.
+	* Changed new syntax to allow both = and := for assignment.
+	* Parsing of syntax for sweepline method.
+	* Improved range computation for modulo expressions.
+	* Added iterators to the modelling language.
+	* Added type_t::toString().
+	* Disabled a number of unimplemented keywords.
+	
 2004-06-16  Gerd Behrmann  <behrmann@cs.auc.dk>
 	* Split SystemBuilder into AbstractBuilder, ExpressionBuilder and 
 	  SystemBuilder.

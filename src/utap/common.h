@@ -37,7 +37,7 @@ namespace UTAP
     {
     public:
 	virtual ~XPath() {};
-	virtual char *get() const = 0;
+	virtual std::string get() const = 0;
     };
     
     struct position_t 
@@ -56,33 +56,20 @@ namespace UTAP
 	{
 	    int32_t fline, fcolumn, lline, lcolumn;
 
-	    char* xpath;
-	    char* msg;
+	    std::string xpath;
+	    std::string msg;
 
 	    error_t(int32_t fl, int32_t fc, int32_t ll, int32_t lc)
-		: fline(fl), fcolumn(fc), lline(ll), lcolumn(lc), 
-		  xpath(NULL), msg(NULL){}
+		: fline(fl), fcolumn(fc), lline(ll), lcolumn(lc)
+		  {}
 
 	    error_t(const error_t &err)
 		: fline(err.fline), fcolumn(err.fcolumn),
 		  lline(err.lline), lcolumn(err.lcolumn),
-		  xpath(copy(err.xpath)), msg(copy(err.msg)) {}
+		  xpath(err.xpath), msg(err.msg) {}
 
-	    ~error_t() { delete [] xpath; delete[] msg; }
-
-	    char *copy(const char *s) {
-		return (s ? strcpy(new char[strlen(s) + 1], s) : NULL);
-	    }
-	    
-	    void setPath(char *path) {
-		delete[] xpath;
-		xpath = path;
-	    };
-
-	    void setMessage(const char *value) {
-		delete[] msg;
-		msg = copy(value);
-	    }
+	    void setPath(std::string path) { xpath = path; }
+	    void setMessage(std::string value) { msg = value; }
 	};
     private:
 	std::vector<error_t> errors;
@@ -144,6 +131,7 @@ namespace UTAP
 	    OR = 11,
 	    MIN = 12,
 	    MAX = 13,
+	    RATE = 14,
 
 	    /********************************************************
 	     * Relational operators

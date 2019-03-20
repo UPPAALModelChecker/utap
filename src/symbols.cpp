@@ -34,6 +34,7 @@ using std::pair;
 using std::make_pair;
 using std::max;
 using std::min;
+using std::string;
 
 // The base types
 
@@ -125,7 +126,7 @@ struct symbol_t::symbol_data
     void *frame;	// Uncounted pointer to containing frame
     type_t type;	// The type of the symbol
     void *user;		// User data
-    char *name;		// The name of the symbol
+    string name;	// The name of the symbol
 };
 
 symbol_t::symbol_t()
@@ -133,14 +134,14 @@ symbol_t::symbol_t()
     data = NULL;
 }
 
-symbol_t::symbol_t(void *frame, type_t &type, const char *name, void *user)
+symbol_t::symbol_t(void *frame, type_t &type, string name, void *user)
 {
     data = new symbol_data;
     data->count = 1;
     data->frame = frame;
     data->user = user;
     data->type = type;
-    data->name = (name ? strcpy(new char[strlen(name) + 1], name) : NULL);
+    data->name = name;
 }
 
 /* Copy constructor */
@@ -161,7 +162,6 @@ symbol_t::~symbol_t()
 	data->count--;
 	if (data->count == 0) 
 	{
-	    delete[] data->name;
 	    delete data;
 	}
     }
@@ -175,7 +175,6 @@ const symbol_t &symbol_t::operator = (const symbol_t &symbol)
 	data->count--;
 	if (data->count == 0) 
 	{
-	    delete[] data->name;
 	    delete data;
 	}
     }
@@ -233,7 +232,7 @@ const void *symbol_t::getData() const
 }
 
 /* Returns the name (identifier) of this symbol */
-const char *symbol_t::getName() const
+string symbol_t::getName() const
 {
     return data->name;
 }
@@ -246,21 +245,13 @@ void symbol_t::setData(void *value)
 
 //////////////////////////////////////////////////////////////////////////
 
-struct compare_str 
-{
-    bool operator()(const char* x, const char* y) const 
-    {
-        return (strcmp(x,y)<0);
-    }
-};
-
 struct frame_t::frame_data
 {
     int32_t count;			// Reference count
     bool hasParent;			// True if there is a parent
     frame_data *parent;			// The parent frame data
     vector<symbol_t> symbols;		// The symbols in the frame
-    map<const char *, int32_t, compare_str> mapping; // Mapping from names to indices
+    map<string, int32_t> mapping;       // Mapping from names to indices
 };
 
 frame_t::frame_t()
@@ -355,11 +346,11 @@ const symbol_t frame_t::operator[](int32_t n) const
 }
 
 /* Adds a symbol of the given name and type to the frame */
-symbol_t frame_t::addSymbol(const char *name, type_t type, void *user)
+symbol_t frame_t::addSymbol(string name, type_t type, void *user)
 {
     symbol_t symbol(data, type, name, user);
     data->symbols.push_back(symbol);
-    if (name)
+    if (!name.empty())
 	data->mapping[symbol.getName()] =  data->symbols.size() - 1;
     return symbol;
 }
@@ -373,20 +364,16 @@ void frame_t::add(frame_t frame)
     for (uint32_t i = 0; i < frame.getSize(); i++) 
     {
 	data->symbols.push_back(frame[i]);
-	if (frame[i].getName())
+	if (!frame[i].getName().empty())
 	{
 	    data->mapping[frame[i].getName()] =  data->symbols.size() - 1;
 	}
     }
 }
 
-int32_t frame_t::getIndexOf(const char *name)
+int32_t frame_t::getIndexOf(string name)
 {
-    if (name == NULL)
-    {
-	return -1;
-    }
-    map<const char *, int32_t, compare_str>::const_iterator i = data->mapping.find(name);
+    map<string, int32_t>::const_iterator i = data->mapping.find(name);
     return (i == data->mapping.end() ? -1 : i->second);
 }
 
@@ -394,7 +381,7 @@ int32_t frame_t::getIndexOf(const char *name)
    Resolves the name in this frame or the parent frame and
    returns the corresponding symbol. 
 */
-bool frame_t::resolve(const char *name, symbol_t &symbol)
+bool frame_t::resolve(string name, symbol_t &symbol)
 {
     int32_t idx = getIndexOf(name);
     if (idx == -1)

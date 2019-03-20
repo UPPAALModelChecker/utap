@@ -52,11 +52,6 @@ public:
     const char *what() const throw() { return msg; }
 };
 
-void TypeChecker::visitSystemBefore(TimedAutomataSystem *value)
-{
-    assert(value == system);
-}
-
 void PersistentVariables::visitVariable(variable_t &variable)
 {
     if (!variable.uid.getType().hasPrefix(prefix::CONSTANT))
@@ -87,20 +82,24 @@ TypeChecker::TypeChecker(TimedAutomataSystem *system, ErrorHandler *handler)
     : ContextVisitor(handler), system(system)
 {
     system->accept(persistentVariables);
+
+    annotate(system->getBeforeUpdate());
+    annotate(system->getAfterUpdate());
 }
 
 /** Annotate the expression and check that it is a constant integer. */
 void TypeChecker::annotateAndExpectConstantInteger(expression_t expr)
 {
-    annotate(expr);
-
-    if (!isInteger(expr))
+    if (annotate(expr))
     {
-	handleError(expr, "Integer expression expected");
-    }
-    else if (expr.dependsOn(persistentVariables.get()))
-    {
-	handleError(expr, "Constant expression expected");
+	if (!isInteger(expr))
+	{
+	    handleError(expr, "Integer expression expected");
+	}
+	else if (expr.dependsOn(persistentVariables.get()))
+	{
+	    handleError(expr, "Constant expression expected");
+	}
     }
 }
 
@@ -122,7 +121,7 @@ void TypeChecker::checkType(type_t type, bool inRecord)
 	    return;
 	}
 
-	/* Make sure the bounds are a constant integers.
+	/* Make sure the bounds are constant integers.
 	 */
 	annotateAndExpectConstantInteger(lower);
 	annotateAndExpectConstantInteger(upper);
@@ -223,83 +222,92 @@ void TypeChecker::visitState(state_t &state)
     if (!state.invariant.empty()) 
     {
 	setContextInvariant(state);
-	annotate(state.invariant);
-    
-	if (!isInvariant(state.invariant))
-	{
-	    handleError(state.invariant, "Invalid invariant expression");
-	}
-	if (!isSideEffectFree(state.invariant))
-	{
-	    handleError(state.invariant, "Invariant must be side effect free");
+	if (annotate(state.invariant))
+	{    
+	    if (!isInvariant(state.invariant))
+	    {
+		handleError(state.invariant, "Invalid invariant expression");
+	    }
+	    if (!isSideEffectFree(state.invariant))
+	    {
+		handleError(state.invariant, "Invariant must be side effect free");
+	    }
 	}
     }
 }
 
-void TypeChecker::visitTransition(transition_t &transition)
+void TypeChecker::visitEdge(edge_t &edge)
 {
     // guard
-    setContextGuard(transition);
-    annotate(transition.guard);
-    
-    if (!isGuard(transition.guard))
-    {
-	handleError(transition.guard, "Invalid guard");
-    }
-    else if (!isSideEffectFree(transition.guard))
-    {
-	handleError(transition.guard, "Guard must be side effect free");
+    setContextGuard(edge);
+    if (annotate(edge.guard))
+    {    
+	if (!isGuard(edge.guard))
+	{
+	    handleError(edge.guard, "Invalid guard");
+	}
+	else if (!isSideEffectFree(edge.guard))
+	{
+	    handleError(edge.guard, "Guard must be side effect free");
+	}
     }
 
     // sync
-    if (!transition.sync.empty()) 
+    if (!edge.sync.empty()) 
     {
-	setContextSync(transition);
-	annotate(transition.sync);    
-
-	if (!isSideEffectFree(transition.sync))
+	setContextSync(edge);
+	if (annotate(edge.sync))
 	{
-	    handleError(transition.sync,
-			"Synchronisation must be side effect free");
-	}
-
-	type_t channel = transition.sync.get(0).getType();
-	assert(channel.getBase() == type_t::CHANNEL);
-
-	bool hasClockGuard =
-	    !transition.guard.empty() && !isInteger(transition.guard);
-	bool isUrgent = channel.hasPrefix(prefix::URGENT);
-	bool receivesBroadcast = channel.hasPrefix(prefix::BROADCAST) 
-	    && transition.sync.getSync() == SYNC_QUE;
-	
-	if (isUrgent && hasClockGuard) 
-	{
-	    handleError(transition.sync,
-			"Clock guards are not allowed on urgent transitions.");
-	}
-	
-	if (receivesBroadcast && hasClockGuard) 
-	{
-	    handleError(transition.sync,
-			"Clock guards are not allowed on broadcast receivers.");
+	    type_t channel = edge.sync.get(0).getType();
+	    if (channel.getBase() != type_t::CHANNEL)
+	    {
+		handleError(edge.sync.get(0), "Channel expected");
+	    } 
+	    else if (!isSideEffectFree(edge.sync))
+	    {
+		handleError(edge.sync,
+			    "Synchronisation must be side effect free");
+	    }
+	    else
+	    {
+		bool hasClockGuard =
+		    !edge.guard.empty() && !isInteger(edge.guard);
+		bool isUrgent = channel.hasPrefix(prefix::URGENT);
+		bool receivesBroadcast = channel.hasPrefix(prefix::BROADCAST) 
+		    && edge.sync.getSync() == SYNC_QUE;
+		
+		if (isUrgent && hasClockGuard) 
+		{
+		    handleError(edge.sync,
+				"Clock guards are not allowed on urgent edges.");
+		} 
+		else if (receivesBroadcast && hasClockGuard) 
+		{
+		    handleError(edge.sync,
+				"Clock guards are not allowed on broadcast receivers.");
+		}
+	    }
 	}
     }
     
     // assignment
-    setContextAssignment(transition);
-    annotate(transition.assign);    
-    if (!isInteger(transition.assign)
-	&& !isClock(transition.assign)
-	&& !isRecord(transition.assign))
+    setContextAssignment(edge);
+    if (annotate(edge.assign))
     {
-	handleError(transition.assign, "Invalid assignment expression");
-    }
-
-    if (!(transition.assign.getKind() == CONSTANT &&
-	  transition.assign.getValue() == 1)
-	&& isSideEffectFree(transition.assign))
-    {
- 	handleWarning(transition.assign, "Expression does not have any effect");
+	if (!isInteger(edge.assign)
+	    && !isClock(edge.assign)
+	    && !isRecord(edge.assign)
+	    && !isVoid(edge.assign))
+	{
+	    handleError(edge.assign, "Invalid assignment expression");
+	}
+	
+	if (!(edge.assign.getKind() == CONSTANT &&
+	      edge.assign.getValue() == 1)
+	    && isSideEffectFree(edge.assign))
+	{
+	    handleWarning(edge.assign, "Expression does not have any effect");
+	}
     }
 }
 
@@ -316,7 +324,10 @@ void TypeChecker::visitInstance(instance_t &instance)
 	type_t parameter = i->first.getType();
 	expression_t argument = i->second;
 	
-	annotate(argument);
+	if (!annotate(argument))
+	{
+	    continue;
+	}
 
 	// For template instantiation, the argument must be side effect free
 	if (!isSideEffectFree(argument)) 
@@ -348,23 +359,26 @@ void TypeChecker::visitInstance(instance_t &instance)
 void TypeChecker::visitProperty(expression_t expr)
 {
     setContextNone();
-    annotate(expr);
-    if (!isSideEffectFree(expr)) 
+    if (annotate(expr))
     {
-	handleError(expr, "Property must be side effect free");
-    }
-
-    if ((expr.getKind() == LEADSTO &&
-	 !(isConstraint(expr[0]) && isConstraint(expr[1])))
-	|| (expr.getKind() != LEADSTO && !isConstraint(expr)))
-    {
-	handleError(expr, "Property must be a constraint");
+	if (!isSideEffectFree(expr)) 
+	{
+	    handleError(expr, "Property must be side effect free");
+	}
+	
+	if ((expr.getKind() == LEADSTO &&
+	     !(isConstraint(expr[0]) && isConstraint(expr[1])))
+	    || (expr.getKind() != LEADSTO && !isConstraint(expr)))
+	{
+	    handleError(expr, "Property must be a constraint");
+	}
     }
 }
 
 void TypeChecker::checkAssignmentExpressionInFunction(expression_t expr)
 {
-    if (!isInteger(expr) && !isClock(expr) && !isRecord(expr)) {
+    if (!isInteger(expr) && !isClock(expr) && !isRecord(expr) && !isVoid(expr))
+    {
 	handleError(expr, "Invalid expression in function");
     }
 
@@ -395,41 +409,76 @@ int32_t TypeChecker::visitEmptyStatement(EmptyStatement *stat)
 
 int32_t TypeChecker::visitExprStatement(ExprStatement *stat)
 {
-    annotate(stat->expr);
-    checkAssignmentExpressionInFunction(stat->expr);
+    if (annotate(stat->expr))
+    {
+	checkAssignmentExpressionInFunction(stat->expr);
+    }
     return 0;
 }
 
 int32_t TypeChecker::visitForStatement(ForStatement *stat)
 {
-    annotate(stat->init);
-    annotate(stat->cond);
-    annotate(stat->step);
+    if (annotate(stat->init))
+    {
+	checkAssignmentExpressionInFunction(stat->init);
+    }
 
-    checkAssignmentExpressionInFunction(stat->init);
-    checkConditionalExpressionInFunction(stat->cond);
-    checkAssignmentExpressionInFunction(stat->step);
+    if (annotate(stat->cond))
+    {
+	checkConditionalExpressionInFunction(stat->cond);
+    }
+
+    if (annotate(stat->step))
+    {
+	checkAssignmentExpressionInFunction(stat->step);
+    }
 
     return stat->stat->accept(this);
 }
 
 int32_t TypeChecker::visitWhileStatement(WhileStatement *stat)
 {
-    annotate(stat->cond);
-    checkConditionalExpressionInFunction(stat->cond);
+    if (annotate(stat->cond))
+    {
+	checkConditionalExpressionInFunction(stat->cond);
+    }
     return stat->stat->accept(this);
 }
 
 int32_t TypeChecker::visitDoWhileStatement(DoWhileStatement *stat)
 {
-    annotate(stat->cond);
-    checkConditionalExpressionInFunction(stat->cond);
+    if (annotate(stat->cond))
+    {
+	checkConditionalExpressionInFunction(stat->cond);
+    }
     return stat->stat->accept(this);
 }
 
 int32_t TypeChecker::visitBlockStatement(BlockStatement *stat)
 {
     BlockStatement::iterator i;
+
+    /* Check type and initialiser of local variables (parameters are
+     * also considered local variables).
+     */
+    frame_t frame = stat->getFrame();
+    for (uint32_t i = 0; i < frame.getSize(); i++)
+    {
+	symbol_t symbol = frame[i];
+	checkType(symbol.getType());
+	if (symbol.getData())
+	{
+	    variable_t *var = static_cast<variable_t*>(symbol.getData());
+	    if (!var->expr.empty())
+	    {
+		annotate(var->expr);
+		var->expr = checkInitialiser(symbol.getType(), var->expr);
+	    }
+	}	
+    }    
+
+    /* Check statements.
+     */
     for (i = stat->begin(); i != stat->end(); ++i) 
     {
 	(*i)->accept(this);
@@ -458,8 +507,10 @@ int32_t TypeChecker::visitDefaultStatement(DefaultStatement *stat)
 
 int32_t TypeChecker::visitIfStatement(IfStatement *stat)
 {
-    annotate(stat->cond);
-    checkConditionalExpressionInFunction(stat->cond);
+    if (annotate(stat->cond))
+    {
+	checkConditionalExpressionInFunction(stat->cond);
+    }
     stat->trueCase->accept(this);
     if (stat->falseCase) 
     {
@@ -485,23 +536,28 @@ int32_t TypeChecker::visitReturnStatement(ReturnStatement *stat)
     return 0;
 }
 
-bool TypeChecker::isInteger(expression_t expr) const
+bool TypeChecker::isVoid(expression_t expr) 
+{
+    return expr.getType().getBase() == type_t::VOID_TYPE;
+}
+
+bool TypeChecker::isInteger(expression_t expr) 
 {
     return expr.getType().getBase() == type_t::INT
 	|| expr.getType().getBase() == type_t::BOOL;
 }
 
-bool TypeChecker::isClock(expression_t expr) const
+bool TypeChecker::isClock(expression_t expr) 
 {
     return expr.getType().getBase() == type_t::CLOCK;
 }
 
-bool TypeChecker::isRecord(expression_t expr) const
+bool TypeChecker::isRecord(expression_t expr)
 {
     return expr.getType().getBase() == type_t::RECORD;
 }
 
-bool TypeChecker::isDiff(expression_t expr) const
+bool TypeChecker::isDiff(expression_t expr) 
 {
     return expr.getType().getBase() == type_t::DIFF;
 }
@@ -510,7 +566,7 @@ bool TypeChecker::isDiff(expression_t expr) const
    Returns true iff type is a valid invariant. A valid invariant is
    either an invariant expression or an integer expression.
 */
-bool TypeChecker::isInvariant(expression_t expr) const
+bool TypeChecker::isInvariant(expression_t expr) 
 {
     return expr.empty()
 	|| (expr.getType().getBase() == type_t::INVARIANT)
@@ -521,7 +577,7 @@ bool TypeChecker::isInvariant(expression_t expr) const
    Returns true iff type is a valid guard. A valid guard is either a
    valid invariant or a guard expression.
 */
-bool TypeChecker::isGuard(expression_t expr) const
+bool TypeChecker::isGuard(expression_t expr)
 {
     return (expr.getType().getBase() == type_t::GUARD) || isInvariant(expr);
 }
@@ -530,7 +586,7 @@ bool TypeChecker::isGuard(expression_t expr) const
    Returns true iff type is a valid constraint. A valid constraint is
    either a valid guard or a constraint expression.
 */
-bool TypeChecker::isConstraint(expression_t expr) const
+bool TypeChecker::isConstraint(expression_t expr) 
 {
     return (expr.getType().getBase() == type_t::CONSTRAINT) || isGuard(expr);
 }
@@ -824,7 +880,7 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
 	vector<expression_t> result(fields.getSize(), expression_t());
         for (uint32_t i = 0; i < fields.getSize(); i++) 
 	{
-            if (fields[i].getName() != NULL) 
+            if (!fields[i].getName().empty()) 
 	    {
 		throw InitialiserException(
 		    init[i], "Unknown field specified in initialiser");
@@ -903,7 +959,7 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
 	int32_t current = 0;
 	for (uint32_t i = 0; i < initialisers.getSize(); i++, current++) 
 	{
-	    if (initialisers[i].getName() != NULL) 
+	    if (!initialisers[i].getName().empty())
 	    {
 		current = fields.getIndexOf(initialisers[i].getName());
 		if (current == -1) 
@@ -949,9 +1005,8 @@ void TypeChecker::checkInitialiser(variable_t &var)
 {
     try 
     {
-	if (!var.expr.empty()) 
+	if (!var.expr.empty() && annotate(var.expr))
 	{
-	    annotate(var.expr);
 	    if (var.expr.dependsOn(persistentVariables.get())) 
 	    {
 		handleError(var.expr, "Constant expression expected");
@@ -1206,20 +1261,37 @@ void TypeChecker::checkFunctionCallArguments(expression_t expr)
     operators are assignment compatible. Errors are reported by
     calling handleError(). This function does not check/compute the
     range of integer expressions and thus does not produce
-    out-of-range errors or warnings.
+    out-of-range errors or warnings. Returns true if no type errors
+    were found, false otherwise.
 */
-void TypeChecker::annotate(expression_t expr)
+bool TypeChecker::annotate(expression_t expr)
 {
+    /* Do not annotate empty expressions.
+     */
     if (expr.empty())
     {
-	return;
+	return true;
     }
 
+    /* Annotate sub-expressions. 
+     */
+    bool ok = true;
     for (uint32_t i = 0; i < expr.getSize(); i++) 
     {
-	annotate(expr[i]);
+	ok &= annotate(expr[i]);
+    }
+    
+    /* Do not annotate the expression if any of the sub-expressions
+     * contained errors.
+     */
+    if (!ok)
+    {
+	return false;
     }
 
+    /* Annotate the expression. This depends on the kind of expression
+     * we are dealing with.
+     */
     type_t type, arg1, arg2, arg3;
     switch (expr.getKind()) 
     {
@@ -1230,6 +1302,7 @@ void TypeChecker::annotate(expression_t expr)
 	    type = type_t::INT;
 	}
 	else if (expr[0].getType().getBase() == type_t::RECORD
+		 && expr[1].getType().getBase() == type_t::RECORD
 		 && expr[0].getType().getRecordFields() 
 		 == expr[1].getType().getRecordFields())
 	{
@@ -1241,7 +1314,7 @@ void TypeChecker::annotate(expression_t expr)
 	    if (type == type_t()) 
 	    {
 		handleError(expr, "Invalid operands to binary operator");
-		type = type_t::CONSTRAINT;
+		return false;
 	    }
 	}
 	break;
@@ -1274,7 +1347,7 @@ void TypeChecker::annotate(expression_t expr)
 	    if (type == type_t()) 
 	    {
 		handleError(expr, "Invalid operands to binary operator");
-		type = type_t::CONSTRAINT;
+		return false;
 	    }
 	}
 	break;
@@ -1291,7 +1364,7 @@ void TypeChecker::annotate(expression_t expr)
 	else 
 	{
 	    handleError(expr, "Invalid operation for type");
-	    type = type_t::INT;
+	    return false;
 	}
 	break;
 	
@@ -1299,18 +1372,25 @@ void TypeChecker::annotate(expression_t expr)
 	if (!isInteger(expr[0])) 
 	{
 	    handleError(expr, "Invalid operation for type");
+	    return false;
 	}
 	type = type_t::INT;
 	break;
+
+    case RATE:
+	handleError(expr, "Rate expressions are not supported");
+	return false;
 
     case ASSIGN:
 	if (!areAssignmentCompatible(expr[0].getType(), expr[1].getType())) 
 	{
 	    handleError(expr, "Incompatible types");
+	    return false;
 	}
 	else if (!isLHSValue(expr[0])) 
 	{
 	    handleError(expr[0], "Left hand side value expected");
+	    return false;
 	}
 	type = expr[0].getType();
 	break;
@@ -1328,10 +1408,12 @@ void TypeChecker::annotate(expression_t expr)
 	if (!isInteger(expr[0]) || !isInteger(expr[1])) 
 	{
 	    handleError(expr, "Non-integer types must use regular assignment operator.");
+	    return false;
 	}
 	else if (!isLHSValue(expr[0])) 
 	{
 	    handleError(expr[0], "Left hand side value expected");	    
+	    return false;
 	}
 	type = expr[0].getType();
 	break;
@@ -1343,10 +1425,12 @@ void TypeChecker::annotate(expression_t expr)
 	if (expr[0].getType().getBase() != type_t::INT) 
 	{
 	    handleError(expr, "Argument must be an integer value");
+	    return false;
 	}
 	else if (!isLHSValue(expr[0])) 
 	{
 	    handleError(expr[0], "Left hand side value expected");	    
+	    return false;
 	}
 	type = type_t::INT;
 	break;
@@ -1355,19 +1439,22 @@ void TypeChecker::annotate(expression_t expr)
 	if (!isInteger(expr[0])) 
 	{
 	    handleError(expr, "First argument of inline if must be an integer");
+	    return false;
 	}
 	if (!areInlineIfCompatible(expr[1].getType(), expr[2].getType())) 
 	{
 	    handleError(expr, "Incompatible arguments to inline if");
+	    return false;
 	}
 	type = expr[1].getType();
 	break;
       
     case COMMA:
-	if (!isInteger(expr[0]) && !isClock(expr[0]) && !isRecord(expr[0])
-	    || !isInteger(expr[1]) && !isClock(expr[1]) && !isRecord(expr[1]))
+	if (!isInteger(expr[0]) && !isClock(expr[0]) && !isRecord(expr[0]) && !isVoid(expr[0])
+	    || !isInteger(expr[1]) && !isClock(expr[1]) && !isRecord(expr[1]) && !isVoid(expr[1]))
 	{
 	    handleError(expr, "Arguments must be of integer, clock or record type");
+	    return false;
 	}
 	type = expr[1].getType();
 	break;
@@ -1376,22 +1463,19 @@ void TypeChecker::annotate(expression_t expr)
 	if (expr[0].getType().getBase() != type_t::FUNCTION)
 	{
 	    handleError(expr[0], "A function name was expected here");
+	    return false;
 	}
-	else
-	{
-	    checkFunctionCallArguments(expr);
-	}
-	return;
+	/* FIXME: This might produce errors! */
+	checkFunctionCallArguments(expr);
+	return true;
 
     case ARRAY:
-    {
-	bool error = false;
 	/* The index must be an integer.
 	 */
 	if (!isInteger(expr[1]))
 	{
 	    handleError(expr[1], "Integer expected here");
-	    error = true;
+	    ok = false;
 	} 
 
 	/* The left side must be an array.
@@ -1399,46 +1483,50 @@ void TypeChecker::annotate(expression_t expr)
 	if (expr[0].getType().getBase() != type_t::ARRAY)
 	{
 	    handleError(expr[0], "Array expected here");
-	    return;
+	    return false;
 	}
 	else
 	{
 	    type = expr[0].getType().getSub();
 	}
 
-	/* If the above was ok, then can check whether the index is
+	if (!ok)
+	{
+	    return false;
+	}
+
+	/* If the above was ok, then we can check whether the index is
 	 * within range.
 	 */
-	if (!error)
+	try 
 	{
-	    try 
+	    Interpreter interpreter(system->getConstantValuation());
+	    int index = interpreter.evaluate(expr[1]);
+	    if (index < 0)
 	    {
-		Interpreter interpreter(system->getConstantValuation());
-		int index = interpreter.evaluate(expr[1]);
-		if (index < 0)
-		{
-		    handleError(expr[1], "Array index out of range");
-		}
-		
-		int size = interpreter.evaluate(expr[0].getType().getArraySize());
-		if (index >= size && size > 0) 
-		{
-		    handleError(expr[1], "Array index out of range");
-		}
-	    } 
-	    catch (InterpreterException) 
-	    {
-		/* So either array size or index is not computable, i.e.
-		 * depends on template parameters. Ignore!
-		 */
+		handleError(expr[1], "Array index out of range");
+		return false;
 	    }
+	    
+	    int size = interpreter.evaluate(expr[0].getType().getArraySize());
+	    if (index >= size && size > 0) 
+	    {
+		handleError(expr[1], "Array index out of range");
+		return false;
+	    }
+	} 
+	catch (InterpreterException) 
+	{
+	    /* So either array size or index is not computable, i.e.
+	     * depends on template parameters. Ignore!
+	     */
 	}
 	break;
-    }
     default:
-	return;
+	return true;
     }
     expr.setType(type);
+    return true;
 }
 
 /** Returns true if the expression is side effect free. An expression
@@ -1573,8 +1661,11 @@ bool parseXTA(FILE *file, ErrorHandler *error, TimedAutomataSystem *system, bool
 {
     SystemBuilder builder(system);
     parseXTA(file, &builder, error, newxta);
-    TypeChecker checker(system, error);
-    system->accept(checker);
+    if (!error->hasErrors())
+    {
+	TypeChecker checker(system, error);
+	system->accept(checker);
+    }
     return !error->hasErrors();
 }
 
@@ -1582,8 +1673,11 @@ bool parseXTA(const char *buffer, ErrorHandler *error, TimedAutomataSystem *syst
 {
     SystemBuilder builder(system);
     parseXTA(buffer, &builder, error, newxta);
-    TypeChecker checker(system, error);
-    system->accept(checker);
+    if (!error->hasErrors())
+    {
+	TypeChecker checker(system, error);
+	system->accept(checker);
+    }
     return !error->hasErrors();
 }
 
@@ -1591,8 +1685,11 @@ bool parseXMLBuffer(const char *buffer, ErrorHandler *error, TimedAutomataSystem
 {
     SystemBuilder builder(system);
     parseXMLBuffer(buffer, &builder, error, newxta);
-    TypeChecker checker(system, error);
-    system->accept(checker);
+    if (!error->hasErrors())
+    {
+	TypeChecker checker(system, error);
+	system->accept(checker);
+    }
     return !error->hasErrors();
 }
 
@@ -1600,8 +1697,11 @@ bool parseXMLFile(const char *file, ErrorHandler *error, TimedAutomataSystem *sy
 {
     SystemBuilder builder(system);
     parseXMLFile(file, &builder, error, newxta);
-    TypeChecker checker(system, error);
-    system->accept(checker);
+    if (!error->hasErrors())
+    {
+	TypeChecker checker(system, error);
+	system->accept(checker);
+    }
     return !error->hasErrors();
 }
 
@@ -1611,7 +1711,10 @@ expression_t parseExpression(const char *str, ErrorHandler *error,
     ExpressionBuilder builder(system);
     parseXTA(str, &builder, error, newxtr, S_EXPRESSION);
     expression_t expr = builder.getExpressions()[0];
-    TypeChecker checker(system, error);
-    checker.checkExpression(expr);
+    if (!error->hasErrors())
+    {
+	TypeChecker checker(system, error);
+	checker.checkExpression(expr);
+    }
     return expr;
 }

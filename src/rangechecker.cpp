@@ -58,7 +58,8 @@ range_t RangeChecker::rangeOfBinary(
     range_t lrange = getRange(left);
     range_t rrange = getRange(right);
 
-    switch (op) {
+    switch (op) 
+    {
     case MINUS:
 	return range_t(lrange.lower - rrange.upper,
 		       lrange.upper - rrange.lower);
@@ -134,7 +135,9 @@ range_t RangeChecker::getDeclaredRange(expression_t expr) const
 {
     symbol_t symbol = expr.getSymbol();
     if (symbol == symbol_t())
+    {
 	throw UndefinedRangeException();
+    }
     return getDeclaredRange(symbol);
 }
 
@@ -149,14 +152,20 @@ range_t RangeChecker::getDeclaredRange(symbol_t symbol) const
 {
     map<symbol_t, expression_t>::const_iterator i = 
 	interpreter.getValuation().find(symbol);
-    if (i != interpreter.getValuation().end()) {
-	if (symbol.getType().hasPrefix(prefix::REFERENCE)) {
+    if (i != interpreter.getValuation().end()) 
+    {
+	if (symbol.getType().hasPrefix(prefix::REFERENCE)) 
+	{
 	    symbol_t symbol = i->second.getSymbol();
 	    if (symbol != symbol_t())
+	    {
 		return getDeclaredRange(symbol);
+	    }
 	    
 	    if (symbol.getType().hasPrefix(prefix::CONSTANT))
+	    {
 		return getRange(i->second);
+	    }
 
 	    throw UndefinedRangeException();
 	}
@@ -171,20 +180,29 @@ range_t RangeChecker::getDeclaredRange(symbol_t symbol) const
 range_t RangeChecker::getRange(type_t type) const
 {
     type_t base = type.getBase();
-    while (base == type_t::ARRAY) {
+    while (base == type_t::ARRAY) 
+    {
 	type = type.getSub();
  	base = type.getBase();
     }
     if (base == type_t::LOCATION)
+    {
  	return range_t(0, 1);
+    }
     if (base == type_t::BOOL)
+    {
  	return range_t(0, 1);
+    }
     if (base != type_t::INT) 
- 	throw UndefinedRangeException();
+    {
+ 	throw UndefinedRangeException();}
     
-    try {
+    try 
+    {
 	return interpreter.evaluate(type.getRange());
-    } catch (InterpreterException) {
+    }
+    catch (InterpreterException) 
+    {
 	throw UndefinedRangeException();
     }
 }
@@ -196,7 +214,8 @@ range_t RangeChecker::getRange(expression_t expr) const
 {
     range_t range;
 
-    switch (expr.getKind()) {
+    switch (expr.getKind()) 
+    {
     case PLUS:
     case MINUS:
     case MULT:
@@ -220,9 +239,12 @@ range_t RangeChecker::getRange(expression_t expr) const
     case GE:
     case GT:
     case NOT:
-	try {
+	try 
+	{
 	    return range_t(interpreter.evaluate(expr));
-	} catch (InterpreterException) {
+	}
+	catch (InterpreterException) 
+	{
 	    return range_t(0,1);
 	}
 
@@ -286,9 +308,12 @@ range_t RangeChecker::getRange(expression_t expr) const
 	return range_t(range.lower, range.upper - 1);
     
     case INLINEIF:
-	try {
+	try 
+	{
 	    return range_t(interpreter.evaluate(expr));
-	} catch (InterpreterException) {
+	}
+	catch (InterpreterException) 
+	{
 	    return getRange(expr[1]).join(getRange(expr[2]));
 	}
       
@@ -299,14 +324,18 @@ range_t RangeChecker::getRange(expression_t expr) const
 	return getRange(expr.getType());
       
     case ARRAY:
-	if (!expr.getSymbol().getType().hasPrefix(prefix::CONSTANT)) {
+	if (!expr.getSymbol().getType().hasPrefix(prefix::CONSTANT)) 
+	{
 	    return getDeclaredRange(expr);
 	}
 
 	// First try to evaluate the expression.
-	try {
+	try 
+	{
 	    return range_t(interpreter.evaluate(expr));
-	} catch (InterpreterException) {
+	}
+	catch (InterpreterException) 
+	{
 	    // In case evaluation fails, we must compute a range based
 	    // on the initialiser of the array. This is because
 	    // constant integers do not have a declared range.
@@ -321,9 +350,12 @@ range_t RangeChecker::getRange(expression_t expr) const
 	
     case IDENTIFIER:
     case DOT:
-	try {
+	try 
+	{
 	    return range_t(interpreter.evaluate(expr));
-	} catch (InterpreterException) {
+	}
+	catch (InterpreterException) 
+	{
 	    return getDeclaredRange(expr);
 	}
 
@@ -335,142 +367,3 @@ range_t RangeChecker::getRange(expression_t expr) const
     }
     
 }
-#if 0
-/** Check the integer ranges in the given expression. Any warnings and
-    errors regarding out of range array indices and assignments are
-    produced. NOTE: The worst case complexity of the current
-    implementation is very bad. If necessary, we need to reimplement
-    it using dynamic programming (i.e. return the range of
-    expression). However, I believe this will not be an issue.
-*/
-void RangeChecker::checkRange(expression_t expr) 
-{
-    for (uint32_t i = 0; i < expr.getSize(); i++) 
-	checkRange(expr[i]);
-
-    range_t drange, range;
-    int size;
-    switch (expr.getKind()) {
-    case ASSIGN:
-	if (isInteger(expr[1])) {
-	    if (isInteger(expr[0])) {
-		drange = getDeclaredRange(expr[0]);
-		range = getRange(expr[1]);
-		if (range.lower > drange.upper || range.upper < drange.lower)
-		    handleError(expr, "Assignment outside range");
-		else if (range.lower < drange.lower || range.upper > drange.upper)
-		    handleWarning(expr, "Assignment possibly outside range");
-	    } else if (expr[0].getType().getBase() == type_t::CLOCK) {
-		range = getRange(expr[1]);
-		if (range.upper < 0)
-		    handleError(expr,"Negative assignment to clock");
-		else if (range.lower < 0)
-		    handleWarning(expr, "Possibly negative assignment to clock");
-	    }
-	}
-	break;
-      
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
-	drange = getDeclaredRange(expr[0]);
-	switch (expr.getKind()) {
-	case ASSPLUS:
-	    range = rangeOfBinary(expr[0], PLUS, expr[1]);
-	    break;
-	case ASSMINUS:
-	    range = rangeOfBinary(expr[0], MINUS, expr[1]);
-	    break;
-	case ASSDIV:
-	    range = rangeOfBinary(expr[0], DIV, expr[1]);
-	    break;
-	case ASSMOD:
-	    range = rangeOfBinary(expr[0], MOD, expr[1]);
-	    break;
-	case ASSMULT:
-	    range = rangeOfBinary(expr[0], MULT, expr[1]);
-	    break;
-	case ASSAND:
-	    range = rangeOfBinary(expr[0], BIT_AND, expr[1]);
-	    break;
-	case ASSOR:
-	    range = rangeOfBinary(expr[0], BIT_OR, expr[1]);
-	    break;
-	case ASSXOR:
-	    range = rangeOfBinary(expr[0], BIT_XOR, expr[1]);
-	    break;
-	case ASSLSHIFT:
-	    range = rangeOfBinary(expr[0], BIT_LSHIFT, expr[1]);
-	    break;
-	case ASSRSHIFT:
-	    range = rangeOfBinary(expr[0], BIT_RSHIFT, expr[1]);
-	    break;
-	default:
-	    assert(0);
-	}
-
-	if (range.lower > drange.upper || range.upper < drange.lower)
-	    handleError(expr, "Assignment outside range");
-	else if (range.lower < drange.lower || range.upper > drange.upper)
-	    handleWarning(expr, "Assignment possibly outside range");
-	break;
-
-    case POSTINCREMENT:
-    case PREINCREMENT:
-	range = getRange(expr[0]);
-	drange = getDeclaredRange(expr[0]);
-	if (range.upper + 1 > drange.upper)
-	    handleWarning(expr, "Expression potentially out of range");
-	break;
-	
-    case POSTDECREMENT:
-    case PREDECREMENT:
-	range = getRange(expr[0]);
-	drange = getDeclaredRange(expr[0]);	
-	if (range.lower - 1 < drange.lower)
-	    handleWarning(expr, "Expression potentially out of range");
-	break;
-    
-    case ARRAY:
-	range = getRange(expr[1]);
-	size = expr[0].getSymbol().getType().getArraySize();
-	if (range.upper < 0 || range.lower >= size)
-	    handleError(expr, "Index out of range");
-	else if (range.lower < 0 || range.upper >= size)
-	    handleWarning(expr, "Index possibly out of range");
-	break;
-
-    default:
-	;
-	// do nothing
-    }
-}
-
-void RangeChecker::visitState(state_t &state)
-{
-    setContextInvariant(state);
-    checkRange(state.invariant);
-}
-
-void RangeChecker::visitTransition(transition_t &transition)
-{
-    setContextGuard(transition);	
-    checkRange(transition.guard);
-    
-    if (!transition.sync.empty()) {
- 	setContextSync(transition);		
- 	checkRange(transition.sync);
-    }
-
-    setContextAssignment(transition);	
-    checkRange(transition.assign);
-}
-
-#endif

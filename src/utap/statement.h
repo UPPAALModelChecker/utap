@@ -179,9 +179,26 @@ namespace UTAP
 	virtual int32_t visitBreakStatement(BreakStatement *stat)=0;
 	virtual int32_t visitContinueStatement(ContinueStatement *stat)=0;
 	virtual int32_t visitReturnStatement(ReturnStatement *stat)=0;
-    
+    };
+
+    class AbstractStatementVisitor : public StatementVisitor
+    {
     protected:
-	StatementVisitor(){};
+	virtual int32_t visitStatement(Statement *stat);
+    public:
+	virtual int32_t visitEmptyStatement(EmptyStatement *stat);
+	virtual int32_t visitExprStatement(ExprStatement *stat);
+	virtual int32_t visitForStatement(ForStatement *stat);
+	virtual int32_t visitWhileStatement(WhileStatement *stat);
+	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
+	virtual int32_t visitBlockStatement(BlockStatement *stat);
+	virtual int32_t visitSwitchStatement(SwitchStatement *stat);
+	virtual int32_t visitCaseStatement(CaseStatement *stat);
+	virtual int32_t visitDefaultStatement(DefaultStatement *stat);
+	virtual int32_t visitIfStatement(IfStatement *stat);
+	virtual int32_t visitBreakStatement(BreakStatement *stat);
+	virtual int32_t visitContinueStatement(ContinueStatement *stat);
+	virtual int32_t visitReturnStatement(ReturnStatement *stat);
     };
 
 }

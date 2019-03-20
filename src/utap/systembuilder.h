@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2004 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -19,8 +19,8 @@
    USA
 */
 
-#ifndef UTAP_SYSTEMBUILDER_HH
-#define UTAP_SYSTEMBUILDER_HH
+#ifndef UTAP_SYSTEMBUILDER_H
+#define UTAP_SYSTEMBUILDER_H
 
 #include <cassert>
 #include <vector>
@@ -41,7 +41,7 @@ namespace UTAP
      *
      * It checks that
      *  - states are not both committed and urgent 
-     *  - the source and target of a transition is a state
+     *  - the source and target of a edge is a state
      *  - the array operator is applied to an array
      *  - the dot operator is applied to a process or a structure.
      *  - functions are not recursive
@@ -62,12 +62,8 @@ namespace UTAP
      *    formal parameters
      *  - check if something is a proper left hand side value
      *  - check if things are assignment compatible
-     *  - check conflicting use of synchronisations and guards on transitions
-     *
-     *
-     * Property expressions are constructed, but the SystemBuilder
-     * class must be subtyped in order actually get access to the
-     * properties as they are not stored otherwise.
+     *  - check conflicting use of synchronisations and guards on edge
+     *  - handle properties
      */
     class SystemBuilder : public ExpressionBuilder
     {
@@ -123,11 +119,8 @@ namespace UTAP
 	/* stack of function body statement blocks */
 	std::vector<BlockStatement*> blocks; 
 
-	/* stack of template symbols */
-	std::vector<symbol_t> identifierStack;
-
 	//
-	// Fields for handling transition labels
+	// Fields for handling edge labels
 	//
 	int32_t guard;
 	int32_t sync;
@@ -140,16 +133,7 @@ namespace UTAP
 	type_t buildArrayType(type_t type, uint32_t dim);
 	type_t getElementTypeOfArray(type_t type);
 	type_t applyPrefix(int32_t prefix, type_t type);
-
-    protected:
-
-	//////////////////////////////////////////////////////////////
-	// property()
-	//////////////////////////////////////////////////////////////
-	// This method is called once for each property, which has
-	// been parsed. The default implementation does nothing, so
-	// you need to override this in a subclass.
-	virtual void property(Constants::kind_t, int line, expression_t) {};
+	declarations_t *getCurrentDeclarationBlock();
 
     public:
 
@@ -178,6 +162,11 @@ namespace UTAP
 	virtual void declVarEnd();
 	virtual void declInitialiserList(uint32_t num); // n initialisers
 	virtual void declFieldInit(const char* name); // 1 initialiser
+
+	/************************************************************
+	 * Guarded progress measure
+	 */
+	virtual void declProgress(bool);
     
 	/************************************************************
 	 * Function declarations
@@ -198,7 +187,7 @@ namespace UTAP
 	virtual void procStateCommit(const char* name); // mark previously decl. state
 	virtual void procStateUrgent(const char* name); // mark previously decl. state
 	virtual void procStateInit(const char* name); // mark previously decl. state
-	virtual void procTransition(const char* from, const char* to); 
+	virtual void procEdge(const char* from, const char* to); 
 	// 1 epxr,1sync,1expr
 	virtual void procGuard();
 	virtual void procSync(Constants::synchronisation_t type); // 1 expr
@@ -243,8 +232,6 @@ namespace UTAP
 	virtual void process(const char*);
 
 	virtual void done();    
-
-	virtual void property(Constants::kind_t, int line);
 
 	/********************************************************************
 	 * Guiding

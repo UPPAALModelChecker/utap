@@ -1,4 +1,4 @@
-libutap, version 0.60
+libutap, version 0.70
 Mini HOWTO
 Gerd Behrmann
 
@@ -13,10 +13,10 @@ Gerd Behrmann
 
 1. What is libutap
 
-libutap is the Uppaal Timed Automata Parser. It will be used in the
-upcoming release of Uppaal 3.4. Uppaal is an integrated tool
-environment for designing, simulating and verifying real time systems
-modeled as extended timed automata.
+libutap is the Uppaal Timed Automata Parser. Uppaal is an integrated
+tool environment for designing, simulating and verifying real time
+systems modeled as extended timed automata. libutap is the parser of
+Uppaal.
 
 libutap has the ability to parse and type check Uppaal models in any
 of the three file formats supported by Uppaal.
@@ -27,9 +27,9 @@ libutap is licensed under the LGPL.
 2. Compiling
 
 libutap uses automake and autoconf to make compilation on various
-platforms easy. You will need gcc 2.95.3 or newer, GNU make and
+platforms easy. You will need gcc 3.3 or newer, GNU make and
 libxml2 from http://www.xmlsoft.org (libxml needs to be at least
-version 2.6.0). Simply run:
+version 2.6.10). Simply run:
 
 ./configure
 make
@@ -42,9 +42,9 @@ to install it. Read the INSTALL file in the distribution for more
 information on how to compile.
 
 NOTE: if you want to regenerate automatically created files like the
-configure script and Makefile, use autoreconf -i. Do *not* use
-autoconf, it will mess up your Makefile. You need the autoconf package
-version 2.53 or newer (and automake).
+configure script and Makefile, use autoreconf -i. Do *not* run
+autoconf directly, it will mess up your Makefile. You need autoconf
+version 2.53 or newer and automake.
 
 3. Simple use
 
@@ -65,11 +65,11 @@ int main()
 
 
 The first argument is the file to read. The second is a pointer to the
-error handler, which keeps track of errors and warnings produced
+error handler which keeps track of errors and warnings produced
 during parsing. The third is the output of the parser and the fourth
 is a flag indicating whether we want to use the new or the old syntax
 (the old syntax is the one used in Uppaal 3.4, the new is the one that
-will be used in Uppaal 3.6/4.0).
+will be used in Uppaal 3.6).
 
 After the call to parseXTA, one can access the network of timed
 automata in the system variable. Take a look at utap/system.h to see
@@ -142,5 +142,5 @@ operations. Each node is referenced using an expression_t object.
 If you have questions or comments to libutap, you can contact me on
 the following email address: behrmann@cs.auc.dk. For a list of known
 bugs or for reporting new bugs take a look at the UPPAAL bugzilla
-installation at http://www.uppaal.com.
+installation at http://www.uppaal.com/.
 

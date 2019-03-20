@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT(UPPAAL TA Parser Library, 0.60, behrmann@cs.auc.dk, libutap)
+AC_INIT(UPPAAL TA Parser Library, 0.70, behrmann@cs.aau.dk, libutap)
 
 AC_PREREQ(2.50)
 
-AM_INIT_AUTOMAKE(libutap, 0.60)
+AM_INIT_AUTOMAKE(libutap, 0.70)
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/pretty.cpp)
 AC_CONFIG_AUX_DIR(.)

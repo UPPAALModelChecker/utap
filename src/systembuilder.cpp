@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2004 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -63,7 +63,9 @@ SystemBuilder::SystemBuilder(TimedAutomataSystem *system)
 type_t SystemBuilder::getElementTypeOfArray(type_t type)
 {
     while (type.getBase() == type_t::ARRAY)
-	type = type.getSub();    
+    {
+	type = type.getSub(); 
+    }
     return type;
 }
 
@@ -79,7 +81,8 @@ type_t SystemBuilder::buildArrayType(type_t type, uint32_t dim)
     for (uint32_t i = 0; i < dim; i++) 
     {
 	type = type_t::createArray(fragments[0], type).setPrefix(
-	    type.hasPrefix(prefix::CONSTANT), prefix::CONSTANT);
+	    type.hasPrefix(prefix::CONSTANT), prefix::CONSTANT).setPrefix(
+		type.hasPrefix(prefix::META), prefix::META);
 	fragments.pop();
     }
     return type;
@@ -109,6 +112,8 @@ type_t SystemBuilder::applyPrefix(int32_t prefix, type_t type)
 	    return type;
 	case PREFIX_CONST:
 	    return type.setPrefix(true, prefix::CONSTANT);
+	case PREFIX_META:
+	    return type.setPrefix(true, prefix::META);
 	}
     } 
     else if (base == type_t::CHANNEL) 
@@ -127,6 +132,11 @@ type_t SystemBuilder::applyPrefix(int32_t prefix, type_t type)
     }
     errorHandler->handleError("Invalid prefix");
     return type;
+}
+
+declarations_t *SystemBuilder::getCurrentDeclarationBlock()
+{
+    return (currentTemplate ? currentTemplate : &system->getGlobals());
 }
 
 /**
@@ -178,7 +188,10 @@ void SystemBuilder::typeStruct(int32_t prefix, uint32_t n)
     }
 
     // Pop fragments
-    while (n--) typeFragments.pop();
+    while (n--) 
+    {
+	typeFragments.pop();
+    }
 
     typeFragments.push(applyPrefix(prefix, type_t::createRecord(frame)));
 }
@@ -289,7 +302,8 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
 	{
 	    type = type_t::createInteger(
 		expression_t::createConstant(position_t(), defaultIntMin), 
-		expression_t::createConstant(position_t(), defaultIntMax));
+		expression_t::createConstant(position_t(), defaultIntMax)).
+		setPrefix(type.hasPrefix(prefix::META), prefix::META);
 	}
 	else if (type.hasPrefix(prefix::CONSTANT) 
 		 && !type.getRange().first.empty())
@@ -335,7 +349,14 @@ void SystemBuilder::declVar(const char* name, uint32_t dim, bool hasInit)
     }
 
     // Add variable to system
-    system->addVariable(type, name, init);
+    if (currentFun)
+    {
+	system->addVariableToFunction(currentFun, frame, type, name, init);
+    }
+    else
+    {
+	system->addVariable(getCurrentDeclarationBlock(), type, name, init);
+    }
 } 
 
 /**
@@ -406,6 +427,17 @@ void SystemBuilder::declInitialiserList(uint32_t num)
     fragments.push(expression_t::createNary(
 	position, LIST, fields, type_t::createRecord(frame)));
 }
+
+/************************************************************
+ * Guarded progress measure
+ */
+void SystemBuilder::declProgress(bool hasGuard)
+{
+    system->addProgressMeasure(getCurrentDeclarationBlock(),
+			       hasGuard ? fragments[1] : expression_t(),
+			       fragments[0]);
+    fragments.pop(hasGuard ? 2 : 1);
+}
   
 /********************************************************************
  * Function declarations
@@ -469,7 +501,7 @@ void SystemBuilder::declFuncBegin(const char* name, uint32_t n)
     typeFragments.pop(); // pop function result type
     
     type_t type = type_t::createFunction(params, result);
-    if (!system->addFunction(type, name, currentFun))
+    if (!getCurrentDeclarationBlock()->addFunction(type, name, currentFun))
     {
 	errorHandler->handleError("Duplicate definition");
     }
@@ -483,8 +515,6 @@ void SystemBuilder::declFuncBegin(const char* name, uint32_t n)
     // Create function block
     currentFun->body = new BlockStatement(frame);
     blocks.push_back(currentFun->body);
-
-    system->setDeclarationBlock(currentFun->body);
 }
 
 void SystemBuilder::declFuncEnd() 
@@ -492,7 +522,8 @@ void SystemBuilder::declFuncEnd()
     assert(!blocks.empty());
 
     // Recover from unterminated blocks - delete any excess blocks 
-    while (blocks.size() > 1) {
+    while (blocks.size() > 1) 
+    {
 	delete blocks.back();
 	blocks.pop_back();
     }
@@ -500,7 +531,7 @@ void SystemBuilder::declFuncEnd()
     // Pop outer function block
     blocks.pop_back();
 
-    // Collect symbols which are changes by the function
+    // Collect symbols which are changed by the function
     CollectChangesVisitor visitor(currentFun->changes);
     currentFun->body->accept(&visitor);    
 
@@ -509,16 +540,6 @@ void SystemBuilder::declFuncEnd()
 
     // Reset current function pointer to NULL
     currentFun = NULL;
-
-    // Restore current declaration block
-    if (currentTemplate) 
-    {
-	system->setDeclarationBlock(currentTemplate);
-    }
-    else 
-    {
-	system->setDeclarationBlock(&system->getGlobals());
-    }
 }
 
 /********************************************************************
@@ -526,9 +547,10 @@ void SystemBuilder::declFuncEnd()
  */
 void SystemBuilder::procBegin(const char* name, uint32_t n)
 {
-    assert(params.getSize() == n);
     if (frame.getIndexOf(name) != -1) 
+    {
 	errorHandler->handleError("Identifier defined multiple times");
+    }
     currentTemplate = &system->addTemplate(name, params);
     frame = currentTemplate->frame;
     params = frame_t::createFrame();
@@ -536,13 +558,7 @@ void SystemBuilder::procBegin(const char* name, uint32_t n)
     
 void SystemBuilder::procEnd() // 1 ProcBody
 {
-    if (currentTemplate->init == symbol_t())
-    {
-	errorHandler->handleError("Missing initial state");
-    }
-
     currentTemplate = NULL;
-    system->setDeclarationBlock(&system->getGlobals());
     frame = frame.getParent();
 }
 
@@ -556,7 +572,7 @@ void SystemBuilder::procState(const char* name, bool hasInvariant) // 1 expr
 	e = fragments[0];
 	fragments.pop();
     }
-    system->addLocation(name, e);
+    currentTemplate->addLocation(name, e);
 }
     
 void SystemBuilder::procStateCommit(const char* name) 
@@ -607,7 +623,7 @@ void SystemBuilder::procStateInit(const char* name)
     currentTemplate->init = uid;
 }
     
-void SystemBuilder::procTransition(const char* from, const char* to)
+void SystemBuilder::procEdge(const char* from, const char* to)
 {
     symbol_t fid, tid;
 
@@ -637,7 +653,7 @@ void SystemBuilder::procTransition(const char* from, const char* to)
     }
     
     // Create transition
-    transition_t &tran = system->addTransition(fid, tid);
+    edge_t &tran = currentTemplate->addEdge(fid, tid);
     tran.assign = fragments[fragments.size() - update];
     if (sync != -1)
     {
@@ -656,13 +672,7 @@ void SystemBuilder::procGuard()
 
 void SystemBuilder::procSync(synchronisation_t type)
 {
-    expression_t expr = fragments[0];
-    if (expr.getType().getBase() != type_t::CHANNEL)
-    {
-	throw TypeException("No such channel");
-    }
-    
-    fragments[0] = expression_t::createSync(position, expr, type);
+    fragments[0] = expression_t::createSync(position, fragments[0], type);
     sync = fragments.size();
 }
 
@@ -846,62 +856,51 @@ void SystemBuilder::exprCallBegin(const char *functionName)
  * System declaration
  */
 
-// Prepares for the instantiations of a process
 void SystemBuilder::instantiationBegin(const char* name, const char* templ_name)
 {
-    expectedArguments.push_back(0);
-    identifierStack.push_back(symbol_t());
-
-    symbol_t id;
-    if (!frame.resolve(templ_name, id))
-    {
-	throw TypeException("Unknown identifier");
-    }
-
-    if (id.getType().getBase() != type_t::TEMPLATE) 
-    {
-	throw TypeException("Not a template: %s", templ_name);
-    }
-
-    identifierStack.back() = id;
-
-    (expectedArguments.back() = id.getType().getParameters().getSize());
+    /* Nothing to do here.
+     */
 }
 
 void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, uint32_t n)
 {
-    symbol_t id = identifierStack.back();
-    identifierStack.pop_back();
-
-    if (n < expectedArguments.back())
+    try
     {
-	errorHandler->handleError("Too few arguments");
-    }
-
-    expectedArguments.pop_back();
-
-    if (id == symbol_t())
-    {
- 	// Push dummy expression to avoid stack corruption
- 	fragments.push(expression_t::createConstant(position_t(), 0));
-	return;
-    }
-	
-    try 
-    {
-	frame_t parameters = id.getType().getParameters();
-
-	// If two many arguments, pop the rest
-	if (n > parameters.getSize()) 
+	/* Lookup symbol.
+	 */
+	symbol_t id;
+	if (!frame.resolve(templ_name, id))
 	{
-	    fragments.pop(n - parameters.getSize());
-	    n = parameters.getSize();
+	    throw TypeException("Unknown identifier");
+	}	
+
+	/* Check that the symbol is a template.
+	 */
+	if (id.getType().getBase() != type_t::TEMPLATE) 
+	{
+	    throw TypeException("Not a template: %s", templ_name);
 	}
 
-	// Create template composition
+	/* Check number of arguments. If two many arguments, pop the
+	 * rest.
+	 */
+	frame_t parameters = id.getType().getParameters();
+	size_t expected = parameters.getSize();
+	if (n < expected)
+	{
+	    errorHandler->handleError("Too few arguments");
+	}
+	else if (n > expected)
+	{
+	    errorHandler->handleError("Too many arguments");
+	    fragments.pop(n - parameters.getSize());
+	    n = expected;
+	}	
+
+	/* Create template composition.
+	 */
 	template_t *templ = static_cast<template_t*>(id.getData());
-	instance_t &instance = system->addInstance(name, templ);
-	
+	instance_t &instance = system->addInstance(name, templ);	
 	while (n--) 
 	{
 	    symbol_t param = templ->frame[n];
@@ -909,9 +908,10 @@ void SystemBuilder::instantiationEnd(const char *name, const char *templ_name, u
 	    fragments.pop();
 	}
     } 
-    catch (const TypeException e) 
+    catch (const TypeException &e) 
     {
-	// remember to pop off the arguments if something is wrong
+	/* Remember to pop arguments if something is wrong.
+	 */
 	fragments.pop(n);
 	errorHandler->handleError(e.what());
     }
@@ -934,28 +934,16 @@ void SystemBuilder::done()
 
 }
 
-void SystemBuilder::property(kind_t kind, int line)
-{
-    if (kind == LEADSTO) 
-    {
-	expression_t left = fragments[1];
-	expression_t right = fragments[0];
-	fragments.pop(2);
-	fragments.push(expression_t::createBinary(
-	    position, LEADSTO, left, right));
-    }
-    property(kind, line, fragments[0]);
-    fragments.pop();
-}
-
 void SystemBuilder::beforeUpdate()
 {
-
+    system->setBeforeUpdate(fragments[0]);
+    fragments.pop();
 }
 
 void SystemBuilder::afterUpdate()
 {
-
+    system->setAfterUpdate(fragments[0]);
+    fragments.pop();
 }
 
 /********************************************************************

@@ -107,7 +107,7 @@ namespace UTAP
 	Constants::synchronisation_t getSync() const;
 
 	/** Returns a string representation of the expression. */
-	char *toString(bool old = false) const;
+	std::string toString(bool old = false) const;
 
 	/** Returns the ith subexpression. */
 	expression_t &operator[](uint32_t);

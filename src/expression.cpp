@@ -134,26 +134,26 @@ uint32_t expression_t::getSize() const
     case GT:
     case MIN:
     case MAX:
-      return 2;
+	return 2;
     case UNARY_MINUS:
     case NOT:
-      return 1;
-      break;
+	return 1;
+	break;
     case IDENTIFIER:
     case CONSTANT:
-      return 0;
-      break;
+	return 0;
+	break;
     case LIST:
-      return data->value;
-      break;
+	return data->value;
+	break;
     case ARRAY:
-      return 2;
-      break;
+	return 2;
+	break;
     case INLINEIF:
-      return 3;
-      break;
+	return 3;
+	break;
     case DOT:
-      return 1;
+	return 1;
     case LEADSTO:
     case COMMA:
     case ASSIGN:
@@ -167,15 +167,17 @@ uint32_t expression_t::getSize() const
     case ASSXOR:
     case ASSLSHIFT:
     case ASSRSHIFT:
-      return 2;
+	return 2;
     case SYNC:
-      return 1;
+	return 1;
     case DEADLOCK:
-      return 0;
+	return 0;
     case PREINCREMENT:
     case POSTINCREMENT:
     case PREDECREMENT:
     case POSTDECREMENT:
+	return 1;
+    case RATE:
 	return 1;
     case FUNCALL:
 	return data->value;
@@ -407,12 +409,26 @@ bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
     }
 }
 
+/** Returns true if \a fun changes any of the variables in \a variables. */
 static bool changes(function_t *fun, const std::set<symbol_t> &variables)
 {
-    set<symbol_t>::const_iterator i;
-    for (i = fun->changes.begin(); i != fun->changes.end(); ++i) 
+    set<symbol_t>::const_iterator first1, first2, last1, last2;
+    first1 = fun->changes.begin();
+    last1 = fun->changes.end();
+    first2 = variables.begin();
+    last2 = variables.end();
+
+    while (first1 != last1 && first2 != last2)
     {
-	if (variables.find(*i) != variables.end()) 
+	if (*first1 < *first2)
+	{
+	    ++first1;
+	}
+	else if (*first2 < *first1)
+	{
+	    ++first2;
+	}
+	else
 	{
 	    return true;
 	}
@@ -562,6 +578,7 @@ int expression_t::getPrecedence(kind_t kind)
 	    
     case DOT:
     case ARRAY:
+    case RATE:
 	return 100;
 
     case UNARY_MINUS:
@@ -702,10 +719,14 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
     case MAX:
 
 	if (precedence > get(0).getPrecedence())
+	{
 	    append(str, end, size, '(');
+	}
 	get(0).toString(old, str, end, size);
 	if (precedence > get(0).getPrecedence())
+	{
 	    append(str, end, size, ')');
+	}
 	
 	switch (data->kind) 
 	{
@@ -765,9 +786,13 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	    break;
 	case ASSIGN:
 	    if (old)
+	    {
 		append(str, end, size, " := ");
+	    }
 	    else
+	    {
 		append(str, end, size, " = ");
+	    }
 	    break;
 	case ASSPLUS:
 	    append(str, end, size, " += ");
@@ -810,14 +835,18 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	}
 	
 	if (precedence >= get(1).getPrecedence())
+	{
 	    append(str, end, size, '(');
+	}
 	get(1).toString(old, str, end, size);
 	if (precedence >= get(1).getPrecedence())
+	{
 	    append(str, end, size, ')');
+	}
 	break;
 
     case IDENTIFIER:
-	append(str, end, size, data->symbol.getName());
+	append(str, end, size, data->symbol.getName().c_str());
 	break;
 		
     case CONSTANT:
@@ -915,7 +944,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 		get(0).toString(old, str, end, size);
 	    }
 	    append(str, end, size, '.');
-	    append(str, end, size, get(0).getType().getFrame()[data->value].getName());
+	    append(str, end, size, get(0).getType().getFrame()[data->value].getName().c_str());
 	} 
 	else 
 	{
@@ -999,7 +1028,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	break;
 
     case FUNCALL:
- 	append(str, end, size, get(0).getSymbol().getName());
+ 	append(str, end, size, get(0).getSymbol().getName().c_str());
  	append(str, end, size, '(');
  	if (getSize() > 1) 
 	{
@@ -1012,6 +1041,11 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
  	}
  	append(str, end, size, ')');
  	break;
+
+    case RATE:
+	get(0).toString(old, str, end, size);
+	append(str, end, size, "'");
+	break;
 	
     case EF:
     case EG:
@@ -1036,11 +1070,11 @@ bool expression_t::operator == (const expression_t e) const
 /** Returns a string representation of the expression. The string
     returned must be deallocated with delete[]. Returns NULL is the
     expression is empty. */
-char *expression_t::toString(bool old) const
+std::string expression_t::toString(bool old) const
 {
     if (empty()) 
     {
-	return NULL;
+	return std::string();
     } 
     else 
     {
@@ -1048,7 +1082,9 @@ char *expression_t::toString(bool old) const
  	char *s, *end;
  	s = end = new char[size];
  	toString(old, s, end, size);
- 	return s;
+	std::string result = s;
+	delete[] s;
+ 	return result;
     }
 }
 
@@ -1125,9 +1161,13 @@ expression_t expression_t::createIdentifier(
     expression_t expr(IDENTIFIER, pos);
     expr.data->symbol = symbol;
     if (symbol != symbol_t())
+    {
 	expr.data->type = symbol.getType();
+    }
     else
+    {
 	expr.data->type = type_t::UNKNOWN;
+    }
     return expr;
 }
 
@@ -1141,7 +1181,9 @@ expression_t expression_t::createNary(
     expr.data->sub = new expression_t[sub.size()];
     expr.data->type = type;
     for (uint32_t i = 0; i < sub.size(); i++)
+    {
 	expr.data->sub[i] = sub[i];
+    }
     return expr;
 }
 
@@ -1508,7 +1550,7 @@ range_t Interpreter::evaluate(
 size_t Interpreter::sizeOfType(type_t type) const
 {
     type_t base = type.getBase();
-    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT || base == type_t::BOOL)
+    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT || base == type_t::BOOL || base == type_t::LOCATION)
     {
 	return 1;
     }
@@ -1542,11 +1584,6 @@ const map<symbol_t, expression_t> &Interpreter::getValuation() const
 
 ostream &operator<< (ostream &o, const expression_t &e) 
 {
-    const char *s = e.toString();
-    if (s)
-    {
-	o << s;
-	delete[] s;
-    }
+    o << e.toString();
     return o;
 }

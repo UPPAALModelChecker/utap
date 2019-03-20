@@ -30,36 +30,36 @@ using std::ostream;
 
 ErrorHandler::ErrorHandler()
 {
-  currentPath = NULL;
-  first_line = first_column = last_line = last_column = -1;
+    currentPath = NULL;
+    first_line = first_column = last_line = last_column = -1;
 }
 
 // Sets the call back object for the current patch.
 // Clears the current position.
 void ErrorHandler::setCurrentPath(const XPath *path)
 {
-  currentPath = path;
-  first_line = first_column = last_line = last_column = -1;  
+    currentPath = path;
+    first_line = first_column = last_line = last_column = -1;  
 }
 
 // Sets the current position of the parser. Any errors or
 // warnings will be assumed to be at this position.
 void ErrorHandler::setCurrentPosition(int first_line, int first_column, int last_line, int last_column)
 {
-  this->first_line = first_line;
-  this->first_column = first_column;
-  this->last_line = last_line;
-  this->last_column = last_column;
+    this->first_line = first_line;
+    this->first_column = first_column;
+    this->last_line = last_line;
+    this->last_column = last_column;
 }
 
 // Sets the current position of the parser. Any errors or
 // warnings will be assumed to be at this position.
 void ErrorHandler::setCurrentPosition(const position_t &p)
 {
-  this->first_line = p.first_line;
-  this->first_column = p.first_column;
-  this->last_line = p.last_line;
-  this->last_column = p.last_column;
+    this->first_line = p.first_line;
+    this->first_column = p.first_column;
+    this->last_line = p.last_line;
+    this->last_column = p.last_column;
 }
 
 // Called when an error is detected
@@ -74,7 +74,9 @@ void ErrorHandler::handleError(const char *msg, ...)
     errors.push_back(error_t(first_line, first_column, last_line, last_column));
     errors.back().setMessage(str);
     if (currentPath)
+    {
 	errors.back().setPath(currentPath->get());
+    }
 }
 
 // Called when a warning is issued
@@ -89,55 +91,59 @@ void ErrorHandler::handleWarning(const char *msg, ...)
     warnings.push_back(error_t(first_line, first_column, last_line, last_column));
     warnings.back().setMessage(str);
     if (currentPath)
+    {
 	warnings.back().setPath(currentPath->get());
+    }
 }
 
 // Returns the errors
 const vector<ErrorHandler::error_t> &ErrorHandler::getErrors() const
 {
-  return errors;
+    return errors;
 }
 
 // Returns the warnings
 const vector<ErrorHandler::error_t> &ErrorHandler::getWarnings() const
 {
-  return warnings;
+    return warnings;
 }
 
 // True if there are one or more errors
 bool ErrorHandler::hasErrors() const
 {
-  return !errors.empty();
+    return !errors.empty();
 }
 
 // True if there are one or more warnings
 bool ErrorHandler::hasWarnings() const
 {
-  return !warnings.empty();
+    return !warnings.empty();
 }
 
 // Clears the list of errors and warnings
 void ErrorHandler::clear()
 {
-  errors.clear();
-  warnings.clear();
+    errors.clear();
+    warnings.clear();
 };
 
 ostream &operator <<(ostream &out, const ErrorHandler::error_t &e) 
 {
-  out << e.msg << " at ";
-
-  if (e.xpath) 
-    out << e.xpath << " ";
-
-  if (e.fline != e.lline) 
-    out << "line " << e.fline << " pos " << e.fcolumn << " to "
-	<< "line " << e.lline << " pos " << e.lcolumn - 1;
-  else if (e.fcolumn < e.lcolumn-1)
-    out << "line " << e.fline << " pos " << e.fcolumn << "-" << (e.lcolumn-1);
-  else                                                          
-    out << "line " << e.fline << " pos " << e.fcolumn;
-  //  out << " (" << e.fchar << "-" << e.lchar << ")";
-  return out;
+    out << e.msg << " at " << e.xpath << " ";
+    if (e.fline != e.lline) 
+    {
+	out << "line " << e.fline << " pos " << e.fcolumn << " to "
+	    << "line " << e.lline << " pos " << e.lcolumn - 1;
+    }
+    else if (e.fcolumn < e.lcolumn-1)
+    {
+	out << "line " << e.fline << " pos " << e.fcolumn
+	    << "-" << (e.lcolumn-1);
+    }
+    else                                                          
+    {
+	out << "line " << e.fline << " pos " << e.fcolumn;
+    }
+    return out;
 };
 

@@ -93,8 +93,7 @@ static void utap_error(const TypeException& te, int32_t fl, int32_t fc,
 #define REPORT_ERROR(loc, exc) utap_error(exc, loc.first_line, loc.first_column, loc.last_line, loc.last_column);
   
 // List of all parser error messages
-static const char* PE_PRIORITY_ = "priority ordering expected";
-static const char* PE_ALT_TRANS = "alternative transition expected";
+static const char* PE_ALT_TRANS = "alternative edge expected";
 static const char* PE_ARGLIST = "argument expression list expected";
 static const char* PE_ARGLIST_ = "one more argument expression expected";
 static const char* PE_ARROW = "'->' expected";
@@ -107,8 +106,6 @@ static const char* PE_CONST_EXP = "constant expression expected";
 static const char* PE_EXPR = "expression expected";
 static const char* PE_GUARD_EXP = "guard expression expected";
 static const char* PE_GUARD_EXP_ = "one more guard expression expected";
-static const char* PE_INIT = "'init' expected";
-static const char* PE_INITIAL = "initialiser expected";
 static const char* PE_INV = "invariant expression expected";
 static const char* PE_LBRACE = "'{' expected";
 static const char* PE_LBRACES = "'(' or '{' expected";
@@ -116,7 +113,6 @@ static const char* PE_LOC_DECL = "location declaration expected";
 static const char* PE_LPAREN = "'(' expected";
 static const char* PE_MEMBER = "member declarations expected";
 static const char* PE_MEMBERID = "member identifier expected";
-static const char* PE_MEMBERID_ = "one more member identifier expected";
 static const char* PE_MEMBERTYPE = "member type identifier expected";
 static const char* PE_PARAM_DECL_ = "one more parameter declaration expected";
 static const char* PE_PARAMETERS = "parameters expected";
@@ -127,9 +123,7 @@ static const char* PE_PROCID_ = "one more process identifier expected";
 static const char* PE_QUE = "'?' expected";
 static const char* PE_RBRACE = "'}' expected";
 static const char* PE_RPAREN = "')' expected";
-static const char* PE_RSQBRACE = "']' expected";
 static const char* PE_SEMICOLON = "';' expected";
-static const char* PE_STATE = "'state' expected";
 static const char* PE_STATE_DECL = "state declaration expected";
 static const char* PE_STATE_DECL_ = "one more state declaration expected";
 static const char* PE_STATEID = "state identifier expected";
@@ -137,12 +131,9 @@ static const char* PE_STATEID_ = "one more state identifier expected";
 static const char* PE_SYNC_EXP = "synchronization expression expected";
 static const char* PE_SYSTEM = "'system' expected";
 static const char* PE_TRANS = "'trans' expected";
-static const char* PE_TRANS_DECL = "transition declaration expected";
-static const char* PE_TRANS_DECL_ = "one more transition declaration expected";
-static const char* PE_TYPE_DEF = "type definition expected";
-static const char* PE_TYPEID = "type identifier expected";
+static const char* PE_TRANS_DECL = "edge declaration expected";
+static const char* PE_TRANS_DECL_ = "one more edge declaration expected";
 static const char* PE_TYPEID_= "one more type identifier expected";
-static const char* PE_VARID = "variable identifier expected";
 
 static int lexer_flex();
   
@@ -202,11 +193,11 @@ static int32_t g_parameter_count;
 
 /* Variable type declaration keywords: */
 %token T_TYPEDEF T_STRUCT 
-%token T_CONST T_OLDCONST T_URGENT T_BROADCAST T_TRUE T_FALSE
+%token T_CONST T_OLDCONST T_URGENT T_BROADCAST T_TRUE T_FALSE T_META
 
 /* Uppaal keywords */
 %token T_SYSTEM T_PROCESS T_STATE T_COMMIT T_INIT T_TRANS T_ARROW 
-%token T_GUARD T_SYNC T_ASSIGN T_RATE T_BEFORE T_AFTER T_COST
+%token T_GUARD T_SYNC T_ASSIGN T_BEFORE T_AFTER T_PROGRESS
 
 /* Property tokens */
 %token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO T_QUIT
@@ -227,7 +218,7 @@ static int32_t g_parameter_count;
 %type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
 %type <number> OldProcParams OldProcParamList OldProcParam OldProcConstParam
 %type <kind> Quantifier
-%type <number> Type TypePrefix Range
+%type <number> Type TypePrefix Range 
 %type <string> Id
 %type <number> OldConstDeclIdList
 %type <kind> UnaryOp AssignOp
@@ -250,7 +241,7 @@ static int32_t g_parameter_count;
 %left T_MINUS T_PLUS
 %left T_MULT T_DIV T_MOD
 %right T_EXCLAM T_INCREMENT T_DECREMENT UOPERATOR
-%left '(' ')' '[' ']' '.'
+%left '(' ')' '[' ']' '.' '\''
 
 %union {
     bool flag;
@@ -315,7 +306,7 @@ Inst:
 	}
 	;
 
-System: ChanPriorityDecl ProcPriorityDecl SysDecl;
+System: ChanPriorityDecl ProcPriorityDecl SysDecl Progress;
 
 ChanPriorityDecl:
         /* empty */
@@ -331,12 +322,8 @@ PriorityOrder:
 	T_ID { CALL(@1, @1, lowPriority($1)); }
 	| PriorityOrder T_EQ T_ID { CALL(@3, @3, samePriority($3)); }
 	| PriorityOrder T_LT T_ID { CALL(@3, @3, higherPriority($3)); }
-	| PriorityOrder T_EQ error {
-	  REPORT_ERROR(last_loc, TypeException(PE_PRIORITY_));
-	}
-	| PriorityOrder T_LT error {
-	  REPORT_ERROR(last_loc, TypeException(PE_PRIORITY_));
-	}
+	| PriorityOrder T_EQ error
+	| PriorityOrder T_LT error 
 	;
 
 SysDecl:
@@ -357,41 +344,33 @@ ProcessList:
 	}
 	;
 
+Progress:
+	/* empty */
+	| T_PROGRESS '{' ProgressMeasureList  '}';
+
+ProgressMeasureList:
+	/* empty */
+	| ProgressMeasureList Expression ':' Expression ';' {
+            CALL(@2, @4, declProgress(true));
+        }
+	| ProgressMeasureList Expression ';' {
+            CALL(@2, @2, declProgress(false));
+        };
+
 Declaration:
 	/* empty */
 	| Declaration FunctionDecl
 	| Declaration VariableDecl
 	| Declaration TypeDecl
 	| Declaration ProcDecl
-	| Declaration RateDecl
 	| Declaration BeforeUpdateDecl
 	| Declaration AfterUpdateDecl
+	| error ';'
 	;
 
-RateDecl: T_RATE '{' RateList '}';
+BeforeUpdateDecl: T_BEFORE '{' ExprList '}' { CALL(@3, @3, beforeUpdate()); };
 
-RateList:
-	/* empty */
-	| RateList Rate ';';
-
-Rate:
-	T_COST ':' Expression;
-
-BeforeUpdateDecl: T_BEFORE '{' BeforeAssignmentList '}';
-
-AfterUpdateDecl: T_AFTER '{' AfterAssignmentList '}';
-
-BeforeAssignmentList:
-	/* empty */
-	| BeforeAssignmentList Assignment ';' {
-	  CALL(@2, @2, beforeUpdate());
-        };
-
-AfterAssignmentList:
-	/* empty */
-	| AfterAssignmentList Assignment ';' {
-	  CALL(@2, @2, afterUpdate());
-        };
+AfterUpdateDecl: T_AFTER '{' ExprList '}' { CALL(@3, @3, afterUpdate()); };
 
 FunctionDecl:
 	Type Id OptionalParameterList { 
@@ -400,44 +379,19 @@ FunctionDecl:
         '{' BlockLocalDeclList StatementList '}' { 
 	  CALL(@1, @7, declFuncEnd());
 	}
-        | Type Id OptionalParameterList error '}' {
-	    CALL(@1, @5, declFuncEnd());
-	}
-	;
+        | Type Id '(' error '}'{};
 
 OptionalParameterList:
           '(' ')' { $$ = 0; }
         | '(' ParameterList ')' { $$ = $2; }
-        | '(' ParameterList error ')' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	  $$ = $2; 
-	}
-        | '(' ParameterList error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	  $$ = $2; 
-	}
         | '(' error ')' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PARAMETERS));
 	  $$ = 0; 
 	}
-        | '(' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	  $$ = 0; 
-	}
-/*        | error {
-	  REPORT_ERROR(last_loc, TypeException(PE_LPAREN));
-	  $$ = 0; 
-	}
-*/
         ;
 
 ParameterList:
 	  Parameter { $$ = 1; }
 	| ParameterList ',' Parameter { $$ = $1+1; }
-	| ParameterList ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PARAMETERS_));
-	  $$ = $1;
-	}
 	;
 
 Parameter:
@@ -457,14 +411,6 @@ Parameter:
 VariableDecl:
 	Type DeclIdList ';' { 
           CALL(@1, @3, declVarEnd());
-	}
-	| Type DeclIdList error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-          CALL(@1, @4, declVarEnd());
-	}
-	| Type error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_VARID));
-	  CALL(@1, @3, declVarEnd());
 	}
 	;
 
@@ -500,31 +446,15 @@ FieldInit:
 	Id ':' Initializer { 
 	  CALL(@1, @3, declFieldInit($1));
 	}
-	| Id ':' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INITIAL));
-	}
 	| Initializer { 
-	  CALL(@1, @1, declFieldInit(NULL));
+	  CALL(@1, @1, declFieldInit(""));
 	}
 	;
 
 ArrayDecl:
 	/* empty */ { $$=0; }
 	| ArrayDecl '[' Expression ']' { $$=$1+1; }
-	| ArrayDecl '[' Expression error ']' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
-	  $$=$1+1; 
-	}
-	| ArrayDecl '[' Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RSQBRACE));
-	  $$=$1+1; 
-	}
 	| ArrayDecl '[' error ']' {
-	  CALL(@3, @3, exprNat(1));
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	  $$=$1+1; 
-	}
-	| ArrayDecl '[' error { 
 	  CALL(@3, @3, exprNat(1));
 	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
 	  $$=$1+1; 
@@ -535,16 +465,7 @@ TypeDecl:
 	T_TYPEDEF Type TypeIdList ';' {
 	  CALL(@1, @4, declTypeDefEnd());
 	}
-	| T_TYPEDEF Type TypeIdList error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @5, declTypeDefEnd());
-	}
-	| T_TYPEDEF Type error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_TYPEID));
-	  CALL(@1, @4, declTypeDefEnd());  
-	}
 	| T_TYPEDEF error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_TYPE_DEF));
 	  CALL(@1, @3, declTypeDefEnd());  
 	}
 /*
@@ -583,14 +504,6 @@ Type:
 	  CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @5,
 	       typeStruct($1, 0));
 	}
-	| TypePrefix T_STRUCT '{' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
-	  CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @4,
-	       typeStruct($1, 0));
-	}
-	| TypePrefix T_STRUCT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	}
 	;
 
 Id:
@@ -620,9 +533,6 @@ FieldDecl:
 	| Type error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERID));	  
 	}
-	| Type error {
-	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERID));	  
-	}
 	| error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERTYPE));	  
 	}
@@ -631,10 +541,6 @@ FieldDecl:
 FieldDeclIdList:
 	FieldDeclId { $$=1; }
 	| FieldDeclIdList ',' FieldDeclId { $$=$1+1; }
-	| FieldDeclIdList ',' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_MEMBERID_));
-	  $$=$1+1; 
-	}
 	;
 
 FieldDeclId:
@@ -649,16 +555,18 @@ TypePrefix:
 	| T_BROADCAST { $$ = ParserBuilder::PREFIX_BROADCAST; }
         | T_URGENT T_BROADCAST { $$ = ParserBuilder::PREFIX_URGENT_BROADCAST; }
 	| T_CONST  { $$ = ParserBuilder::PREFIX_CONST; } 
+        | T_META { $$ = ParserBuilder::PREFIX_META; }
         ;
 
 Range:
 	/* empty */ { $$ = 0; }
-	| '[' Expression ',' Expression ']' { $$ = 2; }
+        | '[' Expression ']' { $$ = 1; }
+        | '[' Expression ',' Expression ']' { $$ = 2; }
         | '[' error ']' {
 	    $$ = 0;
         }
 	;
-
+        
 /*********************************************************************
  * Process declaration
  */
@@ -696,18 +604,10 @@ States:
 	| T_STATE StateDeclList error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
 	}
-	| T_STATE StateDeclList error {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
 	| T_STATE error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_STATE_DECL));
 	}
-	| T_STATE error {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE_DECL));
-	}
-	| error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE));
-	}
+	| error ';'
 	;
 
 StateDeclList:
@@ -725,21 +625,9 @@ StateDecl:
 	| T_ID '{' Expression '}' { 
 	  CALL(@1, @4, procState($1, true));
 	}
-	| T_ID '{' Expression error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @5, procState($1, true));
-	}
-	| T_ID '{' Expression error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @4, procState($1, true));
-	}
 	| T_ID '{' error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_INV));
 	  CALL(@1, @4, procState($1, false));
-	}
-	| T_ID '{' error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INV));
-	  CALL(@1, @3, procState($1, false));
 	}
 	;
 
@@ -747,36 +635,14 @@ Init:
 	T_INIT T_ID ';' { 
 	  CALL(@1, @3, procStateInit($2));
 	}
-	| T_INIT T_ID error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @4, procStateInit($2));
-	}
-	| T_INIT T_ID error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	  CALL(@1, @3, procStateInit($2));
-	}
-	| T_INIT error { 
-	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	}
-        | error {
-	  REPORT_ERROR(last_loc, TypeException(PE_INIT));
-	}
+        | error ';' 
 	;
 
 Transitions:
 	/* empty */
 	| T_TRANS TransitionList ';'
-	| T_TRANS TransitionList error ';' {
+	| T_TRANS error ';' {
 	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_TRANS TransitionList error {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_TRANS error {
-	  REPORT_ERROR(last_loc, TypeException(PE_TRANS_DECL));
-	}
-	| error {
-	  REPORT_ERROR(last_loc, TypeException(PE_TRANS));
 	}
 	;
 
@@ -791,12 +657,12 @@ TransitionList:
 Transition:
 	T_ID T_ARROW T_ID '{' Guard Sync Assign '}' { 
 	  strcpy(rootTransId, $1); 
-	  CALL(@1, @8, procTransition($1, $3));
+	  CALL(@1, @8, procEdge($1, $3));
 	}
 	| T_ID T_ARROW T_ID '{' Guard Sync Assign error ';' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  strcpy(rootTransId, $1); 
-	  CALL(@1, @9, procTransition($1, $3));
+	  CALL(@1, @9, procEdge($1, $3));
 	}
 	| T_ID T_ARROW T_ID error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
@@ -811,11 +677,11 @@ Transition:
 
 TransitionOpt:
 	T_ARROW T_ID '{' Guard Sync Assign '}' { 
-	  CALL(@1, @7, procTransition(rootTransId, $2));
+	  CALL(@1, @7, procEdge(rootTransId, $2));
 	}
 	| T_ARROW T_ID '{' Guard Sync Assign error '}' { 
 	  REPORT_ERROR(yylloc, TypeException(PE_RBRACE));
-	  CALL(@1, @8, procTransition(rootTransId, $2));
+	  CALL(@1, @8, procEdge(rootTransId, $2));
 	}
 	| T_ARROW T_ID error '}' { 
 	  REPORT_ERROR(yylloc, TypeException(PE_LBRACE));
@@ -986,7 +852,7 @@ Statement:
 	| T_FOR '(' { 
 	  CALL(@1, @2, forBegin());
 	} 
-          ExprList0 ';' ExprList0 ';' ExprList0 ')' Statement { 
+        ExprList ';' ExprList ';' ExprList ')' Statement { 
 	    CALL(@3, @9, forEnd());
 	  }
         | T_FOR '(' error ')' Statement
@@ -1078,11 +944,6 @@ SwitchCase:
 	  StatementList { 
 	    CALL(@4, @4, defaultEnd());
 	  }
-	;
-
-ExprList0:
-	  /* empty */
-	| ExprList
 	;
 
 ExprList:
@@ -1202,6 +1063,9 @@ Expression:
 	| Expression '.' T_ID { 
 	  CALL(@1, @3, exprDot($3));
 	}
+        | Expression '\'' {
+	    CALL(@1, @2, exprUnary(RATE));
+        }
         | T_DEADLOCK {
 	  CALL(@1, @1, exprDeadlock());
 	}
@@ -1412,21 +1276,7 @@ OldVarDeclList:
 
 OldStates:
 	T_STATE OldStateDeclList ';'
-	| T_STATE OldStateDeclList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_STATE OldStateDeclList error {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_STATE error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE_DECL));
-	}
-	| T_STATE error {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE_DECL));
-	}
-	| error {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE));
-	}
+	| error ';'
 	;
 
 OldStateDeclList:
@@ -1491,54 +1341,54 @@ OldTransitionList:
 OldTransition:
 	T_ID T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
 	  strcpy(rootTransId, $1);
-	  CALL(@1, @8, procTransition($1, $3));
+	  CALL(@1, @8, procEdge($1, $3));
 	}
         | T_ID T_ARROW T_ID '{' OldGuard Sync Assign error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  strcpy(rootTransId, $1);
-	  CALL(@1, @9, procTransition($1, $3));
+	  CALL(@1, @9, procEdge($1, $3));
 	}
         | T_ID T_ARROW T_ID '{' OldGuard Sync Assign error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
 	  strcpy(rootTransId, $1); 
-	  CALL(@1, @8, procTransition($1, $3));
+	  CALL(@1, @8, procEdge($1, $3));
 	}
         | T_ID T_ARROW T_ID error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
 	  strcpy(rootTransId, $1); 
-	  CALL(@1, @9, procTransition($1, $3));
+	  CALL(@1, @9, procEdge($1, $3));
 	}
         | T_ID error T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_ARROW));
 	  strcpy(rootTransId, $1); 
-	  CALL(@1, @9, procTransition($1, $4));
+	  CALL(@1, @9, procEdge($1, $4));
 	}
 	;
 
 
 OldTransitionOpt:
 	T_ARROW T_ID '{' OldGuard Sync Assign '}' { 
-	  CALL(@1, @7, procTransition(rootTransId, $2));
+	  CALL(@1, @7, procEdge(rootTransId, $2));
 	}
         | T_ARROW T_ID '{' OldGuard Sync Assign error { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
-	  CALL(@1, @7, procTransition(rootTransId, $2));
+	  CALL(@1, @7, procEdge(rootTransId, $2));
 	}
         | T_ARROW T_ID '{' OldGuard Sync Assign error '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_RBRACE));
-	  CALL(@1, @8, procTransition(rootTransId, $2));
+	  CALL(@1, @8, procEdge(rootTransId, $2));
 	}
 	| T_ARROW T_ID error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @8, procTransition(rootTransId, $2));
+	  CALL(@1, @8, procEdge(rootTransId, $2));
 	}
 	| T_ARROW error T_ID '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	  CALL(@1, @8, procTransition(rootTransId, $3));
+	  CALL(@1, @8, procEdge(rootTransId, $3));
 	}
 	| T_ARROW error '{' OldGuard Sync Assign '}' { 
 	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	  CALL(@1, @7, procTransition(rootTransId, "_"));
+	  CALL(@1, @7, procEdge(rootTransId, "_"));
 	}
 	| OldTransition
 	;
@@ -1666,7 +1516,7 @@ static int32_t parseXTA(ParserBuilder *aParserBuilder,
 		 ErrorHandler *err, bool newxta, xta_part_t part)
 {
     // Select syntax
-    syntax = (syntax_t)(newxta ? SYNTAX_NEW : SYNTAX_OLD);
+    syntax = (syntax_t)((newxta ? SYNTAX_NEW : SYNTAX_OLD) | SYNTAX_GUIDING);
     setStartToken(part, newxta);
 
     // Set parser builder and error handler
@@ -1679,7 +1529,9 @@ static int32_t parseXTA(ParserBuilder *aParserBuilder,
 
     // Parse string
     int res = 0;
+
     g_parameter_count = 0;
+
     if (utap_parse()) 
     {
 	res = -1;

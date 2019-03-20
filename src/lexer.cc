@@ -365,11 +365,11 @@ static yyconst flex_int16_t yy_accept[93] =
     {   0,
         0,    0,    0,    0,   70,   68,    7,    9,   68,   23,
        43,   45,   22,   19,   20,   41,   39,   12,   40,   11,
-       42,   67,   14,   13,   53,   25,   56,   21,   66,   66,
+       42,   67,   14,   13,   55,   25,   56,   21,   66,   66,
        66,   17,   68,   18,   46,   15,   44,   16,    4,    1,
         4,    4,    7,    9,   10,   58,   31,   50,   33,   29,
        59,   27,   60,   28,   24,    8,    6,   30,   67,   26,
-       47,   51,   37,   52,   57,   55,   54,   48,   38,   66,
+       47,   51,   37,   53,   57,   54,   52,   48,   38,   66,
         0,    0,    0,    0,    0,    5,   34,   32,   49,    2,
         3,    0,   65,    6,   35,   36,   61,   62,   63,   64,
         3,    0
@@ -519,7 +519,7 @@ char *utap_text;
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA
 */
-#line 23 "lexer.ll"
+#line 24 "lexer.ll"
 
 #include <iostream>
 #include "keywords.cc"
@@ -688,7 +688,7 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 48 "lexer.ll"
+#line 49 "lexer.ll"
 
 
 #line 695 "lexer.cc"
@@ -750,16 +750,12 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 112 );
+		while ( yy_current_state != 92 );
+		yy_cp = (yy_last_accepting_cpos);
+		yy_current_state = (yy_last_accepting_state);
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
-		if ( yy_act == 0 )
-			{ /* have to back up */
-			yy_cp = (yy_last_accepting_cpos);
-			yy_current_state = (yy_last_accepting_state);
-			yy_act = yy_accept[yy_current_state];
-			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -777,56 +773,56 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 51 "lexer.ll"
+#line 52 "lexer.ll"
 { yylloc.lines(1); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 52 "lexer.ll"
+#line 53 "lexer.ll"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 53 "lexer.ll"
+#line 54 "lexer.ll"
 /* Single line comments take precedence over multilines */;
 	YY_BREAK
 case YY_STATE_EOF(comment):
-#line 54 "lexer.ll"
+#line 55 "lexer.ll"
 { BEGIN(INITIAL); yyerror("Unclosed comment."); return 0; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 55 "lexer.ll"
+#line 56 "lexer.ll"
 /* ignore (multiline comments)*/
 	YY_BREAK
 
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 58 "lexer.ll"
+#line 59 "lexer.ll"
 { /* Use \ as continuation character */ 
                   yylloc.lines(1); 
                 } 
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 62 "lexer.ll"
+#line 63 "lexer.ll"
 /* ignore (singleline comment)*/;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 64 "lexer.ll"
+#line 65 "lexer.ll"
 
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 66 "lexer.ll"
+#line 67 "lexer.ll"
 { BEGIN(comment); }
 	YY_BREAK
 case 9:
 /* rule 9 can match eol */
 YY_RULE_SETUP
-#line 68 "lexer.ll"
+#line 69 "lexer.ll"
 {
                   yylloc.lines(utap_leng); 
 		  if (syntax == SYNTAX_PROPERTY)
@@ -836,7 +832,7 @@ YY_RULE_SETUP
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 74 "lexer.ll"
+#line 75 "lexer.ll"
 {
                   yylloc.lines(utap_leng / 2);
 		  if (syntax == SYNTAX_PROPERTY)
@@ -845,290 +841,294 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 80 "lexer.ll"
+#line 81 "lexer.ll"
 { return '.'; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 81 "lexer.ll"
+#line 82 "lexer.ll"
 { return ','; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 82 "lexer.ll"
+#line 83 "lexer.ll"
 { return ';'; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 83 "lexer.ll"
+#line 84 "lexer.ll"
 { return ':'; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 84 "lexer.ll"
+#line 85 "lexer.ll"
 { return '{'; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 85 "lexer.ll"
+#line 86 "lexer.ll"
 { return '}'; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 86 "lexer.ll"
+#line 87 "lexer.ll"
 { return '['; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 87 "lexer.ll"
+#line 88 "lexer.ll"
 { return ']'; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 88 "lexer.ll"
+#line 89 "lexer.ll"
 { return '('; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 89 "lexer.ll"
+#line 90 "lexer.ll"
 { return ')'; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 90 "lexer.ll"
+#line 91 "lexer.ll"
 { return '?'; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 91 "lexer.ll"
+#line 92 "lexer.ll"
 { return '\''; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 92 "lexer.ll"
+#line 93 "lexer.ll"
 { return T_EXCLAM; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 94 "lexer.ll"
+#line 95 "lexer.ll"
 { return T_ARROW; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 95 "lexer.ll"
-{ if (syntax & SYNTAX_NEW)
-			return T_ASSIGNMENT; 
-		  utap_error("Unknown symbol");
-		  return T_ERROR;
- 		}
+#line 96 "lexer.ll"
+{ return T_ASSIGNMENT; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 100 "lexer.ll"
-{ if (syntax & SYNTAX_OLD)
-			return T_ASSIGNMENT;
-		  utap_error("Unknown symbol");
-                  return T_ERROR; 
-                }
+#line 97 "lexer.ll"
+{ return T_ASSIGNMENT; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 105 "lexer.ll"
+#line 98 "lexer.ll"
 { return T_ASSPLUS; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 106 "lexer.ll"
+#line 99 "lexer.ll"
 { return T_ASSMINUS; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 107 "lexer.ll"
+#line 100 "lexer.ll"
 { return T_ASSMULT; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 108 "lexer.ll"
+#line 101 "lexer.ll"
 { return T_ASSDIV; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 109 "lexer.ll"
+#line 102 "lexer.ll"
 { return T_ASSMOD; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 110 "lexer.ll"
+#line 103 "lexer.ll"
 { return T_ASSOR; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 111 "lexer.ll"
+#line 104 "lexer.ll"
 { return T_ASSAND; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 112 "lexer.ll"
+#line 105 "lexer.ll"
 { return T_ASSXOR; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 113 "lexer.ll"
+#line 106 "lexer.ll"
 { return T_ASSLSHIFT; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 114 "lexer.ll"
+#line 107 "lexer.ll"
 { return T_ASSRSHIFT; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 115 "lexer.ll"
+#line 108 "lexer.ll"
 { return T_MIN; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 116 "lexer.ll"
+#line 109 "lexer.ll"
 { return T_MAX; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 118 "lexer.ll"
+#line 111 "lexer.ll"
 { return T_PLUS; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 119 "lexer.ll"
+#line 112 "lexer.ll"
 { return T_MINUS; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 120 "lexer.ll"
+#line 113 "lexer.ll"
 { return T_MULT; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 121 "lexer.ll"
+#line 114 "lexer.ll"
 { return T_DIV; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 122 "lexer.ll"
+#line 115 "lexer.ll"
 { return T_MOD; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 123 "lexer.ll"
+#line 116 "lexer.ll"
 { return T_OR; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 124 "lexer.ll"
+#line 117 "lexer.ll"
 { return '&'; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 125 "lexer.ll"
+#line 118 "lexer.ll"
 { return T_XOR; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 126 "lexer.ll"
+#line 119 "lexer.ll"
 { return T_LSHIFT; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 127 "lexer.ll"
+#line 120 "lexer.ll"
 { return T_RSHIFT; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 128 "lexer.ll"
+#line 121 "lexer.ll"
 { return T_BOOL_OR; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 129 "lexer.ll"
+#line 122 "lexer.ll"
 { return T_BOOL_AND; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 131 "lexer.ll"
+#line 124 "lexer.ll"
 { return T_LEQ; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 132 "lexer.ll"
-{ return T_LEQ; } // TODO: Remove from new syntax
+#line 125 "lexer.ll"
+{ return T_GEQ; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 133 "lexer.ll"
-{ return T_LT; }
+#line 126 "lexer.ll"
+{ if (syntax & SYNTAX_OLD)
+                  {
+                      return T_LEQ;
+                  }
+                  utap_error("Unknown symbol");
+                  return T_ERROR;
+                }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 134 "lexer.ll"
-{ return T_GEQ; } // TODO: Remove from new syntax
+#line 133 "lexer.ll"
+{ if (syntax & SYNTAX_OLD)
+                  {
+                      return T_GEQ;
+                  }
+                  utap_error("Unknown symbol");
+                  return T_ERROR;
+                }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 135 "lexer.ll"
-{ return T_GEQ; }
+#line 140 "lexer.ll"
+{ return T_LT; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 136 "lexer.ll"
+#line 141 "lexer.ll"
 { return T_GT; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 137 "lexer.ll"
+#line 142 "lexer.ll"
 { return T_EQ; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 138 "lexer.ll"
+#line 143 "lexer.ll"
 { return T_NEQ; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 140 "lexer.ll"
+#line 145 "lexer.ll"
 { return T_INCREMENT; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 141 "lexer.ll"
+#line 146 "lexer.ll"
 { return T_DECREMENT; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 143 "lexer.ll"
+#line 148 "lexer.ll"
 { return T_AF; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 144 "lexer.ll"
+#line 149 "lexer.ll"
 { return T_AG; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 145 "lexer.ll"
+#line 150 "lexer.ll"
 { return T_EF; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 146 "lexer.ll"
+#line 151 "lexer.ll"
 { return T_EG; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 147 "lexer.ll"
+#line 152 "lexer.ll"
 { return T_LEADSTO; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 149 "lexer.ll"
+#line 154 "lexer.ll"
 {
 /*  		if (strlen(decl_text) >= MaxIdLen ) */
 /*  			declError << "Identifier too long. Only " << MaxIdLen  */
@@ -1158,7 +1158,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 176 "lexer.ll"
+#line 181 "lexer.ll"
 { 
                   utap_lval.number = atoi(utap_text); 
                   return T_NAT; 
@@ -1166,19 +1166,19 @@ YY_RULE_SETUP
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 181 "lexer.ll"
+#line 186 "lexer.ll"
 { 
 		  utap_error("Unknown symbol");
                   return T_ERROR; 
                 }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 186 "lexer.ll"
+#line 191 "lexer.ll"
 { return 0; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 188 "lexer.ll"
+#line 193 "lexer.ll"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 1185 "lexer.cc"
@@ -1246,7 +1246,8 @@ YY_FATAL_ERROR( "flex scanner jammed" );
 
 			else
 				{
-				yy_cp = (yy_c_buf_p);
+				yy_cp = (yy_last_accepting_cpos);
+				yy_current_state = (yy_last_accepting_state);
 				goto yy_find_action;
 				}
 			}
@@ -1684,10 +1685,6 @@ static void utap__load_buffer_state  (void)
 	utap_free((void *) b  );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a utap_restart() or at EOF.
@@ -1711,7 +1708,7 @@ extern int isatty (int );
         b->yy_bs_column = 0;
     }
 
-        b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+        b->yy_is_interactive = 0;
     
 	errno = oerrno;
 }
@@ -2108,7 +2105,7 @@ void utap_free (void * ptr )
 #undef YY_DECL_IS_OURS
 #undef YY_DECL
 #endif
-#line 188 "lexer.ll"
+#line 193 "lexer.ll"
 
 
 

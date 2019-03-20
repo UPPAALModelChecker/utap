@@ -22,8 +22,8 @@
 #ifndef UTAP_EXPRESSIONBUILDER_HH
 #define UTAP_EXPRESSIONBUILDER_HH
 
-#include "abstractbuilder.h"
-#include "utap.h"
+#include "utap/abstractbuilder.h"
+#include "utap/utap.h"
 
 namespace UTAP
 {
@@ -54,9 +54,6 @@ namespace UTAP
 
 	/* Current frame */
 	frame_t frame;
-
-	/* list of number of expected arguments */
-	std::list<uint32_t> expectedArguments;
 
 	/* Set the current frame */
 	void setFrame(frame_t);
