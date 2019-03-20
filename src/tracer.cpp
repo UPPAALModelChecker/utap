@@ -27,6 +27,7 @@
 #include <cstdio>
 #include <climits>
 #include <cstring>
+#include <cassert>
 
 using namespace std;
 
@@ -178,7 +179,7 @@ void loadIF(FILE *file)
 		{
 			while (read(file, str, 255) && !isspace(str[0]))
 			{
-				char s[5];
+				char s[6];
 				cell_t cell;
 
 				if (sscanf(str, "%d:clock:%d:%31s", &index,
@@ -258,12 +259,11 @@ void loadIF(FILE *file)
 				int values[3];
 				int cnt = sscanf(str, "%d:%d%d%d", &address,
 								 values + 0, values + 1, values + 2);
-				if (cnt < 2)
+				if (cnt < 2 && cnt > 3)
 				{
 					throw invalid_format("In instruction section");
 				}
-
-				for (int i = 0; i < cnt; i++)
+				for (int i = 0; i < cnt-1; ++i)
 				{
 					instructions.push_back(values[i]);
 				}
@@ -424,7 +424,7 @@ State::State(FILE *file)
     {
 		fscanf(file, "%d\n", &getLocation(i));
     }
-    fscanf(file, ".\n");
+	fscanf(file, ".\n");
 
     /* Read DBM.
      */
@@ -490,6 +490,8 @@ Transition::Transition(FILE *file)
     int process, edge;
     while (fscanf(file, "%d %d.\n", &process, &edge) == 2)
     {
+		if (process<0 || unsigned(process) >= processCount)
+			throw invalid_format("bad process index");
 		edges[process] = edge - 1;
     }
     fscanf(file, ".\n");
@@ -509,7 +511,9 @@ ostream &operator << (ostream &o, const State &state)
      */
     for (size_t p = 0; p < processCount; p++)
     {
-		int idx = processes[p].locations[state.getLocation(p)];
+		size_t lid = state.getLocation(p);
+		assert(lid < processes[p].locations.size());
+		int idx = processes[p].locations[lid];
 		cout << processes[p].name << '.' << layout[idx].name << " ";
     }
 
@@ -654,6 +658,6 @@ int main(int argc, char *argv[])
     }
     catch (exception &e)
     {
-		cerr << "Catched exception: " << e.what() << endl;
+		cerr << "Cought exception: " << e.what() << endl;
     }
 }
