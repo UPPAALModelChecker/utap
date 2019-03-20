@@ -2,7 +2,7 @@
 
 /* tracer - Utility for printing UPPAAL XTR trace files.
    Copyright (C) 2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -61,10 +61,10 @@ struct cell_t
     /** Name of cell. Not all types have names. */
     string name;
 
-    union 
+    union
     {
         int value;
-        struct 
+        struct
         {
             int nr;
         } clock;
@@ -88,7 +88,7 @@ struct cell_t
             int process;
             int invariant;
         } location;
-        struct 
+        struct
         {
             int min;
             int max;
@@ -155,7 +155,7 @@ invalid_format::invalid_format(const string&  arg) : runtime_error(arg)
  */
 bool read(FILE *file, char *str, size_t n)
 {
-    do 
+    do
     {
         if (fgets(str, n, file) == NULL)
         {
@@ -180,10 +180,10 @@ void loadIF(FILE *file)
         {
             while (read(file, str, 255) && !isspace(str[0]))
             {
-                char s[5];
+                char s[6];
                 cell_t cell;
-                
-                if (sscanf(str, "%d:clock:%d:%31s", &index, 
+
+                if (sscanf(str, "%d:clock:%d:%31s", &index,
                            &cell.clock.nr, name) == 3)
                 {
                     cell.type = CLOCK;
@@ -191,13 +191,13 @@ void loadIF(FILE *file)
                     clocks.push_back(name);
                     clockCount++;
                 }
-                else if (sscanf(str, "%d:const:%d", &index, 
+                else if (sscanf(str, "%d:const:%d", &index,
                                 &cell.value) == 2)
                 {
                     cell.type = CONST;
                 }
-                else if (sscanf(str, "%d:var:%d:%d:%d:%d:%31s", &index, 
-                                &cell.var.min, &cell.var.max, &cell.var.init, 
+                else if (sscanf(str, "%d:var:%d:%d:%d:%d:%31s", &index,
+                                &cell.var.min, &cell.var.max, &cell.var.init,
                                 &cell.var.nr, name) == 6)
                 {
                     cell.type = VAR;
@@ -233,7 +233,7 @@ void loadIF(FILE *file)
                     cell.name = name;
                 }
                 else if (sscanf(str, "%d:static:%d:%d:%31s", &index,
-                                &cell.fixed.min, &cell.fixed.max, 
+                                &cell.fixed.min, &cell.fixed.max,
                                 name) == 4)
                 {
                     cell.type = FIXED;
@@ -244,7 +244,7 @@ void loadIF(FILE *file)
                 {
                     cell.type = COST;
                 }
-                else 
+                else
                 {
                     throw invalid_format(str);
                 }
@@ -259,14 +259,14 @@ void loadIF(FILE *file)
                 int address;
                 int values[4];
                 int cnt = sscanf(
-                    str, "%d:%d%d%d%d", &address, 
-                    values + 0, values + 1, values + 2, values + 4);
-                if (cnt < 2)
+                    str, "%d:%d%d%d%d", &address,
+                    values + 0, values + 1, values + 2, values + 3);
+                if (cnt < 2 && cnt>5)
                 {
                     throw invalid_format("In instruction section");
                 }
 
-                for (int i = 0; i < cnt; i++)
+                for (int i = 0; i < cnt-1; i++)
                 {
                     instructions.push_back(values[i]);
                 }
@@ -277,7 +277,7 @@ void loadIF(FILE *file)
             while (read(file, str, 255) && !isspace(str[0]))
             {
                 process_t process;
-                if (sscanf(str, "%d:%d:%31s", 
+                if (sscanf(str, "%d:%d:%31s",
                            &index, &process.initial, name) != 3)
                 {
                     throw invalid_format("In process section");
@@ -311,12 +311,12 @@ void loadIF(FILE *file)
             {
                 edge_t edge;
 
-                if (sscanf(str, "%d:%d:%d:%d:%d:%d", &edge.process, 
+                if (sscanf(str, "%d:%d:%d:%d:%d:%d", &edge.process,
                            &edge.source, &edge.target,
                            &edge.guard, &edge.sync, &edge.update) != 6)
                 {
                     throw invalid_format("In edge section");
-                }                
+                }
 
                 processes[edge.process].edges.push_back(edges.size());
                 edges.push_back(edge);
@@ -329,8 +329,8 @@ void loadIF(FILE *file)
                 if (sscanf(str, "%d", &index) != 1)
                 {
                     throw invalid_format("In expression section");
-                }                    
-                
+                }
+
                 /* Find expression string (after the third colon).
                  */
                 char *s = str;
@@ -345,14 +345,14 @@ void loadIF(FILE *file)
                     throw invalid_format("In expression section");
                 }
 
-                /* Trim white space. 
+                /* Trim white space.
                  */
-                while (*s && isspace(*s)) 
+                while (*s && isspace(*s))
                 {
                     s++;
                 }
                 char *t = s + strlen(s) - 1;
-                while (t >= s && isspace(*t)) 
+                while (t >= s && isspace(*t))
                 {
                     t--;
                 }
@@ -361,11 +361,11 @@ void loadIF(FILE *file)
                 expressions[index] = s;
             }
         }
-        else 
+        else
         {
             throw invalid_format("Unknown section");
         }
-    }  
+    }
 };
 
 /* A bound for a clock constraint. A bound consists of a value and a
@@ -395,7 +395,7 @@ public:
     State();
     State(FILE *);
     ~State();
-    
+
     int &getLocation(int i)              { return locations[i]; }
     int &getVariable(int i)              { return integers[i]; }
     bound_t &getConstraint(int i, int j) { return dbm[i * clockCount + j]; }
@@ -437,11 +437,11 @@ State::State(FILE *file)
         getConstraint(i, j).value = bnd >> 1;
         getConstraint(i, j).strict = bnd & 1;
     }
-    fscanf(file, ".\n");    
+    fscanf(file, ".\n");
 
     /* Read integers.
      */
-    for (size_t i = 0; i < variableCount; i++) 
+    for (size_t i = 0; i < variableCount; i++)
     {
         fscanf(file, "%d\n", &getVariable(i));
     }
@@ -455,7 +455,7 @@ void State::allocate()
     locations = new int[processCount];
     integers = new int[variableCount];
     dbm = new bound_t[clockCount * clockCount];
-    
+
     /* Fill with default values.
      */
     fill(locations, locations + processCount, 0);
@@ -464,7 +464,7 @@ void State::allocate()
 
     /* Set diagonal and lower bounds to zero.
      */
-    for (size_t i = 0; i < clockCount; i++) 
+    for (size_t i = 0; i < clockCount; i++)
     {
         getConstraint(0, i) = zero;
         getConstraint(i, i) = zero;
@@ -535,30 +535,30 @@ ostream &operator << (ostream &o, const State &state)
 
     /* Print variables.
      */
-    for (size_t v = 0; v < variableCount; v++) 
+    for (size_t v = 0; v < variableCount; v++)
     {
         cout << variables[v] << " = " << state.getVariable(v) << ' ';
     }
-  
+
     /* Print clocks.
      */
-    for (size_t i = 0; i < clockCount; i++) 
+    for (size_t i = 0; i < clockCount; i++)
     {
-        for (size_t j = 0; j < clockCount; j++) 
+        for (size_t j = 0; j < clockCount; j++)
         {
-            if (i != j) 
+            if (i != j)
             {
                 bound_t bnd = state.getConstraint(i, j);
 
-                if (bnd.value != infinity.value) 
+                if (bnd.value != infinity.value)
                 {
-                    cout << clocks[i] << "-" << clocks[j] 
+                    cout << clocks[i] << "-" << clocks[j]
                          << (bnd.strict ? "<" : "<=") << bnd.value << " ";
                 }
             }
         }
     }
-  
+
     return o;
 }
 
@@ -600,7 +600,7 @@ void loadTrace(FILE *file)
     /* Read and print trace.
      */
     cout << "State: " << State(file) << endl;
-    for (;;) 
+    for (;;)
     {
         int c;
         /* Skip white space.
@@ -611,7 +611,7 @@ void loadTrace(FILE *file)
 
         /* A dot terminates the trace.
          */
-        if (c == '.') 
+        if (c == '.')
         {
             break;
         }
@@ -636,9 +636,9 @@ void loadTrace(FILE *file)
 int main(int argc, char *argv[])
 {
     FILE *file;
-    try 
+    try
     {
-        if (argc < 3) 
+        if (argc < 3)
         {
             printf("Synopsis: %s <if> <trace>\n", argv[0]);
             exit(1);
