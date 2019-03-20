@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
@@ -64,11 +64,6 @@ void AbstractBuilder::setPosition(uint32_t start, uint32_t end)
 }
 
 bool AbstractBuilder::isType(const char*)
-{
-    return false;
-}
-
-bool AbstractBuilder::isLocation(const char*)
 {
     return false;
 }
@@ -206,16 +201,6 @@ void AbstractBuilder::procStateCommit(const char* name)
 void AbstractBuilder::procStateUrgent(const char* name)
 {
     throw NotSupportedException("procStateUrgent is not supported");
-}
-
-void AbstractBuilder::procStateWinning(const char* name)
-{
-    throw NotSupportedException("procStateWinning is not supported");
-}
-
-void AbstractBuilder::procStateLosing(const char* name)
-{
-    throw NotSupportedException("procStateLosing is not supported");
 }
 
 void AbstractBuilder::procStateInit(const char* name)
@@ -374,6 +359,11 @@ void AbstractBuilder::returnStatement(bool)
 {
     throw NotSupportedException("returnStatement is not supported");
 }
+
+void AbstractBuilder::assertStatement()
+{
+    throw NotSupportedException("assertStatement is not supported");
+}
     
 void AbstractBuilder::exprTrue()
 {
@@ -445,6 +435,11 @@ void AbstractBuilder::exprBinary(Constants::kind_t binaryop)
     throw NotSupportedException("exprBinary is not supported");
 }
 
+void AbstractBuilder::exprTernary(Constants::kind_t ternaryop, bool firstMissing)
+{
+    throw NotSupportedException("exprTernary is not supported");
+}
+
 void AbstractBuilder::exprInlineIf()
 {
     throw NotSupportedException("exprInlineIf is not supported");
@@ -504,9 +499,19 @@ void AbstractBuilder::done()
 {
 }
 
-void AbstractBuilder::property(Constants::kind_t)
+void AbstractBuilder::property()
 {
     throw NotSupportedException("property");
+}
+
+void AbstractBuilder::paramProperty(size_t, Constants::kind_t)
+{
+    throw NotSupportedException("paramProperty");
+}
+
+void AbstractBuilder::declParamId(const char *)
+{
+    throw NotSupportedException("declParamId");
 }
 
 void AbstractBuilder::beforeUpdate()
@@ -542,4 +547,14 @@ void AbstractBuilder::procPriority(const char*)
 void AbstractBuilder::chanPriority()
 {
     throw NotSupportedException("chanPriority");
+}
+
+void AbstractBuilder::ssQueryBegin()
+{
+    throw NotSupportedException("ssQueryBegin");
+}
+
+void AbstractBuilder::ssQueryEnd()
+{
+    throw NotSupportedException("ssQueryEnd");
 }

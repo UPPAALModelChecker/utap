@@ -1,4 +1,4 @@
-/* C++ code produced by gperf version 3.0.1 */
+/* C++ code produced by gperf version 3.0.2 */
 /* Command-line: gperf -C -E -t -L C++ -c -K str -Z Tags tags.gperf  */
 /* Computed positions: -k'4' */
 
@@ -31,7 +31,7 @@
 
 #line 1 "tags.gperf"
 struct Tag { char *str; tag_t tag; };
-/* maximum key range = 29, duplicates = 0 */
+/* maximum key range = 24, duplicates = 0 */
 
 class Tags
 {
@@ -46,32 +46,32 @@ Tags::hash (register const char *str, register unsigned int len)
 {
   static const unsigned char asso_values[] =
     {
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 10, 32, 32,
-      32,  5, 32, 25, 32, 20, 32, 32, 10, 15,
-       5,  0,  0, 32, 10, 32,  0, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-      32, 32, 32, 32, 32, 32
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 10, 27, 27,
+      27,  5, 27, 20, 27, 27, 27, 27, 10, 15,
+       5,  0,  0, 27, 10, 27,  0, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 27, 27
     };
   register int hval = len;
 
@@ -91,11 +91,11 @@ Tags::in_word_set (register const char *str, register unsigned int len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 19,
+      TOTAL_KEYWORDS = 17,
       MIN_WORD_LENGTH = 3,
       MAX_WORD_LENGTH = 13,
       MIN_HASH_VALUE = 3,
-      MAX_HASH_VALUE = 31
+      MAX_HASH_VALUE = 26
     };
 
   static const struct Tag wordlist[] =
@@ -114,19 +114,18 @@ Tags::in_word_set (register const char *str, register unsigned int len)
       {"template",	TAG_TEMPLATE},
 #line 9 "tags.gperf"
       {"name",		TAG_NAME},
-#line 20 "tags.gperf"
+#line 18 "tags.gperf"
       {"label",		TAG_LABEL},
 #line 14 "tags.gperf"
       {"urgent",		TAG_URGENT},
-#line 16 "tags.gperf"
-      {"winning",	TAG_WINNING},
+      {""},
 #line 7 "tags.gperf"
       {"instantiation",	TAG_INSTANTIATION},
-#line 21 "tags.gperf"
+#line 19 "tags.gperf"
       {"nail",		TAG_NAIL},
 #line 13 "tags.gperf"
       {"transition",	TAG_TRANSITION},
-#line 18 "tags.gperf"
+#line 16 "tags.gperf"
       {"source",		TAG_SOURCE},
       {""},
 #line 11 "tags.gperf"
@@ -141,9 +140,6 @@ Tags::in_word_set (register const char *str, register unsigned int len)
       {"committed",	TAG_COMMITTED},
       {""},
 #line 17 "tags.gperf"
-      {"losing",		TAG_LOSING},
-      {""}, {""}, {""}, {""},
-#line 19 "tags.gperf"
       {"target",		TAG_TARGET}
     };
 
@@ -161,5 +157,5 @@ Tags::in_word_set (register const char *str, register unsigned int len)
     }
   return 0;
 }
-#line 22 "tags.gperf"
+#line 20 "tags.gperf"
 

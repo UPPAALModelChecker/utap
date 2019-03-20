@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002 Uppsala University and Aalborg University.
@@ -45,55 +45,50 @@ using std::cerr;
 
 using namespace UTAP::Constants;
 
+static bool newSyntax = (getenv("UPPAAL_OLD_SYNTAX") == NULL);
+
 /**
  * Test for pretty printer
  */
 int main(int argc, char *argv[])
 {
-    bool old = false;
-    bool xml = false;
-    char c;
-  
-    while ((c = getopt(argc,argv,"bx")) != -1) 
+    try 
     {
-	switch(c) 
-	{
-	case 'b':
-	    old = true;
-	    break;
-	case 'x':
-	    xml = true;
-	    break;
-	}
-    }
+        std::string filename;
 
-    ParserBuilder *b = new UTAP::PrettyPrinter(cout);
-    
-    if (xml) 
-    {
-	if (argc - optind != 1)
-	{
-	    exit(1);
-	}
-	parseXMLFile(argv[optind], b, !old);
-    }
-    else 
-    {
-	parseXTA(stdin, b, !old);
-    }
+        if (argc != 2)
+        {
+            std::cerr << "Usage: " << argv[0] << " MODEL\n\n";
+            std::cerr << "where MODEL is a UPPAAL .xml, xta, or .ta file\n";
+            return 1;
+        }
 
-    delete b;
+        filename = argv[1];
+
+        UTAP::PrettyPrinter pretty(cout);
+
+        if (strcasecmp(".xml", filename.c_str() + filename.length() - 4) == 0)
+        {
+            parseXMLFile(filename.c_str(), &pretty, newSyntax);
+        }
+        else 
+        {
+            FILE *file = fopen(filename.c_str(), "r");
+            if (file == NULL) 
+            {
+                char msg[256];
+                snprintf(msg, 255, "Error opening %s", filename.c_str());
+                perror(msg);
+                return 1;
+            }
+            
+            parseXTA(file, &pretty, newSyntax);
+        }
+    } 
+    catch (std::exception &e)
+    {
+        std::cerr << "Caught exception: " << e.what() << std::endl;
+        return 1;
+    }
+    return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

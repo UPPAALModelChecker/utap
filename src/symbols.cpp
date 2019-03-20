@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
@@ -120,11 +120,11 @@ uint32_t range_t::size() const
 
 struct symbol_t::symbol_data
 {
-    int32_t count;	// Reference counter
-    void *frame;	// Uncounted pointer to containing frame
-    type_t type;	// The type of the symbol
-    void *user;		// User data
-    string name;	// The name of the symbol
+    int32_t count;        // Reference counter
+    void *frame;        // Uncounted pointer to containing frame
+    type_t type;        // The type of the symbol
+    void *user;                // User data
+    string name;        // The name of the symbol
 };
 
 symbol_t::symbol_t()
@@ -148,7 +148,7 @@ symbol_t::symbol_t(const symbol_t &symbol)
     data = symbol.data;
     if (data) 
     {
-	data->count++;
+        data->count++;
     }
 }
 
@@ -157,11 +157,11 @@ symbol_t::~symbol_t()
 {
     if (data) 
     {
-	data->count--;
-	if (data->count == 0) 
-	{
-	    delete data;
-	}
+        data->count--;
+        if (data->count == 0) 
+        {
+            delete data;
+        }
     }
 }
 
@@ -170,16 +170,16 @@ const symbol_t &symbol_t::operator = (const symbol_t &symbol)
 {
     if (data) 
     {
-	data->count--;
-	if (data->count == 0) 
-	{
-	    delete data;
-	}
+        data->count--;
+        if (data->count == 0) 
+        {
+            delete data;
+        }
     }
     data = symbol.data;
     if (data) 
     {
-	data->count++;
+        data->count++;
     }
     return *this;
 }
@@ -234,7 +234,7 @@ string symbol_t::getName() const
 {
     return data->name;
 }
-	
+        
 /* Sets the user data of this symbol */
 void symbol_t::setData(void *value)
 {
@@ -245,10 +245,10 @@ void symbol_t::setData(void *value)
 
 struct frame_t::frame_data
 {
-    int32_t count;			// Reference count
-    bool hasParent;			// True if there is a parent
-    frame_data *parent;			// The parent frame data
-    vector<symbol_t> symbols;		// The symbols in the frame
+    int32_t count;                        // Reference count
+    bool hasParent;                        // True if there is a parent
+    frame_data *parent;                        // The parent frame data
+    vector<symbol_t> symbols;                // The symbols in the frame
     map<string, int32_t> mapping;       // Mapping from names to indices
 };
 
@@ -262,7 +262,7 @@ frame_t::frame_t(void *p)
     data = (frame_data*)p;
     if (data)
     {
-	data->count++;
+        data->count++;
     }
 }
 
@@ -272,7 +272,7 @@ frame_t::frame_t(const frame_t &frame)
     data = frame.data;
     if (data)
     {
-	data->count++;
+        data->count++;
     }
 }
 
@@ -281,28 +281,28 @@ frame_t::~frame_t()
 {
     if (data) 
     {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete data;
-	}
+        data->count--;
+        if (data->count == 0)
+        {
+            delete data;
+        }
     }
 }
 
 const frame_t &frame_t::operator = (const frame_t &frame)
-{	
+{        
     if (data) 
     {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete data;
-	}
+        data->count--;
+        if (data->count == 0)
+        {
+            delete data;
+        }
     }
     data = frame.data;
     if (data)
     {
-	data->count++;
+        data->count++;
     }
     return *this;
 }
@@ -350,7 +350,7 @@ symbol_t frame_t::addSymbol(string name, type_t type, void *user)
     data->symbols.push_back(symbol);
     if (!name.empty())
     {
-	data->mapping[symbol.getName()] =  data->symbols.size() - 1;
+        data->mapping[symbol.getName()] =  data->symbols.size() - 1;
     }
     return symbol;
 }
@@ -364,7 +364,7 @@ void frame_t::add(symbol_t symbol)
     data->symbols.push_back(symbol);
     if (!symbol.getName().empty())
     {
-	data->mapping[symbol.getName()] =  data->symbols.size() - 1;
+        data->mapping[symbol.getName()] =  data->symbols.size() - 1;
     }
 }
 
@@ -376,7 +376,7 @@ void frame_t::add(frame_t frame)
 {
     for (uint32_t i = 0; i < frame.getSize(); i++) 
     {
-	add(frame[i]);
+        add(frame[i]);
     }
 }
 
@@ -395,7 +395,7 @@ bool frame_t::resolve(string name, symbol_t &symbol)
     int32_t idx = getIndexOf(name);
     if (idx == -1)
     {
-	return (data->hasParent ? getParent().resolve(name, symbol) : false);
+        return (data->hasParent ? getParent().resolve(name, symbol) : false);
     }
     symbol = data->symbols[idx];
     return true;
@@ -406,7 +406,7 @@ frame_t frame_t::getParent() throw (NoParentException)
 {
     if (!data->hasParent)
     {
-	throw NoParentException();
+        throw NoParentException();
     }
     return frame_t(data->parent);
 }

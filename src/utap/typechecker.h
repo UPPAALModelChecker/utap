@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
@@ -32,25 +32,6 @@
 
 namespace UTAP
 {
-
-    /** Visitor which collects the persistent variables of the
-	system. A persistent variable is one which is stored in a
-	state. I.e. all non-constant variables except function local
-	variables are persistent. Non-constant template parameters and
-	reference template parameters are also collected.  Variables
-	with mixed storage (i.e. constant and non-constant elements)
-	are considered persistent.
-    */
-    class PersistentVariables : public SystemVisitor
-    {
-    private:
-	std::set<symbol_t> variables;
-    public:
-	virtual void visitVariable(variable_t &);
-	virtual void visitInstance(instance_t &);
-	const std::set<symbol_t> &get() const;
-    };
-
     /** 
      * Visitor which collects all compile time computable
      * symbols. These are all global and template local constants and
@@ -60,11 +41,11 @@ namespace UTAP
     class CompileTimeComputableValues : public SystemVisitor
     {
     private:
-	std::set<symbol_t> variables;
+        std::set<symbol_t> variables;
     public:
-	virtual void visitVariable(variable_t &);
-	virtual void visitInstance(instance_t &);
-	bool contains(symbol_t) const;
+        virtual void visitVariable(variable_t &);
+        virtual void visitInstance(instance_t &);
+        bool contains(symbol_t) const;
     };
 
     /** 
@@ -76,60 +57,58 @@ namespace UTAP
     class TypeChecker : public SystemVisitor, public AbstractStatementVisitor
     {
     private:
-	TimedAutomataSystem *system;
-	PersistentVariables persistentVariables;
-	CompileTimeComputableValues compileTimeComputableValues;
-	function_t *function; /**< Current function being type checked. */
+        TimedAutomataSystem *system;
+        CompileTimeComputableValues compileTimeComputableValues;
+        function_t *function; /**< Current function being type checked. */
 
-	template<class T>
-	void handleError(T, std::string);
-	template<class T>
-	void handleWarning(T, std::string);
+        template<class T>
+        void handleError(T, std::string);
+        template<class T>
+        void handleWarning(T, std::string);
     
-	expression_t checkInitialiser(type_t type, expression_t init);
-	bool areAssignmentCompatible(type_t lvalue, type_t rvalue) const;
-	bool areInlineIfLHSCompatible(type_t t1, type_t t2) const;
-	bool areInlineIfCompatible(type_t thenArg, type_t elseArg) const;
-	bool areEqCompatible(type_t t1, type_t t2) const;
-	bool isSideEffectFree(expression_t) const;
-	bool isLHSValue(expression_t) const;
-	bool isUniqueReference(expression_t expr) const;
-	bool checkParameterCompatible(type_t param, expression_t expr);
+        expression_t checkInitialiser(type_t type, expression_t init);
+        bool areAssignmentCompatible(type_t lvalue, type_t rvalue) const;
+        bool areInlineIfCompatible(type_t thenArg, type_t elseArg) const;
+        bool areEqCompatible(type_t t1, type_t t2) const;
+        bool areEquivalent(type_t, type_t) const;
+        bool isLValue(expression_t) const;
+        bool isModifiableLValue(expression_t) const;
+        bool isUniqueReference(expression_t expr) const;
+        bool isParameterCompatible(type_t param, expression_t arg);
+        bool checkParameterCompatible(type_t param, expression_t arg);
+        void checkIgnoredValue(expression_t expr);
+        bool checkAssignmentExpression(expression_t);
+        bool checkConditionalExpressionInFunction(expression_t);
 
-	/** Checks that the expression is a valid 'statement expression' */
-	void checkAssignmentExpressionInFunction(expression_t);
-
-	/** Checks that the expression can be used as a condition (e.g. for if) */
-	void checkConditionalExpressionInFunction(expression_t);
-
-	bool isCompileTimeComputable(expression_t expr) const;
-	void checkType(type_t, bool initialisable = false);
+        bool isCompileTimeComputable(expression_t expr) const;
+        void checkType(type_t, bool initialisable = false);
 
     public:
-	TypeChecker(TimedAutomataSystem *system);
-	virtual ~TypeChecker() {}
-	virtual void visitSystemAfter(TimedAutomataSystem *);
-	virtual void visitVariable(variable_t &);
-	virtual void visitState(state_t &);
-	virtual void visitEdge(edge_t &);
-	virtual void visitInstance(instance_t &);
-	virtual void visitProperty(expression_t);
-	virtual void visitFunction(function_t &);
-	virtual void visitProgressMeasure(progress_t &);
-	virtual void visitProcess(instance_t &);
+        TypeChecker(TimedAutomataSystem *system);
+        virtual ~TypeChecker() {}
+        virtual void visitSystemAfter(TimedAutomataSystem *);
+        virtual void visitVariable(variable_t &);
+        virtual void visitState(state_t &);
+        virtual void visitEdge(edge_t &);
+        virtual void visitInstance(instance_t &);
+        virtual void visitProperty(expression_t);
+        virtual void visitFunction(function_t &);
+        virtual void visitProgressMeasure(progress_t &);
+        virtual void visitProcess(instance_t &);
 
-	virtual int32_t visitEmptyStatement(EmptyStatement *stat);
-	virtual int32_t visitExprStatement(ExprStatement *stat);
-	virtual int32_t visitForStatement(ForStatement *stat);
-	virtual int32_t visitIterationStatement(IterationStatement *stat);
-	virtual int32_t visitWhileStatement(WhileStatement *stat);
-	virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
-	virtual int32_t visitBlockStatement(BlockStatement *stat);
-	virtual int32_t visitIfStatement(IfStatement *stat);
-	virtual int32_t visitReturnStatement(ReturnStatement *stat);
+        virtual int32_t visitEmptyStatement(EmptyStatement *stat);
+        virtual int32_t visitExprStatement(ExprStatement *stat);
+        virtual int32_t visitAssertStatement(AssertStatement *stat);
+        virtual int32_t visitForStatement(ForStatement *stat);
+        virtual int32_t visitIterationStatement(IterationStatement *stat);
+        virtual int32_t visitWhileStatement(WhileStatement *stat);
+        virtual int32_t visitDoWhileStatement(DoWhileStatement *stat);
+        virtual int32_t visitBlockStatement(BlockStatement *stat);
+        virtual int32_t visitIfStatement(IfStatement *stat);
+        virtual int32_t visitReturnStatement(ReturnStatement *stat);
 
-	/** Type check an expression */
-	bool checkExpression(expression_t);
+        /** Type check an expression */
+        bool checkExpression(expression_t);
     };
 }
 

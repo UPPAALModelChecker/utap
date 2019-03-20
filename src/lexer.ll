@@ -71,9 +71,9 @@ namespace UTAP
 
 %}
 
-alpha	[a-zA-Z_]
-num	[0-9]+
-idchr	[a-zA-Z0-9_$#]
+alpha        [a-zA-Z_]
+num        [0-9]+
+idchr        [a-zA-Z0-9_$#]
 
 %x comment
 
@@ -93,41 +93,41 @@ idchr	[a-zA-Z0-9_$#]
 
 "//"[^\n]*      /* ignore (singleline comment)*/;
 
-[ \t]+		
+[ \t]+        	
 
 "/*"            { BEGIN(comment); }
 
-\n+		{
+\n+        	{
                   PositionTracker::newline(ch, yyleng);
-		  if (syntax == SYNTAX_PROPERTY)
-		    return '\n';
+        	  if ((syntax & SYNTAX_PROPERTY) != 0)
+        	    return '\n';
                 }
 
 (\r\n)+         {
                   PositionTracker::newline(ch, yyleng / 2);
-		  if (syntax == SYNTAX_PROPERTY)
-		    return '\n';
+        	  if ((syntax & SYNTAX_PROPERTY) != 0)
+        	    return '\n';
                 }
 
-"."		{ return '.'; }
-","		{ return ','; }
-";"		{ return ';'; }
+"."        	{ return '.'; }
+","        	{ return ','; }
+";"        	{ return ';'; }
 ":"             { return ':'; }
-"{"		{ return '{'; }
-"}"		{ return '}'; }
-"["		{ return '['; }
-"]"		{ return ']'; }
+"{"        	{ return '{'; }
+"}"        	{ return '}'; }
+"["        	{ return '['; }
+"]"        	{ return ']'; }
 "("             { return '('; }
 ")"             { return ')'; }
-"?"		{ return '?'; }
-"'"		{ return '\''; }
-"!"		{ return T_EXCLAM; }
+"?"        	{ return '?'; }
+"'"        	{ return '\''; }
+"!"        	{ return T_EXCLAM; }
 
-"->"		{ return T_ARROW; }
-"-u->"		{ return T_UNCONTROL_ARROW; }
+"->"        	{ return T_ARROW; }
+"-u->"        	{ return T_UNCONTROL_ARROW; }
 
-"="		{ return T_ASSIGNMENT; }
-":="		{ return T_ASSIGNMENT; }
+"="        	{ return T_ASSIGNMENT; }
+":="        	{ return T_ASSIGNMENT; }
 "+="            { return T_ASSPLUS; }
 "-="            { return T_ASSMINUS; }
 "*="            { return T_ASSMULT; }
@@ -138,13 +138,13 @@ idchr	[a-zA-Z0-9_$#]
 "^="            { return T_ASSXOR; }
 "<<="           { return T_ASSLSHIFT; }
 ">>="           { return T_ASSRSHIFT; }
-"<?"		{ return T_MIN; }
-">?"		{ return T_MAX; }
+"<?"        	{ return T_MIN; }
+">?"        	{ return T_MAX; }
 
-"+"		{ return T_PLUS; }
-"-"		{ return T_MINUS; }
-"*"		{ return T_MULT; }
-"/"		{ return T_DIV; }
+"+"        	{ return T_PLUS; }
+"-"        	{ return T_MINUS; }
+"*"        	{ return T_MULT; }
+"/"        	{ return T_DIV; }
 "%"             { return T_MOD; }
 "|"             { return T_OR; }
 "&"             { return '&'; }
@@ -154,74 +154,94 @@ idchr	[a-zA-Z0-9_$#]
 "||"            { return T_BOOL_OR; }
 "&&"            { return T_BOOL_AND; }
 
-"<="		{ return T_LEQ; }
-">="		{ return T_GEQ; }
-"=<"		{ if (syntax & SYNTAX_OLD)
+"<="        	{ return T_LEQ; }
+">="        	{ return T_GEQ; }
+"=<"        	{ if (syntax & SYNTAX_OLD)
                   {
                       return T_LEQ;
                   }
                   utap_error("Unknown symbol");
                   return T_ERROR;
                 }
-"=>"		{ if (syntax & SYNTAX_OLD)
+"=>"        	{ if (syntax & SYNTAX_OLD)
                   {
                       return T_GEQ;
                   }
                   utap_error("Unknown symbol");
                   return T_ERROR;
                 }
-"<"		{ return T_LT; }
-">"		{ return T_GT; }
-"=="		{ return T_EQ; }
-"!="		{ return T_NEQ; }
+"<"        	{ return T_LT; }
+">"        	{ return T_GT; }
+"=="        	{ return T_EQ; }
+"!="        	{ return T_NEQ; }
 
 "++"            { return T_INCREMENT; }
 "--"            { return T_DECREMENT; }
 
+"A"             { return 'A'; }
+"U"             { return 'U'; }
+"W"             { return 'W'; }
+
 "A<>"           { return T_AF; }
+"AF"            { return T_AF2; }
 "A[]"           { return T_AG; }
+"AG"            { return T_AG2; }
 "E<>"           { return T_EF; }
+"EF"            { return T_EF2; }
 "E[]"           { return T_EG; }
+"EG"            { return T_EG2; }
 "-->"           { return T_LEADSTO; }
 
 {alpha}{idchr}* {
-/*  		if (strlen(decl_text) >= MaxIdLen ) */
-/*  			declError << "Identifier too long. Only " << MaxIdLen  */
-/*  				 << " characters are significant.\n"; */
-		  const Keyword *keyword
-		    = Keywords::in_word_set(utap_text, strlen(utap_text));
-		  if (keyword != NULL && (syntax & keyword->syntax)) {
-		    if (keyword->token == T_CONST && (syntax & SYNTAX_OLD))
-		      return T_OLDCONST;
-		    return keyword->token;	  
-	          } else if (ch->isType(utap_text)) {
-		    strncpy(utap_lval.string, utap_text, MAXLEN);
-		    utap_lval.string[MAXLEN - 1] = '\0';
-		    return T_TYPENAME;
-                  } else {
-		    if (keyword != NULL && !(syntax & keyword->syntax)) {
-		      utap_lval.string[0] = '_';
-		      strncpy(utap_lval.string + 1, utap_text, MAXLEN - 1);
-		      utap_lval.string[MAXLEN - 1] = '\0';		      
-		    } else {
+/*          	if (strlen(decl_text) >= MaxIdLen ) */
+/*          		declError << "Identifier too long. Only " << MaxIdLen  */
+/*          			 << " characters are significant.\n"; */
+        	  const Keyword *keyword
+        	    = Keywords::in_word_set(utap_text, strlen(utap_text));
+		  if (keyword != NULL)
+		  {
+		      int32_t s = keyword->syntax;
+#ifndef ENABLE_TIGA
+		      /* Remove all TIGA keywords if tiga is not enabled. */
+		      if (s & SYNTAX_TIGA)
+		      {
+			  s = 0;
+		      }
+#endif
+		      if (syntax & s)
+		      {
+			  if (keyword->token == T_CONST && (syntax & SYNTAX_OLD))
+			  {
+			      return T_OLDCONST;
+			  }
+			  return keyword->token;
+		      } 
+		  }
+		  if (ch->isType(utap_text)) 
+		  {
 		      strncpy(utap_lval.string, utap_text, MAXLEN);
 		      utap_lval.string[MAXLEN - 1] = '\0';
-		    }
-		    return T_ID;
-		  }
+		      return T_TYPENAME;
+                  } 
+		  else 
+		  {
+        	      strncpy(utap_lval.string, utap_text, MAXLEN);
+        	      utap_lval.string[MAXLEN - 1] = '\0';
+		      return T_ID;
+        	  }
                 }
 
-{num}		{ 
+{num}        	{ 
                   utap_lval.number = atoi(utap_text); 
                   return T_NAT; 
                 }
 
 .               { 
-		  utap_error("Unknown symbol");
+        	  utap_error("Unknown symbol");
                   return T_ERROR; 
                 }
 
-<<EOF>>		{ return 0; }
+<<EOF>>        	{ return 0; }
 
 %%
 

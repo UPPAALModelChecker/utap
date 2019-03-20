@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
@@ -62,6 +62,23 @@ bool ExprStatement::returns()
     return false;
 }
 
+
+AssertStatement::AssertStatement(expression_t expr)
+    : Statement(), expr(expr)
+{
+
+}
+
+int32_t AssertStatement::accept(StatementVisitor *visitor)
+{
+    return visitor->visitAssertStatement(this);
+}
+
+bool AssertStatement::returns()
+{
+    return false;
+}
+
 ForStatement::ForStatement(expression_t init,
    expression_t cond, expression_t step, Statement* _stat)
     : Statement(), init(init), cond(cond), step(step), stat(_stat) 
@@ -97,7 +114,7 @@ bool IterationStatement::returns()
 }
 
 WhileStatement::WhileStatement(expression_t cond,
-			       Statement* _stat)
+                               Statement* _stat)
     : Statement(), cond(cond), stat(_stat) 
 { 
     assert(_stat!=NULL); 
@@ -114,7 +131,7 @@ bool WhileStatement::returns()
 }
 
 DoWhileStatement::DoWhileStatement(Statement* _stat,
-				   expression_t cond)
+                                   expression_t cond)
     : Statement(), stat(_stat), cond(cond) 
 {
     assert(_stat!=NULL);
@@ -239,7 +256,7 @@ bool DefaultStatement::returns()
 }
 
 IfStatement::IfStatement(expression_t cond,
-			 Statement* _true, Statement* _false)
+                         Statement* _true, Statement* _false)
     : Statement(), cond(cond), trueCase(_true), falseCase(_false) 
 {
     assert(_true!=NULL);
@@ -322,6 +339,11 @@ int32_t AbstractStatementVisitor::visitExprStatement(ExprStatement *stat)
     return visitStatement(stat);
 }
 
+int32_t AbstractStatementVisitor::visitAssertStatement(AssertStatement *stat)
+{
+    return visitStatement(stat);
+}
+
 int32_t AbstractStatementVisitor::visitForStatement(ForStatement *stat)
 {
     return stat->stat->accept(this);
@@ -348,7 +370,7 @@ int32_t AbstractStatementVisitor::visitBlockStatement(BlockStatement *stat)
     BlockStatement::iterator i;
     for (i = stat->begin(); i != stat->end(); i++)
     {
-	result = (*i)->accept(this);
+        result = (*i)->accept(this);
     }
     return result;
 }
@@ -372,12 +394,12 @@ int32_t AbstractStatementVisitor::visitIfStatement(IfStatement *stat)
 {
     if (stat->falseCase)
     {
-	stat->trueCase->accept(this);
-	return stat->falseCase->accept(this);
+        stat->trueCase->accept(this);
+        return stat->falseCase->accept(this);
     } 
     else
     {
-	return stat->trueCase->accept(this);
+        return stat->trueCase->accept(this);
     }
 }
 
@@ -397,6 +419,12 @@ int32_t AbstractStatementVisitor::visitReturnStatement(ReturnStatement *stat)
 }
 
 int32_t ExpressionVisitor::visitExprStatement(ExprStatement *stat)
+{
+    visitExpression(stat->expr);
+    return 0;
+}
+
+int32_t ExpressionVisitor::visitAssertStatement(AssertStatement *stat)
 {
     visitExpression(stat->expr);
     return 0;
@@ -429,11 +457,11 @@ int32_t ExpressionVisitor::visitBlockStatement(BlockStatement *stat)
     frame_t vars = stat->getFrame();
     for (size_t i = 0; i < vars.getSize(); i++)
     {
-	if (vars[i].getData())
-	{
-	    // REVISIT: This will only work if vars[i] is a variable!
-	    visitExpression(((variable_t *)vars[i].getData())->expr);
-	}	
+        if (vars[i].getData())
+        {
+            // REVISIT: This will only work if vars[i] is a variable!
+            visitExpression(((variable_t *)vars[i].getData())->expr);
+        }        
     }
 
     /* Visit statements.
@@ -441,7 +469,7 @@ int32_t ExpressionVisitor::visitBlockStatement(BlockStatement *stat)
     BlockStatement::iterator s;
     for (s = stat->begin(); s != stat->end(); ++s) 
     {
-	(*s)->accept(this);
+        (*s)->accept(this);
     }
     return 0;
 }
@@ -469,7 +497,7 @@ int32_t ExpressionVisitor::visitIfStatement(IfStatement *stat)
     stat->trueCase->accept(this);
     if (stat->falseCase) 
     {
-	stat->falseCase->accept(this);
+        stat->falseCase->accept(this);
     }
     return 0;
 }

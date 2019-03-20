@@ -20,25 +20,25 @@
 
 VPATH = @srcdir@
 
-bin_PROGRAMS = pretty tracer check ioiface
+bin_PROGRAMS = pretty tracer syntaxcheck taflow
 lib_LIBRARIES = libutap.a
 includedir = ${prefix}/include/utap
-include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/iointerface.h utap/position.h utap/prettyprinter.h utap/statement.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h 
+include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/position.h utap/prettyprinter.h utap/signalflow.h utap/statement.h utap/statementbuilder.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h 
 
 pretty_SOURCES = pretty.cpp
 
 tracer_SOURCES = tracer.cpp
 
-check_SOURCES = check.cpp
+syntaxcheck_SOURCES = syntaxcheck.cpp
 
-ioiface_SOURCES = ioiface.cpp
+taflow_SOURCES = taflow.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expression.cpp expressionbuilder.cpp iointerface.cpp position.cpp prettyprinter.cpp statement.cpp symbols.cpp system.cpp systembuilder.cpp type.cpp typechecker.cpp typeexception.cpp xmlreader.cpp tags.gperf parser.yy libparser.h 
+libutap_a_SOURCES = abstractbuilder.cpp expression.cpp expressionbuilder.cpp position.cpp prettyprinter.cpp signalflow.cpp statement.cpp statementbuilder.cpp symbols.cpp system.cpp systembuilder.cpp type.cpp typechecker.cpp typeexception.cpp xmlreader.cpp tags.gperf parser.yy libparser.h 
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
 pretty_LDADD = libutap.a $(XML_LIBS)
-check_LDADD = libutap.a $(XML_LIBS)
-ioiface_LDADD = libutap.a $(XML_LIBS)
+syntaxcheck_LDADD = libutap.a $(XML_LIBS)
+taflow_LDADD = libutap.a $(XML_LIBS)
 AM_CFLAGS = @CFLAGS@ $(XML_CFLAGS) -Wall
 AM_CPPFLAGS = @CPPFLAGS@ $(XML_CFLAGS) -Wall
 

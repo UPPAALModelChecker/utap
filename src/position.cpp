@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2006 Uppsala University and Aalborg University.
@@ -31,7 +31,7 @@ void Positions::add(uint32_t position, uint32_t offset, uint32_t line, string pa
 {
     if (!elements.empty() && position < elements.back().position)
     {
-	throw std::logic_error("Positions must be monotonically increasing");
+        throw std::logic_error("Positions must be monotonically increasing");
     }
     elements.push_back(line_t(position, offset, line, path));
 }
@@ -41,15 +41,15 @@ const Positions::line_t &Positions::find(
 {
     while (first + 1 < last)
     {
-	uint32_t i = (first + last) / 2;
-	if (position < elements[i].position)
-	{
-	    last = i;
-	}
-	else
-	{
-	    first = i;
-	}
+        uint32_t i = (first + last) / 2;
+        if (position < elements[i].position)
+        {
+            last = i;
+        }
+        else
+        {
+            first = i;
+        }
     }
     return elements[first];
 }
@@ -58,7 +58,7 @@ const Positions::line_t &Positions::find(uint32_t position) const
 {
     if (elements.size() == 0)
     {
-	throw std::logic_error("No positions have been added");
+        throw std::logic_error("No positions have been added");
     }
     return find(position, 0, elements.size());
 }
@@ -68,10 +68,10 @@ void Positions::dump()
 {
     for (size_t i = 0; i < elements.size(); i++)
     {
-	std::cout << elements[i].position << " "
-		  << elements[i].offset << " "
-		  << elements[i].line << " "
-		  << elements[i].path << std::endl;
+        std::cout << elements[i].position << " "
+                  << elements[i].offset << " "
+                  << elements[i].line << " "
+                  << elements[i].path << std::endl;
     }
 }
 
@@ -79,17 +79,17 @@ std::ostream &operator <<(std::ostream &out, const UTAP::error_t &e)
 {
     if (e.start.path.empty())
     {
-	out << e.msg << " at line "
-	    << e.start.line << " column " << (e.position.start - e.start.position)
-	    << " to line " 
-	    << e.end.line << " column " << (e.position.end - e.end.position);
+        out << e.msg << " at line "
+            << e.start.line << " column " << (e.position.start - e.start.position)
+            << " to line " 
+            << e.end.line << " column " << (e.position.end - e.end.position);
     }
     else
     {
-	out << e.msg << " in " << e.start.path << " at line "
-	    << e.start.line << " column " << (e.position.start - e.start.position)
-	    << " to line " 
-	    << e.end.line << " column " << (e.position.end - e.end.position);
+        out << e.msg << " in " << e.start.path << " at line "
+            << e.start.line << " column " << (e.position.start - e.start.position)
+            << " to line " 
+            << e.end.line << " column " << (e.position.end - e.end.position);
     }
     return out;
 };

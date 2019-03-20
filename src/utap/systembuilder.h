@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2004 Uppsala University and Aalborg University.
@@ -26,7 +26,7 @@
 #include <vector>
 #include <inttypes.h>
 
-#include "utap/expressionbuilder.h"
+#include "utap/statementbuilder.h"
 #include "utap/utap.h"
 
 namespace UTAP
@@ -39,14 +39,14 @@ namespace UTAP
      *
      *  - states are not both committed and urgent 
      *  - the source and target of an edge is a state
-     *  - the dot operator is applied to a process or a structure.
-     *  - functions are not recursive
+     *  - the dot operator is applied to a process or a structure (StatementBuilder)
+     *  - functions are not recursive (StatementBuilder)
      *  - only declared functions are called (ExpressionBuilder)
-     *  - functions are called with the correct number of arguments
+     *  - functions are called with the correct number of arguments (StatementBuilder)
      *  - the initial state of a template is actually declared as a state
      *  - templates in instantiations have been declared
-     *  - identifiers are not declared twice in the same scope
-     *  - type names do exist and are declared as types
+     *  - identifiers are not declared twice in the same scope (StatementBuilder)
+     *  - type names do exist and are declared as types (StatementBuilder)
      *  - processes in the system line have been declared
      *
      * Left hand side expressions are assigned the correct type by
@@ -66,100 +66,56 @@ namespace UTAP
      *
      * Use TypeChecker for these things.
      */
-    class SystemBuilder : public ExpressionBuilder
+    class SystemBuilder : public StatementBuilder
     {
     protected:
-	/** The current channel priority level. */
-	int32_t currentChanPriority;
+        /** The current channel priority level. */
+        int32_t currentChanPriority;
 
-	/** The current process priority level. */
-	int32_t currentProcPriority;
+        /** The current process priority level. */
+        int32_t currentProcPriority;
 
-	/** 
-	 * The \a params frame is used temporarily during parameter
-	 * parsing.
-	 */
-	frame_t params;
+        /** The edge under construction. */
+        edge_t *currentEdge;
 
-	/** The function currently being parsed. */
-	function_t *currentFun;
+        //
+        // Method for handling types
+        //
 
-	/** The edge under construction. */
-	edge_t *currentEdge;
+        declarations_t *getCurrentDeclarationBlock();
 
-	/** Stack of nested statement blocks. */
-	std::vector<BlockStatement*> blocks; 
-
-	/** The types of a struct. */
-	std::vector<type_t> fields;
-
-	/** The labels of a struct. */
-	std::vector<std::string> labels;
-
-	//
-	// Method for handling types
-	//
-
-	declarations_t *getCurrentDeclarationBlock();
+        virtual variable_t *addVariable(type_t type, const char*  name,
+                                        expression_t init);
+        virtual bool addFunction(type_t type, const char* name);
 
     public:
-	SystemBuilder(TimedAutomataSystem *);
+        SystemBuilder(TimedAutomataSystem *);
 
-	virtual void typeArrayOfSize(size_t);
-	virtual void typeArrayOfType(size_t);
-	virtual void typeStruct(PREFIX, uint32_t fields);
-	virtual void structField(const char* name); 
-	virtual void declTypeDef(const char* name); 
-	virtual void declVar(const char* name, bool init); 
-	virtual void declInitialiserList(uint32_t num); 
-	virtual void declFieldInit(const char* name); 
-	virtual void declProgress(bool);
-	virtual void declParameter(const char* name, bool);
-	virtual void declFuncBegin(const char* name);
-	virtual void declFuncEnd();
-	virtual void procBegin(const char* name);
-	virtual void procEnd(); 
-	virtual void procState(const char* name, bool hasInvariant); 
-	virtual void procStateCommit(const char* name); 
-	virtual void procStateUrgent(const char* name); 
-	virtual void procStateWinning(const char* name);
-	virtual void procStateLosing(const char* name); 
-	virtual void procStateInit(const char* name); 
+        virtual void declProgress(bool);
+        virtual void procBegin(const char* name);
+        virtual void procEnd(); 
+        virtual void procState(const char* name, bool hasInvariant); 
+        virtual void procStateCommit(const char* name); 
+        virtual void procStateUrgent(const char* name); 
+        virtual void procStateInit(const char* name); 
         virtual void procEdgeBegin(const char* from, const char* to, const bool control);
-	virtual void procEdgeEnd(const char* from, const char* to); 
-	virtual void procSelect(const char *id);
-	virtual void procGuard();
-	virtual void procSync(Constants::synchronisation_t type);
-	virtual void procUpdate();
-	virtual void blockBegin();
-	virtual void blockEnd();
-	virtual void emptyStatement();
-	virtual void forBegin();
-	virtual void forEnd(); 
-	virtual void iterationBegin(const char *name);
-	virtual void iterationEnd(const char *name);
-	virtual void whileBegin();
-	virtual void whileEnd();
-	virtual void doWhileBegin();
-	virtual void doWhileEnd();
-	virtual void ifBegin();
-	virtual void ifElse();
-	virtual void ifEnd(bool); 
-	virtual void exprStatement(); 
-	virtual void returnStatement(bool);
-	virtual void exprCallBegin();
-	virtual void instantiationBegin(const char*, size_t, const char*);
-	virtual void instantiationEnd(
-	    const char *, size_t, const char *, size_t);
-	virtual void process(const char*);
-	virtual void done();    
-	virtual void beforeUpdate();
-	virtual void afterUpdate();
-	virtual void incProcPriority();
-	virtual void incChanPriority();
-	virtual void chanPriority();
-	virtual void procPriority(const char*);
-	virtual void defaultChanPriority();
+        virtual void procEdgeEnd(const char* from, const char* to); 
+        virtual void procSelect(const char *id);
+        virtual void procGuard();
+        virtual void procSync(Constants::synchronisation_t type);
+        virtual void procUpdate();
+        virtual void instantiationBegin(const char*, size_t, const char*);
+        virtual void instantiationEnd(
+            const char *, size_t, const char *, size_t);
+        virtual void process(const char*);
+        virtual void done();    
+        virtual void beforeUpdate();
+        virtual void afterUpdate();
+        virtual void incProcPriority();
+        virtual void incChanPriority();
+        virtual void chanPriority();
+        virtual void procPriority(const char*);
+        virtual void defaultChanPriority();
     };
 }
 #endif

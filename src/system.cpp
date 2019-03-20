@@ -1,4 +1,4 @@
-// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
@@ -79,7 +79,7 @@ state_t &template_t::addLocation(string name, expression_t inv)
 
     if (duplicate)
     {
-	throw TypeException(boost::format("Duplicate definition of %1%") % name);
+        throw TypeException(boost::format("Duplicate definition of %1%") % name);
     }
 
     return state;
@@ -100,7 +100,7 @@ TimedAutomataSystem::TimedAutomataSystem()
 {
     global.frame = frame_t::createFrame();
     addVariable(&global, type_t::createPrimitive(CLOCK), "t(0)", expression_t());
-#ifdef ENABLE_PRICED
+#ifdef ENABLE_CORA
     addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t());
 #endif
 
@@ -168,7 +168,7 @@ instance_t &TimedAutomataSystem::addInstance(
 
     for (size_t i = 0; i < arguments.size(); i++)
     {
-	instance.mapping[inst.parameters[i]] = arguments[i];
+        instance.mapping[inst.parameters[i]] = arguments[i];
     }
 
     return instance;
@@ -181,14 +181,14 @@ void TimedAutomataSystem::addProcess(instance_t &instance)
     instance_t &process = processes.back();
     if (process.unbound == 0)
     {
-	type = type_t::createProcess(process.templ->frame);
+        type = type_t::createProcess(process.templ->frame);
     }
     else
     {
-	type = type_t::createProcessSet(instance.uid.getType());
+        type = type_t::createProcessSet(instance.uid.getType());
     }
     process.uid = global.frame.addSymbol(
-	instance.uid.getName(), type, &process);
+        instance.uid.getName(), type, &process);
 }
 
 // Add a regular variable
@@ -227,7 +227,7 @@ variable_t *TimedAutomataSystem::addVariable(
 
     if (duplicate)
     {
-	throw TypeException(boost::format("Duplicate definition of identifier %1%") % name);
+        throw TypeException(boost::format("Duplicate definition of identifier %1%") % name);
     }
 
     return var;
@@ -246,35 +246,35 @@ static void visit(SystemVisitor &visitor, frame_t frame)
 {
     for (size_t i = 0; i < frame.getSize(); i++)
     {
-	type_t type = frame[i].getType();
+        type_t type = frame[i].getType();
 
-	if (type.getKind() == TYPEDEF)
-	{
-	    visitor.visitTypeDef(frame[i]);
-	    continue;
-	}
+        if (type.getKind() == TYPEDEF)
+        {
+            visitor.visitTypeDef(frame[i]);
+            continue;
+        }
 
-	void *data = frame[i].getData();
-	type = type.stripArray();
+        void *data = frame[i].getData();
+        type = type.stripArray();
 
-	if ((type.is(Constants::INT)
-	     || type.is(Constants::BOOL)
-	     || type.is(CLOCK)
-	     || type.is(CHANNEL)
-	     || type.is(SCALAR)
-	     || type.getKind() == RECORD)
-	    && data != NULL) // <--- ignore parameters
-	{
-	    visitor.visitVariable(*static_cast<variable_t*>(data));
-	}
-	else if (type.is(LOCATION))
-	{
-	    visitor.visitState(*static_cast<state_t*>(data));
-	}
-	else if (type.is(FUNCTION))
-	{
-	    visitor.visitFunction(*static_cast<function_t*>(data));
-	}
+        if ((type.is(Constants::INT)
+             || type.is(Constants::BOOL)
+             || type.is(CLOCK)
+             || type.is(CHANNEL)
+             || type.is(SCALAR)
+             || type.getKind() == RECORD)
+            && data != NULL) // <--- ignore parameters
+        {
+            visitor.visitVariable(*static_cast<variable_t*>(data));
+        }
+        else if (type.is(LOCATION))
+        {
+            visitor.visitState(*static_cast<state_t*>(data));
+        }
+        else if (type.is(FUNCTION))
+        {
+            visitor.visitFunction(*static_cast<function_t*>(data));
+        }
     }
 }
 
@@ -286,31 +286,31 @@ void TimedAutomataSystem::accept(SystemVisitor &visitor)
     list<template_t>::iterator t;
     for (t = templates.begin(); t != templates.end();t++)
     {
-	if (visitor.visitTemplateBefore(*t))
-	{
-	    visit(visitor, t->frame);
+        if (visitor.visitTemplateBefore(*t))
+        {
+            visit(visitor, t->frame);
 
-	    for_each(t->edges.begin(), t->edges.end(),
-		     bind(&SystemVisitor::visitEdge, &visitor, _1));
+            for_each(t->edges.begin(), t->edges.end(),
+                     bind(&SystemVisitor::visitEdge, &visitor, _1));
 
-	    visitor.visitTemplateAfter(*t);
-	}
+            visitor.visitTemplateAfter(*t);
+        }
     }
 
     for (size_t i = 0; i < global.frame.getSize(); i++)
     {
-	type_t type = global.frame[i].getType();
-	void *data = global.frame[i].getData();
-	type = type.stripArray();
+        type_t type = global.frame[i].getType();
+        void *data = global.frame[i].getData();
+        type = type.stripArray();
 
-	if (type.is(PROCESS) || type.is(PROCESSSET))
-	{
-	    visitor.visitProcess(*static_cast<instance_t*>(data));
-	}
-	else if (type.is(INSTANCE))
-	{
-	    visitor.visitInstance(*static_cast<instance_t*>(data));
-	}
+        if (type.is(PROCESS) || type.is(PROCESSSET))
+        {
+            visitor.visitProcess(*static_cast<instance_t*>(data));
+        }
+        else if (type.is(INSTANCE))
+        {
+            visitor.visitInstance(*static_cast<instance_t*>(data));
+        }
     }
 
     visitor.visitSystemAfter(this);
@@ -396,15 +396,15 @@ const Positions::line_t &TimedAutomataSystem::findPosition(uint32_t position) co
 void TimedAutomataSystem::addError(position_t position, std::string msg)
 {
     errors.push_back(error_t(positions.find(position.start),
-			     positions.find(position.end),
-			     position, msg));
+                             positions.find(position.end),
+                             position, msg));
 }
 
 void TimedAutomataSystem::addWarning(position_t position, std::string msg)
 {
     warnings.push_back(error_t(positions.find(position.start),
-			       positions.find(position.end),
-			       position, msg));
+                               positions.find(position.end),
+                               position, msg));
 }
 
 // Returns the errors
@@ -438,3 +438,5 @@ void TimedAutomataSystem::clearWarnings()
 {
     warnings.clear();
 }
+
+

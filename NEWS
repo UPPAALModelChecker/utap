@@ -1,3 +1,20 @@
+New in 0.91
+
+This is a snapshot of UTAP in the latest development version of 
+UPPAAL. Highlights of this release include:
+
+- Bugs fixed in this release: 322, 336, 348, 351, 352, 353, 
+  358, 364, 367, 370, 372, 383.
+- CTL parsing has been enhanced to allow nesting of formulas.
+- TIGA support was added.
+- Improved compilation on Windows.
+- Syntax check utility was renamed to 'syntaxcheck'
+- Type checker was cleaned up
+- IO Interface utility renamed to 'taflow'
+- Improved pretty printer
+- Refactored SystemBuilder into SystemBuilder and StatementBuilder
+
+
 New in 0.90
 
 This is the version of UTAP used in UPPAAL 3.6 Beta 3.  The tracer
