@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -33,12 +33,12 @@ namespace UTAP
 {
     class frame_t;
     class expression_t;
-    
+
     class NoParentException : public std::exception {};
 
-    /** An integer range. 
+    /** An integer range.
      */
-    class range_t 
+    class range_t
     {
     public:
         int lower, upper;
@@ -99,7 +99,7 @@ namespace UTAP
        getFrame()). However, a symbol does not contain a counted
        reference to its frame so you must maintain at least one
        reference to the frame to avoid to be deallocated.
-       
+
        Notice that it is possible to add the same symbol to several
        frames. In this case, the symbol will only "point back" to the
        first frame it was added to.
@@ -118,7 +118,7 @@ namespace UTAP
 
         /** Copy constructor */
         symbol_t(const symbol_t &);
-        
+
         /** Destructor */
         ~symbol_t();
 
@@ -133,7 +133,7 @@ namespace UTAP
 
         /** Less-than operator */
         bool operator < (const symbol_t &) const;
-        
+
         /** Get frame this symbol belongs to */
         frame_t getFrame();
 
@@ -142,7 +142,7 @@ namespace UTAP
 
         /** Alters the type of this symbol */
         void setType(type_t);
-        
+
         /** Returns the user data of this symbol */
         void *getData();
 
@@ -173,7 +173,7 @@ namespace UTAP
        recursively in the parent frame.
 
        Frames are constructed using one of the static factory methods
-       of frame_t. 
+       of frame_t.
 
        In order to avoid cyclic references no counted reference to the
        parent frame is maintained. Hence, the existence of the parent
@@ -206,7 +206,7 @@ namespace UTAP
 
         /** Inequality operator */
         bool operator != (const frame_t &) const;
-        
+
         /** Returns the number of symbols in this frame */
         uint32_t getSize() const;
 
@@ -244,7 +244,7 @@ namespace UTAP
         bool resolve(std::string name, symbol_t &symbol);
 
         /** Returns the parent frame */
-        frame_t getParent() throw (NoParentException);
+        frame_t getParent();
 
         /** Returns true if this frame has a parent */
         bool hasParent() const;

@@ -19,14 +19,14 @@
    USA
 */
 
-#include <cstdlib>
-#include <cassert>
+#include "utap/symbols.h"
+#include "utap/expression.h"
+
 #include <vector>
 #include <map>
 #include <stdexcept>
-
-#include "utap/symbols.h"
-#include "utap/expression.h"
+#include <cstdlib>
+#include <cassert>
 
 using std::vector;
 using std::map;
@@ -98,7 +98,7 @@ range_t range_t::operator& (const range_t &r) const
 
 bool range_t::contains(const range_t &r) const
 {
-    return lower <= r.lower && r.upper <= r.upper;
+    return lower <= r.lower && r.upper <= upper;
 }
 
 bool range_t::contains(int32_t value) const
@@ -455,7 +455,7 @@ bool frame_t::resolve(string name, symbol_t &symbol)
 }
 
 /* Returns the parent frame */
-frame_t frame_t::getParent() throw (NoParentException)
+frame_t frame_t::getParent()
 {
     if (!data->hasParent)
     {

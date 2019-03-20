@@ -1,6 +1,6 @@
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -27,7 +27,7 @@
 #include "libparser.h"
 
 using std::ostream;
-  
+
 #define YY_DECL int lexer_flex(void)
 
 uint32_t PositionTracker::line;
@@ -35,7 +35,7 @@ uint32_t PositionTracker::offset;
 uint32_t PositionTracker::position = 0;
 std::string PositionTracker::path;
 
-namespace UTAP 
+namespace UTAP
 {
   void PositionTracker::setPath(UTAP::ParserBuilder *parser, std::string s) {
 
@@ -45,20 +45,20 @@ namespace UTAP
     // position 10 could have a new path). An alternative would be to
     // subtract 1 before calling Positions::find().
 
-    position++; 
+    position++;
     line = 1;
     offset = 0;
     path = s;
     parser->addPosition(position, offset, line, path);
   }
-  
+
   int PositionTracker::increment(UTAP::ParserBuilder *parser, int n) {
     parser->setPosition(position, position + n);
     position += n;
     offset += n;
     return position - n;
   }
-  
+
   void PositionTracker::newline(UTAP::ParserBuilder *parser, int n) {
     line += n;
     parser->addPosition(position, offset, line, path);
@@ -86,13 +86,13 @@ idchr        [a-zA-Z0-9_$#]
   .            /* ignore (multiline comments)*/
 }
 
-"\\"[\t ]*"\n"  { /* Use \ as continuation character */ 
-                  PositionTracker::newline(ch, 1); 
-                } 
+"\\"[\t ]*"\n"  { /* Use \ as continuation character */
+                  PositionTracker::newline(ch, 1);
+                }
 
 "//"[^\n]*      /* ignore (singleline comment)*/;
 
-[ \t]+        	
+[ \t]+
 
 "/*"            { BEGIN(comment); }
 
@@ -184,7 +184,7 @@ idchr        [a-zA-Z0-9_$#]
 "U"             { return 'U'; }
 "R"             { return 'R'; }
 "W"             { return 'W'; }
-"E"             { return 'E'; }              
+"E"             { return 'E'; }
 
 "A<>"           { return T_AF; }
 "A[]"           { return T_AG; }
@@ -226,20 +226,20 @@ idchr        [a-zA-Z0-9_$#]
 			      return T_OLDCONST;
 			  }
 			  return keyword->token;
-		      } 
+		      }
 		  }
                   if (strlen(utap_text) > MAXLEN-1)
                   {
                       /* Don't keep the cut of strncpy silent. */
                       utap_error(ID_TOO_LONG);
                   }
-		  if (ch->isType(utap_text)) 
+		  if (ch->isType(utap_text))
 		  {
 		      strncpy(utap_lval.string, utap_text, MAXLEN);
 		      utap_lval.string[MAXLEN - 1] = '\0';
 		      return T_TYPENAME;
-                  } 
-		  else 
+                  }
+		  else
 		  {
         	      strncpy(utap_lval.string, utap_text, MAXLEN);
         	      utap_lval.string[MAXLEN - 1] = '\0';
@@ -273,7 +273,7 @@ idchr        [a-zA-Z0-9_$#]
                   }
 
                   // Oh, it worked.
-                  return T_NAT; 
+                  return T_NAT;
                 }
 
 {num}("."{num})?([eE]("+"|"-")?{num})? {
@@ -283,9 +283,9 @@ idchr        [a-zA-Z0-9_$#]
                 }
 
 
-.               { 
+.               {
         	  utap_error("$Unknown_symbol");
-                  return T_ERROR; 
+                  return T_ERROR;
                 }
 
 <<EOF>>        	{ return 0; }
@@ -295,5 +295,3 @@ idchr        [a-zA-Z0-9_$#]
 int utap_wrap() {
   return 1;
 }
-
-
