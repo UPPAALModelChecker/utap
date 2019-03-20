@@ -12,9 +12,9 @@
 <p>Inheritance diagram for UTAP::SystemVisitor:
 <p><center><img src="classUTAP_1_1SystemVisitor.png" usemap="#UTAP::SystemVisitor_map" border="0" alt=""></center>
 <map name="UTAP::SystemVisitor_map">
-<area href="classUTAP_1_1ContextVisitor.html" alt="UTAP::ContextVisitor" shape="rect" coords="0,56,159,80">
-<area href="classUTAP_1_1PersistentVariables.html" alt="UTAP::PersistentVariables" shape="rect" coords="169,56,328,80">
-<area href="classUTAP_1_1TypeChecker.html" alt="UTAP::TypeChecker" shape="rect" coords="0,112,159,136">
+<area href="classUTAP_1_1CompileTimeComputableValues.html" alt="UTAP::CompileTimeComputableValues" shape="rect" coords="0,56,226,80">
+<area href="classUTAP_1_1PersistentVariables.html" alt="UTAP::PersistentVariables" shape="rect" coords="236,56,462,80">
+<area href="classUTAP_1_1TypeChecker.html" alt="UTAP::TypeChecker" shape="rect" coords="472,56,698,80">
 </map>
 <a href="classUTAP_1_1SystemVisitor-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
@@ -37,11 +37,13 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a8">visitInstance</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a9">visitProcess</a> (<a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a9">visitProcess</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a10">visitFunction</a> (<a class="el" href="structUTAP_1_1function__t.html">function_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a11">visitProgressMeasure</a> (<a class="el" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a11">visitTypeDef</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1SystemVisitor.html#a12">visitProgressMeasure</a> (<a class="el" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;)</td></tr>
 
 </table>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
@@ -160,7 +162,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a8">UTAP::Typ
 <p>
 
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a6">UTAP::TypeChecker</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PersistentVariables.html#a1">UTAP::PersistentVariables</a>, <a class="el" href="classUTAP_1_1CompileTimeComputableValues.html#a1">UTAP::CompileTimeComputableValues</a>, and <a class="el" href="classUTAP_1_1TypeChecker.html#a6">UTAP::TypeChecker</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a9" doxytag="UTAP::SystemVisitor::visitProcess"></a><p>
@@ -171,7 +173,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a6">UTAP::Typ
         <tr>
           <td class="md" nowrap valign="top">virtual void UTAP::SystemVisitor::visitProcess           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [inline, virtual]</code></td>
@@ -188,10 +190,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a6">UTAP::Typ
     <td>
 
 <p>
-    </td>
+
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a10">UTAP::TypeChecker</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="UTAP::SystemVisitor::visitProgressMeasure"></a><p>
+<a class="anchor" name="a12" doxytag="UTAP::SystemVisitor::visitProgressMeasure"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -276,7 +280,9 @@ Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a4">UTAP::Typ
     <td>
 
 <p>
-    </td>
+
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a2">UTAP::TypeChecker</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a1" doxytag="UTAP::SystemVisitor::visitSystemBefore"></a><p>
@@ -332,9 +338,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1TypeChecker.html#a4">UTAP::Typ
     <td>
 
 <p>
-
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1ContextVisitor.html#a2">UTAP::ContextVisitor</a>, and <a class="el" href="classUTAP_1_1PersistentVariables.html#a1">UTAP::PersistentVariables</a>.    </td>
+    </td>
   </tr>
 </table>
 <a class="anchor" name="a4" doxytag="UTAP::SystemVisitor::visitTemplateBefore"></a><p>
@@ -362,9 +366,35 @@ Reimplemented in <a class="el" href="classUTAP_1_1ContextVisitor.html#a2">UTAP::
     <td>
 
 <p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a11" doxytag="UTAP::SystemVisitor::visitTypeDef"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">virtual void UTAP::SystemVisitor::visitTypeDef           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [inline, virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
 
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ContextVisitor.html#a1">UTAP::ContextVisitor</a>, and <a class="el" href="classUTAP_1_1TypeChecker.html#a2">UTAP::TypeChecker</a>.    </td>
+    </td>
   </tr>
 </table>
 <a class="anchor" name="a3" doxytag="UTAP::SystemVisitor::visitVariable"></a><p>
@@ -394,12 +424,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ContextVisitor.html#a1">UTAP::
 <p>
 
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PersistentVariables.html#a0">UTAP::PersistentVariables</a>, and <a class="el" href="classUTAP_1_1TypeChecker.html#a3">UTAP::TypeChecker</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PersistentVariables.html#a0">UTAP::PersistentVariables</a>, <a class="el" href="classUTAP_1_1CompileTimeComputableValues.html#a0">UTAP::CompileTimeComputableValues</a>, and <a class="el" href="classUTAP_1_1TypeChecker.html#a3">UTAP::TypeChecker</a>.    </td>
   </tr>
 </table>
 <hr>The documentation for this class was generated from the following file:<ul>
 <li><a class="el" href="system_8h-source.html">system.h</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -21,6 +21,7 @@
 
 #include <stack>
 #include <sstream>
+#include <stdexcept>
 
 #include "utap/prettyprinter.h"
 
@@ -64,56 +65,95 @@ PrettyPrinter::PrettyPrinter(ostream &stream)
     select = guard = sync = update = -1;
 }
 
-void PrettyPrinter::setErrorHandler(ErrorHandler *)
+void PrettyPrinter::addPosition(
+    uint32_t position, uint32_t offset, uint32_t line, std::string path)
 {
 
 }
 
-void PrettyPrinter::setPosition(const position_t &)
+void PrettyPrinter::handleError(std::string msg)
 {
+    throw std::runtime_error(msg);
+}
 
+void PrettyPrinter::handleWarning(std::string msg)
+{
+    throw std::runtime_error(msg);
 }
     
-bool PrettyPrinter::isType(const char *id) 
-{
-    return strcmp(id, "int") == 0
-	|| strcmp(id, "clock") == 0
-	|| strcmp(id, "chan") == 0
-	|| strcmp(id, "bool") == 0
-	|| strcmp(id, "void") == 0;
-}
-
-void PrettyPrinter::typeName(int32_t prefix, const char *type, int range) 
+void PrettyPrinter::typeBool(PREFIX prefix) 
 {
     string res;
-    
     res += prefix_label[prefix];
-    res += type;
-    
-    if (range) 
-    {
-	string range_list;
-	while (range--) 
-	{
-	    range_list = st.back()+range_list;
-	    st.pop_back();
-	    if (range)
-		range_list = ','+range_list;
-	}
-	res += "["+range_list+"]";
-    }
+    res += "bool";
+    st.back() = res;    
+}
+
+void PrettyPrinter::typeInt(PREFIX prefix)
+{
+    string res;
+    res += prefix_label[prefix];
+    res += "int";
+    st.back() = res;    
+}
+
+void PrettyPrinter::typeBoundedInt(PREFIX prefix)
+{    
+    string l, u;
+    u = st.back();
+    st.pop_back();
+    l = st.back();
+    st.pop_back();
+
+    string res;    
+    res += prefix_label[prefix];
+    res += "int[" + l + "," + u + "]";
     st.push_back(res);
 }
 
-void PrettyPrinter::declTypeDef(const char* name, uint32_t dim)
+void PrettyPrinter::typeChannel(PREFIX prefix)
+{
+    string res;
+    res += prefix_label[prefix];
+    res += "chan";
+    st.back() = res;
+}
+
+void PrettyPrinter::typeClock()
+{
+    st.push_back("clock");
+}
+
+void PrettyPrinter::typeVoid()
+{
+    st.push_back("void");
+}
+
+void PrettyPrinter::typeScalar(PREFIX prefix)
+{
+    string res;
+    res += prefix_label[prefix];
+    res += "scalar[" + st.back() + "]";
+    st.back() = res;
+}
+
+void PrettyPrinter::typeName(PREFIX prefix, const char *type) 
+{
+    string res;   
+    res += prefix_label[prefix];
+    res += type;    
+    st.push_back(res);
+}
+
+void PrettyPrinter::declTypeDef(const char* name)
 {
     stack<string> array;
 
-    for (uint32_t i = 0; i < dim; i++) 
-    {
-	array.push(st.back());
-	st.pop_back();
-    }
+//     for (uint32_t i = 0; i < dim; i++) 
+//     {
+// 	array.push(st.back());
+// 	st.pop_back();
+//     }
 
     if (first)
     {
@@ -134,13 +174,13 @@ void PrettyPrinter::declTypeDef(const char* name, uint32_t dim)
     }
 }
 
-void PrettyPrinter::declTypeDefEnd()
-{
-    first = true;
-    *o.top() << ";" << endl;
-}
+// void PrettyPrinter::declTypeDefEnd()
+// {
+//     first = true;
+//     *o.top() << ";" << endl;
+// }
 
-void PrettyPrinter::declVar(const char *id, uint32_t dim, bool init) 
+void PrettyPrinter::declVar(const char *id, bool init) 
 {
     stack<string> array;
     string i;
@@ -151,11 +191,11 @@ void PrettyPrinter::declVar(const char *id, uint32_t dim, bool init)
 	st.pop_back();
     }
     
-    for (uint32_t i = 0; i < dim; i++) 
-    {
-	array.push(st.back());
-	st.pop_back();
-    }
+//     for (uint32_t i = 0; i < dim; i++) 
+//     {
+// 	array.push(st.back());
+// 	st.pop_back();
+//     }
     
     if (first) 
     {
@@ -181,14 +221,14 @@ void PrettyPrinter::declVar(const char *id, uint32_t dim, bool init)
     }
 }
 
-void PrettyPrinter::declVarEnd() 
-{
-    if (!first) 
-    {
-	*o.top() << ';' << endl;
-	first = true;
-    }
-}
+// void PrettyPrinter::declVarEnd() 
+// {
+//     if (!first) 
+//     {
+// 	*o.top() << ';' << endl;
+// 	first = true;
+//     }
+// }
 
 void PrettyPrinter::declInitialiserList(uint32_t num) 
 {
@@ -210,26 +250,35 @@ void PrettyPrinter::declFieldInit(const char* name)
     }
 }
 
-void PrettyPrinter::declParameter(const char* name, bool reference, uint32_t dim) 
+void PrettyPrinter::declParameter(const char* name, bool ref) 
 {
-    if (dim) 
-    {
-	throw TypeException("Array parameters are not supported");
-    }
+//     if (dim) 
+//     {
+// 	throw TypeException("Array parameters are not supported");
+//     }
     
     if (!param.empty())
     {
 	param += ", ";
     }
-    param += st.back() + (reference ? " &" : " ") + name;
+
+    if (ref)
+    {
+	param += st.back() + " &" + name;
+    }
+    else
+    {
+	param += st.back() + " " + name;
+
+    }
 }
 
-void PrettyPrinter::declParameterEnd() 
-{
-    st.pop_back();
-}
+// void PrettyPrinter::declParameterEnd() 
+// {
+//     st.pop_back();
+// }
 
-void PrettyPrinter::declFuncBegin(const char* name, uint32_t n) 
+void PrettyPrinter::declFuncBegin(const char* name) 
 {
     indent();
     *o.top() << st.back() << " " << name << "(" << param << ")" << endl;
@@ -409,13 +458,7 @@ void PrettyPrinter::returnStatement(bool hasValue)
     *o.top() << f;
 }
 
-void PrettyPrinter::procTemplateSet(const char *name)
-{
-    templateset += string("[") + name + " : " + st.back() + "]";
-    st.pop_back();
-}
-
-void PrettyPrinter::procBegin(const char *id, uint32_t n, uint32_t m) 
+void PrettyPrinter::procBegin(const char *id) 
 {
     *o.top() << "process " << (id ? id : "")
 	     << templateset
@@ -689,11 +732,6 @@ void PrettyPrinter::exprCallEnd(uint32_t n)
     st.back() += s;
 }
 
-void PrettyPrinter::exprArg(uint32_t n) 
-{
-    // Don't do anything
-}
-
 void PrettyPrinter::exprArray() 
 {
     string f = st.back();
@@ -904,6 +942,17 @@ void PrettyPrinter::exprForAllEnd(const char *name)
     st.back() += expr;
 }
 
+void PrettyPrinter::exprExistsBegin(const char *name)
+{
+    st.back() = string("exists (") + name + ":" + st.back() + ") ";
+}
+
+void PrettyPrinter::exprExistsEnd(const char *name)
+{
+    string expr = st.back(); st.pop_back();
+    st.back() += expr;
+}
+
 void PrettyPrinter::beforeUpdate()
 {
     *o.top() << "{" << endl;
@@ -924,15 +973,16 @@ void PrettyPrinter::afterUpdate()
     *o.top() << "}" << endl;	    
 }
 
-void PrettyPrinter::instantiationBegin(const char *id, const char *templ) 
+void PrettyPrinter::instantiationBegin(const char *id, size_t, const char *templ) 
 {
     // Ignore
 }
 
-void PrettyPrinter::instantiationEnd(const char* id, const char* templ, uint32_t n)
+void PrettyPrinter::instantiationEnd(const char* id, size_t parameters,
+				     const char* templ, size_t arguments)
 {
     stack<string> s;
-    while (n--) 
+    while (arguments--) 
     {
 	s.push(st.back());
 	st.pop_back();

@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
-/* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+/* tracer - Utility for printing UPPAAL XTR trace files.
+   Copyright (C) 2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -21,32 +21,348 @@
 
 #include <cstdio>
 #include <climits>
-#include <algorithm>
-#include <string>
 #include <vector>
-#include <list>
-#include <functional>
-
-#include "utap/utap.h"
+#include <string>
+#include <stdexcept>
+#include <iostream>
+#include <map>
 
 using namespace std;
-using namespace UTAP;
 
-/* The TA system.
+/* This utility takes an UPPAAL model in the UPPAAL intermediate
+ * format and a UPPAAL XTR trace file and prints trace to stdout in a
+ * human readable format.
+ *
+ * The utility basically contains two parsers: One for the
+ * intermediate format and one for the XTR format. You may want to use
+ * them a starting point for writing analysis tools.
+ *
+ * Notice that the intermediate format uses a global numbering of
+ * clocks, variables, locations, etc. This is in contrast to the XTR
+ * format, which makes a clear distinction between e.g. clocks and
+ * variables and uses process local number of locations and
+ * edges. Care must be taken to convert between these two numbering
+ * schemes.
  */
-static TimedAutomataSystem ta;
+
+enum type_t { CONST, CLOCK, VAR, META, COST, LOCATION, FIXED };
+enum flags_t { NONE, COMMITTED, URGENT };
+
+/* Representation of a memory cell.
+ */
+struct cell_t
+{
+    /** The type of the cell. */
+    type_t type;
+
+    /** Name of cell. Not all types have names. */
+    string name;
+
+    union 
+    {
+	int value;
+	struct 
+	{
+	    int nr;
+	} clock;
+	struct
+	{
+	    int min;
+	    int max;
+	    int init;
+	    int nr;
+	} var;
+	struct
+	{
+	    int min;
+	    int max;
+	    int init;
+	    int nr;
+	} meta;
+	struct
+	{
+	    int flags;
+	    int process;
+	    int invariant;
+	} location;
+	struct 
+	{
+	    int min;
+	    int max;
+	} fixed;
+    };
+};
+
+/* Representation of a process.
+ */
+struct process_t
+{
+    int initial;
+    string name;
+    vector<int> locations;
+    vector<int> edges;
+};
+
+/* Representation of an edge.
+ */
+struct edge_t
+{
+    int process;
+    int source;
+    int target;
+    int guard;
+    int sync;
+    int update;
+};
+
+/* The UPPAAL model in intermediate format.
+ */
+vector<cell_t> layout;
+vector<int> instructions;
+vector<process_t> processes;
+vector<edge_t> edges;
+map<int,string> expressions;
 
 /* For convenience we keep the size of the system here.
  */
-static int processCount;
-static int variableCount;
-static int clockCount;
+static size_t processCount = 0;
+static size_t variableCount = 0;
+static size_t clockCount = 0;
 
 /* These are mappings from variable and clock indicies to
  * the names of these variables and clocks.
  */
 static vector<string> clocks;
 static vector<string> variables;
+
+/* Thrown by parser upon parse errors.
+ */
+class invalid_format : public std::runtime_error
+{
+public:
+    explicit invalid_format(const string&  arg);
+};
+
+invalid_format::invalid_format(const string&  arg) : runtime_error(arg)
+{
+
+}
+
+/* Reads one line from file. Skips comments.
+ */
+bool read(FILE *file, char *str, size_t n)
+{
+    do 
+    {
+	if (fgets(str, n, file) == NULL)
+	{
+	    return false;
+	}
+    } while (str[0] == '#');
+    return true;
+}
+
+/* Parser for intermediate format.
+ */
+void loadIF(FILE *file)
+{
+    char str[255];
+    char section[16];
+    char name[32];
+    int index;
+
+    while (fscanf(file, "%15s\n", section) == 1)
+    {
+	if (strcmp(section, "layout") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		char s[5];
+		cell_t cell;
+		
+		if (sscanf(str, "%d:clock:%d:%31s", &index, 
+			   &cell.clock.nr, name) == 3)
+		{
+		    cell.type = CLOCK;
+		    cell.name = name;
+		    clocks.push_back(name);
+		    clockCount++;
+		}
+		else if (sscanf(str, "%d:const:%d", &index, 
+				&cell.value) == 2)
+		{
+		    cell.type = CONST;
+		}
+		else if (sscanf(str, "%d:var:%d:%d:%d:%d:%31s", &index, 
+				&cell.var.min, &cell.var.max, &cell.var.init, 
+				&cell.var.nr, name) == 6)
+		{
+		    cell.type = VAR;
+		    cell.name = name;
+		    variables.push_back(name);
+		    variableCount++;
+		}
+		else if (sscanf(str, "%d:meta:%d:%d:%d:%d:%31s", &index,
+				&cell.meta.min, &cell.meta.max, &cell.meta.init,
+				&cell.meta.nr, name) == 6)
+		{
+		    cell.type = META;
+		    cell.name = name;
+		    variables.push_back(name);
+		    variableCount++;
+		}
+		else if (sscanf(str, "%d:location::%31s", &index, name) == 2)
+		{
+		    cell.type = LOCATION;
+		    cell.location.flags = NONE;
+		    cell.name = name;
+		}
+		else if (sscanf(str, "%d:location:committed:%31s", &index, name) == 2)
+		{
+		    cell.type = LOCATION;
+		    cell.location.flags = COMMITTED;
+		    cell.name = name;
+		}
+		else if (sscanf(str, "%d:location:urgent:%31s", &index, name) == 2)
+		{
+		    cell.type = LOCATION;
+		    cell.location.flags = URGENT;
+		    cell.name = name;
+		}
+		else if (sscanf(str, "%d:static:%d:%d:%31s", &index,
+				&cell.fixed.min, &cell.fixed.max, 
+				name) == 4)
+		{
+		    cell.type = FIXED;
+		    cell.name = name;
+		}
+		else if (sscanf(str, "%d:%5s", &index, s) == 2
+			 && strcmp(s, "cost") == 0)
+		{
+		    cell.type = COST;
+		}
+		else 
+		{
+		    throw invalid_format(str);
+		}
+
+		layout.push_back(cell);
+	    }
+	}
+	else if (strcmp(section, "instructions") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		int address;
+		int values[3];
+		int cnt = sscanf(str, "%d:%d%d%d", &address, 
+				 values + 0, values + 1, values + 2);
+		if (cnt < 2)
+		{
+		    throw invalid_format("In instruction section");
+		}
+
+		for (int i = 0; i < cnt; i++)
+		{
+		    instructions.push_back(values[i]);
+		}
+	    }
+	}
+	else if (strcmp(section, "processes") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		process_t process;
+		if (sscanf(str, "%d:%d:%31s", 
+			   &index, &process.initial, name) != 3)
+		{
+		    throw invalid_format("In process section");
+		}
+		process.name = name;
+		processes.push_back(process);
+		processCount++;
+	    }
+	}
+	else if (strcmp(section, "locations") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		int index;
+		int process;
+		int invariant;
+
+		if (sscanf(str, "%d:%d:%d", &index, &process, &invariant) != 3)
+		{
+		    throw invalid_format("In location section");
+		}
+
+		layout[index].location.process = process;
+		layout[index].location.invariant = invariant;
+		processes[process].locations.push_back(index);
+	    }
+	}
+	else if (strcmp(section, "edges") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		edge_t edge;
+
+		if (sscanf(str, "%d:%d:%d:%d:%d:%d", &edge.process, 
+			   &edge.source, &edge.target,
+			   &edge.guard, &edge.sync, &edge.update) != 6)
+		{
+		    throw invalid_format("In edge section");
+		}		
+
+		processes[edge.process].edges.push_back(edges.size());
+		edges.push_back(edge);
+	    }
+	}
+	else if (strcmp(section, "expressions") == 0)
+	{
+	    while (read(file, str, 255) && !isspace(str[0]))
+	    {
+		if (sscanf(str, "%d", &index) != 1)
+		{
+		    throw invalid_format("In expression section");
+		}		    
+		
+		/* Find expression string (after the third colon).
+		 */
+		char *s = str;
+		int cnt = 3;
+		while (cnt && *s)
+		{
+		    cnt -= (*s == ':');
+		    s++;
+		}
+		if (cnt)
+		{
+		    throw invalid_format("In expression section");
+		}
+
+		/* Trim white space. 
+		 */
+		while (*s && isspace(*s)) 
+		{
+		    s++;
+		}
+		char *t = s + strlen(s) - 1;
+		while (t >= s && isspace(*t)) 
+		{
+		    t--;
+		}
+		t[1] = '\0';
+
+		expressions[index] = s;
+	    }
+	}
+	else 
+	{
+	    throw invalid_format("Unknown section");
+	}
+    }  
+};
 
 /* A bound for a clock constraint. A bound consists of a value and a
  * bit indicating whether the bound is strict or not.
@@ -64,115 +380,6 @@ static bound_t infinity = { INT_MAX >> 1, 1 };
 /* The bound (0, <=).
  */
 static bound_t zero = { 0, 0 };
-
-/* Returns the ith element of a list. 
- */
-template<class T>
-const T &ith(const list<T> &collection, int i)
-{
-    typename list<T>::const_iterator element = collection.begin();
-    while (i--) 
-    {
-	element++;
-    }
-    return *element;
-}
-
-/* Adds another variable to a vector of variable names.  The final
- * variable name is composed of a prefix and a name. In case of arrays
- * a list containing the size of each dimension can be provided.
- */
-void addVariable(vector<string> &variables, 
-		 string prefix, string name, 
-		 list<int> &dimensions)
-{
-    char buf[128];
-    switch (dimensions.size()) 
-    {
-    case 0:
-	variables.push_back(prefix + name);
-	break;
-    case 1:
-	for (int i = 0; i < dimensions.front(); i++) 
-	{
-	    snprintf(buf, 128, "%s%s[%d]", prefix.c_str(), name.c_str(), i);
-	    variables.push_back(buf);
-	}
-	break;
-    default:
-	snprintf(buf, 128, "%s[%d]", name.c_str(), dimensions.front());
-	dimensions.pop_front();
-	addVariable(variables, prefix, buf, dimensions);
-	break;
-    }
-}
-
-/* Adds a variable to either the global variables or the global clocks
- * arrays, depending on the type of the variable.  The variable name
- * will be prefixed with the given string.
- */
-void analyzeVariable(process_t *process, const variable_t variable)
-{
-    type_t type = variable.uid.getType();
-    type_t base = type.getBase();
-    if (!type.hasPrefix(UTAP::prefix::CONSTANT)) 
-    {
-	int size = 1;
-	list<int> dimensions;
-	string prefix;
-
-	/* Process local variables are prefixed with the process name.
-	 */
-	if (process)
-	{
-	    prefix = string(process->uid.getName()) + ".";
-	}
-
-	/* If the variable is an array we need to find the dimensions
-	 * and the base type.
-	 */
-	if (base == type_t::ARRAY) 
-	{
-	    /* An interpreter is needed to evaluate the array size of
-	     * each dimension.  If the variable is a process local
-	     * variable, then we also need to take the arguments to
-	     * that process into account.
-	     */
-	    Interpreter interpreter(ta.getConstantValuation());
-	    if (process)
-	    {
-		interpreter.addValuation(process->mapping);
-	    }
-
-	    /* Evaluate the size of each dimension and append it
-	     * to the dimension list.
-	     */
-	    do {
-		int value = 
-		    interpreter.evaluate(type.getArraySize().getRange().second)
-		    - interpreter.evaluate(type.getArraySize().getRange().first) 
-		    + 1;
-
-		size *= value;
-		dimensions.push_back(value);
-		type = type.getSub();
-		base = type.getBase();
-	    } while (base == type_t::ARRAY);
-	} 
-    
-	if (base == type_t::CLOCK) 
-	{
-	    clockCount += size;
-	    addVariable(clocks, prefix, variable.uid.getName(), dimensions);
-	}
-	else if (base == type_t::INT || base == type_t::BOOL) 
-	{
-	    variableCount += size;
-	    addVariable(variables, prefix, variable.uid.getName(), dimensions);
-	}
-    }
-}
-
 
 /* A symbolic state. A symbolic state consists of a location vector, a
  * variable vector and a zone describing the possible values of the
@@ -212,7 +419,7 @@ State::State(FILE *file)
 
     /* Read locations.
      */
-    for (int i = 0; i < processCount; i++)
+    for (size_t i = 0; i < processCount; i++)
     {
 	fscanf(file, "%d\n", &getLocation(i));
     }
@@ -230,7 +437,7 @@ State::State(FILE *file)
 
     /* Read integers.
      */
-    for (int i = 0; i < variableCount; i++) 
+    for (size_t i = 0; i < variableCount; i++) 
     {
 	fscanf(file, "%d\n", &getVariable(i));
     }
@@ -239,7 +446,7 @@ State::State(FILE *file)
 
 void State::allocate()
 {
-    /* Allocate/
+    /* Allocate.
      */
     locations = new int[processCount];
     integers = new int[variableCount];
@@ -253,15 +460,15 @@ void State::allocate()
 
     /* Set diagonal and lower bounds to zero.
      */
-    for (int i = 0; i < clockCount; i++) 
+    for (size_t i = 0; i < clockCount; i++) 
     {
 	getConstraint(0, i) = zero;
 	getConstraint(i, i) = zero;
     }
 }
 
-/* A transtion consists of one or more edges. Edges are indexes
- * from 0 in the order they appear in the input file.
+/* A transition consists of one or more edges. Edges are indexes from
+ * 0 in the order they appear in the input file.
  */
 class Transition
 {
@@ -297,34 +504,26 @@ Transition::~Transition()
  */
 ostream &operator << (ostream &o, const State &state)
 {
-    int i, j;
-
     /* Print location vector.
      */
-    const list<process_t> &processes = ta.getProcesses();
-    list<process_t>::const_iterator process = processes.begin();
-    i = 0;
-    while (process != processes.end()) 
+    for (size_t p = 0; p < processCount; p++)
     {
-	cout << process->uid.getName() << '.'
-	     << ith(process->templ->states, state.getLocation(i)).uid.getName() 
-	     << " ";
-	process++;
-	i++;
+	int idx = processes[p].locations[state.getLocation(p)];
+	cout << processes[p].name << '.' << layout[idx].name << " ";
     }
 
     /* Print variables.
      */
-    for (i = 0; i < variableCount; i++) 
+    for (size_t v = 0; v < variableCount; v++) 
     {
-	cout << variables[i] << " = " << state.getVariable(i) << ' ';
+	cout << variables[v] << " = " << state.getVariable(v) << ' ';
     }
   
     /* Print clocks.
      */
-    for (i = 0; i < clockCount; i++) 
+    for (size_t i = 0; i < clockCount; i++) 
     {
-	for (j = 0; j < clockCount; j++) 
+	for (size_t j = 0; j < clockCount; j++) 
 	{
 	    if (i != j) 
 	    {
@@ -348,19 +547,23 @@ ostream &operator << (ostream &o, const State &state)
  */
 ostream &operator << (ostream &o, const Transition &t)
 {
-    for (int i = 0; i < processCount; i++) 
+    for (size_t p = 0; p < processCount; p++) 
     {
-	int idx = t.getEdge(i);
+	int idx = t.getEdge(p);
 	if (idx > -1) 
 	{
-	    const process_t &process = ith(ta.getProcesses(), i);
-	    const edge_t &edge = ith(process.templ->edges, idx);
-      
-	    cout << process.uid.getName() << '.' << edge.src->uid.getName() 
+	    int edge = processes[p].edges[idx];
+	    int src = edges[edge].source;
+	    int dst = edges[edge].target;
+	    int guard = edges[edge].guard;
+	    int sync = edges[edge].sync;
+	    int update = edges[edge].update;
+
+	    cout << processes[p].name << '.' << layout[src].name 
 		 << " -> "
-		 << process.uid.getName() << '.' << edge.dst->uid.getName() 
+		 << processes[p].name << '.' << layout[dst].name 
 		 << " {"
-		 << edge.guard << "; " << edge.sync << "; " << edge.assign
+		 << expressions[guard] << "; " << expressions[sync] << "; " << expressions[update]
 		 << ";} ";
 	}
     }
@@ -370,12 +573,8 @@ ostream &operator << (ostream &o, const Transition &t)
 
 /* Read and print a trace file.
  */
-void loadTrace(const char *trace)
+void loadTrace(FILE *file)
 {
-    /* Open file.
-     */
-    FILE *file = fopen(trace, "r");
-
     /* Read and print trace.
      */
     cout << "State: " << State(file) << endl;
@@ -409,77 +608,51 @@ void loadTrace(const char *trace)
 	cout << endl << "Transition: " << transition << endl
 	     << endl << "State: " << state << endl;
     }
-
-    /* Close the file.
-     */
-    fclose(file);
 }
 
-/* Read model (in XML format) into global variables (see the top of
- * this file for a description of those variables).
- */
-void loadModel(const char *model)
-{
-    UTAP::ErrorHandler errors;
-
-    /* Parse file.
-     */
-    parseXMLFile(model, &errors, &ta, true);
-
-    /* Abort in case of errors.
-     */
-    if (errors.hasErrors()) 
-    {
-	vector<ErrorHandler::error_t>::const_iterator it;
-	const vector<ErrorHandler::error_t> &msg = errors.getErrors();
-	
-	for (it = msg.begin(); it != msg.end(); it++)
-	{
-	    cerr << *it << endl;
-	}
-	
-	cerr << "Syntax errors in model" << endl;
-	exit(1);
-    }
-
-    /* Add the variables of the model to the clocks and variables
-     * vectors and set the processCount, variableCount and clockCount
-     * variables (all defined globally).
-     */
-    const list<process_t> &processes = ta.getProcesses();
-    processCount = processes.size();
-
-    /* First the global variables and clocks.
-     */
-    for_each(ta.getGlobals().variables.begin(),
-	     ta.getGlobals().variables.end(),
-	     bind1st(ptr_fun(analyzeVariable), (process_t*)NULL));
-
-    /* Then the local variables and clocks.
-     */
-    list<process_t>::const_iterator process;
-    for (process = processes.begin(); process != processes.end(); ++process) 
-    {
-	for_each(process->templ->variables.begin(),
-		 process->templ->variables.end(),
-		 bind1st(ptr_fun(analyzeVariable), &*process));
-    }
-}
 
 int main(int argc, char *argv[])
 {
+    FILE *file;
     try 
     {
 	if (argc < 3) 
 	{
-	    printf("Synopsis: %s <model> <trace>\n", argv[0]);
+	    printf("Synopsis: %s <if> <trace>\n", argv[0]);
 	    exit(1);
 	}
-	loadModel(argv[1]);
-	loadTrace(argv[2]);
+
+	/* Load model in intermediate format.
+	 */
+	if (strcmp(argv[1], "-") == 0)
+	{
+	    loadIF(stdin);
+	}
+	else
+	{
+	    file = fopen(argv[1], "r");
+	    if (file == NULL)
+	    {
+		perror(argv[0]);
+		exit(1);
+	    }
+	    loadIF(file);
+	    fclose(file);
+	}
+
+	/* Load trace.
+	 */
+	file = fopen(argv[2], "r");
+	if (file == NULL)
+	{
+	    perror(argv[0]);
+	    exit(1);
+	}
+	loadTrace(file);
+	fclose(file);
     }
     catch (exception &e)
     {
-	cerr << "Caught exception: " << e.what() << endl;
+	cerr << "Catched exception: " << e.what() << endl;
     }
 }

@@ -10,7 +10,7 @@
 <h1>typechecker.h</h1><a href="typechecker_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment">00001 <span class="comment">// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-</span>
 00002 
 00003 <span class="comment">/* libutap - Uppaal Timed Automata Parser.</span>
-00004 <span class="comment">   Copyright (C) 2002-2003 Uppsala University and Aalborg University.</span>
+00004 <span class="comment">   Copyright (C) 2002-2006 Uppsala University and Aalborg University.</span>
 00005 <span class="comment">   </span>
 00006 <span class="comment">   This library is free software; you can redistribute it and/or</span>
 00007 <span class="comment">   modify it under the terms of the GNU Lesser General Public License</span>
@@ -42,81 +42,84 @@
 00033 <span class="keyword">namespace </span>UTAP
 00034 {
 00035 
-<a name="l00042"></a><a class="code" href="classUTAP_1_1PersistentVariables.html">00042</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1PersistentVariables.html">PersistentVariables</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>
-00043     {
-00044     <span class="keyword">private</span>:
-00045         std::set&lt;symbol_t&gt; variables;
-00046     <span class="keyword">public</span>:
-00047         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PersistentVariables.html#a0">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;);
-00048         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PersistentVariables.html#a1">visitTemplateAfter</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;);
-00049         <span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;<a class="code" href="classUTAP_1_1PersistentVariables.html#a2">get</a>() <span class="keyword">const</span>;
-00050     };
-00051 
-<a name="l00058"></a><a class="code" href="classUTAP_1_1TypeChecker.html">00058</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TypeChecker.html">TypeChecker</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1ContextVisitor.html">ContextVisitor</a>, <span class="keyword">public</span> <a class="code" href="classUTAP_1_1StatementVisitor.html">StatementVisitor</a>
-00059     {
-00060     <span class="keyword">private</span>:
-00061         <a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *errorHandler;
-00062         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system;
-00063         <a class="code" href="classUTAP_1_1PersistentVariables.html">PersistentVariables</a> persistentVariables;
-00064     
-00065         <span class="keywordtype">bool</span> annotate(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr);
-00066         <span class="keywordtype">void</span> checkInitialiser(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;var);
-00067         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> checkInitialiser(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> init);
-00068         <span class="keywordtype">bool</span> areAssignmentCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> lvalue, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> rvalue);
-00069         <span class="keywordtype">bool</span> areInlineIfCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> thenArg, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> elseArg);
-00070         <span class="keywordtype">bool</span> isSideEffectFree(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
-00071         <span class="keywordtype">bool</span> isLHSValue(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
-00072         <span class="keywordtype">bool</span> isUniqueReference(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr) <span class="keyword">const</span>;
-00073         <span class="keywordtype">void</span> checkRange(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr);
-00074         <span class="keywordtype">void</span> checkParameterCompatible(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1Interpreter.html">Interpreter</a> &amp;,
-00075                                       <a class="code" href="classUTAP_1_1type__t.html">type_t</a> param, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr);
-00076 
-00078         <span class="keywordtype">void</span> checkAssignmentExpressionInFunction(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00079 
-00081         <span class="keywordtype">void</span> checkConditionalExpressionInFunction(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00082 
-00084         <span class="keywordtype">void</span> checkFunctionCallArguments(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00085 
-00086         <span class="keywordtype">bool</span> annotateAndExpectConstantInteger(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00087         <span class="keywordtype">void</span> checkType(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>, <span class="keywordtype">bool</span> inRecord = <span class="keyword">false</span>);
-00088 
-00090         <span class="keywordtype">void</span> checkVariableDeclaration(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;variable);
-00091 
-00092         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> typeOfBinaryNonInt(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, uint32_t binaryop, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00093     
-00094     <span class="keyword">public</span>:
-00095         <a class="code" href="classUTAP_1_1TypeChecker.html#a0">TypeChecker</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, <a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *handler);
-<a name="l00096"></a><a class="code" href="classUTAP_1_1TypeChecker.html#a1">00096</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a1">~TypeChecker</a>() {}
-00097         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a2">visitTemplateBefore</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;);
-00098         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a3">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;);
-00099         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a4">visitState</a>(<a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;);
-00100         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a5">visitEdge</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
-00101         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a6">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
-00102         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a7">visitProperty</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00103         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a8">visitFunction</a>(<a class="code" href="structUTAP_1_1function__t.html">function_t</a> &amp;);
-00104         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a9">visitProgressMeasure</a>(<a class="code" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;);
-00105 
-00106         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a10">visitEmptyStatement</a>(<a class="code" href="classUTAP_1_1EmptyStatement.html">EmptyStatement</a> *stat);
-00107         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a11">visitExprStatement</a>(<a class="code" href="classUTAP_1_1ExprStatement.html">ExprStatement</a> *stat);
-00108         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a12">visitForStatement</a>(<a class="code" href="classUTAP_1_1ForStatement.html">ForStatement</a> *stat);
-00109         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a13">visitIterationStatement</a>(<a class="code" href="classUTAP_1_1IterationStatement.html">IterationStatement</a> *stat);
-00110         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a14">visitWhileStatement</a>(<a class="code" href="classUTAP_1_1WhileStatement.html">WhileStatement</a> *stat);
-00111         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a15">visitDoWhileStatement</a>(<a class="code" href="classUTAP_1_1DoWhileStatement.html">DoWhileStatement</a> *stat);
-00112         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a16">visitBlockStatement</a>(<a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *stat);
-00113         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a17">visitSwitchStatement</a>(<a class="code" href="classUTAP_1_1SwitchStatement.html">SwitchStatement</a> *stat);
-00114         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a18">visitCaseStatement</a>(<a class="code" href="classUTAP_1_1CaseStatement.html">CaseStatement</a> *stat);
-00115         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a19">visitDefaultStatement</a>(<a class="code" href="classUTAP_1_1DefaultStatement.html">DefaultStatement</a> *stat);
-00116         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a20">visitIfStatement</a>(<a class="code" href="classUTAP_1_1IfStatement.html">IfStatement</a> *stat);
-00117         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a21">visitBreakStatement</a>(<a class="code" href="classUTAP_1_1BreakStatement.html">BreakStatement</a> *stat);
-00118         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a22">visitContinueStatement</a>(<a class="code" href="classUTAP_1_1ContinueStatement.html">ContinueStatement</a> *stat);
-00119         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a23">visitReturnStatement</a>(<a class="code" href="classUTAP_1_1ReturnStatement.html">ReturnStatement</a> *stat);
+<a name="l00044"></a><a class="code" href="classUTAP_1_1PersistentVariables.html">00044</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1PersistentVariables.html">PersistentVariables</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>
+00045     {
+00046     <span class="keyword">private</span>:
+00047         std::set&lt;symbol_t&gt; variables;
+00048     <span class="keyword">public</span>:
+00049         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PersistentVariables.html#a0">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;);
+00050         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PersistentVariables.html#a1">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
+00051         <span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;<a class="code" href="classUTAP_1_1PersistentVariables.html#a2">get</a>() <span class="keyword">const</span>;
+00052     };
+00053 
+<a name="l00060"></a><a class="code" href="classUTAP_1_1CompileTimeComputableValues.html">00060</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1CompileTimeComputableValues.html">CompileTimeComputableValues</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>
+00061     {
+00062     <span class="keyword">private</span>:
+00063         std::set&lt;symbol_t&gt; variables;
+00064     <span class="keyword">public</span>:
+00065         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1CompileTimeComputableValues.html#a0">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;);
+00066         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1CompileTimeComputableValues.html#a1">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
+00067         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1CompileTimeComputableValues.html#a2">contains</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>) <span class="keyword">const</span>;
+00068     };
+00069 
+<a name="l00076"></a><a class="code" href="classUTAP_1_1TypeChecker.html">00076</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TypeChecker.html">TypeChecker</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>, <span class="keyword">public</span> <a class="code" href="classUTAP_1_1AbstractStatementVisitor.html">AbstractStatementVisitor</a>
+00077     {
+00078     <span class="keyword">private</span>:
+00079         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system;
+00080         <a class="code" href="classUTAP_1_1PersistentVariables.html">PersistentVariables</a> persistentVariables;
+00081         <a class="code" href="classUTAP_1_1CompileTimeComputableValues.html">CompileTimeComputableValues</a> compileTimeComputableValues;
+00082         <a class="code" href="structUTAP_1_1function__t.html">function_t</a> *function; 
+00084         <span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;
+00085         <span class="keywordtype">void</span> handleError(T, std::string);
+00086         <span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;
+00087         <span class="keywordtype">void</span> handleWarning(T, std::string);
+00088     
+00089         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> checkInitialiser(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> init);
+00090         <span class="keywordtype">bool</span> areAssignmentCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> lvalue, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> rvalue) <span class="keyword">const</span>;
+00091         <span class="keywordtype">bool</span> areInlineIfLHSCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> t1, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> t2) <span class="keyword">const</span>;
+00092         <span class="keywordtype">bool</span> areInlineIfCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> thenArg, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> elseArg) <span class="keyword">const</span>;
+00093         <span class="keywordtype">bool</span> areEqCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> t1, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> t2) <span class="keyword">const</span>;
+00094         <span class="keywordtype">bool</span> isSideEffectFree(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
+00095         <span class="keywordtype">bool</span> isLHSValue(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
+00096         <span class="keywordtype">bool</span> isUniqueReference(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr) <span class="keyword">const</span>;
+00097         <span class="keywordtype">bool</span> checkParameterCompatible(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> param, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr);
+00098 
+00100         <span class="keywordtype">void</span> checkAssignmentExpressionInFunction(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00101 
+00103         <span class="keywordtype">void</span> checkConditionalExpressionInFunction(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00104 
+00105         <span class="keywordtype">bool</span> isCompileTimeComputable(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> expr) <span class="keyword">const</span>;
+00106         <span class="keywordtype">void</span> checkType(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>, <span class="keywordtype">bool</span> <a class="code" href="systembuilder_8cpp.html#a2">initialisable</a> = <span class="keyword">false</span>);
+00107 
+00108     <span class="keyword">public</span>:
+00109         <a class="code" href="classUTAP_1_1TypeChecker.html#a0">TypeChecker</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system);
+<a name="l00110"></a><a class="code" href="classUTAP_1_1TypeChecker.html#a1">00110</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a1">~TypeChecker</a>() {}
+00111         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a2">visitSystemAfter</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *);
+00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a3">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;);
+00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a4">visitState</a>(<a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;);
+00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a5">visitEdge</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
+00115         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a6">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
+00116         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a7">visitProperty</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00117         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a8">visitFunction</a>(<a class="code" href="structUTAP_1_1function__t.html">function_t</a> &amp;);
+00118         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a9">visitProgressMeasure</a>(<a class="code" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;);
+00119         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a10">visitProcess</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
 00120 
-00122         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a24">checkExpression</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00123     };
-00124 }
-00125 
-00126 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00121         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a11">visitEmptyStatement</a>(<a class="code" href="classUTAP_1_1EmptyStatement.html">EmptyStatement</a> *stat);
+00122         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a12">visitExprStatement</a>(<a class="code" href="classUTAP_1_1ExprStatement.html">ExprStatement</a> *stat);
+00123         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a13">visitForStatement</a>(<a class="code" href="classUTAP_1_1ForStatement.html">ForStatement</a> *stat);
+00124         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a14">visitIterationStatement</a>(<a class="code" href="classUTAP_1_1IterationStatement.html">IterationStatement</a> *stat);
+00125         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a15">visitWhileStatement</a>(<a class="code" href="classUTAP_1_1WhileStatement.html">WhileStatement</a> *stat);
+00126         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a16">visitDoWhileStatement</a>(<a class="code" href="classUTAP_1_1DoWhileStatement.html">DoWhileStatement</a> *stat);
+00127         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a17">visitBlockStatement</a>(<a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *stat);
+00128         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a18">visitIfStatement</a>(<a class="code" href="classUTAP_1_1IfStatement.html">IfStatement</a> *stat);
+00129         <span class="keyword">virtual</span> int32_t <a class="code" href="classUTAP_1_1TypeChecker.html#a19">visitReturnStatement</a>(<a class="code" href="classUTAP_1_1ReturnStatement.html">ReturnStatement</a> *stat);
+00130 
+00132         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TypeChecker.html#a20">checkExpression</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00133     };
+00134 }
+00135 
+00136 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

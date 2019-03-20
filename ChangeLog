@@ -1,30 +1,271 @@
-2005-02-17  Gerd Behrmann <behrmann@cs.aau.dk>
-	* Added support for constant reference parameters.
-	* Bugfix in xpath generation.
-	* Added rate expressions.
-	* Moved PrettyPrinter class into the library.
-	* Added meta variables and global assignment parsing.
-	* Switch from ANSI C string to ANSI C++ strings.
-	* Changed new syntax to allow both = and := for assignment.
-	* Parsing of syntax for sweepline method.
-	* Improved range computation for modulo expressions.
-	* Added iterators to the modelling language.
-	* Added type_t::toString().
-	* Disabled a number of unimplemented keywords.
+2002-12-20  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Initial release
+
+
+2003-12-23  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed lexer problem with 'broadcast' keyword
+	* Added check for clock guards on transitions with urgent or
+	  broadcast synchronisations 
+	* Added check for non-reference clock and channel parameters
+
+2003-12-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Moved typecheck of assignment from procTransition() to
+ 	  procUpdate()
+	* Added check for non-constant arguments to non-reference
+	  paramters
+
+2003-01-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed position tracking
+	* Reimplemented symbol table for speed
+	* Implemented copy constructor for TypeSystem
+	* Fixed error handling problem in XML parser
+
+2003-01-13  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed C++ compatibility issues
+
+2003-01-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed segfault in case of missing initial state
 	
-2004-06-16  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Split SystemBuilder into AbstractBuilder, ExpressionBuilder and 
-	  SystemBuilder.
-	* More work on parsing and type checking UCode.
-	* Reimplemented xmlreader.cpp (now uses reader interface 
-	  of libxml2 2.6)
-	* C++ standard compliance
-	* Added priorities to the language
-	* Fixes in the Interpreter
-	* Moved more type checking code from SystemBuilder to TypeChecker
-	* Lots of bug fixes
-	* Header files now use a .h ending and C++ files .cpp.
-	* More...
+
+2003-01-18  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed XPath construction
+
+2003-01-24  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed more segfaults
+	* Fixed bug in throw statement
+
+2003-01-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added pre/post decrement/increment operators
+	* Made := and = behave the same
+	* Cleaned up use of type_t
+	* Changed addState to addLocation
+	* Fixed/cleaned up handling of arguments in function calls and
+	  template instantiations.
+	* Added check to make sure that arguments to templates are side 
+	  effect free.
+
+2003-01-28  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added support for +=, -=, etc.	
+
+2003-01-30  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* C++ compatibility fixes
+	* Windows fixes
+
+2003-04-30  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Started implementation of RangeMap class to solve the problem
+  	  with computing the range of record fields.
+	* Replaced SubExpression and ExpressionProgram with new
+	  expression_t class 
+	* Updated libutap to use the new expression_t class
+	* Notice: the type of an expression should never contain the range
+	  of the expression; the range might depend on the context and
+	  thus you should always use RangeChecker (an alternative would be
+	  to let the range be defined by a pair of expressions instead of
+	  constants; then the expression would include the references to
+	  the constants the range depends on and would need to be
+	  evaluated in the correct context - on the other hand, this is
+	  exactly what RangeChecker does...). The old implementation
+	  contained some bugs related to this - these have been fixed.
+	* Notice that there is a problem related to record types in
+	  RangeChecker::addRangeOfConstant (the problem is that records
+	  are not handled :-).
+	* Replaced most uses of the getId() methods of symbol_t and type_t
+	  with actual references to the symbols and types (previously, a
+	  number of maps and sets contained the ID of symbols and
+	  types). Also, nodes of expressions previously refered to some
+	  types and symbols by ID - this is no longer the case.
+	* Removed then SYNC_TAU constant. A tau 'synchronisation' is now
+	  'stored' as an emty sync expression in the transition.	
+
+2003-02-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Added min and max operators
+	* Added new array constructs to old syntax
+	* Fixed memory allocation bugs
+	* Moved declaration of assert into error.h and removed assert.h
+	  (due to conflicts with the system assert.h)
+        * Fixed validation problems when loading ta/xta files
+	* Made type checker detect possible division by zero
+	* Fixed problem with empty <instantiation> and <system> tags
+
+2003-02-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Enlarged "default domain" of a constant (since a constant is 
+	  a normal integer, it has a domain)
+	* Fixed problem with constant arguments to non-constant integer
+	  reference parameters.
+	* Fixed problem with array parameters
+	* Fixed false assumption: Previously, the value of constants was
+	  thought to be known. This is not always the case, since it might
+	  depend on the parameters of a template. Values derived from such
+	  constants are now disallowed in array sizes and integer ranges.
+	* Fixed bug which caused some identifier expressions to be
+	  marked as non-reference types.
+	* Fixed bug in InternalBuilder which caused inline-ifs that mixed
+          reference and non-reference types to fail
+	* Fixed bug in InternalBuilder which caused a wrong offset to be
+	  computed for constant arrays.
+	* Fixed bug in range estimation for subtractions
+
+2003-04-06  Gerd Behrmann  <behrmann@cs.auc.dk>
+
+	* Fixed several crasher bugs related to the parser and
+	  error recovery
+	* Added const version of SubExpression::operator[]
+	* Removed the code which converted constraints to the 
+	  normal form (x-y<c) - also removed the CONSTRAINT 
+	  operation.
+	* Added flag to expressionToString which indicates whether
+	  to use = or := as the assignment operator.
+	* Reimplemented type and symbol handling. Three new classes
+	  (frame_t, type_t and symbol_t) have repaced the TypeSystem
+	  and SymbolTable classes.
+	* Added doxygen support
+	* Added support for the visitor pattern to TimedAutomataSystem
+	* Replaced the old TypeChecker class with two new classes: The
+	  SystemBuilder class is used for creating a TimedAutomataSystem
+	  with minimal type checking. The TypeChecker class (which 
+	  implements the visitor pattern) type checks an existing 
+	  TimedAutomataSystem. The new type checker no longer copies
+	  the template on template instantiation.
+	* Moved range checking to new RangeChecker class
+	* Added support for tracking the position of expression in the
+	  input file.
+	* Added ExpressionProgram::empty() method
+	* Added SubExpression::getSymbol(), SubExpression::isReferenceTo(),
+	  and SubExpression::changesVariables().
+	* Unified handling of processes and structs
+	* Added warning for updates on edges without any effect
+
+2003-04-07  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed SIDE_EFFECT_FREE type prefix
+	* Changed handling of int parameters - a parameter were the range
+	  is not specificed is now compatible with integer arguments with 
+	  any range (this is ensures compatibility with 3.2)
+
+
+2003-04-08  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Made sure that yesterdays fix for 3.2 compatible integer
+	  parameters also works for array parameters
+	* Rated channel parameters according to capabilities, i.e. no
+	  clock guards, clock guards on send, clock guards on both send
+	  and receive. The argument must have at least the capabilities as
+	  the parameter. E.g. it is ok to use a channel argument to an
+	  urgent channel parameter, but not the other way arround.
+
+2003-04-12  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed problem with utap_ prefix in libutap lexer when using a
+	  recent version of flex.
+
+2003-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed bug in isReferenceTo for DOT expressions
+	
+2003-05-01  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed TimedAutomataStructure. This class was an early attempt
+	  to avoid clutering the common namespace with structs like
+	  state_t and process_t. Later we introduced the UTAP namespace,
+	  thus TimedAutomataStructures is no longer needed.
+	* Updated range checker to better handle constants and structures.
+  	* Removed range information from 'location expressions', i.e. from 
+	  expressions on the form P.l, where P is a process and l is a
+	  location. 
+  	* Made sure that the index of an array expression is within range
+	  in evaluateExpression (actually, a range violation should
+	  generate an error, but at the moment there is no way to report
+	  this error; the fix is compatible with the behaviour of UPPAAL
+	  [which is also broken...]).
+  	* Replaced call to getRecordFields with getFrame (fixes an
+	  assertion violation).
+  	* Fixed bug in visitInstance which caused integer expressions to
+	  be rejected as arguments to constant parameters.
+	* Fixed problem in TimedAutomataSystem::evaluateExpression
+	  introduced by the new expression implementation.
+	
+2003-05-20  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Disabled check for invariants on target of urgent and broadcast 
+	  transitions since it would break many of our examples and would
+	  not fix the problem anyway.
+	* Moved construction of default initialiser out of libutap 
+	* Integer types can now have parameterised ranges (like
+	  in 3.2) 
+	* Added a couple of additional checks for invalid initialisers 
+	* Disallowed invariants on targets of edges synchronising on 
+	  urgent channels or broadcast receiption
+	* Empty invariants are now represented as empty expressions rather  
+	  than the constant 1.
+	* Changed ParserBuilder::procState to take an additional argument 
+	  indicating whether the state has an invariant or not.
+	* Added range_t::contains() method
+	* Replaced constant_t with variable_t
+	* RangeChecker is no longer a visitor - it simply serves as an
+	  oracle to compute the range of an expression in a given
+	  process. 
+	* Added expression_t::equal method for comparing two expressions.
+
+2003-05-21  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* In TimedAutamataSystem; unified list of clocks, constants,
+  	  channels, integer variables, and record variables into one list:
+	  variables. 
+	* Replaced varbase_t, clock_t and channel_t with variable_t
+	* Implemented parameterized array sizes, i.e. the size of a local
+	  array in a template can depend on a template parameter (this is
+	  a 3.2 feature). 
+
+2003-06-05  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Removed ::evaluate methods from TimedAutomataSystem (use
+	  Interpreter class instead)
+	* Updated SystemBuilder, TypeChecker and RangeChecker to use new
+	  Interpreter class.
+	* Changed ParserBuilder::property(...) to use a kind_t rather than
+	  an int. 
+	* Fixed a problem in how processes are instantiated. This required
+	  the introduction of a new type 'INSTANCE', which is used for
+	  instances of templates. This more closely resembles the
+	  behaviour of 3.2. 
+	* Added include of cstdarg and cassert header files
+	* Added interpreter class used to interprete expressions.
+	* Added interpreter class used to interprete expressions.
+	* Added default constructor for range s.t. the range is
+	  initialised to the empty range.
+	* Added 'INSTANCE' base type
+	* Removed ::getId() methods and id based constructors
+	* Changed textual representation of an error to include the XPath
+	  (in case of XML input files).
+	* Made 'and', 'or', 'not', and 'imply' keywords available to
+	  expressions used in the model.
+	* Changed precedence of 'and', 'or', 'not, and 'imply' keywords to
+	  be lower than the corresponding symbols (this matches the
+	  behaviour of Perl which also has both symbolic operators and
+	  keyword operators). 
+	* Fixed several crasher bugs triggered by parse errors
+	
+2003-06-12  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed line counting bug
+	* Added support for DOS style newlines
+
+2003-06-13  Gerd Behrmann  <behrmann@cs.auc.dk>
+  	* Updated README file changes in expression representation
+
+2003-06-22  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Fixed build problem on windows
+  	* Fixed problem with array arguments to template instantiation
+  	* Added exression_t::collectAlwaysChangedVariables (for active
+	  clock reduction)	
+	
+2003-06-24  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Marked expression_t::collectAlwaysChangedSymbols() to const
+	* Removed expression_t::collectAlwaysChanged... method
 
 2004-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
 	* Removed decl_check debug code
@@ -83,270 +324,929 @@
 	  (which is used to determine whether a function has side effects).
         * Fixed bugs 32, 43, 46, 54, 58, 60, 82, 85, 88, 93, 97	
 	
-2003-06-24  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Marked expression_t::collectAlwaysChangedSymbols() to const
-	* Removed expression_t::collectAlwaysChanged... method
+2004-06-16  Gerd Behrmann  <behrmann@cs.auc.dk>
+	* Split SystemBuilder into AbstractBuilder, ExpressionBuilder and 
+	  SystemBuilder.
+	* More work on parsing and type checking UCode.
+	* Reimplemented xmlreader.cpp (now uses reader interface 
+	  of libxml2 2.6)
+	* C++ standard compliance
+	* Added priorities to the language
+	* Fixes in the Interpreter
+	* Moved more type checking code from SystemBuilder to TypeChecker
+	* Lots of bug fixes
+	* Header files now use a .h ending and C++ files .cpp.
+	* More...
 
-2003-06-22  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Fixed build problem on windows
-  	* Fixed problem with array arguments to template instantiation
-  	* Added exression_t::collectAlwaysChangedVariables (for active
-	  clock reduction)	
-	
-2003-06-13  Gerd Behrmann  <behrmann@cs.auc.dk>
-  	* Updated README file changes in expression representation
-	
-2003-06-12  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Fixed line counting bug
-	* Added support for DOS style newlines
+2005-02-17  Gerd Behrmann <behrmann@cs.aau.dk>
+	* Added support for constant reference parameters.
+	* Bugfix in xpath generation.
+	* Added rate expressions.
+	* Moved PrettyPrinter class into the library.
+	* Added meta variables and global assignment parsing.
+	* Switch from ANSI C string to ANSI C++ strings.
+	* Changed new syntax to allow both = and := for assignment.
+	* Parsing of syntax for sweepline method.
+	* Improved range computation for modulo expressions.
+	* Added iterators to the modelling language.
+	* Added type_t::toString().
+	* Disabled a number of unimplemented keywords.
 
-2003-06-05  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Removed ::evaluate methods from TimedAutomataSystem (use
-	  Interpreter class instead)
-	* Updated SystemBuilder, TypeChecker and RangeChecker to use new
-	  Interpreter class.
-	* Changed ParserBuilder::property(...) to use a kind_t rather than
-	  an int. 
-	* Fixed a problem in how processes are instantiated. This required
-	  the introduction of a new type 'INSTANCE', which is used for
-	  instances of templates. This more closely resembles the
-	  behaviour of 3.2. 
-	* Added include of cstdarg and cassert header files
-	* Added interpreter class used to interprete expressions.
-	* Added interpreter class used to interprete expressions.
-	* Added default constructor for range s.t. the range is
-	  initialised to the empty range.
-	* Added 'INSTANCE' base type
-	* Removed ::getId() methods and id based constructors
-	* Changed textual representation of an error to include the XPath
-	  (in case of XML input files).
-	* Made 'and', 'or', 'not', and 'imply' keywords available to
-	  expressions used in the model.
-	* Changed precedence of 'and', 'or', 'not, and 'imply' keywords to
-	  be lower than the corresponding symbols (this matches the
-	  behaviour of Perl which also has both symbolic operators and
-	  keyword operators). 
-	* Fixed several crasher bugs triggered by parse errors
-	
-2003-05-21  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* In TimedAutamataSystem; unified list of clocks, constants,
-  	  channels, integer variables, and record variables into one list:
-	  variables. 
-	* Replaced varbase_t, clock_t and channel_t with variable_t
-	* Implemented parameterized array sizes, i.e. the size of a local
-	  array in a template can depend on a template parameter (this is
-	  a 3.2 feature). 
-	
-2003-05-20  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Disabled check for invariants on target of urgent and broadcast 
-	  transitions since it would break many of our examples and would
-	  not fix the problem anyway.
-	* Moved construction of default initialiser out of libutap 
-	* Integer types can now have parameterised ranges (like
-	  in 3.2) 
-	* Added a couple of additional checks for invalid initialisers 
-	* Disallowed invariants on targets of edges synchronising on 
-	  urgent channels or broadcast receiption
-	* Empty invariants are now represented as empty expressions rather  
-	  than the constant 1.
-	* Changed ParserBuilder::procState to take an additional argument 
-	  indicating whether the state has an invariant or not.
-	* Added range_t::contains() method
-	* Replaced constant_t with variable_t
-	* RangeChecker is no longer a visitor - it simply serves as an
-	  oracle to compute the range of an expression in a given
-	  process. 
-	* Added expression_t::equal method for comparing two expressions.
-	
-2003-05-01  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Removed TimedAutomataStructure. This class was an early attempt
-	  to avoid clutering the common namespace with structs like
-	  state_t and process_t. Later we introduced the UTAP namespace,
-	  thus TimedAutomataStructures is no longer needed.
-	* Updated range checker to better handle constants and structures.
-  	* Removed range information from 'location expressions', i.e. from 
-	  expressions on the form P.l, where P is a process and l is a
-	  location. 
-  	* Made sure that the index of an array expression is within range
-	  in evaluateExpression (actually, a range violation should
-	  generate an error, but at the moment there is no way to report
-	  this error; the fix is compatible with the behaviour of UPPAAL
-	  [which is also broken...]).
-  	* Replaced call to getRecordFields with getFrame (fixes an
-	  assertion violation).
-  	* Fixed bug in visitInstance which caused integer expressions to
-	  be rejected as arguments to constant parameters.
-	* Fixed problem in TimedAutomataSystem::evaluateExpression
-	  introduced by the new expression implementation.
+------------------------------------------------------------------------
+r729 | behrmann | 2005-03-30 17:29:35 +0200 (Wed, 30 Mar 2005) | 2 lines
 
-2003-04-30  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Started implementation of RangeMap class to solve the problem
-  	  with computing the range of record fields.
-	* Replaced SubExpression and ExpressionProgram with new
-	  expression_t class 
-	* Updated libutap to use the new expression_t class
-	* Notice: the type of an expression should never contain the range
-	  of the expression; the range might depend on the context and
-	  thus you should always use RangeChecker (an alternative would be
-	  to let the range be defined by a pair of expressions instead of
-	  constants; then the expression would include the references to
-	  the constants the range depends on and would need to be
-	  evaluated in the correct context - on the other hand, this is
-	  exactly what RangeChecker does...). The old implementation
-	  contained some bugs related to this - these have been fixed.
-	* Notice that there is a problem related to record types in
-	  RangeChecker::addRangeOfConstant (the problem is that records
-	  are not handled :-).
-	* Replaced most uses of the getId() methods of symbol_t and type_t
-	  with actual references to the symbols and types (previously, a
-	  number of maps and sets contained the ID of symbols and
-	  types). Also, nodes of expressions previously refered to some
-	  types and symbols by ID - this is no longer the case.
-	* Removed then SYNC_TAU constant. A tau 'synchronisation' is now
-	  'stored' as an emty sync expression in the transition.	
+Fixes bug 135.
 
-2003-04-22  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Fixed bug in isReferenceTo for DOT expressions
+------------------------------------------------------------------------
+r735 | behrmann | 2005-04-01 15:44:43 +0200 (Fri, 01 Apr 2005) | 2 lines
 
-2003-04-12  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Fixed problem with utap_ prefix in libutap lexer when using a
-	  recent version of flex.
+Added some time checking for iteration statements.
 
-2003-04-08  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Made sure that yesterdays fix for 3.2 compatible integer
-	  parameters also works for array parameters
-	* Rated channel parameters according to capabilities, i.e. no
-	  clock guards, clock guards on send, clock guards on both send
-	  and receive. The argument must have at least the capabilities as
-	  the parameter. E.g. it is ok to use a channel argument to an
-	  urgent channel parameter, but not the other way arround.
+------------------------------------------------------------------------
+r744 | behrmann | 2005-04-16 14:01:53 +0200 (Sat, 16 Apr 2005) | 2 lines
 
-2003-04-07  Gerd Behrmann  <behrmann@cs.auc.dk>
-	* Removed SIDE_EFFECT_FREE type prefix
-	* Changed handling of int parameters - a parameter were the range
-	  is not specificed is now compatible with integer arguments with 
-	  any range (this is ensures compatibility with 3.2)
+Completed implementation of NotSupportedException.
 
-2003-04-06  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r747 | behrmann | 2005-04-16 15:24:06 +0200 (Sat, 16 Apr 2005) | 2 lines
 
-	* Fixed several crasher bugs related to the parser and
-	  error recovery
-	* Added const version of SubExpression::operator[]
-	* Removed the code which converted constraints to the 
-	  normal form (x-y<c) - also removed the CONSTRAINT 
-	  operation.
-	* Added flag to expressionToString which indicates whether
-	  to use = or := as the assignment operator.
-	* Reimplemented type and symbol handling. Three new classes
-	  (frame_t, type_t and symbol_t) have repaced the TypeSystem
-	  and SymbolTable classes.
-	* Added doxygen support
-	* Added support for the visitor pattern to TimedAutomataSystem
-	* Replaced the old TypeChecker class with two new classes: The
-	  SystemBuilder class is used for creating a TimedAutomataSystem
-	  with minimal type checking. The TypeChecker class (which 
-	  implements the visitor pattern) type checks an existing 
-	  TimedAutomataSystem. The new type checker no longer copies
-	  the template on template instantiation.
-	* Moved range checking to new RangeChecker class
-	* Added support for tracking the position of expression in the
-	  input file.
-	* Added ExpressionProgram::empty() method
-	* Added SubExpression::getSymbol(), SubExpression::isReferenceTo(),
-	  and SubExpression::changesVariables().
-	* Unified handling of processes and structs
-	* Added warning for updates on edges without any effect
+Added missing type check for template parameters.
 
-2003-02-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r748 | behrmann | 2005-04-16 15:44:58 +0200 (Sat, 16 Apr 2005) | 2 lines
 
-	* Enlarged "default domain" of a constant (since a constant is 
-	  a normal integer, it has a domain)
-	* Fixed problem with constant arguments to non-constant integer
-	  reference parameters.
-	* Fixed problem with array parameters
-	* Fixed false assumption: Previously, the value of constants was
-	  thought to be known. This is not always the case, since it might
-	  depend on the parameters of a template. Values derived from such
-	  constants are now disallowed in array sizes and integer ranges.
-	* Fixed bug which caused some identifier expressions to be
-	  marked as non-reference types.
-	* Fixed bug in InternalBuilder which caused inline-ifs that mixed
-          reference and non-reference types to fail
-	* Fixed bug in InternalBuilder which caused a wrong offset to be
-	  computed for constant arrays.
-	* Fixed bug in range estimation for subtractions
+Added select field for edges (see bug 119).
 
-2003-02-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r786 | behrmann | 2005-04-27 22:12:30 +0200 (Wed, 27 Apr 2005) | 2 lines
 
-	* Added min and max operators
-	* Added new array constructs to old syntax
-	* Fixed memory allocation bugs
-	* Moved declaration of assert into error.h and removed assert.h
-	  (due to conflicts with the system assert.h)
-        * Fixed validation problems when loading ta/xta files
-	* Made type checker detect possible division by zero
-	* Fixed problem with empty <instantiation> and <system> tags
+Moved classes defined in xmlreader.cpp to the UTAP name space.
 
-2003-01-30  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r814 | behrmann | 2005-05-02 18:40:59 +0200 (Mon, 02 May 2005) | 2 lines
 
-	* C++ compatibility fixes
-	* Windows fixes
+Added a flag to gperf to resolve a collision.
 
-2003-01-28  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r839 | behrmann | 2005-05-28 21:47:37 +0200 (Sat, 28 May 2005) | 2 lines
 
-	* Added support for +=, -=, etc.
+Added support for invariants of the form 'int imply invariant'.
 
-2003-01-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r861 | behrmann | 2005-06-03 12:56:40 +0200 (Fri, 03 Jun 2005) | 2 lines
 
-	* Added pre/post decrement/increment operators
-	* Made := and = behave the same
-	* Cleaned up use of type_t
-	* Changed addState to addLocation
-	* Fixed/cleaned up handling of arguments in function calls and
-	  template instantiations.
-	* Added check to make sure that arguments to templates are side 
-	  effect free.
+Fixes bug 157.
 
-2003-01-24  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r865 | behrmann | 2005-06-03 21:57:25 +0200 (Fri, 03 Jun 2005) | 2 lines
 
-	* Fixed more segfaults
-	* Fixed bug in throw statement
+Fixed bug 155.
 
-2003-01-18  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r892 | behrmann | 2005-06-17 15:16:53 +0200 (Fri, 17 Jun 2005) | 2 lines
 
-	* Fixed XPath construction
+Fixes bug 158.
 
-2003-01-17  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r893 | behrmann | 2005-06-17 16:22:12 +0200 (Fri, 17 Jun 2005) | 3 lines
 
-	* Fixed segfault in case of missing initial state
+The xml reader now throws proper exceptions in error cases (fixes bug
+160).
 
-2003-01-13  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r949 | behrmann | 2005-07-04 15:53:07 +0200 (Mon, 04 Jul 2005) | 2 lines
 
-	* Fixed C++ compatibility issues
+Fixes bug 165.
 
-2003-01-04  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r956 | adavid | 2005-07-09 20:37:56 +0200 (Sat, 09 Jul 2005) | 3 lines
 
-	* Fixed position tracking
-	* Reimplemented symbol table for speed
-	* Implemented copy constructor for TypeSystem
-	* Fixed error handling problem in XML parser
+Attempt to update the build system -- hopefully not everything will
+explode at once. :)
 
-2003-12-27  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r964 | behrmann | 2005-07-12 14:47:55 +0200 (Tue, 12 Jul 2005) | 2 lines
 
-	* Moved typecheck of assignment from procTransition() to
- 	  procUpdate()
-	* Added check for non-constant arguments to non-reference
-	  paramters
+Fixes bug 163.
 
-2003-12-23  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r965 | behrmann | 2005-07-12 15:00:22 +0200 (Tue, 12 Jul 2005) | 2 lines
 
-	* Fixed lexer problem with 'broadcast' keyword
-	* Added check for clock guards on transitions with urgent or
-	  broadcast synchronisations 
-	* Added check for non-reference clock and channel parameters
+Removed a number of dangerous error recovery rules.
 
-2002-12-20  Gerd Behrmann  <behrmann@cs.auc.dk>
+------------------------------------------------------------------------
+r1043 | marius | 2005-08-09 19:45:04 +0200 (Tue, 09 Aug 2005) | 2 lines
 
-	* Initial release
+added 'const' modifier needed by const system/expression visitor which only extracts info.
 
-	
+------------------------------------------------------------------------
+r1044 | marius | 2005-08-09 20:18:25 +0200 (Tue, 09 Aug 2005) | 2 lines
+
+I/O interface (data-flow) analysis for UPPAAL TA systems.
+
+------------------------------------------------------------------------
+r1057 | behrmann | 2005-08-21 15:10:15 +0200 (Sun, 21 Aug 2005) | 2 lines
+
+Added a few extra operators to range_t.
+
+------------------------------------------------------------------------
+r1062 | behrmann | 2005-08-21 15:47:45 +0200 (Sun, 21 Aug 2005) | 45 lines
+
+Major restructuring of the compiler:
+
+- RangeChecker was removed from UTAP and integrated into
+  ExpressionAnalyser.
+
+- The Compiler class and the CommonBuilder class were merged into
+  one class called Compiler (which now is in Compiler.cpp).
+
+- VariableTable was simplified: It is now actually a flat table rather
+  than a tree.
+
+- A tree of symbol tables was added (based on the Symbol class) which
+  now contains the information previously provided by the VariableTable.
+  This information is used during compilation and delete afterwards.
+  This tree mirrors the tree of symbol_t and frame_t objects of UTAP,
+but
+  it does so for instances of templates rather than just the templates.
+  It also contains a lot more information needed for compilation and
+  static analysis (fixes bug 139).
+
+- The compiler no longer relies on the interpreter provided by UTAP -
+  instead the compiler can now evaluate expressions by compiling them
+  to byte code, executing the it and deleting it afterwards. Thus we
+  can now compile-time evaluate expressions involving function calls
+(fixes
+  bug 184).
+
+- A few instructions of the virtual machine were changed:
+
+	- array now takes the array dimension and element size as
+	  arguments and performs bounds checking.
+
+	- assignN now takes the size of the variable (previously it
+	  would extract this information from the variable table).
+
+	- loadvarN was added. It loads variables of size N onto the
+	  stack.
+
+	- call now expects to find the address of a variable containing
+          the entry point rather than the entry point itself. This saves
+	  one instruction for each function call.
+
+- Added a hidden option to verifyta (-P) which will dump the generated
+  byte code to the screen.
+
+------------------------------------------------------------------------
+r1064 | behrmann | 2005-08-21 17:28:46 +0200 (Sun, 21 Aug 2005) | 2 lines
+
+Fixes bug 183.
+
+------------------------------------------------------------------------
+r1065 | behrmann | 2005-08-21 19:13:24 +0200 (Sun, 21 Aug 2005) | 8 lines
+
+Fixed bug 185. This required changing the ParserBuilder interface.
+
+Fixed bug in pretty printer that caused problems with function
+declarations.
+
+Fixed a bug in TypeChecker::visitProperty() that was masked by
+another bug in PropertyBuilder::property().
+
+------------------------------------------------------------------------
+r1076 | behrmann | 2005-08-25 15:49:46 +0200 (Thu, 25 Aug 2005) | 2 lines
+
+Added support for template sets (see bug 117).
+
+------------------------------------------------------------------------
+r1087 | fleury | 2005-08-30 17:31:26 +0200 (Tue, 30 Aug 2005) | 9 lines
+
+o Add an "uncontrollable" transition to the lexer/parser (utap)
+o Add a bool "controllable" to the transition data-structures
+o Add a flag ENABLE_GAMES in the building system
+
+* Note: The ASCII syntax of the uncontrollable transition is -u->.
+To change this, the files to be modified are:
+   - server/modules/old-utap/lexer.l
+   - server/modules/old-utap/prettyprinter.cpp
+
+------------------------------------------------------------------------
+r1092 | behrmann | 2005-09-03 16:47:50 +0200 (Sat, 03 Sep 2005) | 4 lines
+
+Added forall quantifier to expression language (bug 116). The exist
+operator is still missing. Also a type check ensuring that the
+type provided to the forall quantifier is actually an integer.
+
+------------------------------------------------------------------------
+r1094 | behrmann | 2005-09-03 17:24:58 +0200 (Sat, 03 Sep 2005) | 2 lines
+
+Fixed minor bug in declFieldInit.
+
+------------------------------------------------------------------------
+r1095 | behrmann | 2005-09-03 17:26:18 +0200 (Sat, 03 Sep 2005) | 2 lines
+
+Implemented to string conversion of FORALL statements.
+
+------------------------------------------------------------------------
+r1096 | behrmann | 2005-09-03 17:26:31 +0200 (Sat, 03 Sep 2005) | 2 lines
+
+Added type checking of FORALL expressions.
+
+------------------------------------------------------------------------
+r1097 | behrmann | 2005-09-03 18:34:06 +0200 (Sat, 03 Sep 2005) | 2 lines
+
+Added FORALL support to expression analyser.
+
+------------------------------------------------------------------------
+r1098 | behrmann | 2005-09-03 20:54:12 +0200 (Sat, 03 Sep 2005) | 11 lines
+
+Added initial UTAP support for scalar sets (see bug 195):
+
+- The type has been added (scalar).
+- Type definitions with scalar sets work.
+- Declaration of scalar variables work.
+- Equallity, inequallity and assignment are allowed.
+
+Initialisers of scalar variables are not yet supported.
+
+The compiler does not yet understand scalar sets.
+
+------------------------------------------------------------------------
+r1100 | behrmann | 2005-09-04 13:16:31 +0200 (Sun, 04 Sep 2005) | 2 lines
+
+Added type checking for progress measures.
+
+------------------------------------------------------------------------
+r1110 | fleury | 2005-09-08 11:51:54 +0200 (Thu, 08 Sep 2005) | 2 lines
+
+Added support for winning/losing states in UTAP.
+
+------------------------------------------------------------------------
+r1113 | fleury | 2005-09-14 19:04:03 +0200 (Wed, 14 Sep 2005) | 10 lines
+
+Starting the real stuff now.
+o Added a veriftga.cpp file to build my own executable
+o I changed my way of doing from a "code functions first"
+to a "make it work first" scheme. So, I added the parsing
+of the file and I will add the translation to the Locations,
+the Transitions, the Processes, and so on, one after one.
+o Thanks to Gerd, I fixed a bug in the xmlreader.cpp that
+I have added when I did insert my code.
+o Probably tons of other stuff I am forgetting. Read the diff.
+
+------------------------------------------------------------------------
+r1142 | fleury | 2005-09-26 14:50:09 +0200 (Mon, 26 Sep 2005) | 2 lines
+
+Fixing some issue on the order of flags declaration
+
+------------------------------------------------------------------------
+r1162 | behrmann | 2005-10-02 13:40:41 +0200 (Sun, 02 Oct 2005) | 2 lines
+
+Fixed segfault when invalid filename is given.
+
+------------------------------------------------------------------------
+r1167 | behrmann | 2005-10-03 15:04:28 +0200 (Mon, 03 Oct 2005) | 2 lines
+
+Fixes bug 203.
+
+------------------------------------------------------------------------
+r1177 | behrmann | 2005-10-04 16:36:51 +0200 (Tue, 04 Oct 2005) | 9 lines
+
+Fixed bug 205. Whenever the input contains the non-const type 'int'
+without an explicit range, then the default range is used. Previously
+this was handled at several places, but this has now been centraliced
+in ExpressionBuilder.
+
+Notice that the test case for bug 205 still has a problem: Although it
+no longer crashes, the range on the return type of the function is
+not respected. This is a different bug, though.
+
+------------------------------------------------------------------------
+r1178 | behrmann | 2005-10-05 15:09:28 +0200 (Wed, 05 Oct 2005) | 4 lines
+
+Fixes a bug related to bug 191. A SystemVisitor did not visit elements
+of a model in declaration order, which caused some problems with the
+type checker.
+
+------------------------------------------------------------------------
+r1179 | behrmann | 2005-10-05 19:41:54 +0200 (Wed, 05 Oct 2005) | 2 lines
+
+Fixes bug 191.
+
+------------------------------------------------------------------------
+r1203 | fleury | 2005-10-14 11:57:51 +0200 (Fri, 14 Oct 2005) | 2 lines
+
+Fixing a bug in the XML parser
+
+------------------------------------------------------------------------
+r1217 | behrmann | 2005-10-18 20:15:50 +0200 (Tue, 18 Oct 2005) | 3 lines
+
+Fixed minor bug in TypeChecker::checkInitiliaser when checking record
+types.
+
+------------------------------------------------------------------------
+r1256 | behrmann | 2005-11-07 21:04:01 +0100 (Mon, 07 Nov 2005) | 7 lines
+
+Added more support for scalar sets. The test cases for bug 116, 117 and
+118 fail, as I have disabled support for templatesets and iterators
+over anything but scalarsets.
+
+However a crucial scalarset feature is missing: Defining arrays over
+scalarsets. Without this scalarsets are rather useless.
+
+------------------------------------------------------------------------
+r1259 | behrmann | 2005-11-08 09:51:22 +0100 (Tue, 08 Nov 2005) | 10 lines
+
+More work on implementing scalar sets. Internally, there is not much
+difference between scalars and integers now: Both have a range specified
+by a pair of expressions. In case of scalars it simply happens to start
+at 0. One could consider also making the syntax for scalars and integers
+symmetric in the sense that scalar[0,5] or int[4] (equivalent to
+int[0,3]) would be allowed.
+
+Test case bug118 now succeeds. bug116 and bug117 still fail (because
+template sets are still broken).
+
+------------------------------------------------------------------------
+r1261 | behrmann | 2005-11-09 09:29:17 +0100 (Wed, 09 Nov 2005) | 8 lines
+
+Changed definition of an array: An array is now a type with a subtype
+and an index type providing the size of the array. The index type is
+either an integer or scalar type - often with a range from 0 to the
+largest index, but it should be possible to define arrays that are not
+zero-indexed.
+
+Test cases bug116 and bug117 now succeed.
+
+------------------------------------------------------------------------
+r1263 | behrmann | 2005-11-10 12:38:37 +0100 (Thu, 10 Nov 2005) | 2 lines
+
+Fixed typo if ifdef.
+
+------------------------------------------------------------------------
+r1264 | behrmann | 2005-11-10 12:39:28 +0100 (Thu, 10 Nov 2005) | 2 lines
+
+Added three new base types for CORA.
+
+------------------------------------------------------------------------
+r1265 | behrmann | 2005-11-10 12:40:31 +0100 (Thu, 10 Nov 2005) | 2 lines
+
+Added field for storing the cost rate of a location.
+
+------------------------------------------------------------------------
+r1266 | behrmann | 2005-11-10 12:42:10 +0100 (Thu, 10 Nov 2005) | 2 lines
+
+Added support for variables of type COST.
+
+------------------------------------------------------------------------
+r1274 | behrmann | 2005-11-19 20:02:36 +0100 (Sat, 19 Nov 2005) | 2 lines
+
+Fixed bug 220.
+
+------------------------------------------------------------------------
+r1275 | behrmann | 2005-11-19 20:19:26 +0100 (Sat, 19 Nov 2005) | 2 lines
+
+Disallowed typedef from function local declarations. Fixes bug 225.
+
+------------------------------------------------------------------------
+r1276 | behrmann | 2005-11-19 20:47:09 +0100 (Sat, 19 Nov 2005) | 2 lines
+
+Reenabled function local typedefs and fixed the actual cause of bug 225.
+
+------------------------------------------------------------------------
+r1281 | behrmann | 2005-11-20 12:38:22 +0100 (Sun, 20 Nov 2005) | 3 lines
+
+Changed type of 'true' and 'false' literals from integer to boolean.
+Fixes bug 188.
+
+------------------------------------------------------------------------
+r1282 | behrmann | 2005-11-20 13:04:52 +0100 (Sun, 20 Nov 2005) | 3 lines
+
+Added error message for missing return statements in user declared
+functions. Fixes bug 171.
+
+------------------------------------------------------------------------
+r1283 | behrmann | 2005-11-20 13:20:49 +0100 (Sun, 20 Nov 2005) | 4 lines
+
+Added support for parsing exists expressions (dual of forall). There is
+no support for such expressions in the engine yet. See bug 218 for
+details.
+
+------------------------------------------------------------------------
+r1297 | behrmann | 2005-11-22 20:06:34 +0100 (Tue, 22 Nov 2005) | 2 lines
+
+Fixed bug 226.
+
+------------------------------------------------------------------------
+r1299 | behrmann | 2005-11-23 13:40:25 +0100 (Wed, 23 Nov 2005) | 3 lines
+
+Fixed a bug in type checking return statements (thanks to John for
+finding this problem).
+
+------------------------------------------------------------------------
+r1316 | behrmann | 2005-12-01 22:34:08 +0100 (Thu, 01 Dec 2005) | 3 lines
+
+Added support for locations, processes, templates and functions in 
+type_t::toString().
+
+------------------------------------------------------------------------
+r1318 | behrmann | 2005-12-02 10:06:37 +0100 (Fri, 02 Dec 2005) | 3 lines
+
+Fixed AbstractStatementVisitor::visitIfStatement() for the case where
+the if statement has no else-branch (it caused a segfault).
+
+------------------------------------------------------------------------
+r1319 | behrmann | 2005-12-02 10:07:15 +0100 (Fri, 02 Dec 2005) | 3 lines
+
+Extended type_t::toString() to also handle processes, functions, 
+locations and ranges.
+
+------------------------------------------------------------------------
+r1321 | behrmann | 2005-12-02 18:03:37 +0100 (Fri, 02 Dec 2005) | 3 lines
+
+Removed type check from exprId(). It should be done in the type
+checker.
+
+------------------------------------------------------------------------
+r1322 | behrmann | 2005-12-02 18:09:11 +0100 (Fri, 02 Dec 2005) | 5 lines
+
+Changed error message on type errors in guards and invariants. Fixes
+bug 134.
+
+Changed type checking of invariants to fix bug 232.
+
+------------------------------------------------------------------------
+r1324 | behrmann | 2005-12-02 20:22:28 +0100 (Fri, 02 Dec 2005) | 3 lines
+
+And check to prohibit declarations of function local channels and
+function local cost variables. Fixes bug 228.
+
+------------------------------------------------------------------------
+r1331 | behrmann | 2005-12-05 21:41:57 +0100 (Mon, 05 Dec 2005) | 8 lines
+
+Replaced implementations of isReferenceTo, changes and dependsOn to
+use collectPossibleWrites, collectPossibleReads and a new getSymbols
+method. collectPossibleWrites now uses getSymbols, which fixes
+bug 235.
+
+For now, the old implementations are still in the file, but commented
+out.
+
+------------------------------------------------------------------------
+r1334 | behrmann | 2005-12-07 14:40:22 +0100 (Wed, 07 Dec 2005) | 2 lines
+
+Fixes bug 237.
+
+------------------------------------------------------------------------
+r1335 | behrmann | 2005-12-07 18:27:11 +0100 (Wed, 07 Dec 2005) | 2 lines
+
+Updated error message. Fixes bug 238.
+
+------------------------------------------------------------------------
+r1349 | behrmann | 2005-12-09 21:10:53 +0100 (Fri, 09 Dec 2005) | 5 lines
+
+Moved priority declaration of system declaration line: Otherwise
+it is not possible to refer to the processes by name (they are not
+represented as processes in the parser until the process line has
+been reached).
+
+------------------------------------------------------------------------
+r1386 | behrmann | 2005-12-18 02:22:25 +0100 (Sun, 18 Dec 2005) | 2 lines
+
+Renamed old-utap to utap.
+
+------------------------------------------------------------------------
+r1418 | behrmann | 2006-01-03 11:10:38 +0100 (Tue, 03 Jan 2006) | 2 lines
+
+Fixed comment.
+
+------------------------------------------------------------------------
+r1440 | behrmann | 2006-01-08 17:01:57 +0100 (Sun, 08 Jan 2006) | 14 lines
+
+Reimplemented position tracking in UTAP. Positions are now stored 
+statically in the Positions class. A positions are integers that map 
+into locations in the input. Locations contain a path to the XML 
+element, eliminating the need for the ContextVisitor class to construct 
+the path.
+
+Eventually, these changes will make it easier to associate types and 
+statements with positions (at the moment only expressions have position 
+information), which in turn will make it easier to generate good error 
+messages.
+
+It will also make it easier to fix bug 90.
+
+
+------------------------------------------------------------------------
+r1441 | behrmann | 2006-01-08 19:22:30 +0100 (Sun, 08 Jan 2006) | 2 lines
+
+Removed unneeded error handling rules.
+
+------------------------------------------------------------------------
+r1443 | behrmann | 2006-01-09 18:24:23 +0100 (Mon, 09 Jan 2006) | 2 lines
+
+Changed position tracking in virtual machine. Fixes bug 90.
+
+------------------------------------------------------------------------
+r1450 | behrmann | 2006-01-11 16:40:28 +0100 (Wed, 11 Jan 2006) | 2 lines
+
+Fixes bug 248.
+
+------------------------------------------------------------------------
+r1451 | behrmann | 2006-01-17 15:26:26 +0100 (Tue, 17 Jan 2006) | 2 lines
+
+Fixes bug 233.
+
+------------------------------------------------------------------------
+r1454 | behrmann | 2006-01-17 15:46:57 +0100 (Tue, 17 Jan 2006) | 2 lines
+
+Fixes bug 241.
+
+------------------------------------------------------------------------
+r1456 | behrmann | 2006-01-17 16:23:06 +0100 (Tue, 17 Jan 2006) | 11 lines
+
+Changed syntax of template sets: Rather than the syntax suggested in bug 
+117, I use a variation of the call-by-reference syntax. See bug 117 for 
+further details on the new syntax.
+
+I also extended the syntax of the instantiation and system fields in the 
+XML files: they can now contain variable declarations and the system 
+field can contain process instantiations.
+
+Finally, I made small adjustments in the ParserBuilder interface: A 
+number of constant variables have been replaced by an enum type.
+
+------------------------------------------------------------------------
+r1463 | behrmann | 2006-01-19 13:00:08 +0100 (Thu, 19 Jan 2006) | 2 lines
+
+Fixed name space problem.
+
+------------------------------------------------------------------------
+r1510 | behrmann | 2006-02-05 19:24:21 +0100 (Sun, 05 Feb 2006) | 2 lines
+
+Fixes bug 253.
+
+------------------------------------------------------------------------
+r1511 | behrmann | 2006-02-05 19:50:05 +0100 (Sun, 05 Feb 2006) | 2 lines
+
+Fixes bug 256.
+
+------------------------------------------------------------------------
+r1514 | john | 2006-02-07 16:05:53 +0100 (Tue, 07 Feb 2006) | 8 lines
+
+
+- 'default' keyword added, used for specifying a default priority level for channels (including tau).
+- 'proc_priority' keyword removed, process priorities are now specified on system line.
+- Declaration of channel priorities (using keyword 'chan_priority') is now specified among other declarations.
+- Added support for priorities on channel arrays.
+- New priority order (PriorityFilter.cpp)
+
+
+------------------------------------------------------------------------
+r1518 | john | 2006-02-08 12:08:34 +0100 (Wed, 08 Feb 2006) | 1 line
+
+Priority extension: removed redundant type check which broke template sets.
+------------------------------------------------------------------------
+r1524 | behrmann | 2006-02-11 19:20:12 +0100 (Sat, 11 Feb 2006) | 2 lines
+
+Added less-than operator for type_t.
+
+------------------------------------------------------------------------
+r1526 | behrmann | 2006-02-11 22:04:14 +0100 (Sat, 11 Feb 2006) | 2 lines
+
+Made type_t::toString() constant.
+
+------------------------------------------------------------------------
+r1531 | behrmann | 2006-02-12 16:22:52 +0100 (Sun, 12 Feb 2006) | 2 lines
+
+Fixed position tracking for types without a prefix.
+
+------------------------------------------------------------------------
+r1532 | john | 2006-02-13 10:19:01 +0100 (Mon, 13 Feb 2006) | 1 line
+
+Changed keyword 'chan_priority' to 'priority' and removed #ifdef ENABLE_PRIORITY
+------------------------------------------------------------------------
+r1541 | behrmann | 2006-02-20 19:36:07 +0100 (Mon, 20 Feb 2006) | 39 lines
+
+Major restructuring of the type checker:
+
+1. Removed the getBase() call from type_t and added a simpler getKind().
+
+2. Added position tracking to types (thus types are really part of the AST).
+
+3. Move part of the type checking previously done in SystemBuilder to 
+TypeChecker (possible because of the new position tracking in type_t).
+
+4. Removed the 'prefix-flags' of type_t. The new notion of a prefix is 
+no different from any other constructed type. The previous system was 
+broken, because it was impossible to set a prefix without copying the 
+type (thus detroying name-equivalence).
+
+5. Removed checks from TypeChecker that it could not do reliably (like
+checking the bounds on integers). The Compiler class does this now. 
+Added infrastructure for ModelChecker, verifyta and server to deal with 
+the fact that compilation can create errors.
+
+6. Removed the checkSyntax primitive from the server interface. Since 
+some problems can only be detected by the compiler, there is no reason
+to have a checkSyntax call, that does not compile the model.
+
+7. Added handling of models with ill-defined initial states.
+
+8. All uses of the interpreter in UTAP - with the exception of the 
+new priority code - are gone. The interpreter is still used in the 
+tracer utility, but it is not used in UTAP or Uppaal. This is a good 
+thing because it is broken.
+
+9. Changed semantics for records: assignment and comparison now requires 
+that the two expressions are structurally equivalent rather than 
+name-equivalent.
+
+10. At least the following bugs are resolved by this problem: bug 172, 
+bug 262, bug 268. Also bug 186 is partially adressed by these changes, 
+although work is not completed yet.
+
+
+------------------------------------------------------------------------
+r1543 | behrmann | 2006-02-21 13:18:44 +0100 (Tue, 21 Feb 2006) | 4 lines
+
+Replaced use of C strings with STL strings.
+
+Fixed a crash bug caused by syntax errors in records.
+
+------------------------------------------------------------------------
+r1547 | behrmann | 2006-02-21 14:16:23 +0100 (Tue, 21 Feb 2006) | 2 lines
+
+Fixes bug 266.
+
+------------------------------------------------------------------------
+r1550 | behrmann | 2006-02-21 23:57:58 +0100 (Tue, 21 Feb 2006) | 6 lines
+
+Changed representation of primitive types: They now have their own 
+'kind' value.
+
+Made primitive types like int, bool and clock keywords. Changed builder 
+interface to simplify how primitive types are processed.
+
+------------------------------------------------------------------------
+r1551 | john | 2006-02-22 15:58:40 +0100 (Wed, 22 Feb 2006) | 3 lines
+
+Fixed MinGW compilation:
+Windows headers litters in namespace, stuff like INT, BOOL etc are defined,
+so I just added prefix, e.g. "Constants::INT"
+------------------------------------------------------------------------
+r1552 | john | 2006-02-22 16:02:25 +0100 (Wed, 22 Feb 2006) | 1 line
+
+Changed priority syntax to "chan priority" for defining priorities on channels (changed already in rev 1551)
+------------------------------------------------------------------------
+r1557 | behrmann | 2006-02-23 21:12:14 +0100 (Thu, 23 Feb 2006) | 4 lines
+
+Changed type checking rules for scalar set types defined locally in a 
+template: Scalars of such types from different instances of the template 
+no longer have the same type. Fixes bug 265.
+
+------------------------------------------------------------------------
+r1558 | behrmann | 2006-02-23 22:55:17 +0100 (Thu, 23 Feb 2006) | 3 lines
+
+Added type checking for template set specifications. Allowed constant
+scalars in template set specifications. Fixes bug 264.
+
+------------------------------------------------------------------------
+r1561 | behrmann | 2006-02-24 17:22:47 +0100 (Fri, 24 Feb 2006) | 11 lines
+
+Changed infrastructure for template and instance representation in UTAP: 
+
+- Instances can now be parameterised
+- The name of the template is now an instance with the same parameters 
+  as the template (using the identity to map parameters).
+- The TEMPLATE type was eliminated.
+
+This is part of the work needed for bug 278.
+
+
+
+------------------------------------------------------------------------
+r1566 | john | 2006-02-27 14:23:24 +0100 (Mon, 27 Feb 2006) | 6 lines
+
+- Changed the syntax of ChanElement to be a ChanExpression or T_DEFAULT.
+- Expressions are type checked to make sure that they indeed resolve to channels or arrays of channels.
+- Changed the representation in TimedAutomataSystem to provide a list of pairs of priority and an expression
+  evaluating to a channel reference or a reference to an array of channels.
+- Changed the compiler to retrieve the channel-priority list and evaluate the expressions to figure our which channel or channels this priority applies to.
+
+------------------------------------------------------------------------
+r1570 | behrmann | 2006-02-28 13:56:56 +0100 (Tue, 28 Feb 2006) | 3 lines
+
+Fixed crash bug when too few arguments are given during template
+instantiation.
+
+------------------------------------------------------------------------
+r1573 | behrmann | 2006-02-28 16:51:33 +0100 (Tue, 28 Feb 2006) | 8 lines
+
+Fixed bug in type_t::getSub() (TYPENAME was propagated).
+
+Fixed structural equivalence check for == and != operators. 
+
+Added substitution of process arguments in type of dot expressions 
+(needed for the structural equivalence check).
+
+
+------------------------------------------------------------------------
+r1574 | behrmann | 2006-02-28 17:11:11 +0100 (Tue, 28 Feb 2006) | 2 lines
+
+Updated TypeChecker::areInlineIfCompatible for structural equivalence.
+
+------------------------------------------------------------------------
+r1592 | john | 2006-03-02 21:57:16 +0100 (Thu, 02 Mar 2006) | 1 line
+
+Fixed bug in priorities: thanx Alexandre for finding this.
+------------------------------------------------------------------------
+r1593 | behrmann | 2006-03-03 11:07:37 +0100 (Fri, 03 Mar 2006) | 2 lines
+
+Fixes bug 284.
+
+------------------------------------------------------------------------
+r1607 | behrmann | 2006-03-03 18:39:51 +0100 (Fri, 03 Mar 2006) | 2 lines
+
+Extended syntax for partial instantiation of templates.
+
+------------------------------------------------------------------------
+r1608 | behrmann | 2006-03-04 13:41:09 +0100 (Sat, 04 Mar 2006) | 15 lines
+
+Changed representation of types in UTAP: A type is represented as a 
+tree. The interface used to navigate this tree is almost identical to 
+that of expression_t. This removes the need for embedding frame_t 
+objects in types, because, e.g., record fields and function parameters 
+can be expressed directly.
+
+This change also makes the interpretation of methods like 
+expression_t::collectPossibleReads() more clear.
+
+Also changed representation of templates and processes in UTAP: A 
+template is now its own instance, and a process is simply an instance 
+listed in the system line (will make it easier to add partial 
+instantiation of templates).
+
+
+------------------------------------------------------------------------
+r1609 | behrmann | 2006-03-04 14:46:48 +0100 (Sat, 04 Mar 2006) | 3 lines
+
+Changed syntax for partial instantiation such that a type must be
+given for each parameter.
+
+------------------------------------------------------------------------
+r1610 | behrmann | 2006-03-04 15:30:37 +0100 (Sat, 04 Mar 2006) | 2 lines
+
+Updated tracer utility for new process representation.
+
+------------------------------------------------------------------------
+r1613 | behrmann | 2006-03-05 21:17:28 +0100 (Sun, 05 Mar 2006) | 3 lines
+
+Changed getSymbol() on function call expressions to return the symbol of 
+the function.
+
+------------------------------------------------------------------------
+r1614 | behrmann | 2006-03-05 21:19:02 +0100 (Sun, 05 Mar 2006) | 2 lines
+
+Added PROCESSSET type (for partial instantiation of templates).
+
+------------------------------------------------------------------------
+r1615 | behrmann | 2006-03-05 21:20:03 +0100 (Sun, 05 Mar 2006) | 2 lines
+
+Removed call-by-reference parameter for increased clarity of code.
+
+------------------------------------------------------------------------
+r1616 | behrmann | 2006-03-05 21:59:52 +0100 (Sun, 05 Mar 2006) | 8 lines
+
+Removed template set mechanism.
+
+Added partial instantiation of templates (bug 278). Type checking is not 
+finished: We still need to check that only parameters with a 'nice' type
+are unbound.
+
+Updated test cases.
+
+------------------------------------------------------------------------
+r1618 | behrmann | 2006-03-08 09:51:51 +0100 (Wed, 08 Mar 2006) | 2 lines
+
+Fixed toString() for DOT expressions.
+
+------------------------------------------------------------------------
+r1619 | behrmann | 2006-03-08 09:52:02 +0100 (Wed, 08 Mar 2006) | 2 lines
+
+Fixed assertion.
+
+------------------------------------------------------------------------
+r1620 | behrmann | 2006-03-08 09:52:31 +0100 (Wed, 08 Mar 2006) | 2 lines
+
+Fixed bug that destroyed info about arrays in records.
+
+------------------------------------------------------------------------
+r1624 | behrmann | 2006-03-08 21:18:42 +0100 (Wed, 08 Mar 2006) | 3 lines
+
+Added basic type checking of free parameters of processes. Still no
+check for when symmetry is broken by template instantiations.
+
+------------------------------------------------------------------------
+r1625 | behrmann | 2006-03-08 21:30:52 +0100 (Wed, 08 Mar 2006) | 4 lines
+
+Incremented version number to Beta1-pre5.
+
+(and forgot to check in typechecker.h in prev. rev.)
+
+------------------------------------------------------------------------
+r1626 | behrmann | 2006-03-09 17:40:51 +0100 (Thu, 09 Mar 2006) | 3 lines
+
+Added check to make sure that any free process parameters do not 
+influence the size of any arrays declared in a template.
+
+------------------------------------------------------------------------
+r1628 | behrmann | 2006-03-09 21:13:00 +0100 (Thu, 09 Mar 2006) | 2 lines
+
+Removed unused code.
+
+------------------------------------------------------------------------
+r1630 | behrmann | 2006-03-10 12:49:11 +0100 (Fri, 10 Mar 2006) | 5 lines
+
+Fixes bug 288.
+
+Changed semantics of array parameters: ambersand is now required
+to make it a call-by-reference parameter.
+
+------------------------------------------------------------------------
+r1647 | behrmann | 2006-03-15 20:10:50 +0100 (Wed, 15 Mar 2006) | 8 lines
+
+Fixes bug 292 and 293.
+
+Removes the interpreter from UTAP. Thus the tracer utility no longer 
+works, but it should be replaced by a new utility using the Uppaal 
+compiler output.
+
+Started work on a fix for bug 279.
+
+------------------------------------------------------------------------
+r1648 | behrmann | 2006-03-15 20:36:17 +0100 (Wed, 15 Mar 2006) | 2 lines
+
+Added type_t::isCost().
+
+------------------------------------------------------------------------
+r1649 | behrmann | 2006-03-15 20:36:39 +0100 (Wed, 15 Mar 2006) | 2 lines
+
+Added RATE type to list of non-prefix types.
+
+------------------------------------------------------------------------
+r1650 | behrmann | 2006-03-15 20:37:36 +0100 (Wed, 15 Mar 2006) | 2 lines
+
+Fixes bug 294.
+
+------------------------------------------------------------------------
+r1655 | behrmann | 2006-03-16 09:53:26 +0100 (Thu, 16 Mar 2006) | 4 lines
+
+Arrays are now parsed by calling typeArrayOfSize() rather than
+providing the dimension as a parameter to declVar() and similar
+methods. Towards a fix for bug 279.
+
+------------------------------------------------------------------------
+r1656 | behrmann | 2006-03-16 11:11:57 +0100 (Thu, 16 Mar 2006) | 4 lines
+
+Towards bug 279 (in fact, arrays can now be defined over both 
+scalar types and integer types). Still needs some work on the type 
+checker to disallow arrays over other types.
+
+------------------------------------------------------------------------
+r1657 | behrmann | 2006-03-16 11:38:55 +0100 (Thu, 16 Mar 2006) | 2 lines
+
+Added type checking for bug 279. Resolves the bug.
+
+------------------------------------------------------------------------
+r1660 | behrmann | 2006-03-17 09:44:24 +0100 (Fri, 17 Mar 2006) | 2 lines
+
+Fixed problem with ordering on array declarations.
+
+------------------------------------------------------------------------
+r1670 | behrmann | 2006-03-19 15:25:40 +0100 (Sun, 19 Mar 2006) | 2 lines
+
+Disallowed initialiser on arrays indexed by scalar set.
+
+------------------------------------------------------------------------
+r1675 | behrmann | 2006-03-20 10:48:50 +0100 (Mon, 20 Mar 2006) | 2 lines
+
+Made int and scalar valid keywords in the query language.
+
+------------------------------------------------------------------------
+r1692 | behrmann | 2006-03-23 15:13:21 +0100 (Thu, 23 Mar 2006) | 1 line
+
+Fixed compilation on Mac OS
+------------------------------------------------------------------------
+r1739 | behrmann | 2006-04-24 13:37:59 +0200 (Mon, 24 Apr 2006) | 2 lines
+
+Added TimedAutomataSystem::clearErros() method.
+
+------------------------------------------------------------------------
+r1765 | behrmann | 2006-04-29 19:56:51 +0200 (Sat, 29 Apr 2006) | 4 lines
+
+Added new tracer utility. No longer depends on UTAP. Uses the new UPPAAL
+intermediate format. In constrast to the old tracer utility, this should 
+work with any UPPAAL model.
+
+------------------------------------------------------------------------

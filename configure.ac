@@ -16,11 +16,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT(UPPAAL TA Parser Library, 0.80, behrmann@cs.aau.dk, libutap)
+AC_INIT(UPPAAL TA Parser Library, 0.90, behrmann@cs.aau.dk, libutap)
 
 AC_PREREQ(2.50)
 
-AM_INIT_AUTOMAKE(libutap, 0.80)
+AM_INIT_AUTOMAKE(libutap, 0.90)
 AM_CONFIG_HEADER(config.h)
 AC_CONFIG_SRCDIR(src/pretty.cpp)
 AC_CONFIG_AUX_DIR(.)
@@ -32,6 +32,9 @@ AC_PROG_YACC
 AC_PROG_RANLIB
 AM_PROG_LEX
 AC_ISC_POSIX
+
+dnl Switch to C++
+AC_LANG(C++)
 
 AM_MISSING_PROG([GPERF], [gperf])
 
@@ -72,7 +75,10 @@ dnl Checks for libraries.
      
 dnl Checks for header files.
 AC_STDC_HEADERS
-AC_HAVE_HEADERS(string.h fcntl.h sys/file.h sys/param.h)
+AC_CHECK_HEADERS(string.h fcntl.h sys/file.h sys/param.h)
+
+AC_CHECK_HEADERS(boost/bind.hpp boost/lambda/lambda.hpp boost/lambda/bind.hpp,,
+				AC_MSG_ERROR("boost header files not found"))
      
 dnl Checks for library functions.
 AC_FUNC_ALLOCA

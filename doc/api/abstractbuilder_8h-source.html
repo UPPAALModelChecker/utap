@@ -34,182 +34,181 @@
 00025 <span class="preprocessor">#include &lt;exception&gt;</span>
 00026 <span class="preprocessor">#include &lt;string&gt;</span>
 00027 
-00028 <span class="preprocessor">#include "<a class="code" href="builder_8h.html">builder.h</a>"</span>
-00029 <span class="preprocessor">#include "<a class="code" href="utap_8h.html">utap.h</a>"</span>
-00030 
-<a name="l00031"></a><a class="code" href="namespaceUTAP.html">00031</a> <span class="keyword">namespace </span>UTAP
-00032 {
-<a name="l00033"></a><a class="code" href="classUTAP_1_1NotSupportedException.html">00033</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1NotSupportedException.html">NotSupportedException</a> : <span class="keyword">public</span> std::exception 
-00034     {
-00035     <span class="keyword">private</span>:
-00036         std::string error;
-00037     <span class="keyword">public</span>:
-<a name="l00038"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a0">00038</a>         <a class="code" href="classUTAP_1_1NotSupportedException.html#a0">NotSupportedException</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *err) { error = err; }
-<a name="l00039"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a1">00039</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1NotSupportedException.html#a1">~NotSupportedException</a>() throw() {}
-<a name="l00040"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a2">00040</a>         <span class="keyword">virtual</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code" href="classUTAP_1_1NotSupportedException.html#a2">what</a>() const throw() { <span class="keywordflow">return</span> error.c_str(); }
-00041     };
-00042 
-<a name="l00043"></a><a class="code" href="classUTAP_1_1AbstractBuilder.html">00043</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1AbstractBuilder.html">AbstractBuilder</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a>
-00044     {
-00045     <span class="keyword">protected</span>:
-00046         <span class="comment">/* A pointer to the error handler */</span>
-<a name="l00047"></a><a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">00047</a>         <a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *<a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">errorHandler</a>;
-00048 
-<a name="l00049"></a><a class="code" href="classUTAP_1_1AbstractBuilder.html#p1">00049</a>         <a class="code" href="structUTAP_1_1position__t.html">position_t</a> <a class="code" href="classUTAP_1_1AbstractBuilder.html#p1">position</a>;
-00050     <span class="keyword">public</span>:
-00051         <a class="code" href="classUTAP_1_1AbstractBuilder.html#a0">AbstractBuilder</a>();
+00028 <span class="preprocessor">#include "<a class="code" href="builder_8h.html">utap/builder.h</a>"</span>
+00029 <span class="preprocessor">#include "<a class="code" href="utap_8h.html">utap/utap.h</a>"</span>
+00030 <span class="preprocessor">#include "<a class="code" href="position_8h.html">utap/position.h</a>"</span>
+00031 
+00032 <span class="keyword">namespace </span>UTAP
+00033 {
+<a name="l00034"></a><a class="code" href="classUTAP_1_1NotSupportedException.html">00034</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1NotSupportedException.html">NotSupportedException</a> : <span class="keyword">public</span> std::exception 
+00035     {
+00036     <span class="keyword">private</span>:
+00037         std::string error;
+00038     <span class="keyword">public</span>:
+<a name="l00039"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a0">00039</a>         <a class="code" href="classUTAP_1_1NotSupportedException.html#a0">NotSupportedException</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *err) { error = err; }
+<a name="l00040"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a1">00040</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1NotSupportedException.html#a1">~NotSupportedException</a>() throw() {}
+<a name="l00041"></a><a class="code" href="classUTAP_1_1NotSupportedException.html#a2">00041</a>         <span class="keyword">virtual</span> <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code" href="classUTAP_1_1NotSupportedException.html#a2">what</a>() const throw() { <span class="keywordflow">return</span> error.c_str(); }
+00042     };
+00043 
+<a name="l00044"></a><a class="code" href="classUTAP_1_1AbstractBuilder.html">00044</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1AbstractBuilder.html">AbstractBuilder</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a>
+00045     {
+00046     <span class="keyword">protected</span>:
+<a name="l00047"></a><a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">00047</a>         <a class="code" href="structUTAP_1_1position__t.html">position_t</a> <a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">position</a>;
+00048     <span class="keyword">public</span>:
+00049         <a class="code" href="classUTAP_1_1AbstractBuilder.html#a0">AbstractBuilder</a>();
+00050 
+00051         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a1">setPosition</a>(uint32_t, uint32_t);
 00052 
-00053         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a1">setErrorHandler</a>(<a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *);
-00054         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a2">setPosition</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
-00055 
-00056         <span class="comment">/************************************************************</span>
-00057 <span class="comment">         * Query functions</span>
-00058 <span class="comment">         */</span>
-00059         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a3">isType</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00060         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a4">isLocation</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00061 
-00062         <span class="comment">/************************************************************</span>
-00063 <span class="comment">         * Types</span>
-00064 <span class="comment">         */</span>
-00065         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a5">typeName</a>(int32_t prefix, <span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">int</span> range);
-00066         <span class="comment">// 2 expr if range==true</span>
-00067         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a6">typeStruct</a>(int32_t prefix, uint32_t fields);
-00068 
-00069         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a7">structField</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t dim); 
-00070         <span class="comment">// 1 type and dim array sizes</span>
-00071         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a8">structFieldEnd</a>();
-00072 
-00073         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a9">declTypeDef</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t dim); 
-00074         <span class="comment">// 1 type and dim array sizes</span>
-00075         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a10">declTypeDefEnd</a>();
-00076 
-00077         <span class="comment">/************************************************************</span>
-00078 <span class="comment">         * Variable declarations</span>
-00079 <span class="comment">         */</span>
-00080         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a11">declVar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t dim, <span class="keywordtype">bool</span> init); 
-00081         <span class="comment">// 1 type, dims, initializer if init==true</span>
-00082         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a12">declVarEnd</a>();
-00083         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a13">declInitialiserList</a>(uint32_t num); <span class="comment">// n initialisers</span>
-00084         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a14">declFieldInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// 1 initialiser</span>
-00085 
-00086         <span class="comment">/************************************************************</span>
-00087 <span class="comment">         * Progress measure declarations</span>
-00088 <span class="comment">         */</span>
-00089         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a15">declProgress</a>(<span class="keywordtype">bool</span>);
-00090         
-00091         <span class="comment">/************************************************************</span>
-00092 <span class="comment">         * Function declarations</span>
-00093 <span class="comment">         */</span>
-00094         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a16">declParameter</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span> reference, uint32_t dim);
-00095         <span class="comment">// 1 type, dim array sizes</span>
-00096         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a17">declParameterEnd</a>(); <span class="comment">// pop parameter type</span>
-00097     
-00098         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a18">declFuncBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t n); <span class="comment">// n paramaters</span>
-00099         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a19">declFuncEnd</a>(); <span class="comment">// 1 block</span>
-00100 
-00101         <span class="comment">/************************************************************</span>
-00102 <span class="comment">         * Process declarations</span>
-00103 <span class="comment">         */</span>
-00104         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a20">procTemplateSet</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00105         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a21">procBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t n, uint32_t m);
-00106         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a22">procEnd</a>(); <span class="comment">// 1 ProcBody</span>
-00107         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a23">procState</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span> hasInvariant); <span class="comment">// 1 expr</span>
-00108         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a24">procStateCommit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
-00109         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a25">procStateUrgent</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
-00110         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a26">procStateWinning</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
-00111         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a27">procStateLosing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
-00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a28">procStateInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
-00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a29">procEdgeBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* from, <span class="keyword">const</span> <span class="keywordtype">char</span>* to, <span class="keyword">const</span> <span class="keywordtype">bool</span> control);
-00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a30">procEdgeEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* from, <span class="keyword">const</span> <span class="keywordtype">char</span>* to); 
-00115         <span class="comment">// 1 epxr,1sync,1expr</span>
-00116         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a31">procSelect</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00117         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a32">procGuard</a>();
-00118         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a33">procSync</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a> type); <span class="comment">// 1 expr</span>
-00119         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a34">procUpdate</a>();
-00120     
-00121         <span class="comment">/************************************************************</span>
-00122 <span class="comment">         * Statements</span>
-00123 <span class="comment">         */</span>
-00124         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a35">blockBegin</a>();
-00125         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a36">blockEnd</a>();
-00126         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a37">emptyStatement</a>();
-00127         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a38">forBegin</a>(); <span class="comment">// 3 expr</span>
-00128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a39">forEnd</a>(); <span class="comment">// 1 stat</span>
-00129         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a40">iterationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 id, 1 type</span>
-00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a41">iterationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 stat</span>
-00131         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a42">whileBegin</a>();
-00132         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a43">whileEnd</a>(); <span class="comment">// 1 expr, 1 stat</span>
-00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a44">doWhileBegin</a>();
-00134         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a45">doWhileEnd</a>(); <span class="comment">// 1 stat, 1 expr</span>
-00135         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a46">ifBegin</a>();
-00136         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a47">ifElse</a>();
-00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a48">ifEnd</a>(<span class="keywordtype">bool</span>); <span class="comment">// 1 expr, 1 or 2 statements</span>
-00138         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a49">breakStatement</a>();
-00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a50">continueStatement</a>();
-00140         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a51">switchBegin</a>();
-00141         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a52">switchEnd</a>(); <span class="comment">// 1 expr, 1+ case/default</span>
-00142         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a53">caseBegin</a>();
-00143         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a54">caseEnd</a>();  <span class="comment">// 1 expr, 0+ stat</span>
-00144         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a55">defaultBegin</a>();
-00145         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a56">defaultEnd</a>(); <span class="comment">// 0+ statements</span>
-00146         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a57">exprStatement</a>(); <span class="comment">// 1 expr</span>
-00147         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a58">returnStatement</a>(<span class="keywordtype">bool</span>); <span class="comment">// 1 expr if argument is true</span>
-00148     
-00149         <span class="comment">/************************************************************</span>
-00150 <span class="comment">         * Expressions</span>
-00151 <span class="comment">         */</span>
-00152         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a59">exprTrue</a>();
-00153         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a60">exprFalse</a>();
-00154         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a61">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * varName);
-00155         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a62">exprNat</a>(int32_t); <span class="comment">// natural number</span>
-00156         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a63">exprCallBegin</a>();
-00157         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a64">exprCallEnd</a>(uint32_t n); <span class="comment">// n exprs as arguments</span>
-00158         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a65">exprArg</a>(uint32_t n); <span class="comment">// 1 exprs as n-th argument for fn-call</span>
-00159         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a66">exprArray</a>(); <span class="comment">// 2 expr </span>
-00160         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a67">exprPostIncrement</a>(); <span class="comment">// 1 expr</span>
-00161         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a68">exprPreIncrement</a>(); <span class="comment">// 1 expr</span>
-00162         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a69">exprPostDecrement</a>(); <span class="comment">// 1 expr</span>
-00163         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a70">exprPreDecrement</a>(); <span class="comment">// 1 expr</span>
-00164         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a71">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op); <span class="comment">// 2 expr</span>
-00165         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a72">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> unaryop); <span class="comment">// 1 expr</span>
-00166         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a73">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> binaryop); <span class="comment">// 2 expr</span>
-00167         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a74">exprInlineIf</a>(); <span class="comment">// 3 expr</span>
-00168         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a75">exprComma</a>(); <span class="comment">// 2 expr</span>
-00169         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a76">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *); <span class="comment">// 1 expr</span>
-00170         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a77">exprDeadlock</a>();
-00171         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a78">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00172         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a79">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00173     
-00174         <span class="comment">/************************************************************</span>
-00175 <span class="comment">         * System declaration</span>
-00176 <span class="comment">         */</span>
-00177         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a80">instantiationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*, <span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00178         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a81">instantiationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *, <span class="keyword">const</span> <span class="keywordtype">char</span> *, uint32_t n); <span class="comment">// n arguments</span>
-00179         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a82">process</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00180 
-00181         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a83">done</a>();    
-00182 
-00183         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a84">property</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, <span class="keywordtype">int</span> line);
-00184 
-00185         <span class="comment">/********************************************************************</span>
-00186 <span class="comment">         * Guiding</span>
-00187 <span class="comment">         */</span>
+00053         <span class="comment">/************************************************************</span>
+00054 <span class="comment">         * Query functions</span>
+00055 <span class="comment">         */</span>
+00056         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a2">isType</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00057         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a3">isLocation</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00058 
+00059         <span class="comment">/************************************************************</span>
+00060 <span class="comment">         * Types</span>
+00061 <span class="comment">         */</span>
+00062         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a4">typeDuplicate</a>();
+00063         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a5">typePop</a>();
+00064         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a6">typeBool</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00065         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a7">typeInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00066         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a8">typeBoundedInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00067         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a9">typeChannel</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00068         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a10">typeClock</a>();
+00069         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a11">typeVoid</a>();
+00070         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a12">typeScalar</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00071         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a13">typeName</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, <span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00072         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a14">typeStruct</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, uint32_t fields);
+00073         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a15">typeArrayOfSize</a>(size_t);
+00074         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a16">typeArrayOfType</a>(size_t);
+00075         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a17">structField</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); 
+00076         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a18">declTypeDef</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); 
+00077 
+00078         <span class="comment">/************************************************************</span>
+00079 <span class="comment">         * Variable declarations</span>
+00080 <span class="comment">         */</span>
+00081         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a19">declVar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span> init); 
+00082         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a20">declInitialiserList</a>(uint32_t num); <span class="comment">// n initialisers</span>
+00083         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a21">declFieldInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// 1 initialiser</span>
+00084 
+00085         <span class="comment">/************************************************************</span>
+00086 <span class="comment">         * Progress measure declarations</span>
+00087 <span class="comment">         */</span>
+00088         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a22">declProgress</a>(<span class="keywordtype">bool</span>);
+00089         
+00090         <span class="comment">/************************************************************</span>
+00091 <span class="comment">         * Function declarations</span>
+00092 <span class="comment">         */</span>
+00093         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a23">declParameter</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span>);
+00094         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a24">declFuncBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// n paramaters</span>
+00095         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a25">declFuncEnd</a>(); <span class="comment">// 1 block</span>
+00096 
+00097         <span class="comment">/************************************************************</span>
+00098 <span class="comment">         * Process declarations</span>
+00099 <span class="comment">         */</span>
+00100         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a26">procBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00101         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a27">procEnd</a>(); <span class="comment">// 1 ProcBody</span>
+00102         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a28">procState</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span> hasInvariant); <span class="comment">// 1 expr</span>
+00103         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a29">procStateCommit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
+00104         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a30">procStateUrgent</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
+00105         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a31">procStateWinning</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
+00106         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a32">procStateLosing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
+00107         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a33">procStateInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); <span class="comment">// mark previously decl. state</span>
+00108         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a34">procEdgeBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* from, <span class="keyword">const</span> <span class="keywordtype">char</span>* to, <span class="keyword">const</span> <span class="keywordtype">bool</span> control);
+00109         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a35">procEdgeEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* from, <span class="keyword">const</span> <span class="keywordtype">char</span>* to); 
+00110         <span class="comment">// 1 epxr,1sync,1expr</span>
+00111         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a36">procSelect</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a37">procGuard</a>();
+00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a38">procSync</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a> type); <span class="comment">// 1 expr</span>
+00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a39">procUpdate</a>();
+00115     
+00116         <span class="comment">/************************************************************</span>
+00117 <span class="comment">         * Statements</span>
+00118 <span class="comment">         */</span>
+00119         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a40">blockBegin</a>();
+00120         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a41">blockEnd</a>();
+00121         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a42">emptyStatement</a>();
+00122         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a43">forBegin</a>(); <span class="comment">// 3 expr</span>
+00123         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a44">forEnd</a>(); <span class="comment">// 1 stat</span>
+00124         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a45">iterationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 id, 1 type</span>
+00125         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a46">iterationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 stat</span>
+00126         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a47">whileBegin</a>();
+00127         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a48">whileEnd</a>(); <span class="comment">// 1 expr, 1 stat</span>
+00128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a49">doWhileBegin</a>();
+00129         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a50">doWhileEnd</a>(); <span class="comment">// 1 stat, 1 expr</span>
+00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a51">ifBegin</a>();
+00131         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a52">ifElse</a>();
+00132         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a53">ifEnd</a>(<span class="keywordtype">bool</span>); <span class="comment">// 1 expr, 1 or 2 statements</span>
+00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a54">breakStatement</a>();
+00134         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a55">continueStatement</a>();
+00135         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a56">switchBegin</a>();
+00136         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a57">switchEnd</a>(); <span class="comment">// 1 expr, 1+ case/default</span>
+00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a58">caseBegin</a>();
+00138         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a59">caseEnd</a>();  <span class="comment">// 1 expr, 0+ stat</span>
+00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a60">defaultBegin</a>();
+00140         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a61">defaultEnd</a>(); <span class="comment">// 0+ statements</span>
+00141         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a62">exprStatement</a>(); <span class="comment">// 1 expr</span>
+00142         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a63">returnStatement</a>(<span class="keywordtype">bool</span>); <span class="comment">// 1 expr if argument is true</span>
+00143     
+00144         <span class="comment">/************************************************************</span>
+00145 <span class="comment">         * Expressions</span>
+00146 <span class="comment">         */</span>
+00147         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a64">exprTrue</a>();
+00148         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a65">exprFalse</a>();
+00149         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a66">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * varName);
+00150         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a67">exprNat</a>(int32_t); <span class="comment">// natural number</span>
+00151         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a68">exprCallBegin</a>();
+00152         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a69">exprCallEnd</a>(uint32_t n); <span class="comment">// n exprs as arguments</span>
+00153         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a70">exprArray</a>(); <span class="comment">// 2 expr </span>
+00154         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a71">exprPostIncrement</a>(); <span class="comment">// 1 expr</span>
+00155         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a72">exprPreIncrement</a>(); <span class="comment">// 1 expr</span>
+00156         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a73">exprPostDecrement</a>(); <span class="comment">// 1 expr</span>
+00157         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a74">exprPreDecrement</a>(); <span class="comment">// 1 expr</span>
+00158         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a75">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op); <span class="comment">// 2 expr</span>
+00159         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a76">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> unaryop); <span class="comment">// 1 expr</span>
+00160         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a77">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> binaryop); <span class="comment">// 2 expr</span>
+00161         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a78">exprInlineIf</a>(); <span class="comment">// 3 expr</span>
+00162         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a79">exprComma</a>(); <span class="comment">// 2 expr</span>
+00163         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a80">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *); <span class="comment">// 1 expr</span>
+00164         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a81">exprDeadlock</a>();
+00165         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a82">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00166         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a83">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00167         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a84">exprExistsBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00168         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a85">exprExistsEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00169     
+00170         <span class="comment">/************************************************************</span>
+00171 <span class="comment">         * System declaration</span>
+00172 <span class="comment">         */</span>
+00173         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a86">instantiationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*, size_t, <span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00174         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a87">instantiationEnd</a>(
+00175             <span class="keyword">const</span> <span class="keywordtype">char</span> *, size_t, <span class="keyword">const</span> <span class="keywordtype">char</span> *, size_t); 
+00176         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a88">process</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00177 
+00178         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a89">done</a>();    
+00179 
+00180         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a90">property</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>);
+00181 
+00182         <span class="comment">/********************************************************************</span>
+00183 <span class="comment">         * Guiding</span>
+00184 <span class="comment">         */</span>
+00185 
+00186         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a91">beforeUpdate</a>();
+00187         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a92">afterUpdate</a>();
 00188 
-00189         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a85">beforeUpdate</a>();
-00190         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a86">afterUpdate</a>();
-00191 
-00192 
-00193         <span class="comment">/********************************************************************</span>
-00194 <span class="comment">         * Priority</span>
-00195 <span class="comment">         */</span>
-00196 
-00197         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a87">lowPriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00198         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a88">samePriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00199         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a89">higherPriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00200     };
-00201 }
-00202 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00189 
+00190         <span class="comment">/********************************************************************</span>
+00191 <span class="comment">         * Priority</span>
+00192 <span class="comment">         */</span>
+00193 
+00194         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a93">incProcPriority</a>();
+00195         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a94">incChanPriority</a>();
+00196         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a95">chanPriority</a>();
+00197         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a96">procPriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00198         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html#a97">defaultChanPriority</a>();
+00199     };
+00200 }
+00201 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:13 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

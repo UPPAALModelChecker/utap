@@ -11,6 +11,8 @@
 <code>#include &lt;cstdio&gt;</code><br>
 <code>#include &lt;cassert&gt;</code><br>
 <code>#include &lt;list&gt;</code><br>
+<code>#include &lt;stdexcept&gt;</code><br>
+<code>#include &lt;boost/tuple/tuple.hpp&gt;</code><br>
 <code>#include "<a class="el" href="utap_8h-source.html">utap/utap.h</a>"</code><br>
 <code>#include "<a class="el" href="typechecker_8h-source.html">utap/typechecker.h</a>"</code><br>
 <code>#include "<a class="el" href="systembuilder_8h-source.html">utap/systembuilder.h</a>"</code><br>
@@ -25,40 +27,57 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a3">isInteger</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a4">isValue</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a4">isIntegral</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a5">isClock</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a6">isRecord</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a7">isDiff</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a7">isArray</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a8">isInvariant</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a8">isDiff</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a9">isInvariantWR</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a9">isInvariant</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true iff type is a valid invariant.  <a href="#a9"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a10">isGuard</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true iff type is a valid guard.  <a href="#a10"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a11">isConstraint</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a12">channelCapability</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a12">isInvariantWR</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a value indicating the capabilities of a channel.  <a href="#a12"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a13">parseXTA</a> (FILE *file, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *error, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true iff type is a valid invariant.  <a href="#a12"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a13">isAssignable</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a14">parseXTA</a> (const char *buffer, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *error, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if values of this type can be assigned.  <a href="#a13"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a14">isConstant</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a15">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *error, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if and only if all elements of the type are constant.  <a href="#a14"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a15">isNonConstant</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a16">parseXMLFile</a> (const char *file, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *error, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if and only if all elements of the type are not constant.  <a href="#a15"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a16">contains</a> (<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> frame, <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a17">parseExpression</a> (const char *str, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *error, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxtr)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a17">validReturnType</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a18">channelCapability</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a value indicating the capabilities of a channel.  <a href="#a18"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a19">isSameScalarType</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> t1, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> t2)</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if two scalar types are name-equivalent.  <a href="#a19"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a20">parseXTA</a> (FILE *file, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a21">parseXTA</a> (const char *buffer, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a22">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a23">parseXMLFile</a> (const char *file, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxta)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="typechecker_8cpp.html#a24">parseExpression</a> (const char *str, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, bool newxtr)</td></tr>
 
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a12" doxytag="typechecker.cpp::channelCapability"></a><p>
+<a class="anchor" name="a18" doxytag="typechecker.cpp::channelCapability"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -88,6 +107,101 @@ Returns a value indicating the capabilities of a channel.
 For urgent channels this is 0, for non-urgent broadcast channels this is 1, and in all other cases 2. An argument to a channel parameter must have at least the same capability as the parameter.     </td>
   </tr>
 </table>
+<a class="anchor" name="a16" doxytag="typechecker.cpp::contains"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool contains           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>frame</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>symbol</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a7" doxytag="typechecker.cpp::isArray"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool isArray           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>expr</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a13" doxytag="typechecker.cpp::isAssignable"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool isAssignable           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>type</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns true if values of this type can be assigned. 
+<p>
+This is the case for integers, booleans, clocks, cost, scalars and arrays and records of these. E.g. channels and processes are not assignable.     </td>
+  </tr>
+</table>
 <a class="anchor" name="a5" doxytag="typechecker.cpp::isClock"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
@@ -112,6 +226,36 @@ For urgent channels this is 0, for non-urgent broadcast channels this is 1, and 
     </td>
     <td>
 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a14" doxytag="typechecker.cpp::isConstant"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool isConstant           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>type</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns true if and only if all elements of the type are constant. 
 <p>
     </td>
   </tr>
@@ -172,7 +316,7 @@ For urgent channels this is 0, for non-urgent broadcast channels this is 1, and 
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="typechecker.cpp::isDiff"></a><p>
+<a class="anchor" name="a8" doxytag="typechecker.cpp::isDiff"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -225,9 +369,7 @@ For urgent channels this is 0, for non-urgent broadcast channels this is 1, and 
     <td>
 
 <p>
-Returns true iff type is a valid guard. 
-<p>
-A valid guard is either a valid invariant or a guard expression.     </td>
+    </td>
   </tr>
 </table>
 <a class="anchor" name="a3" doxytag="typechecker.cpp::isInteger"></a><p>
@@ -258,7 +400,35 @@ A valid guard is either a valid invariant or a guard expression.     </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="typechecker.cpp::isInvariant"></a><p>
+<a class="anchor" name="a4" doxytag="typechecker.cpp::isIntegral"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool isIntegral           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>expr</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a9" doxytag="typechecker.cpp::isInvariant"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -286,7 +456,7 @@ A valid guard is either a valid invariant or a guard expression.     </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="typechecker.cpp::isInvariantWR"></a><p>
+<a class="anchor" name="a12" doxytag="typechecker.cpp::isInvariantWR"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -314,6 +484,36 @@ A valid guard is either a valid invariant or a guard expression.     </td>
 Returns true iff type is a valid invariant. 
 <p>
 A valid invariant is either an invariant expression or an integer expression.     </td>
+  </tr>
+</table>
+<a class="anchor" name="a15" doxytag="typechecker.cpp::isNonConstant"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool isNonConstant           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>type</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Returns true if and only if all elements of the type are not constant. 
+<p>
+    </td>
   </tr>
 </table>
 <a class="anchor" name="a6" doxytag="typechecker.cpp::isRecord"></a><p>
@@ -344,18 +544,27 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="typechecker.cpp::isScalar"></a><p>
+<a class="anchor" name="a19" doxytag="typechecker.cpp::isSameScalarType"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">static bool isScalar           </td>
+          <td class="md" nowrap valign="top">static bool isSameScalarType           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>expr</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [static]</code></td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>t1</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>t2</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"><code> [static]</code></td>
         </tr>
       </table>
     </td>
@@ -369,16 +578,18 @@ A valid invariant is either an invariant expression or an integer expression.   
     <td>
 
 <p>
+Returns true if two scalar types are name-equivalent. 
+<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="typechecker.cpp::isValue"></a><p>
+<a class="anchor" name="a2" doxytag="typechecker.cpp::isScalar"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">static bool isValue           </td>
+          <td class="md" nowrap valign="top">static bool isScalar           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>expr</em>          </td>
@@ -428,7 +639,7 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="typechecker.cpp::parseExpression"></a><p>
+<a class="anchor" name="a24" doxytag="typechecker.cpp::parseExpression"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -438,12 +649,6 @@ A valid invariant is either an invariant expression or an integer expression.   
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
           <td class="mdname" nowrap> <em>str</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>error</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -477,7 +682,7 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="typechecker.cpp::parseXMLBuffer"></a><p>
+<a class="anchor" name="a22" doxytag="typechecker.cpp::parseXMLBuffer"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -491,12 +696,6 @@ A valid invariant is either an invariant expression or an integer expression.   
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>error</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>system</em>, </td>
         </tr>
@@ -526,7 +725,7 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="typechecker.cpp::parseXMLFile"></a><p>
+<a class="anchor" name="a23" doxytag="typechecker.cpp::parseXMLFile"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -540,12 +739,6 @@ A valid invariant is either an invariant expression or an integer expression.   
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>error</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>system</em>, </td>
         </tr>
@@ -575,7 +768,7 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="typechecker.cpp::parseXTA"></a><p>
+<a class="anchor" name="a21" doxytag="typechecker.cpp::parseXTA"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -589,12 +782,6 @@ A valid invariant is either an invariant expression or an integer expression.   
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>error</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>system</em>, </td>
         </tr>
@@ -624,7 +811,7 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="typechecker.cpp::parseXTA"></a><p>
+<a class="anchor" name="a20" doxytag="typechecker.cpp::parseXTA"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -638,12 +825,6 @@ A valid invariant is either an invariant expression or an integer expression.   
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>error</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>system</em>, </td>
         </tr>
@@ -673,7 +854,35 @@ A valid invariant is either an invariant expression or an integer expression.   
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<a class="anchor" name="a17" doxytag="typechecker.cpp::validReturnType"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">static bool validReturnType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>type</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [static]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

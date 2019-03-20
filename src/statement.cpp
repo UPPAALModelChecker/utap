@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -41,6 +41,11 @@ int32_t EmptyStatement::accept(StatementVisitor *visitor)
     return visitor->visitEmptyStatement(this); 
 }
 
+bool EmptyStatement::returns()
+{
+    return false;
+}
+
 ExprStatement::ExprStatement(expression_t expr)
     : Statement(), expr(expr)
 {
@@ -50,6 +55,11 @@ ExprStatement::ExprStatement(expression_t expr)
 int32_t ExprStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitExprStatement(this);
+}
+
+bool ExprStatement::returns()
+{
+    return false;
 }
 
 ForStatement::ForStatement(expression_t init,
@@ -64,6 +74,11 @@ int32_t ForStatement::accept(StatementVisitor *visitor)
     return visitor->visitForStatement(this);
 }
 
+bool ForStatement::returns()
+{
+    return false;
+}
+
 IterationStatement::IterationStatement (symbol_t sym, frame_t f, Statement *s)
 {
     this->symbol = sym;
@@ -74,6 +89,11 @@ IterationStatement::IterationStatement (symbol_t sym, frame_t f, Statement *s)
 int32_t IterationStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitIterationStatement(this);
+}
+
+bool IterationStatement::returns()
+{
+    return false;
 }
 
 WhileStatement::WhileStatement(expression_t cond,
@@ -88,6 +108,11 @@ int32_t WhileStatement::accept(StatementVisitor *visitor)
     return visitor->visitWhileStatement(this);
 }
 
+bool WhileStatement::returns()
+{
+    return false;
+}
+
 DoWhileStatement::DoWhileStatement(Statement* _stat,
 				   expression_t cond)
     : Statement(), stat(_stat), cond(cond) 
@@ -98,6 +123,11 @@ DoWhileStatement::DoWhileStatement(Statement* _stat,
 int32_t DoWhileStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitDoWhileStatement(this);
+}
+
+bool DoWhileStatement::returns()
+{
+    return stat->returns();
 }
 
 BlockStatement::BlockStatement(frame_t frame)
@@ -155,6 +185,11 @@ int32_t BlockStatement::accept(StatementVisitor *visitor)
     return visitor->visitBlockStatement(this);
 }
 
+bool BlockStatement::returns()
+{
+    return begin() != end() && back()->returns();
+}
+
 SwitchStatement::SwitchStatement(frame_t frame, expression_t cond)
     : BlockStatement(frame), cond(cond)
 {
@@ -164,6 +199,11 @@ SwitchStatement::SwitchStatement(frame_t frame, expression_t cond)
 int32_t SwitchStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitSwitchStatement(this);
+}
+
+bool SwitchStatement::returns()
+{
+    return false;
 }
 
 CaseStatement::CaseStatement(frame_t frame, expression_t cond)
@@ -177,6 +217,11 @@ int32_t CaseStatement::accept(StatementVisitor *visitor)
     return visitor->visitCaseStatement(this);
 }
 
+bool CaseStatement::returns()
+{
+    return false;
+}
+
 DefaultStatement::DefaultStatement(frame_t frame)
     : BlockStatement(frame)
 {
@@ -186,6 +231,11 @@ DefaultStatement::DefaultStatement(frame_t frame)
 int32_t DefaultStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitDefaultStatement(this);
+}
+
+bool DefaultStatement::returns()
+{
+    return false;
 }
 
 IfStatement::IfStatement(expression_t cond,
@@ -200,6 +250,11 @@ int32_t IfStatement::accept(StatementVisitor *visitor)
     return visitor->visitIfStatement(this);
 }
 
+bool IfStatement::returns()
+{
+    return trueCase->returns() && (falseCase == NULL || falseCase->returns());
+}
+
 BreakStatement::BreakStatement() : Statement()
 {
 
@@ -210,6 +265,11 @@ int32_t BreakStatement::accept(StatementVisitor *visitor)
     return visitor->visitBreakStatement(this);
 }
 
+bool BreakStatement::returns()
+{
+    return false;
+}
+
 ContinueStatement::ContinueStatement() : Statement()
 {
 
@@ -218,6 +278,11 @@ ContinueStatement::ContinueStatement() : Statement()
 int32_t ContinueStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitContinueStatement(this);
+}
+
+bool ContinueStatement::returns()
+{
+    return false;
 }
 
 ReturnStatement::ReturnStatement()
@@ -235,6 +300,11 @@ ReturnStatement::ReturnStatement(expression_t value)
 int32_t ReturnStatement::accept(StatementVisitor *visitor)
 {
     return visitor->visitReturnStatement(this);
+}
+
+bool ReturnStatement::returns()
+{
+    return true;
 }
 
 int32_t AbstractStatementVisitor::visitStatement(Statement *stat)
@@ -300,8 +370,15 @@ int32_t AbstractStatementVisitor::visitDefaultStatement(DefaultStatement *stat)
 
 int32_t AbstractStatementVisitor::visitIfStatement(IfStatement *stat)
 {
-    stat->trueCase->accept(this);
-    return stat->falseCase->accept(this);
+    if (stat->falseCase)
+    {
+	stat->trueCase->accept(this);
+	return stat->falseCase->accept(this);
+    } 
+    else
+    {
+	return stat->trueCase->accept(this);
+    }
 }
 
 int32_t AbstractStatementVisitor::visitBreakStatement(BreakStatement *stat)
@@ -347,6 +424,20 @@ int32_t ExpressionVisitor::visitDoWhileStatement(DoWhileStatement *stat)
 
 int32_t ExpressionVisitor::visitBlockStatement(BlockStatement *stat)
 {
+    /* Visit variable initialisers.
+     */
+    frame_t vars = stat->getFrame();
+    for (size_t i = 0; i < vars.getSize(); i++)
+    {
+	if (vars[i].getData())
+	{
+	    // REVISIT: This will only work if vars[i] is a variable!
+	    visitExpression(((variable_t *)vars[i].getData())->expr);
+	}	
+    }
+
+    /* Visit statements.
+     */
     BlockStatement::iterator s;
     for (s = stat->begin(); s != stat->end(); ++s) 
     {

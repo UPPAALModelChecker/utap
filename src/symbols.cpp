@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,7 @@
 #include <cassert>
 #include <vector>
 #include <map>
+#include <stdexcept>
 
 #include "utap/symbols.h"
 #include "utap/expression.h"
@@ -39,29 +40,7 @@ using std::string;
 // The base types
 
 using namespace UTAP;
-
-type_t type_t::UNKNOWN = type_t::createBase();
-type_t type_t::VOID_TYPE = type_t::createBase();
-type_t type_t::CLOCK = type_t::createBase();
-type_t type_t::INT = type_t::createBase();
-type_t type_t::BOOL = type_t::createBase();
-type_t type_t::LOCATION = type_t::createBase();
-type_t type_t::CHANNEL = type_t::createBase();
-type_t type_t::TEMPLATE = type_t::createBase();
-type_t type_t::INSTANCE = type_t::createBase();
-type_t type_t::FUNCTION = type_t::createBase();
-type_t type_t::ARRAY = type_t::createBase();
-type_t type_t::RECORD = type_t::createBase();
-type_t type_t::PROCESS = type_t::createBase();
-type_t type_t::NTYPE = type_t::createBase();
-type_t type_t::INVARIANT = type_t::createBase();
-type_t type_t::INVARIANT_WR = type_t::createBase();
-type_t type_t::GUARD = type_t::createBase();
-type_t type_t::DIFF = type_t::createBase();
-type_t type_t::CONSTRAINT = type_t::createBase();
-type_t type_t::COST = type_t::createBase();
-type_t type_t::RATE = type_t::createBase();
-type_t type_t::SCALAR = type_t::createBase();
+using namespace Constants;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -153,7 +132,7 @@ symbol_t::symbol_t()
     data = NULL;
 }
 
-symbol_t::symbol_t(void *frame, type_t &type, string name, void *user)
+symbol_t::symbol_t(void *frame, type_t type, string name, void *user)
 {
     data = new symbol_data;
     data->count = 1;
@@ -370,8 +349,23 @@ symbol_t frame_t::addSymbol(string name, type_t type, void *user)
     symbol_t symbol(data, type, name, user);
     data->symbols.push_back(symbol);
     if (!name.empty())
+    {
 	data->mapping[symbol.getName()] =  data->symbols.size() - 1;
+    }
     return symbol;
+}
+
+/** Add symbol. Notice that the symbol will be in two frames at the
+    same time, but the symbol will only "point back" to the first
+    frame it was added to.
+*/
+void frame_t::add(symbol_t symbol)
+{
+    data->symbols.push_back(symbol);
+    if (!symbol.getName().empty())
+    {
+	data->mapping[symbol.getName()] =  data->symbols.size() - 1;
+    }
 }
 
 /** Add all symbols in the given frame. Notice that the symbols will
@@ -382,11 +376,7 @@ void frame_t::add(frame_t frame)
 {
     for (uint32_t i = 0; i < frame.getSize(); i++) 
     {
-	data->symbols.push_back(frame[i]);
-	if (!frame[i].getName().empty())
-	{
-	    data->mapping[frame[i].getName()] =  data->symbols.size() - 1;
-	}
+	add(frame[i]);
     }
 }
 
@@ -447,330 +437,3 @@ frame_t frame_t::createFrame(const frame_t &parent)
     return frame_t(data);  
 }
 
-//////////////////////////////////////////////////////////////////////////
-
-struct type_t::type_data
-{
-    int32_t count;		// Reference count
-    uint32_t prefix;		// Prefixes
-    type_t base;		// Base type
-    type_t sub;			// Sub type
-    frame_t frame;		// Frame (fields or parameters)
-    type_t size;                // Size of array
-    pair<expression_t, expression_t> range;// Range of integers
-
-    type_data(const type_t &base, const frame_t &frame, const type_t &sub)
-	: count(0), prefix(0), base(base), sub(sub), frame(frame)
-	{
-
-	}
-};
-
-/**
-   Default constructor. This creates the equivalent of a NULL pointer.
-*/
-type_t::type_t()
-{
-    data = NULL;
-}
-
-/* Construct from pointer. */
-type_t::type_t(void *p)
-{
-    data = (type_data*)p;
-    if (data) 
-    {
-	data->count++;
-    }
-}
-
-/* Copy constructor */
-type_t::type_t(const type_t &type)
-{
-    data = type.data;
-    if (data)
-    {
-	data->count++;
-    }
-}
-
-/* Destructor */
-type_t::~type_t()
-{
-    if (data) 
-    {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete data;
-	}
-    }
-}
-
-/* Assignment operator */
-const type_t &type_t::operator = (const type_t &type)
-{
-    if (data) 
-    {
-	data->count--;
-	if (data->count == 0)
-	{
-	    delete data;
-	}
-    }
-    data = type.data;
-    if (data) 
-    {
-	data->count++;
-    }
-    return *this;
-}
-
-/* Equality operator */
-bool type_t::operator == (const type_t &type) const
-{
-    return data == type.data;
-}
-
-/* Inequality operator */
-bool type_t::operator != (const type_t &type) const
-{
-    return data != type.data;
-}
-
-/* Returns the base type of this frame. */
-type_t type_t::getBase() const
-{
-    return data->base;
-}
-
-/** Returns the fields of a record type. See also getFrame(). */
-frame_t type_t::getRecordFields() const
-{
-    assert(data->base == RECORD);
-    return data->frame;
-}
- 
-/** Returns the arguments of a function or template type. See also
-    getFrame(). 
-*/
-frame_t type_t::getParameters() const
-{
-    assert(data->base == FUNCTION || data->base == TEMPLATE);
-    return data->frame;
-}
-
-/** Polymorphic version of getRecordFields() and getParameters(). The
-    frame returned must not be modified (since type objects are supposed
-    to be immutable).
-*/
-frame_t type_t::getFrame() const
-{
-    assert(data->base == FUNCTION || data->base == TEMPLATE || data->base == RECORD || data->base == PROCESS);
-    return data->frame;
-}
-
-/**
-   Returns the sub-type of this type. For functions, this is the
-   return value. For arrays, this is type type of the array
-   elements. 
-*/
-type_t type_t::getSub()
-{
-    assert(data->base == FUNCTION || data->base == ARRAY || data->base == NTYPE);
-    return data->sub;
-}
-
-type_t type_t::getReturnType()
-{
-    assert(data->base == FUNCTION);
-    return data->sub;
-}
-
-/* Returns the size of an array */
-type_t type_t::getArraySize() const
-{
-    assert(data->base == ARRAY);
-    return data->size;
-}
-
-/* Returns the true if this type has the given prefix */
-bool type_t::hasPrefix(prefix::prefix_t prefix) const
-{
-    return data->prefix & prefix;
-}
-
-/**
-   If 'set' is true, the prefix is set; otherwise it is cleared.  The
-   type itself is not altered, but a new type corresponding to the
-   change is returned. 
-*/
-type_t type_t::setPrefix(bool set, prefix::prefix_t prefix) const
-{
-    type_data *result = new type_data(*data);
-    result->count = 0;
-    if (set)
-    {
-	result->prefix |= prefix;
-    }
-    else
-    {
-	result->prefix &= ~prefix;
-    }
-    return type_t(result);
-}
-
-/* Returns the range of an integer type. */
-pair<expression_t, expression_t> type_t::getRange() const
-{
-    assert(data->base == INT || data->base == SCALAR);
-    return data->range;
-}
-
-/* Creates and returns a new integer type with the given range */
-type_t type_t::createInteger(expression_t lower, expression_t upper)
-{
-    type_t type(new type_data(INT, frame_t(), type_t()));
-    type.data->range = make_pair(lower, upper);
-    return type;
-}
-
-type_t type_t::createScalarSet(expression_t lower, expression_t upper)
-{
-    type_t type(new type_data(SCALAR, frame_t(), type_t()));
-    type.data->range = make_pair(lower, upper);
-    return type;
-}
-	
-/* Creates and returns a new record type */
-type_t type_t::createRecord(frame_t frame)
-{
-    return type_t(new type_data(RECORD, frame, type_t()));
-}
-
-/* Creates and returns a new function type */
-type_t type_t::createFunction(frame_t arguments, type_t ret)
-{
-    return type_t(new type_data(FUNCTION, arguments, ret));
-}
-
-/* Creates and returns a new array type */
-type_t type_t::createArray(type_t size, type_t type)
-{
-    type_t t(new type_data(ARRAY, frame_t(), type));
-    t.data->size = size;
-    return t;
-}
-
-/* Creates and returns a new named type */
-type_t type_t::createTypeName(type_t type)
-{
-    return type_t(new type_data(NTYPE, frame_t(), type));
-}
-
-type_t type_t::createTemplate(frame_t frame)
-{
-    return type_t(new type_data(TEMPLATE, frame, type_t()));
-}
-
-type_t type_t::createProcess(frame_t frame)
-{
-    return type_t(new type_data(PROCESS, frame, type_t()));
-}
-
-type_t type_t::createBase()
-{
-    type_data *data = new type_data(type_t(), frame_t(), type_t());
-    data->base = type_t(data);
-    return type_t(data);
-}
-
-string type_t::toString()
-{
-    if (data == NULL)
-    {
-	return string("null");
-    }
-
-    string str, array;
-    type_t type = *this;
-    type_t base = type.getBase();
-    bool isConstant = type.hasPrefix(prefix::CONSTANT);
-
-    while (base == type_t::ARRAY) 
-    {
-	array = array + "[" + type.getArraySize().toString() + "]";
-	type = type.getSub();
-	base = type.getBase();
-    }
-
-    if (isConstant) 
-    {
-	str = "const";
-    }
- 
-    if (base == type_t::INT) 
-    {
-	str = "int";
-    } 
-    else if (base == type_t::SCALAR)
-    {
-	str = "scalar";
-    }
-    else if (base == type_t::BOOL) 
-    {
- 	str = "bool";
-    } 
-    else if (base == type_t::CLOCK) 
-    {
- 	str = "clock";
-    }
-    else if (base == type_t::CHANNEL) 
-    {
- 	str = "channel";
-    } 
-    else if (base == type_t::INVARIANT) 
-    {
- 	str = "invariant";
-    } 
-    else if (base == type_t::GUARD) 
-    {
- 	str = "guard";
-    } 
-    else if (base == type_t::DIFF) 
-    {
- 	str = "diff";
-    } 
-    else if (base == type_t::CONSTRAINT) 
-    {
- 	str = "constraint";
-    } 
-    else if (base == type_t::RECORD)
-    {
-	frame_t fields = getRecordFields();
-
-	str = "struct { ";
-	if (fields.getSize() > 0)
-	{
-	    for (uint32_t i = 0; i < fields.getSize(); i++)
-	    {
-		str += fields[i].getType().toString() +
-		    " " + fields[i].getName() + "; ";
-	    }    
-	}   
-	str += "}";
-    }
-    else
-    {
- 	str = "unknown";
-    }
- 
-    return str + array;
- }
-
-
-ostream &operator << (ostream &o, type_t t)
-{
-    o << t.toString();
-    return o;
-}

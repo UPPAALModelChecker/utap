@@ -15,9 +15,9 @@
 <a href="classUTAP_1_1TypeException-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeException.html#a0">TypeException</a> (const char *fmt,...)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeException.html#a0">TypeException</a> (std::string)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeException.html#a1">what</a> () const   throw ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeException.html#a1">TypeException</a> (const boost::format &amp;)</td></tr>
 
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
@@ -34,19 +34,10 @@ This is thrown by implementations of the <a class="el" href="classUTAP_1_1Parser
         <tr>
           <td class="md" nowrap valign="top">TypeException::TypeException           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>fmt</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>&nbsp;</td>
-          <td class="mdname" nowrap> <em>...</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
+          <td class="md" nowrap valign="top">std::string&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
         </tr>
       </table>
     </td>
@@ -63,18 +54,18 @@ This is thrown by implementations of the <a class="el" href="classUTAP_1_1Parser
     </td>
   </tr>
 </table>
-<hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a1" doxytag="UTAP::TypeException::what"></a><p>
+<a class="anchor" name="a1" doxytag="UTAP::TypeException::TypeException"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">const char * TypeException::what           </td>
+          <td class="md" nowrap valign="top">TypeException::TypeException           </td>
           <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const boost::format &amp;&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap> const  throw ()</td>
+          <td class="md" nowrap></td>
         </tr>
       </table>
     </td>
@@ -93,7 +84,7 @@ This is thrown by implementations of the <a class="el" href="classUTAP_1_1Parser
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="builder_8h-source.html">builder.h</a><li><a class="el" href="typeexception_8cpp.html">typeexception.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

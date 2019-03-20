@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2005-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -39,7 +39,8 @@ struct print: public std::unary_function<T, void>
     print(std::ostream& out, const char* sep):
 	os(out), infix(sep), need(false) {}
 
-    void operator()(const T& x) {
+    void operator()(const T& x) 
+    {
 	if (need) os << infix;
 	os << x; need = true;
     }
@@ -67,16 +68,19 @@ IOInterface::IOInterface(const char* _title, TimedAutomataSystem& tas):
 /**
  * Visit all processes in the system.
  */
-    list<process_t> &ps(tas.getProcesses());
-    list<process_t>::iterator it;
+    list<instance_t> &ps(tas.getProcesses());
+    list<instance_t>::iterator it;
     for (it = ps.begin(); it != ps.end(); it++)
+    {
 	visitProcess(*it);
+    }
 }
 
 void IOInterface::printForTron(ostream &os)
 {
     list<iota_t>::const_iterator it;
-    for (it = automata.begin(); it != automata.end(); it++) {
+    for (it = automata.begin(); it != automata.end(); it++) 
+    {
 	os << it->name << ":\n  "; // automaton:
 	// input channels,
 	for_each(it->inChans.begin(), it->inChans.end(),
@@ -88,7 +92,8 @@ void IOInterface::printForTron(ostream &os)
 	os << ",\n ";
 	str2strs_t::const_iterator v;
 	// input variables(channels),
-	for (v = it->rdVars.begin(); v != it->rdVars.end(); v++) {
+	for (v = it->rdVars.begin(); v != it->rdVars.end(); v++) 
+	{
 	    os << " " << v->first << "(";
 	    for_each(v->second.begin(), v->second.end(),
 		     print<const char*>(os, " "));
@@ -96,7 +101,8 @@ void IOInterface::printForTron(ostream &os)
 	}
 	os << ",\n ";
 	// output variables(channels);
-	for (v = it->wtVars.begin(); v != it->wtVars.end(); v++) {
+	for (v = it->wtVars.begin(); v != it->wtVars.end(); v++) 
+	{
 	    os << " " << v->first << "(";
 	    for_each(v->second.begin(), v->second.end(),
 		     print<const char*>(os, " "));
@@ -110,7 +116,12 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 {
     char* name = strcpy(new char[strlen(title)+1], title);
     for (uint32_t i=0; i<strlen(name); i++)
-	if (!isalpha(name[i])) name[i]='_';
+    {
+	if (!isalpha(name[i])) 
+	{
+	    name[i]='_';
+	}
+    }
 
     os << "digraph " << name << " {\n";
     os << "  model=subset; remincross=true;\n";
@@ -121,12 +132,17 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
     list<iota_t>::iterator a;
 
 /** Enumerate processes with common look-attributes */
-    if (!procs.empty()) {
+    if (!procs.empty()) 
+    {
 	os << "  subgraph procs {\n";
 	if (erd)
+	{
 	    os<<"    node [shape=box,style=filled,fillcolor=lightgray];\n";
+	}
 	else
+	{
 	    os<<"    node [shape=ellipse,style=filled,fillcolor=lightgray];\n";
+	}
 	os << "    ";
 	for_each(procs.begin(), procs.end(),
 		 print<const char*>(os, "; "));
@@ -134,17 +150,34 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
     }
 
 /** Enumerate variables, with common look-attributes */
-    if (!variables.empty()) { // draw variables
+    if (!variables.empty())
+    {
+	// draw variables
 	/* specify attributes for all nodes */
 	os << "  subgraph cluste_vars {\n";
 	os << "    style=invis;\n";
-	if (ranked) os << "    rank=min;\n";
-	if (erd) os << "    node [shape=diamond,color=blue];\n    ";
-	else os << "    node [shape=ellipse,color=blue];\n    ";
-	for (it=variables.begin(); it != variables.end(); it++) {
+	if (ranked) 
+	{
+	    os << "    rank=min;\n";
+	}
+	if (erd) 
+	{
+	    os << "    node [shape=diamond,color=blue];\n    ";
+	}
+	else
+	{
+	    os << "    node [shape=ellipse,color=blue];\n    ";
+	}
+	for (it=variables.begin(); it != variables.end(); it++) 
+	{
 	    if (transmiters.find(*it) == transmiters.end())
+	    {
 		os << *it << "; "; // const variables are slim
-	    else os << *it << "[style=bold]; "; // others bold
+	    }
+	    else
+	    {
+		os << *it << "[style=bold]; "; // others bold
+	    }
 	}
 	os << "\n  }\n";
 
@@ -152,9 +185,12 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 	str2strs_t::const_iterator v;
 /** first, 'variable write' edges are bold */
 	os<<"  edge [style=bold,color=blue,fontcolor=blue,weight=100];\n";
-	for (a=automata.begin(); a!=automata.end(); a++) {
-	    if (!a->wtVars.empty()) {
-		for (v = a->wtVars.begin(); v != a->wtVars.end(); v++) {
+	for (a=automata.begin(); a!=automata.end(); a++) 
+	{
+	    if (!a->wtVars.empty()) 
+	    {
+		for (v = a->wtVars.begin(); v != a->wtVars.end(); v++) 
+		{
 		    os<<"  " << a->name << " -> " << v->first << " [label=\"(";
 		    /* enumerate channels when variable is accessed */
 		    for_each(v->second.begin(), v->second.end(),
@@ -165,9 +201,12 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 	}
 /** second, 'variable read' edges are slim  */
 	os<<"  edge [style=solid,color=blue,fontcolor=blue,weight=1];\n";
-	for (a=automata.begin(); a!=automata.end(); a++) {
-	    if (!a->rdVars.empty()) {
-		for (v = a->rdVars.begin(); v != a->rdVars.end(); v++) {
+	for (a=automata.begin(); a!=automata.end(); a++) 
+	{
+	    if (!a->rdVars.empty()) 
+	    {
+		for (v = a->rdVars.begin(); v != a->rdVars.end(); v++) 
+		{
 		    os<<"  " << v->first << " -> " << a->name << " [label=\"(";
 		    /* enumerate channels when variable is accessed */
 		    for_each(v->second.begin(), v->second.end(),
@@ -179,37 +218,54 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
     }
 
 /** enumerate draw channels */
-    if (!channels.empty()) {
-	if (cEdge) { /* channels are only on edges */
+    if (!channels.empty()) 
+    {
+	if (cEdge) 
+	{ /* channels are only on edges */
 	    const char* src = "NO_SRC";
 	    const char* dst = "NO_DST";
 	    /** build an index of outgoing edges sorted by destination TA */
-	    for (a=automata.begin(); a!=automata.end(); a++) {
+	    for (a=automata.begin(); a!=automata.end(); a++) 
+	    {
 		/* traverse all outgoing channels */
-		for (it=a->outChans.begin(); it!=a->outChans.end(); it++) {
+		for (it=a->outChans.begin(); it!=a->outChans.end(); it++) 
+		{
 		    str2tas_t::const_iterator dests = receivers.find(*it);
-		    if (dests != receivers.end()) { // there are destinations
+		    if (dests != receivers.end())
+		    { // there are destinations
 			for (set<iota_t*>::const_iterator rec =
 				 dests->second.begin();
 			     rec != dests->second.end(); rec++)
+			{
 			    a->outEdges[*rec].insert(*it);
-		    } else // no destination
+			}
+		    } 
+		    else
+		    { // no destination
 			a->outEdges[NULL].insert(*it);
+		    }
 		}
 	    }
 	    /** display all edges: */
 	    os<<"  edge[style=solid,color=black,fontcolor=black,weight=50];\n";
-	    for (a=automata.begin(); a!=automata.end(); a++) {
+	    for (a=automata.begin(); a!=automata.end(); a++) 
+	    {
 		/* display outgoing edges: */
 		for (iota2strs_t::const_iterator edge = a->outEdges.begin();
-		     edge != a->outEdges.end(); edge++) {
+		     edge != a->outEdges.end(); edge++) 
+		{
 		    bool noDst = false;
 		    // display edge:
-		    if (edge->first != NULL) //normal destination TA
+		    if (edge->first != NULL) 
+		    {
+			//normal destination TA
 			os<<"  " << a->name << " -> " << edge->first->name
 			  << " [label=\"[";
-		    else { // there was no destination TA
-			if (!noDst) {
+		    }
+		    else
+		    { // there was no destination TA
+			if (!noDst) 
+			{
 			    os<<"  "<<dst
 			      <<" [style=filled,fillcolor=red];\n";
 			    noDst = true;
@@ -219,21 +275,31 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 		    }
 		    // enumerate all channels on the edge:
 		    strs_t::const_iterator ch=edge->second.begin();
-		    while (true) {
+		    while (true) 
+		    {
 			os<< *ch;
 			ch++;
-			if (ch != edge->second.end()) os << ",";
-			else break;
+			if (ch != edge->second.end()) 
+			{
+			    os << ",";
+			}
+			else 
+			{
+			    break;
+			}
 		    }
 		    os << "]\"];\n";
 		}
 		/* by now all inps with sources are displayed as outputs
 		 * search and display inputs w/o sources */
 		bool noSrc = false;
-		for (it=a->inChans.begin(); it!=a->inChans.end(); it++) {
+		for (it=a->inChans.begin(); it!=a->inChans.end(); it++) 
+		{
 		    str2tas_t::const_iterator trans = transmiters.find(*it);
-		    if (trans==transmiters.end()) {
-			if (!noSrc) {
+		    if (trans==transmiters.end()) 
+		    {
+			if (!noSrc) 
+			{
 			    os<<"  "<<src
 			      <<" [style=filled,fillcolor=red];\n";
 			    noSrc = true;
@@ -243,22 +309,38 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 		    }
 		}
 	    }
-	} else { /* channels displayed as separate nodes (like variables) */
+	} 
+	else
+	{ /* channels displayed as separate nodes (like variables) */
 	    os<< "  subgraph cluste_chans {\n";
 	    os<< "    style=invis;\n";
-	    if (ranked) os<<"    rank=max;\n";
-	    if (erd) os<<"    node [shape=diamond,color=red];\n    ";
-	    else os<<"    node [shape=ellipse,color=red];\n    ";
+	    if (ranked) 
+	    {
+		os<<"    rank=max;\n";
+	    }
+	    if (erd) 
+	    {
+		os<<"    node [shape=diamond,color=red];\n    ";
+	    }
+	    else
+	    {
+		os<<"    node [shape=ellipse,color=red];\n    ";
+	    }
 	    for_each(channels.begin(), channels.end(),
 		     print<const char*>(os, "; "));
 	    os<< "\n  }\n";
 
-	    for (a=automata.begin(); a!=automata.end(); a++) {
+	    for (a=automata.begin(); a!=automata.end(); a++) 
+	    {
 		for (it=a->inChans.begin(); it!=a->inChans.end(); it++)
+		{
 		    os << "  " << *it << " -> " << a->name << ";\n";
+		}
 		for (it=a->outChans.begin(); it!=a->outChans.end(); it++)
+		{
 		    os << "  " << a->name << " -> " << *it
 		       << " [style=bold];\n";
+		}
 	    }
 	}
     }
@@ -267,20 +349,27 @@ void IOInterface::printForDot(ostream &os, bool ranked, bool erd, bool cEdge)
 
 bool IOInterface::checkParams(const symbol_t &s)
 {
-    if (!paramsExpanded) {
-	if (0<=cP->templ->parameters.getIndexOf(s.getName())) {
+    if (!paramsExpanded) 
+    {
+	if (0<=cP->templ->parameters.getIndexOf(s.getName())) 
+	{
 	    // is it parameter? find the corresponding global symbol(s)
 	    map<symbol_t, expression_t>::iterator e = cP->mapping.find(s);
-	    if (e != cP->mapping.end()) {
+	    if (e != cP->mapping.end()) 
+	    {
 		paramsExpanded = true;
 		visitExpression(e->second);
 		paramsExpanded = false;
-	    } else {
+	    }
+	    else 
+	    {
 		cerr << "mapping param '"<< s.getName() << "' failed"<<endl;
 		exit(EXIT_FAILURE);
 	    }
 	    return false;
-	} else if (0<=cP->templ->frame.getIndexOf(s.getName())) {
+	} 
+	else if (0<=cP->templ->frame.getIndexOf(s.getName())) 
+	{
 	    // is it local symbol? discard, no observable I/O here
 	    return false;
 	}
@@ -295,7 +384,8 @@ bool IOInterface::checkParams(const symbol_t &s)
 
 void IOInterface::addChan(const symbol_t &s, strs_t &ids, str2tas_t& index)
 {
-    if (checkParams(s)) {
+    if (checkParams(s)) 
+    {
 	ids.insert(s.getName().c_str());
 	channels.insert(s.getName().c_str());
 	index[s.getName().c_str()].insert(cTA);
@@ -305,7 +395,8 @@ void IOInterface::addChan(const symbol_t &s, strs_t &ids, str2tas_t& index)
 
 void IOInterface::addVar(const symbol_t &s, str2strs_t &ids, str2tas_t& index)
 {
-    if (checkParams(s)) {
+    if (checkParams(s)) 
+    {
 	ids[s.getName().c_str()].insert(cChan);
 	variables.insert(s.getName().c_str());
 	index[s.getName().c_str()].insert(cTA);
@@ -314,7 +405,7 @@ void IOInterface::addVar(const symbol_t &s, str2strs_t &ids, str2tas_t& index)
 
 static const char* noChan = "-";
 
-void IOInterface::visitProcess(process_t &p)
+void IOInterface::visitProcess(instance_t &p)
 {
     automata.push_back(iota_t(p.uid.getName().c_str()));
     procs.insert(p.uid.getName().c_str());
@@ -322,13 +413,15 @@ void IOInterface::visitProcess(process_t &p)
     cP = &p;
     const template_t* temp = p.templ;
     list<state_t>::const_iterator s = temp->states.begin();
-    while (s != temp->states.end()) {
+    while (s != temp->states.end()) 
+    {
 	cChan = noChan; // invariants should not use shared
 	visitExpression(s->invariant);
 	++s;
     }
     list<edge_t>::const_iterator t = temp->edges.begin();
-    while (t != temp->edges.end()) {
+    while (t != temp->edges.end()) 
+    {
 	cChan = noChan;// guards should not use shared
 	visitExpression(t->guard);
 	visitExpression(t->sync);
@@ -339,9 +432,13 @@ void IOInterface::visitProcess(process_t &p)
 
 void IOInterface::visitExpression(const expression_t &e)
 {
-    if (e.empty()) return;
+    if (e.empty()) 
+    {
+	return;
+    }
 
-    switch (e.getKind()) {
+    switch (e.getKind()) 
+    {
     case PLUS:
     case MINUS:
     case MULT:
@@ -372,7 +469,8 @@ void IOInterface::visitExpression(const expression_t &e)
 	    /********************************************************
 	     * Assignment operators
 	     */
-	for (uint32_t i=0; i<e.getSize(); i++) {
+	for (uint32_t i=0; i<e.getSize(); i++) 
+	{
 	    inp = true; out = false;
 	    visitExpression(e[i]);
 	}
@@ -390,8 +488,10 @@ void IOInterface::visitExpression(const expression_t &e)
     case ASSRSHIFT:
 	inp = false; out = true;
 	visitExpression(e[0]);
-	for (uint32_t i=1; i<e.getSize(); i++) {
-	    inp = true; out = false;
+	for (uint32_t i=1; i<e.getSize(); i++) 
+	{
+	    inp = true; 
+	    out = false;
 	    visitExpression(e[i]);
 	}
 	break;
@@ -402,19 +502,36 @@ void IOInterface::visitExpression(const expression_t &e)
 	     * some of then ought to be used, FIXME).
 	     */
     case IDENTIFIER:
-	if (sync) {
-	    if (inp) addChan(e.getSymbol(), cTA->inChans, receivers);
-	    if (out) addChan(e.getSymbol(), cTA->outChans, transmiters);
-	} else {
-	    if (inp) addVar(e.getSymbol(), cTA->rdVars, receivers);
-	    if (out) addVar(e.getSymbol(), cTA->wtVars, transmiters);
+	if (sync) 
+	{
+	    if (inp) 
+	    {
+		addChan(e.getSymbol(), cTA->inChans, receivers);
+	    }
+	    if (out) 
+	    {
+		addChan(e.getSymbol(), cTA->outChans, transmiters);
+	    }
+	}
+	else 
+	{
+	    if (inp) 
+	    {
+		addVar(e.getSymbol(), cTA->rdVars, receivers);
+	    }
+	    if (out) 
+	    {
+		addVar(e.getSymbol(), cTA->wtVars, transmiters);
+	    }
 	}
 	break;
     case CONSTANT: break; // don't care
     case ARRAY:
 	visitExpression(e[0]);
-	for (uint32_t i=1; i<e.getSize(); i++) {
-	    inp = true; out = false;
+	for (uint32_t i=1; i<e.getSize(); i++) 
+	{
+	    inp = true; 
+	    out = false;
 	    visitExpression(e[i]);
 	}
 	break;
@@ -422,16 +539,20 @@ void IOInterface::visitExpression(const expression_t &e)
     case PREINCREMENT:
     case POSTDECREMENT:
     case PREDECREMENT:
-	inp = true; out = true;
+	inp = true; 
+	out = true;
 	visitExpression(e[0]);
 	break;
     case UNARY_MINUS:
-	inp = true; out = false;
+	inp = true; 
+	out = false;
 	visitExpression(e[0]);
 	break;
     case LIST:
-	for (uint32_t i=0; i<e.getSize(); i++) {
-	    inp = true; out = false;
+	for (uint32_t i=0; i<e.getSize(); i++) 
+	{
+	    inp = true; 
+	    out = false;
 	    visitExpression(e[i]);
 	}
 	break;
@@ -441,26 +562,39 @@ void IOInterface::visitExpression(const expression_t &e)
 	break;
     case INLINEIF:
 	pushIO();
-	inp = true; out = false;
+	inp = true; 
+	out = false;
 	visitExpression(e[0]);
-	for (uint32_t i=1; i<e.getSize(); i++) {
-	    popIO(); pushIO();
+	for (uint32_t i=1; i<e.getSize(); i++) 
+	{
+	    popIO(); 
+	    pushIO();
 	    visitExpression(e[i]);
 	}
 	popIO();
 	break;
     case COMMA:
 	pushIO();
-	for (uint32_t i=0; i<e.getSize()-1; i++) {
-	    inp = true; out = false;
+	for (uint32_t i=0; i<e.getSize()-1; i++) 
+	{
+	    inp = true; 
+	    out = false;
 	    visitExpression(e[i]);
 	}
 	popIO();
 	visitExpression(e[e.getSize()-1]);
 	break;
     case SYNC:
-	if (e.getSync() == SYNC_QUE) { inp = true; out = false; }
-	else { inp = false; out = true; }
+	if (e.getSync() == SYNC_QUE)
+	{
+	    inp = true; 
+	    out = false; 
+	}
+	else
+	{
+	    inp = false; 
+	    out = true; 
+	}
 	sync = true;
 	visitExpression(e[0]);
 	sync = false;
@@ -526,7 +660,8 @@ int32_t IOInterface::visitBlockStatement(BlockStatement *stat)
 {
     int32_t res = 0;
     BlockStatement::iterator it = stat->begin();
-    while (it != stat->end()) {
+    while (it != stat->end()) 
+    {
 	res = (*it)->accept(this);
 	++it;
     }
@@ -554,7 +689,10 @@ int32_t IOInterface::visitIfStatement(IfStatement *stat)
 {
     visitExpression(stat->cond);
     int32_t res = stat->trueCase->accept(this);
-    if (stat->falseCase) return stat->falseCase->accept(this);
+    if (stat->falseCase) 
+    {
+	return stat->falseCase->accept(this);
+    }
     else return res;
 }
 int32_t IOInterface::visitBreakStatement(BreakStatement *stat)

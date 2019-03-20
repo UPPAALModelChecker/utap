@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -19,28 +19,17 @@
    USA
 */
 
-#include <cstdarg>
-#include <cstdio>
-
 #include "utap/builder.h"
 
 using namespace UTAP;
 
-using std::ostream;
-
-TypeException::TypeException(const char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(_what, 256, fmt, ap);
-  va_end(ap);
-}
-  
-const char *TypeException::what() const throw () {
-  return _what;
-}
-
-ostream& operator <<(ostream& out, const TypeException& exc) 
+TypeException::TypeException(std::string msg)
+    : runtime_error(msg)
 {
-    out << "TypeException: " << exc.what();
-    return out;
+
+}
+
+TypeException::TypeException(const boost::format &format) 
+    : runtime_error(format.str())
+{
 }

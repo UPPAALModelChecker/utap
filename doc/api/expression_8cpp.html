@@ -9,6 +9,7 @@
 <a class="el" href="dir_000000.html">src</a></div>
 <h1>expression.cpp File Reference</h1><code>#include &lt;cassert&gt;</code><br>
 <code>#include &lt;algorithm&gt;</code><br>
+<code>#include &lt;stdexcept&gt;</code><br>
 <code>#include "<a class="el" href="builder_8h-source.html">utap/builder.h</a>"</code><br>
 <code>#include "<a class="el" href="system_8h-source.html">utap/system.h</a>"</code><br>
 <code>#include "<a class="el" href="expression_8h-source.html">utap/expression.h</a>"</code><br>
@@ -20,100 +21,101 @@
 <tr><td colspan="2"><br><h2>Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a0">expression_t::expression_t</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a1">expression_t::expression_t</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind, const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a1">expression_t::expression_t</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind, const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a2">expression_t::expression_t</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a3">expression_t::clone</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a4">expression_t::~expression_t</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a4">expression_t::subst</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expr) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a5">expression_t::getKind</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a5">expression_t::~expression_t</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a6">expression_t::getPosition</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a6">expression_t::getKind</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">uint32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a7">expression_t::getSize</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a7">expression_t::getPosition</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a8">expression_t::getType</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a8">expression_t::getSize</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a9">expression_t::setType</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a9">expression_t::getType</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a10">expression_t::getValue</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a10">expression_t::setType</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a11">expression_t::getIndex</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a11">expression_t::getValue</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a57">synchronisation_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a12">expression_t::getSync</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a12">expression_t::getIndex</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a13">expression_t::operator[]</a> (uint32_t i)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a87">synchronisation_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a13">expression_t::getSync</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a14">expression_t::get</a> (uint32_t i)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a14">expression_t::operator[]</a> (uint32_t i)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a15">expression_t::empty</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a15">expression_t::get</a> (uint32_t i)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a16">expression_t::equal</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a16">expression_t::empty</a> () const </td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Two expressions are identical iff all the sub expressions are identical and if the kind, value and symbol of the root are identical.  <a href="#a16"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a17">expression_t::operator=</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a17">expression_t::equal</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a18">expression_t::getSymbol</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Two expressions are identical iff all the sub expressions are identical and if the kind, value and symbol of the root are identical.  <a href="#a17"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a18">expression_t::operator=</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the symbol of a variable reference.  <a href="#a18"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a19">expression_t::isReferenceTo</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a19">expression_t::getSymbol</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if expr might be a reference to a symbol in the set.  <a href="#a19"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a20">changes</a> (<a class="el" href="structUTAP_1_1function__t.html">function_t</a> *fun, const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;<a class="el" href="tracer_8cpp.html#a5">variables</a>)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the symbol of a variable reference.  <a href="#a19"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a20">expression_t::getSymbols</a> (std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.  <a href="#a20"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a21">expression_t::changesVariable</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a21">expression_t::isReferenceTo</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a22">expression_t::dependsOn</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if expr might be a reference to a symbol in the set.  <a href="#a21"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a22">expression_t::changesVariable</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a23">expression_t::getPrecedence</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a23">expression_t::dependsOn</a> (const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a24">expression_t::getPrecedence</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a24">expression_t::getPrecedence</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a25">ensure</a> (char *&amp;str, char *&amp;end, int &amp;size, int len)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a25">expression_t::getPrecedence</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a26">append</a> (char *&amp;str, char *&amp;end, int &amp;size, const char *s)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a26">ensure</a> (char *&amp;str, char *&amp;end, int &amp;size, int len)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a27">append</a> (char *&amp;str, char *&amp;end, int &amp;size, char c)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a27">append</a> (char *&amp;str, char *&amp;end, int &amp;size, const char *s)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a28">expression_t::toString</a> (bool old, char *&amp;str, char *&amp;end, int &amp;size) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a28">append</a> (char *&amp;str, char *&amp;end, int &amp;size, char c)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a29">expression_t::operator&lt;</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a29">expression_t::toString</a> (bool old, char *&amp;str, char *&amp;end, int &amp;size) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a30">expression_t::operator==</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a30">expression_t::operator&lt;</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a31">expression_t::toString</a> (bool old) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a31">expression_t::operator==</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e) const </td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a string representation of the expression.  <a href="#a31"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a32">expression_t::collectPossibleWrites</a> (set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a32">expression_t::toString</a> (bool old) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a33">expression_t::collectPossibleReads</a> (set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a string representation of the expression.  <a href="#a32"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a33">expression_t::collectPossibleWrites</a> (set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a34">expression_t::createConstant</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, int32_t value)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a34">expression_t::collectPossibleReads</a> (set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;symbols) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a35">expression_t::createIdentifier</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a35">expression_t::createConstant</a> (int32_t value, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a36">expression_t::createNary</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind, const vector&lt; <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;sub, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a36">expression_t::createIdentifier</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> symbol, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a37">expression_t::createUnary</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> sub, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a37">expression_t::createNary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind, const vector&lt; <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;sub, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a38">expression_t::createBinary</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> left, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> right, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a38">expression_t::createUnary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> sub, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a39">expression_t::createTernary</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e1, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e2, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e3, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a39">expression_t::createBinary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> left, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> right, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a40">expression_t::createDot</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e, int32_t idx, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a40">expression_t::createTernary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> kind, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e1, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e2, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e3, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a41">expression_t::createSync</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e, <a class="el" href="namespaceUTAP_1_1Constants.html#a57">synchronisation_t</a> s)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a41">expression_t::createDot</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e, int32_t idx, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a42">expression_t::createDeadlock</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;pos)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a42">expression_t::createSync</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> e, <a class="el" href="namespaceUTAP_1_1Constants.html#a87">synchronisation_t</a> s, <a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a43">operator&lt;&lt;</a> (ostream &amp;o, const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a43">expression_t::createDeadlock</a> (<a class="el" href="structUTAP_1_1position__t.html">position_t</a> pos)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="expression_8cpp.html#a44">operator&lt;&lt;</a> (ostream &amp;o, const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;e)</td></tr>
 
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a27" doxytag="expression.cpp::append"></a><p>
+<a class="anchor" name="a28" doxytag="expression.cpp::append"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -162,7 +164,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a26" doxytag="expression.cpp::append"></a><p>
+<a class="anchor" name="a27" doxytag="expression.cpp::append"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -211,46 +213,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a20" doxytag="expression.cpp::changes"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">static bool changes           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1function__t.html">function_t</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>fun</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>variables</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"><code> [static]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Returns true if <em>fun</em> changes any of the variables in <em>variables</em>. 
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="a25" doxytag="expression.cpp::ensure"></a><p>
+<a class="anchor" name="a26" doxytag="expression.cpp::ensure"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -299,7 +262,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a21" doxytag="expression.cpp::expression_t::changesVariable"></a><p>
+<a class="anchor" name="a22" doxytag="expression.cpp::expression_t::changesVariable"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -354,7 +317,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a33" doxytag="expression.cpp::expression_t::collectPossibleReads"></a><p>
+<a class="anchor" name="a34" doxytag="expression.cpp::expression_t::collectPossibleReads"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -382,7 +345,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a32" doxytag="expression.cpp::expression_t::collectPossibleWrites"></a><p>
+<a class="anchor" name="a33" doxytag="expression.cpp::expression_t::collectPossibleWrites"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -410,7 +373,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a38" doxytag="expression.cpp::expression_t::createBinary"></a><p>
+<a class="anchor" name="a39" doxytag="expression.cpp::expression_t::createBinary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -418,13 +381,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createBinary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -438,6 +395,12 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>right</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -465,7 +428,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a34" doxytag="expression.cpp::expression_t::createConstant"></a><p>
+<a class="anchor" name="a35" doxytag="expression.cpp::expression_t::createConstant"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -473,14 +436,14 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createConstant           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
+          <td class="md" nowrap valign="top">int32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>value</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap>int32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>value</em></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -502,7 +465,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a42" doxytag="expression.cpp::expression_t::createDeadlock"></a><p>
+<a class="anchor" name="a43" doxytag="expression.cpp::expression_t::createDeadlock"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -510,7 +473,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createDeadlock           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>pos</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
@@ -530,7 +493,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a40" doxytag="expression.cpp::expression_t::createDot"></a><p>
+<a class="anchor" name="a41" doxytag="expression.cpp::expression_t::createDot"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -538,13 +501,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createDot           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>e</em>, </td>
         </tr>
         <tr>
@@ -556,6 +513,12 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>type</em></td>
         </tr>
@@ -579,7 +542,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a35" doxytag="expression.cpp::expression_t::createIdentifier"></a><p>
+<a class="anchor" name="a36" doxytag="expression.cpp::expression_t::createIdentifier"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -587,14 +550,14 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createIdentifier           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>symbol</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>symbol</em></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -616,7 +579,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a36" doxytag="expression.cpp::expression_t::createNary"></a><p>
+<a class="anchor" name="a37" doxytag="expression.cpp::expression_t::createNary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -624,13 +587,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createNary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -642,6 +599,12 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>type</em></td>
         </tr>
@@ -665,7 +628,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a41" doxytag="expression.cpp::expression_t::createSync"></a><p>
+<a class="anchor" name="a42" doxytag="expression.cpp::expression_t::createSync"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -673,20 +636,20 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createSync           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>e</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a57">synchronisation_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>s</em></td>
+          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a87">synchronisation_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>s</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -708,7 +671,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a39" doxytag="expression.cpp::expression_t::createTernary"></a><p>
+<a class="anchor" name="a40" doxytag="expression.cpp::expression_t::createTernary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -716,13 +679,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createTernary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -746,6 +703,12 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>type</em></td>
         </tr>
@@ -769,7 +732,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a37" doxytag="expression.cpp::expression_t::createUnary"></a><p>
+<a class="anchor" name="a38" doxytag="expression.cpp::expression_t::createUnary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -777,13 +740,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::createUnary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>pos</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -795,6 +752,12 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>pos</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>type</em></td>
         </tr>
@@ -818,7 +781,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a22" doxytag="expression.cpp::expression_t::dependsOn"></a><p>
+<a class="anchor" name="a23" doxytag="expression.cpp::expression_t::dependsOn"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -846,7 +809,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="expression.cpp::expression_t::empty"></a><p>
+<a class="anchor" name="a16" doxytag="expression.cpp::expression_t::empty"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -873,7 +836,7 @@ Returns true if <em>fun</em> changes any of the variables in <em>variables</em>.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="expression.cpp::expression_t::equal"></a><p>
+<a class="anchor" name="a17" doxytag="expression.cpp::expression_t::equal"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -939,7 +902,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
         <tr>
           <td class="md" nowrap valign="top">expression_t::expression_t           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname" nowrap> <em>kind</em>, </td>
         </tr>
         <tr>
@@ -995,7 +958,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="expression.cpp::expression_t::get"></a><p>
+<a class="anchor" name="a15" doxytag="expression.cpp::expression_t::get"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1023,7 +986,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="expression.cpp::expression_t::getIndex"></a><p>
+<a class="anchor" name="a12" doxytag="expression.cpp::expression_t::getIndex"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1050,13 +1013,13 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="expression.cpp::expression_t::getKind"></a><p>
+<a class="anchor" name="a6" doxytag="expression.cpp::expression_t::getKind"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> expression_t::getKind           </td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> expression_t::getKind           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -1077,7 +1040,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="expression.cpp::expression_t::getPosition"></a><p>
+<a class="anchor" name="a7" doxytag="expression.cpp::expression_t::getPosition"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1104,7 +1067,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a24" doxytag="expression.cpp::expression_t::getPrecedence"></a><p>
+<a class="anchor" name="a25" doxytag="expression.cpp::expression_t::getPrecedence"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1112,7 +1075,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
         <tr>
           <td class="md" nowrap valign="top">int expression_t::getPrecedence           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>kind</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
@@ -1132,7 +1095,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a23" doxytag="expression.cpp::expression_t::getPrecedence"></a><p>
+<a class="anchor" name="a24" doxytag="expression.cpp::expression_t::getPrecedence"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1159,13 +1122,13 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="expression.cpp::expression_t::getSize"></a><p>
+<a class="anchor" name="a8" doxytag="expression.cpp::expression_t::getSize"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">uint32_t expression_t::getSize           </td>
+          <td class="md" nowrap valign="top">size_t expression_t::getSize           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -1186,7 +1149,7 @@ Two expressions are identical iff all the sub expressions are identical and if t
     </td>
   </tr>
 </table>
-<a class="anchor" name="a18" doxytag="expression.cpp::expression_t::getSymbol"></a><p>
+<a class="anchor" name="a19" doxytag="expression.cpp::expression_t::getSymbol"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1215,13 +1178,41 @@ Returns the symbol of a variable reference.
 The expression must be a left-hand side value. The symbol returned is the symbol of the variable the expression if resulting in a reference to. NOTE: In case of inline if, the symbol referenced by the 'true' part is returned.     </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="expression.cpp::expression_t::getSync"></a><p>
+<a class="anchor" name="a20" doxytag="expression.cpp::expression_t::getSymbols"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a57">synchronisation_t</a> expression_t::getSync           </td>
+          <td class="md" nowrap valign="top">void expression_t::getSymbols           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>symbols</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a13" doxytag="expression.cpp::expression_t::getSync"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a87">synchronisation_t</a> expression_t::getSync           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -1242,7 +1233,7 @@ The expression must be a left-hand side value. The symbol returned is the symbol
     </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="expression.cpp::expression_t::getType"></a><p>
+<a class="anchor" name="a9" doxytag="expression.cpp::expression_t::getType"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1269,7 +1260,7 @@ The expression must be a left-hand side value. The symbol returned is the symbol
     </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="expression.cpp::expression_t::getValue"></a><p>
+<a class="anchor" name="a11" doxytag="expression.cpp::expression_t::getValue"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1296,7 +1287,7 @@ The expression must be a left-hand side value. The symbol returned is the symbol
     </td>
   </tr>
 </table>
-<a class="anchor" name="a19" doxytag="expression.cpp::expression_t::isReferenceTo"></a><p>
+<a class="anchor" name="a21" doxytag="expression.cpp::expression_t::isReferenceTo"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1323,10 +1314,10 @@ The expression must be a left-hand side value. The symbol returned is the symbol
 <p>
 Returns true if expr might be a reference to a symbol in the set. 
 <p>
-NOTE: This method does not use the getSymbol() call, since that one always returns the 'true' result of an inline if.     </td>
+    </td>
   </tr>
 </table>
-<a class="anchor" name="a29" doxytag="expression.cpp::expression_t::operator<"></a><p>
+<a class="anchor" name="a30" doxytag="expression.cpp::expression_t::operator<"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1354,7 +1345,7 @@ NOTE: This method does not use the getSymbol() call, since that one always retur
     </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="expression.cpp::expression_t::operator="></a><p>
+<a class="anchor" name="a18" doxytag="expression.cpp::expression_t::operator="></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1382,7 +1373,7 @@ NOTE: This method does not use the getSymbol() call, since that one always retur
     </td>
   </tr>
 </table>
-<a class="anchor" name="a30" doxytag="expression.cpp::expression_t::operator=="></a><p>
+<a class="anchor" name="a31" doxytag="expression.cpp::expression_t::operator=="></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1410,7 +1401,7 @@ NOTE: This method does not use the getSymbol() call, since that one always retur
     </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="expression.cpp::expression_t::operator[]"></a><p>
+<a class="anchor" name="a14" doxytag="expression.cpp::expression_t::operator[]"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1438,7 +1429,7 @@ NOTE: This method does not use the getSymbol() call, since that one always retur
     </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="expression.cpp::expression_t::setType"></a><p>
+<a class="anchor" name="a10" doxytag="expression.cpp::expression_t::setType"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1466,7 +1457,44 @@ NOTE: This method does not use the getSymbol() call, since that one always retur
     </td>
   </tr>
 </table>
-<a class="anchor" name="a31" doxytag="expression.cpp::expression_t::toString"></a><p>
+<a class="anchor" name="a4" doxytag="expression.cpp::expression_t::subst"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> expression_t::subst           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>symbol</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>expr</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a32" doxytag="expression.cpp::expression_t::toString"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1496,7 +1524,7 @@ Returns a string representation of the expression.
 The string returned must be deallocated with delete[]. Returns NULL is the expression is empty.     </td>
   </tr>
 </table>
-<a class="anchor" name="a28" doxytag="expression.cpp::expression_t::toString"></a><p>
+<a class="anchor" name="a29" doxytag="expression.cpp::expression_t::toString"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1545,7 +1573,7 @@ The string returned must be deallocated with delete[]. Returns NULL is the expre
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="expression.cpp::expression_t::~expression_t"></a><p>
+<a class="anchor" name="a5" doxytag="expression.cpp::expression_t::~expression_t"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1572,7 +1600,7 @@ The string returned must be deallocated with delete[]. Returns NULL is the expre
     </td>
   </tr>
 </table>
-<a class="anchor" name="a43" doxytag="expression.cpp::operator<<"></a><p>
+<a class="anchor" name="a44" doxytag="expression.cpp::operator<<"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1609,7 +1637,7 @@ The string returned must be deallocated with delete[]. Returns NULL is the expre
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

@@ -30,11 +30,10 @@
 #include "utap/system.h"
 #include "utap/statement.h"
 
-bool parseXTA(FILE *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-bool parseXTA(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-int32_t parseXMLBuffer(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-int32_t parseXMLFile(const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool newxta);
-UTAP::expression_t parseExpression(
-    const char *, UTAP::ErrorHandler *, UTAP::TimedAutomataSystem *, bool);
+bool parseXTA(FILE *, UTAP::TimedAutomataSystem *, bool newxta);
+bool parseXTA(const char *, UTAP::TimedAutomataSystem *, bool newxta);
+int32_t parseXMLBuffer(const char *, UTAP::TimedAutomataSystem *, bool newxta);
+int32_t parseXMLFile(const char *, UTAP::TimedAutomataSystem *, bool newxta);
+UTAP::expression_t parseExpression(const char *, UTAP::TimedAutomataSystem *, bool);
 
 #endif

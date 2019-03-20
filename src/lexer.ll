@@ -24,18 +24,49 @@
 
 #include <iostream>
 #include "keywords.cc"
+#include "libparser.h"
 
 using std::ostream;
   
 #define YY_DECL int lexer_flex(void)
 
-/**
- * Location tracking inside scanner, taken from 
- * http://www.lrde.epita.fr/people/akim/compil/gnuprog2/Advanced-Use-of-Flex.html
- */
+uint32_t PositionTracker::line;
+uint32_t PositionTracker::offset;
+uint32_t PositionTracker::position = 0;
+std::string PositionTracker::path;
 
-#define YY_USER_INIT yylloc.reset();
-#define YY_USER_ACTION yylloc.step(); yylloc.last_column+=yyleng; 
+namespace UTAP 
+{
+  void PositionTracker::setPath(UTAP::ParserBuilder *parser, std::string s) {
+
+    // Incrementing the position by one avoids the problem where the
+    // end-position happens to bleed into a path. E.g. the range 5-10
+    // contains 5 character (at positions 5, 6, 7, 8 and 9), thus
+    // position 10 could have a new path). An alternative would be to
+    // subtract 1 before calling Positions::find().
+
+    position++; 
+    line = 1;
+    offset = 0;
+    path = s;
+    parser->addPosition(position, offset, line, path);
+  }
+  
+  int PositionTracker::increment(UTAP::ParserBuilder *parser, int n) {
+    parser->setPosition(position, position + n);
+    position += n;
+    offset += n;
+    return position - n;
+  }
+  
+  void PositionTracker::newline(UTAP::ParserBuilder *parser, int n) {
+    line += n;
+    parser->addPosition(position, offset, line, path);
+  }
+}
+
+#define YY_USER_ACTION yylloc.start = PositionTracker::position; PositionTracker::increment(ch, yyleng); yylloc.end = PositionTracker::position;
+
 #define YY_FATAL_ERROR(msg) { throw TypeException(msg); }
 
 %}
@@ -49,7 +80,7 @@ idchr	[a-zA-Z0-9_$#]
 %%
 
 <comment>{
-  \n           { yylloc.lines(1); }
+  \n           { PositionTracker::newline(ch, 1); }
   "*/"         { BEGIN(INITIAL); }
   "//"[^\n]*   /* Single line comments take precedence over multilines */;
   <<EOF>>      { BEGIN(INITIAL); yyerror("Unclosed comment."); return 0; }
@@ -57,7 +88,7 @@ idchr	[a-zA-Z0-9_$#]
 }
 
 "\\"[\t ]*"\n"  { /* Use \ as continuation character */ 
-                  yylloc.lines(1); 
+                  PositionTracker::newline(ch, 1); 
                 } 
 
 "//"[^\n]*      /* ignore (singleline comment)*/;
@@ -67,13 +98,13 @@ idchr	[a-zA-Z0-9_$#]
 "/*"            { BEGIN(comment); }
 
 \n+		{
-                  yylloc.lines(yyleng); 
+                  PositionTracker::newline(ch, yyleng);
 		  if (syntax == SYNTAX_PROPERTY)
 		    return '\n';
                 }
 
 (\r\n)+         {
-                  yylloc.lines(yyleng / 2);
+                  PositionTracker::newline(ch, yyleng / 2);
 		  if (syntax == SYNTAX_PROPERTY)
 		    return '\n';
                 }
@@ -193,19 +224,6 @@ idchr	[a-zA-Z0-9_$#]
 <<EOF>>		{ return 0; }
 
 %%
-
-ostream &operator <<(ostream &out, const YYLTYPE &l) 
-{
-  if (l.first_line != l.last_line)                      
-    out << l.first_line << "." << l.first_column << "-" 
-	<< l.last_line << "." << (l.last_column-1);
-  else if (l.first_column < l.last_column-1)
-    out << l.first_line << "." << l.first_column << "-" << (l.last_column-1);
-  else                                                          
-    out << l.first_line << "." << l.first_column;
-  //  out << " (" << l.first_char << "-" << l.last_char << ")";
-  return out;
-};
 
 int utap_wrap() {
   return 1;

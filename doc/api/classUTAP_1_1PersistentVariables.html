@@ -22,7 +22,7 @@
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1PersistentVariables.html#a0">visitVariable</a> (<a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1PersistentVariables.html#a1">visitTemplateAfter</a> (<a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1PersistentVariables.html#a1">visitInstance</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1PersistentVariables.html#a2">get</a> () const </td></tr>
 
@@ -30,7 +30,7 @@
 <hr><a name="_details"></a><h2>Detailed Description</h2>
 Visitor which collects the persistent variables of the system. 
 <p>
-A persistent variable is one which is stored in a state. I.e. all non-constant variables except function local variables are persistent. Non-constant template parameters and reference template parameters are also collected. 
+A persistent variable is one which is stored in a state. I.e. all non-constant variables except function local variables are persistent. Non-constant template parameters and reference template parameters are also collected. Variables with mixed storage (i.e. constant and non-constant elements) are considered persistent. 
 <p>
 <hr><h2>Member Function Documentation</h2>
 <a class="anchor" name="a2" doxytag="UTAP::PersistentVariables::get"></a><p>
@@ -60,15 +60,15 @@ A persistent variable is one which is stored in a state. I.e. all non-constant v
     </td>
   </tr>
 </table>
-<a class="anchor" name="a1" doxytag="UTAP::PersistentVariables::visitTemplateAfter"></a><p>
+<a class="anchor" name="a1" doxytag="UTAP::PersistentVariables::visitInstance"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">void PersistentVariables::visitTemplateAfter           </td>
+          <td class="md" nowrap valign="top">void PersistentVariables::visitInstance           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -87,7 +87,7 @@ A persistent variable is one which is stored in a state. I.e. all non-constant v
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a5">UTAP::SystemVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a8">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a0" doxytag="UTAP::PersistentVariables::visitVariable"></a><p>
@@ -122,7 +122,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a3">UTAP:
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="typechecker_8h-source.html">typechecker.h</a><li><a class="el" href="typechecker_8cpp.html">typechecker.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

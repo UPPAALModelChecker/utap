@@ -35,6 +35,7 @@ namespace UTAP
     public:
 	virtual ~Statement() {};
 	virtual int32_t accept(StatementVisitor *visitor) = 0;
+	virtual bool returns() = 0;
     protected:
 	Statement();
     };
@@ -43,7 +44,8 @@ namespace UTAP
     {
     public:
 	EmptyStatement();
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class ExprStatement: public Statement 
@@ -51,7 +53,8 @@ namespace UTAP
     public:
 	expression_t expr;
 	ExprStatement(expression_t);
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class ForStatement: public Statement 
@@ -62,7 +65,8 @@ namespace UTAP
 	expression_t step;
 	Statement *stat;
 	ForStatement(expression_t, expression_t, expression_t, Statement*);
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     /**
@@ -77,7 +81,8 @@ namespace UTAP
 	Statement *stat;
 	IterationStatement(symbol_t, frame_t, Statement *);
  	frame_t getFrame() { return frame; }
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
      };
 
     class WhileStatement: public Statement 
@@ -86,7 +91,8 @@ namespace UTAP
 	expression_t cond;
 	Statement *stat;
 	WhileStatement(expression_t, Statement*);
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class DoWhileStatement: public Statement 
@@ -95,7 +101,8 @@ namespace UTAP
 	Statement *stat;
 	expression_t cond;
 	DoWhileStatement(Statement*, expression_t);
-	int32_t accept(StatementVisitor *visitor);
+	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class BlockStatement: public Statement, public declarations_t 
@@ -110,6 +117,7 @@ namespace UTAP
 	BlockStatement(frame_t);
 	virtual ~BlockStatement();
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
 
  	frame_t getFrame() { return frame; }
 	void push_stat(Statement* stat);
@@ -127,6 +135,7 @@ namespace UTAP
 	expression_t cond;
 	SwitchStatement(frame_t, expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);  
+	virtual bool returns();
     };
 
     class CaseStatement: public BlockStatement 
@@ -135,6 +144,7 @@ namespace UTAP
 	expression_t cond;
 	CaseStatement(frame_t, expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class DefaultStatement: public BlockStatement 
@@ -142,6 +152,7 @@ namespace UTAP
     public:
 	DefaultStatement(frame_t);
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class IfStatement: public Statement 
@@ -153,6 +164,7 @@ namespace UTAP
 	IfStatement(expression_t, Statement*, 
 		    Statement* falseStat=NULL);
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class BreakStatement: public Statement 
@@ -160,6 +172,7 @@ namespace UTAP
     public:
 	BreakStatement();
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class ContinueStatement: public Statement 
@@ -167,6 +180,7 @@ namespace UTAP
     public:
 	ContinueStatement();
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class ReturnStatement: public Statement 
@@ -176,6 +190,7 @@ namespace UTAP
 	ReturnStatement();
 	ReturnStatement(expression_t);
 	virtual int32_t accept(StatementVisitor *visitor);
+	virtual bool returns();
     };
 
     class StatementVisitor

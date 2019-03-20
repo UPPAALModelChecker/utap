@@ -9,6 +9,9 @@
 <a class="el" href="dir_000000.html">src</a>&nbsp;/&nbsp;<a class="el" href="dir_000001.html">utap</a></div>
 <h1>symbols.h File Reference</h1><code>#include &lt;inttypes.h&gt;</code><br>
 <code>#include &lt;exception&gt;</code><br>
+<code>#include "<a class="el" href="common_8h-source.html">utap/common.h</a>"</code><br>
+<code>#include "<a class="el" href="position_8h-source.html">utap/position.h</a>"</code><br>
+<code>#include "<a class="el" href="type_8h-source.html">utap/type.h</a>"</code><br>
 
 <p>
 <a href="symbols_8h-source.html">Go to the source code of this file.</a><table border="0" cellpadding="0" cellspacing="0">
@@ -16,109 +19,8 @@
 <tr><td colspan="2"><br><h2>Namespaces</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">namespace &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP.html">UTAP</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">namespace &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP_1_1prefix.html">UTAP::prefix</a></td></tr>
-
-<tr><td colspan="2"><br><h2>Enumerations</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP_1_1prefix.html#a8">prefix_t</a> { <br>
-&nbsp;&nbsp;<a class="el" href="namespaceUTAP_1_1prefix.html#a8a0">URGENT</a> =  1, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a1">COMMITTED</a> =  2, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a2">CONSTANT</a> =  4, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a3">BROADCAST</a> =  8, 
-<br>
-&nbsp;&nbsp;<a class="el" href="namespaceUTAP_1_1prefix.html#a8a4">REFERENCE</a> =  16, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a5">META</a> =  32, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a6">WINNING</a> =  64, 
-<a class="el" href="namespaceUTAP_1_1prefix.html#a8a7">LOSING</a> =  128
-<br>
- }</td></tr>
-
-<tr><td colspan="2"><br><h2>Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="symbols_8h.html#a8">operator&lt;&lt;</a> (std::ostream &amp;o, <a class="el" href="classUTAP_1_1type__t.html">UTAP::type_t</a> t)</td></tr>
-
 </table>
-<hr><h2>Enumeration Type Documentation</h2>
-<a class="anchor" name="file_a8" doxytag="symbols.h::prefix_t"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">enum <a class="el" href="namespaceUTAP_1_1prefix.html#a8">UTAP::prefix::prefix_t</a>          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-<dl compact><dt><b>Enumeration values: </b></dt><dd>
-<table border="0" cellspacing="2" cellpadding="0">
-<tr><td valign="top"><em><a class="anchor" name="a8a0" doxytag="URGENT"></a>URGENT</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a1" doxytag="COMMITTED"></a>COMMITTED</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a2" doxytag="CONSTANT"></a>CONSTANT</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a3" doxytag="BROADCAST"></a>BROADCAST</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a4" doxytag="REFERENCE"></a>REFERENCE</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a5" doxytag="META"></a>META</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a6" doxytag="WINNING"></a>WINNING</em>&nbsp;</td><td>
-</td></tr>
-<tr><td valign="top"><em><a class="anchor" name="a8a7" doxytag="LOSING"></a>LOSING</em>&nbsp;</td><td>
-</td></tr>
-</table>
-</dl>
-    </td>
-  </tr>
-</table>
-<hr><h2>Function Documentation</h2>
-<a class="anchor" name="a8" doxytag="symbols.h::operator<<"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">std::ostream&amp; operator&lt;&lt;           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">std::ostream &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>o</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1type__t.html">UTAP::type_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>t</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

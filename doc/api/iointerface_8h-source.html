@@ -69,7 +69,7 @@
 <a name="l00079"></a><a class="code" href="classUTAP_1_1IOInterface.html#p3">00079</a>         <a class="code" href="classUTAP_1_1IOInterface.html#x3">str2tas_t</a> <a class="code" href="classUTAP_1_1IOInterface.html#p2">receivers</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p3">transmiters</a>;<span class="comment">// TAs by vars/chans they access</span>
 <a name="l00080"></a><a class="code" href="classUTAP_1_1IOInterface.html#p6">00080</a>         <a class="code" href="classUTAP_1_1IOInterface.html#x0">strs_t</a> <a class="code" href="classUTAP_1_1IOInterface.html#p4">procs</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p5">channels</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p6">variables</a>;
 <a name="l00081"></a><a class="code" href="classUTAP_1_1IOInterface.html#p7">00081</a>         <a class="code" href="structUTAP_1_1IOInterface_1_1iota__t.html">iota_t</a>* <a class="code" href="classUTAP_1_1IOInterface.html#p7">cTA</a>; <span class="comment">// current automaton in traversal</span>
-<a name="l00082"></a><a class="code" href="classUTAP_1_1IOInterface.html#p8">00082</a>         <a class="code" href="structUTAP_1_1process__t.html">process_t</a>* <a class="code" href="classUTAP_1_1IOInterface.html#p8">cP</a>; <span class="comment">// current process in traversal</span>
+<a name="l00082"></a><a class="code" href="classUTAP_1_1IOInterface.html#p8">00082</a>         <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a>* <a class="code" href="classUTAP_1_1IOInterface.html#p8">cP</a>; <span class="comment">// current process in traversal</span>
 <a name="l00083"></a><a class="code" href="classUTAP_1_1IOInterface.html#p9">00083</a>         <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code" href="classUTAP_1_1IOInterface.html#p9">cChan</a>; <span class="comment">// channel on current transition in traversal</span>
 <a name="l00084"></a><a class="code" href="classUTAP_1_1IOInterface.html#p12">00084</a>         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1IOInterface.html#p10">inp</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p11">out</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p12">sync</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p13">paramsExpanded</a>;<span class="comment">// current expression state</span>
 <a name="l00085"></a><a class="code" href="classUTAP_1_1IOInterface.html#p14">00085</a>         std::stack&lt;std::pair&lt;bool, bool&gt; &gt; <a class="code" href="classUTAP_1_1IOInterface.html#p14">ioStack</a>;<span class="comment">// remember I/O state</span>
@@ -77,7 +77,7 @@
 00087         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1IOInterface.html#b0">checkParams</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;s);<span class="comment">// maps parameter to global symbol</span>
 00088         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b1">addChan</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;, <a class="code" href="classUTAP_1_1IOInterface.html#x0">strs_t</a> &amp;, <a class="code" href="classUTAP_1_1IOInterface.html#x3">str2tas_t</a>&amp;);
 00089         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b2">addVar</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;, <a class="code" href="classUTAP_1_1IOInterface.html#x2">str2strs_t</a>&amp;, <a class="code" href="classUTAP_1_1IOInterface.html#x3">str2tas_t</a>&amp;);
-00090         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b3">visitProcess</a>(<a class="code" href="structUTAP_1_1process__t.html">process_t</a> &amp;);
+00090         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b3">visitProcess</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;);
 00091         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b4">visitExpression</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;);
 <a name="l00092"></a><a class="code" href="classUTAP_1_1IOInterface.html#b5">00092</a>         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#b5">pushIO</a>(){
 00093             <a class="code" href="classUTAP_1_1IOInterface.html#p14">ioStack</a>.push(std::make_pair&lt;bool, bool&gt;(<a class="code" href="classUTAP_1_1IOInterface.html#p10">inp</a>, <a class="code" href="classUTAP_1_1IOInterface.html#p11">out</a>));
@@ -89,7 +89,7 @@
 00099         }
 00100 
 00101     <span class="keyword">public</span>:
-00105         <a class="code" href="classUTAP_1_1IOInterface.html#a0">IOInterface</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* _title, <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>&amp; <a class="code" href="tracer_8cpp.html#a0">ta</a>);
+00105         <a class="code" href="classUTAP_1_1IOInterface.html#a0">IOInterface</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* _title, <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>&amp; ta);
 <a name="l00110"></a><a class="code" href="classUTAP_1_1IOInterface.html#a1">00110</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1IOInterface.html#a1">~IOInterface</a>() {}
 00111 
 00115         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1IOInterface.html#a2">printForTron</a>(std::ostream &amp;os);
@@ -114,7 +114,7 @@
 00145 }
 00146 
 00147 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

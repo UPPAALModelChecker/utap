@@ -79,7 +79,7 @@ namespace UTAP {
 	str2tas_t receivers, transmiters;// TAs by vars/chans they access
 	strs_t procs, channels, variables;
 	iota_t* cTA; // current automaton in traversal
-	process_t* cP; // current process in traversal
+	instance_t* cP; // current process in traversal
 	const char* cChan; // channel on current transition in traversal
 	bool inp, out, sync, paramsExpanded;// current expression state
 	std::stack<std::pair<bool, bool> > ioStack;// remember I/O state
@@ -87,7 +87,7 @@ namespace UTAP {
 	bool checkParams(const symbol_t &s);// maps parameter to global symbol
 	void addChan(const symbol_t &, strs_t &, str2tas_t&);
 	void addVar(const symbol_t &, str2strs_t&, str2tas_t&);
-	void visitProcess(process_t &);
+	void visitProcess(instance_t &);
 	void visitExpression(const expression_t &);
 	void pushIO(){
 	    ioStack.push(std::make_pair<bool, bool>(inp, out));

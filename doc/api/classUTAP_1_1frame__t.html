@@ -51,18 +51,21 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a11">addSymbol</a> (std::string name, <a class="el" href="classUTAP_1_1type__t.html">type_t</a>, void *user=NULL)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Adds a symbol of the given name and type to the frame.  <a href="#a11"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a12">add</a> (<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a12">add</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add all symbols from the given frame.  <a href="#a12"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a13">resolve</a> (std::string name, <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;symbol)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a13">add</a> (<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Resolves a name in this frame or a parent frame.  <a href="#a13"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a14">getParent</a> ()  throw (NoParentException)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add all symbols from the given frame.  <a href="#a13"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a14">resolve</a> (std::string name, <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;symbol)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the parent frame.  <a href="#a14"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a15">hasParent</a> () const </td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Resolves a name in this frame or a parent frame.  <a href="#a14"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a15">getParent</a> ()  throw (NoParentException)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if this frame has a parent.  <a href="#a15"></a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the parent frame.  <a href="#a15"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#a16">hasParent</a> () const </td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns true if this frame has a parent.  <a href="#a16"></a><br></td></tr>
 <tr><td colspan="2"><br><h2>Static Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1frame__t.html#e0">createFrame</a> ()</td></tr>
 
@@ -203,7 +206,7 @@ Destructor.
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a12" doxytag="UTAP::frame_t::add"></a><p>
+<a class="anchor" name="a13" doxytag="UTAP::frame_t::add"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -212,6 +215,36 @@ Destructor.
           <td class="md" nowrap valign="top">void UTAP::frame_t::add           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Add all symbols from the given frame. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a12" doxytag="UTAP::frame_t::add"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void UTAP::frame_t::add           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
@@ -367,7 +400,7 @@ Returns the index of the symbol with the give name.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="UTAP::frame_t::getParent"></a><p>
+<a class="anchor" name="a15" doxytag="UTAP::frame_t::getParent"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -455,7 +488,7 @@ Returns the Nth symbol in this frame.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="UTAP::frame_t::hasParent"></a><p>
+<a class="anchor" name="a16" doxytag="UTAP::frame_t::hasParent"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -634,7 +667,7 @@ Returns the Nth symbol in this frame.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="UTAP::frame_t::resolve"></a><p>
+<a class="anchor" name="a14" doxytag="UTAP::frame_t::resolve"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -699,7 +732,7 @@ Resolves a name in this frame or a parent frame.
 </table>
 <hr>The documentation for this class was generated from the following file:<ul>
 <li><a class="el" href="symbols_8h-source.html">symbols.h</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

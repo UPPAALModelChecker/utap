@@ -108,7 +108,7 @@ install_sh = @install_sh@
 
 bin_PROGRAMS = pretty tracer check ioiface
 lib_LIBRARIES = libutap.a
-include_HEADERS = utap/builder.h utap/common.h utap/expression.h utap/statement.h utap/symbols.h utap/system.h utap/typechecker.h utap/utap.h utap/systembuilder.h utap/abstractbuilder.h utap/expressionbuilder.h utap/prettyprinter.h utap/iointerface.h
+include_HEADERS = utap/abstractbuilder.h utap/builder.h utap/common.h utap/expression.h utap/expressionbuilder.h utap/iointerface.h utap/position.h utap/prettyprinter.h utap/statement.h utap/symbols.h utap/system.h utap/systembuilder.h utap/type.h utap/typechecker.h utap/utap.h 
 
 pretty_SOURCES = pretty.cpp
 
@@ -118,10 +118,12 @@ check_SOURCES = check.cpp
 
 ioiface_SOURCES = ioiface.cpp
 
-libutap_a_SOURCES = abstractbuilder.cpp expressionbuilder.cpp expression.cpp system.cpp typechecker.cpp typeexception.cpp symbols.cpp xmlreader.cpp tags.gperf statement.cpp error.cpp parser.yy libparser.h systembuilder.cpp prettyprinter.cpp iointerface.cpp
+libutap_a_SOURCES = abstractbuilder.cpp expression.cpp expressionbuilder.cpp iointerface.cpp position.cpp prettyprinter.cpp statement.cpp symbols.cpp system.cpp systembuilder.cpp type.cpp typechecker.cpp typeexception.cpp xmlreader.cpp tags.gperf parser.yy libparser.h 
 EXTRA_libutap_a_SOURCES = lexer.ll lexer.cc tags.gperf tags.cc keywords.gperf keywords.cc
 
-LDADD = libutap.a $(XML_LIBS)
+pretty_LDADD = libutap.a $(XML_LIBS)
+check_LDADD = libutap.a $(XML_LIBS)
+ioiface_LDADD = libutap.a $(XML_LIBS)
 AM_CFLAGS = @CFLAGS@ $(XML_CFLAGS) -Wall
 AM_CPPFLAGS = @CPPFLAGS@ $(XML_CFLAGS) -Wall
 
@@ -137,12 +139,12 @@ LIBRARIES = $(lib_LIBRARIES)
 
 libutap_a_AR = $(AR) cru
 libutap_a_LIBADD =
-am_libutap_a_OBJECTS = abstractbuilder.$(OBJEXT) \
-	expressionbuilder.$(OBJEXT) expression.$(OBJEXT) \
-	system.$(OBJEXT) typechecker.$(OBJEXT) typeexception.$(OBJEXT) \
-	symbols.$(OBJEXT) xmlreader.$(OBJEXT) statement.$(OBJEXT) \
-	error.$(OBJEXT) parser.$(OBJEXT) systembuilder.$(OBJEXT) \
-	prettyprinter.$(OBJEXT) iointerface.$(OBJEXT)
+am_libutap_a_OBJECTS = abstractbuilder.$(OBJEXT) expression.$(OBJEXT) \
+	expressionbuilder.$(OBJEXT) iointerface.$(OBJEXT) \
+	position.$(OBJEXT) prettyprinter.$(OBJEXT) statement.$(OBJEXT) \
+	symbols.$(OBJEXT) system.$(OBJEXT) systembuilder.$(OBJEXT) \
+	type.$(OBJEXT) typechecker.$(OBJEXT) typeexception.$(OBJEXT) \
+	xmlreader.$(OBJEXT) parser.$(OBJEXT)
 libutap_a_OBJECTS = $(am_libutap_a_OBJECTS)
 bin_PROGRAMS = pretty$(EXEEXT) tracer$(EXEEXT) check$(EXEEXT) \
 	ioiface$(EXEEXT)
@@ -150,23 +152,20 @@ PROGRAMS = $(bin_PROGRAMS)
 
 am_check_OBJECTS = check.$(OBJEXT)
 check_OBJECTS = $(am_check_OBJECTS)
-check_LDADD = $(LDADD)
 check_DEPENDENCIES = libutap.a
 check_LDFLAGS =
 am_ioiface_OBJECTS = ioiface.$(OBJEXT)
 ioiface_OBJECTS = $(am_ioiface_OBJECTS)
-ioiface_LDADD = $(LDADD)
 ioiface_DEPENDENCIES = libutap.a
 ioiface_LDFLAGS =
 am_pretty_OBJECTS = pretty.$(OBJEXT)
 pretty_OBJECTS = $(am_pretty_OBJECTS)
-pretty_LDADD = $(LDADD)
 pretty_DEPENDENCIES = libutap.a
 pretty_LDFLAGS =
 am_tracer_OBJECTS = tracer.$(OBJEXT)
 tracer_OBJECTS = $(am_tracer_OBJECTS)
 tracer_LDADD = $(LDADD)
-tracer_DEPENDENCIES = libutap.a
+tracer_DEPENDENCIES =
 tracer_LDFLAGS =
 
 DEFS = @DEFS@
@@ -177,17 +176,16 @@ LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/abstractbuilder.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/check.Po ./$(DEPDIR)/error.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/expression.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/check.Po ./$(DEPDIR)/expression.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/expressionbuilder.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/ioiface.Po ./$(DEPDIR)/iointerface.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/keywords.Po ./$(DEPDIR)/lexer.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/parser.Po ./$(DEPDIR)/pretty.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/prettyprinter.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/parser.Po ./$(DEPDIR)/position.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/pretty.Po ./$(DEPDIR)/prettyprinter.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/statement.Po ./$(DEPDIR)/symbols.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/system.Po ./$(DEPDIR)/systembuilder.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/tags.Po ./$(DEPDIR)/tracer.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/typechecker.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/type.Po ./$(DEPDIR)/typechecker.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/typeexception.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/xmlreader.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -303,7 +301,6 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/abstractbuilder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/error.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expression.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expressionbuilder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioiface.Po@am__quote@
@@ -311,6 +308,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/keywords.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lexer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parser.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/position.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pretty.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prettyprinter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/statement.Po@am__quote@
@@ -319,6 +317,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/systembuilder.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tags.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tracer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/type.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/typechecker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/typeexception.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xmlreader.Po@am__quote@

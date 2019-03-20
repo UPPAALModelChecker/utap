@@ -10,7 +10,7 @@
 <h1>common.h</h1><a href="common_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment">00001 <span class="comment">// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-</span>
 00002 
 00003 <span class="comment">/* libutap - Uppaal Timed Automata Parser.</span>
-00004 <span class="comment">   Copyright (C) 2002 Uppsala University and Aalborg University.</span>
+00004 <span class="comment">   Copyright (C) 2002-2006 Uppsala University and Aalborg University.</span>
 00005 <span class="comment">   </span>
 00006 <span class="comment">   This library is free software; you can redistribute it and/or</span>
 00007 <span class="comment">   modify it under the terms of the GNU Lesser General Public License</span>
@@ -37,197 +37,149 @@
 00028 <span class="preprocessor"></span><span class="preprocessor">#include &lt;inttypes.h&gt;</span>
 00029 <span class="preprocessor">#endif</span>
 00030 <span class="preprocessor"></span><span class="preprocessor">#include &lt;string&gt;</span>
-00031 <span class="preprocessor">#include &lt;iostream&gt;</span>
-00032 <span class="preprocessor">#include &lt;vector&gt;</span>
-00033 
-00034 <span class="keyword">namespace </span>UTAP
-00035 {
-<a name="l00036"></a><a class="code" href="classUTAP_1_1XPath.html">00036</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1XPath.html">XPath</a>
-00037     {
-00038     <span class="keyword">public</span>:
-<a name="l00039"></a><a class="code" href="classUTAP_1_1XPath.html#a0">00039</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1XPath.html#a0">~XPath</a>() {};
-00040         <span class="keyword">virtual</span> std::string <a class="code" href="classUTAP_1_1XPath.html#a1">get</a>() <span class="keyword">const </span>= 0;
-00041     };
-00042     
-<a name="l00043"></a><a class="code" href="structUTAP_1_1position__t.html">00043</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1position__t.html">position_t</a> 
-00044     {
-<a name="l00045"></a><a class="code" href="structUTAP_1_1position__t.html#o2">00045</a>         int32_t <a class="code" href="structUTAP_1_1position__t.html#o0">first_line</a>, <a class="code" href="structUTAP_1_1position__t.html#o1">first_column</a>, <a class="code" href="structUTAP_1_1position__t.html#o2">last_line</a>, <a class="code" href="structUTAP_1_1position__t.html#o3">last_column</a>;
-<a name="l00046"></a><a class="code" href="structUTAP_1_1position__t.html#a0">00046</a>         <a class="code" href="structUTAP_1_1position__t.html#a0">position_t</a>() {}
-<a name="l00047"></a><a class="code" href="structUTAP_1_1position__t.html#a1">00047</a>         <a class="code" href="structUTAP_1_1position__t.html#a0">position_t</a>(<span class="keywordtype">int</span> fl, <span class="keywordtype">int</span> fc, <span class="keywordtype">int</span> ll, <span class="keywordtype">int</span> lc)
-00048             : <a class="code" href="structUTAP_1_1position__t.html#o0">first_line</a>(fl), <a class="code" href="structUTAP_1_1position__t.html#o1">first_column</a>(fc), <a class="code" href="structUTAP_1_1position__t.html#o2">last_line</a>(ll), <a class="code" href="structUTAP_1_1position__t.html#o3">last_column</a>(lc)
-00049             {}
-00050     };
-00051 
-<a name="l00052"></a><a class="code" href="classUTAP_1_1ErrorHandler.html">00052</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a>
-00053     {
-00054     <span class="keyword">public</span>:
-<a name="l00055"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html">00055</a>         <span class="keyword">struct </span><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html">error_t</a>
-00056         {
-<a name="l00057"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o2">00057</a>             int32_t <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o0">fline</a>, <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o1">fcolumn</a>, <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o2">lline</a>, <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o3">lcolumn</a>;
-00058 
-<a name="l00059"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o4">00059</a>             std::string <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o4">xpath</a>;
-<a name="l00060"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o5">00060</a>             std::string <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o5">msg</a>;
-00061 
-<a name="l00062"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a0">00062</a>             <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a0">error_t</a>(int32_t fl, int32_t fc, int32_t ll, int32_t lc)
-00063                 : <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o0">fline</a>(fl), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o1">fcolumn</a>(fc), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o2">lline</a>(ll), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o3">lcolumn</a>(lc)
-00064                   {}
-00065 
-<a name="l00066"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a1">00066</a>             <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a0">error_t</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html">error_t</a> &amp;err)
-00067                 : <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o0">fline</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o0">fline</a>), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o1">fcolumn</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o1">fcolumn</a>),
-00068                   <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o2">lline</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o2">lline</a>), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o3">lcolumn</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o3">lcolumn</a>),
-00069                   <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o4">xpath</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o4">xpath</a>), <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o5">msg</a>(err.<a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o5">msg</a>) {}
-00070 
-<a name="l00071"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a2">00071</a>             <span class="keywordtype">void</span> <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a2">setPath</a>(std::string path) { <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o4">xpath</a> = path; }
-<a name="l00072"></a><a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a3">00072</a>             <span class="keywordtype">void</span> <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#a3">setMessage</a>(std::string value) { <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html#o5">msg</a> = value; }
-00073         };
-00074     <span class="keyword">private</span>:
-00075         std::vector&lt;error_t&gt; errors;
-00076         std::vector&lt;error_t&gt; warnings;
-00077         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1XPath.html">XPath</a> *currentPath;
-00078         <span class="keywordtype">int</span> first_line, first_column, last_line, last_column;
-00079     <span class="keyword">public</span>:
-00080         <a class="code" href="classUTAP_1_1ErrorHandler.html#a0">ErrorHandler</a>();
-00081 
-00082         <span class="comment">// Sets the call back object for the current patch.</span>
-00083         <span class="comment">// Clears the current position.</span>
-00084         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a1">setCurrentPath</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1XPath.html">XPath</a> *path);
-00085 
-00086         <span class="comment">// Sets the current position of the parser. Any errors or</span>
-00087         <span class="comment">// warnings will be assumed to be at this position.</span>
-00088         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a2">setCurrentPosition</a>(<span class="keywordtype">int</span> first_line, <span class="keywordtype">int</span> first_column, <span class="keywordtype">int</span> last_line, <span class="keywordtype">int</span> last_column);
-00089 
-00090         <span class="comment">// Sets the current position of the parser. Any errors or</span>
-00091         <span class="comment">// warnings will be assumed to be at this position.</span>
-00092         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a2">setCurrentPosition</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
-00093 
-00094         <span class="comment">// Called when an error is detected</span>
-00095         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a4">handleError</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *, ...);
-00096 
-00097         <span class="comment">// Called when a warning is issued</span>
-00098         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a5">handleWarning</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *, ...);
-00099 
-00100         <span class="comment">// Returns the errors</span>
-00101         <span class="keyword">const</span> std::vector&lt;error_t&gt; &amp;<a class="code" href="classUTAP_1_1ErrorHandler.html#a6">getErrors</a>() <span class="keyword">const</span>;
-00102 
-00103         <span class="comment">// Returns the warnings</span>
-00104         <span class="keyword">const</span> std::vector&lt;error_t&gt; &amp;<a class="code" href="classUTAP_1_1ErrorHandler.html#a7">getWarnings</a>() <span class="keyword">const</span>;
-00105 
-00106         <span class="comment">// True if there are one or more errors</span>
-00107         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a8">hasErrors</a>() <span class="keyword">const</span>;
-00108 
-00109         <span class="comment">// True if there are one or more warnings</span>
-00110         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a9">hasWarnings</a>() <span class="keyword">const</span>;
-00111 
-00112         <span class="comment">// Clears the list of errors and warnings</span>
-00113         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ErrorHandler.html#a10">clear</a>();
-00114     };
-00115 
-<a name="l00116"></a><a class="code" href="namespaceUTAP_1_1Constants.html">00116</a>     <span class="keyword">namespace </span>Constants
-00117     {
-<a name="l00118"></a><a class="code" href="namespaceUTAP_1_1Constants.html#a56">00118</a>         <span class="keyword">enum</span> <a class="code" href="namespaceUTAP_1_1Constants.html#a56">kind_t</a> 
-00119         {
-00120             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a0">PLUS</a> = 0,
-00121             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a1">MINUS</a> = 1,
-00122             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a2">MULT</a> = 2,
-00123             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a3">DIV</a> = 3,
-00124             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a4">MOD</a> = 4,
-00125             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a5">BIT_AND</a> = 5,
-00126             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a6">BIT_OR</a> = 6,
-00127             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a7">BIT_XOR</a> = 7,
-00128             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a8">BIT_LSHIFT</a> = 8,
-00129             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a9">BIT_RSHIFT</a> = 9,
-00130             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a10">AND</a> = 10,
-00131             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a11">OR</a> = 11,
-00132             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a12">MIN</a> = 12,
-00133             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a13">MAX</a> = 13,
-00134             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a14">RATE</a> = 14,
-00135 
-00136             <span class="comment">/********************************************************</span>
-00137 <span class="comment">             * Relational operators</span>
-00138 <span class="comment">             */</span>
-00139             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a15">LT</a> = 20,
-00140             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a16">LE</a> = 21,
-00141             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a17">EQ</a> = 22,
-00142             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a18">NEQ</a> = 23,
-00143             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a19">GE</a> = 24,
-00144             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a20">GT</a> = 25,
-00145 
-00146             <span class="comment">/********************************************************</span>
-00147 <span class="comment">             * Unary operators</span>
-00148 <span class="comment">             */</span>
-00149             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a21">NOT</a> = 30,
-00150             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a22">FORALL</a> = 31,
+00031 <span class="preprocessor">#include &lt;vector&gt;</span>
+00032 
+00033 <span class="keyword">namespace </span>UTAP
+00034 {
+<a name="l00035"></a><a class="code" href="namespaceUTAP_1_1Constants.html">00035</a>     <span class="keyword">namespace </span>Constants
+00036     {
+<a name="l00037"></a><a class="code" href="namespaceUTAP_1_1Constants.html#a86">00037</a>         <span class="keyword">enum</span> <a class="code" href="namespaceUTAP_1_1Constants.html#a86">kind_t</a> 
+00038         {
+00039             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a0">PLUS</a> = 0,
+00040             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a1">MINUS</a> = 1,
+00041             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a2">MULT</a> = 2,
+00042             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a3">DIV</a> = 3,
+00043             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a4">MOD</a> = 4,
+00044             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a5">BIT_AND</a> = 5,
+00045             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a6">BIT_OR</a> = 6,
+00046             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a7">BIT_XOR</a> = 7,
+00047             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a8">BIT_LSHIFT</a> = 8,
+00048             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a9">BIT_RSHIFT</a> = 9,
+00049             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a10">AND</a> = 10,
+00050             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a11">OR</a> = 11,
+00051             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a12">MIN</a> = 12,
+00052             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a13">MAX</a> = 13,
+00053             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a14">RATE</a> = 14,
+00054 
+00055             <span class="comment">/********************************************************</span>
+00056 <span class="comment">             * Relational operators</span>
+00057 <span class="comment">             */</span>
+00058             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a15">LT</a> = 20,
+00059             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a16">LE</a> = 21,
+00060             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a17">EQ</a> = 22,
+00061             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a18">NEQ</a> = 23,
+00062             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a19">GE</a> = 24,
+00063             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a20">GT</a> = 25,
+00064 
+00065             <span class="comment">/********************************************************</span>
+00066 <span class="comment">             * Unary operators</span>
+00067 <span class="comment">             */</span>
+00068             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a21">NOT</a> = 30,
+00069             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a22">FORALL</a> = 31,
+00070             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a23">EXISTS</a> = 32,
+00071 
+00072             <span class="comment">/********************************************************</span>
+00073 <span class="comment">             * Assignment operators</span>
+00074 <span class="comment">             */</span>
+00075             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a24">ASSIGN</a> = 40,
+00076             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a25">ASSPLUS</a> = 41,
+00077             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a26">ASSMINUS</a> = 42,
+00078             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a27">ASSDIV</a> = 43,
+00079             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a28">ASSMOD</a> = 44,
+00080             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a29">ASSMULT</a> = 45,
+00081             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a30">ASSAND</a> = 46,
+00082             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a31">ASSOR</a> = 47,
+00083             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a32">ASSXOR</a> = 48,
+00084             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a33">ASSLSHIFT</a> = 49,
+00085             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a34">ASSRSHIFT</a> = 50,
+00086 
+00087             <span class="comment">/*******************************************************</span>
+00088 <span class="comment">             * CTL Quantifiers</span>
+00089 <span class="comment">             */</span>
+00090             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a35">EF</a> = 60,
+00091             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a36">EG</a> = 61,
+00092             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a37">AF</a> = 62,
+00093             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a38">AG</a> = 63,
+00094             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a39">LEADSTO</a> = 64,
+00095 
+00096             <span class="comment">/*******************************************************</span>
+00097 <span class="comment">             * Additional constants used by ExpressionProgram's and</span>
+00098 <span class="comment">             * the TypeCheckBuilder (but not by the parser, although</span>
+00099 <span class="comment">             * some of then ought to be used, FIXME).</span>
+00100 <span class="comment">             */</span>
+00101             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a40">IDENTIFIER</a> = 512,
+00102             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a41">CONSTANT</a> = 513,
+00103             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a42">ARRAY</a> = 514,
+00104             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a43">POSTINCREMENT</a> = 515,
+00105             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a44">PREINCREMENT</a> = 516,
+00106             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a45">POSTDECREMENT</a> = 517,
+00107             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a46">PREDECREMENT</a> = 518,
+00108             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a47">UNARY_MINUS</a> = 519,
+00109             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a48">LIST</a> = 520,
+00110             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a49">DOT</a> = 521,
+00111             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a50">INLINEIF</a> = 522,
+00112             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a51">COMMA</a> = 523,
+00113             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a52">SYNC</a> = 525,
+00114             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a53">DEADLOCK</a> = 526,
+00115             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a54">FUNCALL</a> = 527,
+00116 
+00117             <span class="comment">/*******************************************************</span>
+00118 <span class="comment">             * Types</span>
+00119 <span class="comment">             */</span>
+00120             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a55">UNKNOWN</a> = 600,
+00121             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a56">VOID_TYPE</a> = 601,
+00122             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a57">CLOCK</a> = 602,
+00123             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a58">INT</a> = 603,
+00124             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a59">BOOL</a> = 604,
+00125             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a60">SCALAR</a> = 605,
+00126             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a61">LOCATION</a> = 606,
+00127             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a62">CHANNEL</a> = 607,
+00128             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a63">COST</a> = 608,
+00129             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a64">INVARIANT</a> = 609,
+00130             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a65">INVARIANT_WR</a> = 610,
+00131             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a66">GUARD</a> = 611,
+00132             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a67">DIFF</a> = 612,
+00133             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a68">CONSTRAINT</a>= 613,
+00134 
+00135             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a69">RANGE</a> = 650,
+00136             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a70">LABEL</a> = 651,
+00137             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a71">RECORD</a> = 652,
+00138             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a72">REF</a> = 654,
+00139             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a73">URGENT</a> = 655,
+00140             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a74">COMMITTED</a> = 656,
+00141             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a75">WINNING</a> = 657,
+00142             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a76">LOSING</a> = 658,
+00143             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a77">BROADCAST</a> = 659,
+00144             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a78">TYPEDEF</a> = 661,
+00145             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a79">PROCESS</a> = 662,
+00146             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a80">PROCESSSET</a> = 663,
+00147             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a81">INSTANCE</a> = 665,
+00148             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a82">META</a> = 667,
+00149             <a class="code" href="namespaceUTAP_1_1Constants.html#a86a83">FUNCTION</a> = 668
+00150         };
 00151 
-00152             <span class="comment">/********************************************************</span>
-00153 <span class="comment">             * Assignment operators</span>
-00154 <span class="comment">             */</span>
-00155             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a23">ASSIGN</a> = 40,
-00156             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a24">ASSPLUS</a> = 41,
-00157             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a25">ASSMINUS</a> = 42,
-00158             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a26">ASSDIV</a> = 43,
-00159             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a27">ASSMOD</a> = 44,
-00160             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a28">ASSMULT</a> = 45,
-00161             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a29">ASSAND</a> = 46,
-00162             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a30">ASSOR</a> = 47,
-00163             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a31">ASSXOR</a> = 48,
-00164             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a32">ASSLSHIFT</a> = 49,
-00165             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a33">ASSRSHIFT</a> = 50,
-00166 
-00167             <span class="comment">/*******************************************************</span>
-00168 <span class="comment">             * CTL Quantifiers</span>
-00169 <span class="comment">             */</span>
-00170             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a34">EF</a> = 60,
-00171             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a35">EG</a> = 61,
-00172             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a36">AF</a> = 62,
-00173             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a37">AG</a> = 63,
-00174             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a38">LEADSTO</a> = 64,
-00175 
-00176             <span class="comment">/*******************************************************</span>
-00177 <span class="comment">             * Additional constants used by ExpressionProgram's and</span>
-00178 <span class="comment">             * the TypeCheckBuilder (but not by the parser, although</span>
-00179 <span class="comment">             * some of then ought to be used, FIXME).</span>
-00180 <span class="comment">             */</span>
-00181             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a39">IDENTIFIER</a> = 512,
-00182             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a40">CONSTANT</a> = 513,
-00183             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a41">ARRAY</a> = 514,
-00184             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a42">POSTINCREMENT</a> = 515,
-00185             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a43">PREINCREMENT</a> = 516,
-00186             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a44">POSTDECREMENT</a> = 517,
-00187             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a45">PREDECREMENT</a> = 518,
-00188             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a46">UNARY_MINUS</a> = 519,
-00189             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a47">LIST</a> = 520,
-00190             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a48">DOT</a> = 521,
-00191             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a49">INLINEIF</a> = 522,
-00192             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a50">COMMA</a> = 523,
-00193             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a51">SYNC</a> = 525,
-00194             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a52">DEADLOCK</a> = 526,
-00195             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a53">FUNCALL</a> = 527
-00196         };
-00197 
-00198         <span class="comment">/**********************************************************</span>
-00199 <span class="comment">         * Synchronisations:</span>
-00200 <span class="comment">         */</span>
-<a name="l00201"></a><a class="code" href="namespaceUTAP_1_1Constants.html#a57">00201</a>         <span class="keyword">enum</span> <a class="code" href="namespaceUTAP_1_1Constants.html#a57">synchronisation_t</a> 
-00202         {
-00203             <a class="code" href="namespaceUTAP_1_1Constants.html#a57a54">SYNC_QUE</a> = 0,
-00204             <a class="code" href="namespaceUTAP_1_1Constants.html#a57a55">SYNC_BANG</a> = 1
-00205         };
-00206     }
-00207 
-<a name="l00209"></a><a class="code" href="namespaceUTAP.html#a37">00209</a>     <span class="keyword">typedef</span> <span class="keyword">enum</span> 
-00210     { 
-00211         <a class="code" href="namespaceUTAP.html#a37a0">S_XTA</a>, <span class="comment">// entire system </span>
-00212         <a class="code" href="namespaceUTAP.html#a37a1">S_DECLARATION</a>, <a class="code" href="namespaceUTAP.html#a37a2">S_LOCAL_DECL</a>, <a class="code" href="namespaceUTAP.html#a37a3">S_INST</a>, <a class="code" href="namespaceUTAP.html#a37a4">S_SYSTEM</a>, <a class="code" href="namespaceUTAP.html#a37a5">S_PARAMETERS</a>, 
-00213         <a class="code" href="namespaceUTAP.html#a37a6">S_INVARIANT</a>, <a class="code" href="namespaceUTAP.html#a37a7">S_SELECT</a>, <a class="code" href="namespaceUTAP.html#a37a8">S_GUARD</a>, <a class="code" href="namespaceUTAP.html#a37a9">S_SYNC</a>, <a class="code" href="namespaceUTAP.html#a37a10">S_ASSIGN</a>, 
-00214         <a class="code" href="namespaceUTAP.html#a37a11">S_EXPRESSION</a>, <a class="code" href="namespaceUTAP.html#a37a12">S_PROPERTY</a>
-00215     } <a class="code" href="namespaceUTAP.html#a37">xta_part_t</a>;
-00216 
-00217 }
-00218 
-00219 std::ostream &amp;<a class="code" href="error_8cpp.html#a0">operator &lt;&lt;</a>(std::ostream &amp;out, <span class="keyword">const</span> <a class="code" href="structUTAP_1_1ErrorHandler_1_1error__t.html">UTAP::ErrorHandler::error_t</a> &amp;e);
-00220 
-00221 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00152         <span class="comment">/**********************************************************</span>
+00153 <span class="comment">         * Synchronisations:</span>
+00154 <span class="comment">         */</span>
+<a name="l00155"></a><a class="code" href="namespaceUTAP_1_1Constants.html#a87">00155</a>         <span class="keyword">enum</span> <a class="code" href="namespaceUTAP_1_1Constants.html#a87">synchronisation_t</a> 
+00156         {
+00157             <a class="code" href="namespaceUTAP_1_1Constants.html#a87a84">SYNC_QUE</a> = 0,
+00158             <a class="code" href="namespaceUTAP_1_1Constants.html#a87a85">SYNC_BANG</a> = 1
+00159         };
+00160     }
+00161 
+<a name="l00163"></a><a class="code" href="namespaceUTAP.html#a37">00163</a>     <span class="keyword">typedef</span> <span class="keyword">enum</span> 
+00164     { 
+00165         <a class="code" href="namespaceUTAP.html#a37a0">S_XTA</a>, <span class="comment">// entire system </span>
+00166         <a class="code" href="namespaceUTAP.html#a37a1">S_DECLARATION</a>, <a class="code" href="namespaceUTAP.html#a37a2">S_LOCAL_DECL</a>, <a class="code" href="namespaceUTAP.html#a37a3">S_INST</a>, <a class="code" href="namespaceUTAP.html#a37a4">S_SYSTEM</a>, <a class="code" href="namespaceUTAP.html#a37a5">S_PARAMETERS</a>, 
+00167         <a class="code" href="namespaceUTAP.html#a37a6">S_INVARIANT</a>, <a class="code" href="namespaceUTAP.html#a37a7">S_SELECT</a>, <a class="code" href="namespaceUTAP.html#a37a8">S_GUARD</a>, <a class="code" href="namespaceUTAP.html#a37a9">S_SYNC</a>, <a class="code" href="namespaceUTAP.html#a37a10">S_ASSIGN</a>, 
+00168         <a class="code" href="namespaceUTAP.html#a37a11">S_EXPRESSION</a>, <a class="code" href="namespaceUTAP.html#a37a12">S_PROPERTY</a>
+00169     } <a class="code" href="namespaceUTAP.html#a37">xta_part_t</a>;
+00170 
+00171 }
+00172 
+00173 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:13 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

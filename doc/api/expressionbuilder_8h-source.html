@@ -40,112 +40,112 @@
 00031 
 00032 <span class="keyword">namespace </span>UTAP
 00033 {
-<a name="l00034"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html">00034</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder.html">ExpressionBuilder</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html">AbstractBuilder</a> 
-00035     {
-00036     <span class="keyword">public</span>:
-<a name="l00037"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">00037</a>         <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a> 
-00038         {
-00039         <span class="keyword">private</span>:
-00040             std::vector&lt;expression_t&gt; data;
-00041         <span class="keyword">public</span>:
-<a name="l00042"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a0">00042</a>             <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a0">operator[] </a>(<span class="keywordtype">int</span> idx)
-00043                 { <span class="keywordflow">return</span> data[data.size() - idx - 1]; }
-<a name="l00044"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a1">00044</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a1">push</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> e)
-00045                 { data.push_back(e); }
-<a name="l00046"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">00046</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">pop</a>()
-00047                 { data.pop_back(); }
-00048             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">pop</a>(uint32_t n);
-<a name="l00049"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a4">00049</a>             uint32_t <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a4">size</a>() { <span class="keywordflow">return</span> data.size(); }
-00050         };
-00051 
-00052     <span class="keyword">protected</span>:
-00053         <span class="comment">/* Expression stack */</span>
-<a name="l00054"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p0">00054</a>         <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p0">fragments</a>;
-00055 
-00056         <span class="comment">/* Pointer to the intermediate system under construction */</span>
-<a name="l00057"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p1">00057</a>         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *<a class="code" href="classUTAP_1_1ExpressionBuilder.html#p1">system</a>;
-00058 
-00059         <span class="comment">/* The stack of type fragments. A type fragment is a pair</span>
-00060 <span class="comment">         * consiting of a type and an optional name (the name is used</span>
-00061 <span class="comment">         * for fields of a structure).</span>
-00062 <span class="comment">         */</span>
-<a name="l00063"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">00063</a>         <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a> 
-00064         {
-00065         <span class="keyword">private</span>:
-00066             std::vector&lt;std::pair&lt;type_t, char *&gt; &gt; data;
-00067         <span class="keyword">public</span>:
-<a name="l00068"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">00068</a>             <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">~TypeFragments</a>() 
-00069                 { <span class="keywordflow">while</span> (!data.empty()) <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">pop</a>(); }
-<a name="l00070"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">00070</a>             std::pair&lt;type_t, char *&gt; &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">operator[] </a>(<span class="keywordtype">int</span> idx)
+<a name="l00047"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html">00047</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder.html">ExpressionBuilder</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1AbstractBuilder.html">AbstractBuilder</a> 
+00048     {
+00049     <span class="keyword">public</span>:
+<a name="l00050"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">00050</a>         <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a> 
+00051         {
+00052         <span class="keyword">private</span>:
+00053             std::vector&lt;expression_t&gt; data;
+00054         <span class="keyword">public</span>:
+<a name="l00055"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a0">00055</a>             <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a0">operator[] </a>(<span class="keywordtype">int</span> idx)
+00056                 { <span class="keywordflow">return</span> data[data.size() - idx - 1]; }
+<a name="l00057"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a1">00057</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a1">push</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> e)
+00058                 { data.push_back(e); }
+<a name="l00059"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">00059</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">pop</a>()
+00060                 { data.pop_back(); }
+00061             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a2">pop</a>(uint32_t n);
+<a name="l00062"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a4">00062</a>             uint32_t <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html#a4">size</a>() { <span class="keywordflow">return</span> data.size(); }
+00063         };
+00064 
+<a name="l00065"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">00065</a>         <span class="keyword">class </span><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a> 
+00066         {
+00067         <span class="keyword">private</span>:
+00068             std::vector&lt;type_t&gt; data;
+00069         <span class="keyword">public</span>:
+<a name="l00070"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">00070</a>             <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">operator[]</a>(<span class="keywordtype">int</span> idx)
 00071                 { <span class="keywordflow">return</span> data[data.size() - idx - 1]; }
-<a name="l00072"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">00072</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">push</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> value)
-00073                 { data.push_back(std::make_pair(value, (<span class="keywordtype">char</span>*)NULL)); }
-<a name="l00074"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">00074</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">pop</a>()
-00075                 { assert(!data.empty()); free(data.back().second); data.pop_back(); }
-00076         } <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p2">typeFragments</a>;
-00077 
-00078         <span class="comment">/* Current frame */</span>
-<a name="l00079"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p3">00079</a>         std::stack&lt;frame_t&gt; <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p3">frames</a>;
-00080 
-00081         <span class="comment">/* Push a new frame. */</span>
-00082         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b0">pushFrame</a>(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
-00083         
-00084         <span class="comment">/* Pop the topmost frame. */</span>
-00085         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b1">popFrame</a>();
+<a name="l00072"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">00072</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">push</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> value)
+00073                 { data.push_back(value); }
+<a name="l00074"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">00074</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">pop</a>()
+00075                 { assert(!data.empty()); data.pop_back(); }
+<a name="l00076"></a><a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">00076</a>             <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">duplicate</a>()
+00077                 { assert(!data.empty()); data.push_back(data.back()); }
+00078         };
+00079 
+00080     <span class="keyword">protected</span>:
+<a name="l00082"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p0">00082</a>         <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p0">fragments</a>;
+00083 
+<a name="l00085"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p1">00085</a>         <a class="code" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p1">typeFragments</a>;
 00086 
-00087         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b2">resolve</a>(std::string, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
-00088 
-00089         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b3">makeConstant</a>(<span class="keywordtype">int</span> value);
-00090 
-00096         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b4">applyPrefix</a>(int32_t prefix, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type);
-00097 
-<a name="l00106"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#b5">00106</a>         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b5">allowProcessReferences</a>() { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
-00107 
-00108     <span class="keyword">public</span>:
-00109         <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a0">ExpressionBuilder</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *);
-00110         ExpressionFragments &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder.html#a1">getExpressions</a>();
-00111 
-00112         <span class="comment">/************************************************************</span>
-00113 <span class="comment">         * Types</span>
-00114 <span class="comment">         */</span>
-00115         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a2">typeName</a>(int32_t prefix, <span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">int</span> range);
-00116 
-00117         <span class="comment">/************************************************************</span>
-00118 <span class="comment">         * Query functions</span>
-00119 <span class="comment">         */</span>
-00120         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a3">isType</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00121         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a4">isLocation</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
-00122 
-00123         <span class="comment">/************************************************************</span>
-00124 <span class="comment">         * Expressions</span>
-00125 <span class="comment">         */</span>
-00126         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a5">exprTrue</a>();
-00127         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a6">exprFalse</a>();
-00128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a7">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * varName);
-00129         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a8">exprNat</a>(int32_t); <span class="comment">// natural number</span>
-00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a9">exprCallBegin</a>();
-00131         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a10">exprCallEnd</a>(uint32_t n); <span class="comment">// n exprs as arguments</span>
-00132         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a11">exprArg</a>(uint32_t n); <span class="comment">// 1 exprs as n-th argument for fn-call</span>
-00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a12">exprArray</a>(); <span class="comment">// 2 expr </span>
-00134         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a13">exprPostIncrement</a>(); <span class="comment">// 1 expr</span>
-00135         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a14">exprPreIncrement</a>(); <span class="comment">// 1 expr</span>
-00136         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a15">exprPostDecrement</a>(); <span class="comment">// 1 expr</span>
-00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a16">exprPreDecrement</a>(); <span class="comment">// 1 expr</span>
-00138         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a17">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op); <span class="comment">// 2 expr</span>
-00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a18">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> unaryop); <span class="comment">// 1 expr</span>
-00140         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a19">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> binaryop); <span class="comment">// 2 expr</span>
-00141         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a20">exprInlineIf</a>(); <span class="comment">// 3 expr</span>
-00142         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a21">exprComma</a>(); <span class="comment">// 2 expr</span>
-00143         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a22">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *); <span class="comment">// 1 expr</span>
-00144         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a23">exprDeadlock</a>();
-00145         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a24">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00146         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a25">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00147 
-00148     };
-00149 }
-00150 
-00151 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<a name="l00088"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p2">00088</a>         std::stack&lt;frame_t&gt; <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p2">frames</a>;
+00089 
+<a name="l00091"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p3">00091</a>         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *<a class="code" href="classUTAP_1_1ExpressionBuilder.html#p3">system</a>;
+00092 
+<a name="l00094"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p4">00094</a>         <a class="code" href="structUTAP_1_1template__t.html">template_t</a> *<a class="code" href="classUTAP_1_1ExpressionBuilder.html#p4">currentTemplate</a>;
+00095 
+<a name="l00097"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#p5">00097</a>         int32_t <a class="code" href="classUTAP_1_1ExpressionBuilder.html#p5">scalar_count</a>;
+00098 
+00100         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b0">pushFrame</a>(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
+00101         
+00103         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b1">popFrame</a>();
+00104 
+00105         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b2">resolve</a>(std::string, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
+00106 
+00107         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b3">makeConstant</a>(<span class="keywordtype">int</span> value);
+00108 
+00114         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b4">applyPrefix</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type);
+00115 
+<a name="l00124"></a><a class="code" href="classUTAP_1_1ExpressionBuilder.html#b5">00124</a>         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#b5">allowProcessReferences</a>() { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+00125 
+00126     <span class="keyword">public</span>:
+00127         <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a0">ExpressionBuilder</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *);
+00128         ExpressionFragments &amp;<a class="code" href="classUTAP_1_1ExpressionBuilder.html#a1">getExpressions</a>();
+00129 
+00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a2">addPosition</a>(
+00131             uint32_t <a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">position</a>, uint32_t offset, uint32_t line, std::string path);
+00132 
+00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a3">handleError</a>(std::string);
+00134         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a4">handleWarning</a>(std::string);
+00135         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a5">typeDuplicate</a>();
+00136         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a6">typePop</a>();
+00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a7">typeBool</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00138         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a8">typeInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a9">typeBoundedInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00140         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a10">typeChannel</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00141         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a11">typeClock</a>();
+00142         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a12">typeVoid</a>();
+00143         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a13">typeScalar</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00144         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a14">typeName</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, <span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00145         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a15">isType</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00146         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a16">isLocation</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>*);
+00147         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a17">exprTrue</a>();
+00148         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a18">exprFalse</a>();
+00149         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a19">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * varName);
+00150         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a20">exprNat</a>(int32_t);
+00151         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a21">exprCallBegin</a>();
+00152         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a22">exprCallEnd</a>(uint32_t n);
+00153         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a23">exprArray</a>();
+00154         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a24">exprPostIncrement</a>();
+00155         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a25">exprPreIncrement</a>(); 
+00156         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a26">exprPostDecrement</a>();
+00157         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a27">exprPreDecrement</a>(); 
+00158         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a28">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op);
+00159         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a29">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> unaryop); 
+00160         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a30">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> binaryop); 
+00161         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a31">exprInlineIf</a>(); 
+00162         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a32">exprComma</a>(); 
+00163         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a33">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *);
+00164         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a34">exprDeadlock</a>();
+00165         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a35">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00166         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a36">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00167         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a37">exprExistsBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00168         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ExpressionBuilder.html#a38">exprExistsEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00169     };
+00170 }
+00171 
+00172 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

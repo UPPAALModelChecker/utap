@@ -15,19 +15,18 @@
 <p>Inheritance diagram for UTAP::TypeChecker:
 <p><center><img src="classUTAP_1_1TypeChecker.png" usemap="#UTAP::TypeChecker_map" border="0" alt=""></center>
 <map name="UTAP::TypeChecker_map">
-<area href="classUTAP_1_1ContextVisitor.html" alt="UTAP::ContextVisitor" shape="rect" coords="75,56,215,80">
-<area href="classUTAP_1_1StatementVisitor.html" alt="UTAP::StatementVisitor" shape="rect" coords="225,56,365,80">
-<area href="classUTAP_1_1SystemVisitor.html" alt="UTAP::SystemVisitor" shape="rect" coords="0,0,140,24">
-<area href="classUTAP_1_1XPath.html" alt="UTAP::XPath" shape="rect" coords="150,0,290,24">
+<area href="classUTAP_1_1SystemVisitor.html" alt="UTAP::SystemVisitor" shape="rect" coords="0,56,187,80">
+<area href="classUTAP_1_1AbstractStatementVisitor.html" alt="UTAP::AbstractStatementVisitor" shape="rect" coords="197,56,384,80">
+<area href="classUTAP_1_1StatementVisitor.html" alt="UTAP::StatementVisitor" shape="rect" coords="197,0,384,24">
 </map>
 <a href="classUTAP_1_1TypeChecker-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a0">TypeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *handler)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a0">TypeChecker</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *system)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a1">~TypeChecker</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a2">visitTemplateBefore</a> (<a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a2">visitSystemAfter</a> (<a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a3">visitVariable</a> (<a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;)</td></tr>
 
@@ -43,37 +42,29 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a9">visitProgressMeasure</a> (<a class="el" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a10">visitEmptyStatement</a> (<a class="el" href="classUTAP_1_1EmptyStatement.html">EmptyStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a10">visitProcess</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a11">visitExprStatement</a> (<a class="el" href="classUTAP_1_1ExprStatement.html">ExprStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a11">visitEmptyStatement</a> (<a class="el" href="classUTAP_1_1EmptyStatement.html">EmptyStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a12">visitForStatement</a> (<a class="el" href="classUTAP_1_1ForStatement.html">ForStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a12">visitExprStatement</a> (<a class="el" href="classUTAP_1_1ExprStatement.html">ExprStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a13">visitIterationStatement</a> (<a class="el" href="classUTAP_1_1IterationStatement.html">IterationStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a13">visitForStatement</a> (<a class="el" href="classUTAP_1_1ForStatement.html">ForStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a14">visitWhileStatement</a> (<a class="el" href="classUTAP_1_1WhileStatement.html">WhileStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a14">visitIterationStatement</a> (<a class="el" href="classUTAP_1_1IterationStatement.html">IterationStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a15">visitDoWhileStatement</a> (<a class="el" href="classUTAP_1_1DoWhileStatement.html">DoWhileStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a15">visitWhileStatement</a> (<a class="el" href="classUTAP_1_1WhileStatement.html">WhileStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a16">visitBlockStatement</a> (<a class="el" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a16">visitDoWhileStatement</a> (<a class="el" href="classUTAP_1_1DoWhileStatement.html">DoWhileStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a17">visitSwitchStatement</a> (<a class="el" href="classUTAP_1_1SwitchStatement.html">SwitchStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a17">visitBlockStatement</a> (<a class="el" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a18">visitCaseStatement</a> (<a class="el" href="classUTAP_1_1CaseStatement.html">CaseStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a18">visitIfStatement</a> (<a class="el" href="classUTAP_1_1IfStatement.html">IfStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a19">visitDefaultStatement</a> (<a class="el" href="classUTAP_1_1DefaultStatement.html">DefaultStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a19">visitReturnStatement</a> (<a class="el" href="classUTAP_1_1ReturnStatement.html">ReturnStatement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a20">visitIfStatement</a> (<a class="el" href="classUTAP_1_1IfStatement.html">IfStatement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a20">checkExpression</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a21">visitBreakStatement</a> (<a class="el" href="classUTAP_1_1BreakStatement.html">BreakStatement</a> *stat)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a22">visitContinueStatement</a> (<a class="el" href="classUTAP_1_1ContinueStatement.html">ContinueStatement</a> *stat)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a23">visitReturnStatement</a> (<a class="el" href="classUTAP_1_1ReturnStatement.html">ReturnStatement</a> *stat)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TypeChecker.html#a24">checkExpression</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
-
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Type check an expression.  <a href="#a24"></a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Type check an expression.  <a href="#a20"></a><br></td></tr>
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
 A visitor which type checks the system it visits. 
@@ -90,18 +81,9 @@ The type checker can only visit the system given in the constructor. The type ch
           <td class="md" nowrap valign="top">TypeChecker::TypeChecker           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>system</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>handler</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
+          <td class="mdname1" valign="top" nowrap> <em>system</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
         </tr>
       </table>
     </td>
@@ -146,16 +128,16 @@ The type checker can only visit the system given in the constructor. The type ch
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a24" doxytag="UTAP::TypeChecker::checkExpression"></a><p>
+<a class="anchor" name="a20" doxytag="UTAP::TypeChecker::checkExpression"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">void TypeChecker::checkExpression           </td>
+          <td class="md" nowrap valign="top">bool TypeChecker::checkExpression           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="mdname1" valign="top" nowrap> <em>expr</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
         </tr>
@@ -173,10 +155,10 @@ The type checker can only visit the system given in the constructor. The type ch
 <p>
 Type check an expression. 
 <p>
-    </td>
+This function performs basic type checking of the given expression and assigns a type to every subexpression of the expression. It checks that only left-hand side values are updated, checks that functions are called with the correct arguments, checks that operators are used with the correct operands and checks that operands to assignment operators are assignment compatible. Errors are reported by calling handleError(). This function does not check/compute the range of integer expressions and thus does not produce out-of-range errors or warnings. Returns true if no type errors were found, false otherwise.     </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="UTAP::TypeChecker::visitBlockStatement"></a><p>
+<a class="anchor" name="a17" doxytag="UTAP::TypeChecker::visitBlockStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -203,130 +185,10 @@ Type check an expression.
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a7">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a6">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a21" doxytag="UTAP::TypeChecker::visitBreakStatement"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">int32_t TypeChecker::visitBreakStatement           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1BreakStatement.html">BreakStatement</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>stat</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a12">UTAP::StatementVisitor</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a18" doxytag="UTAP::TypeChecker::visitCaseStatement"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">int32_t TypeChecker::visitCaseStatement           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1CaseStatement.html">CaseStatement</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>stat</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a9">UTAP::StatementVisitor</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a22" doxytag="UTAP::TypeChecker::visitContinueStatement"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">int32_t TypeChecker::visitContinueStatement           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ContinueStatement.html">ContinueStatement</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>stat</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a13">UTAP::StatementVisitor</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a19" doxytag="UTAP::TypeChecker::visitDefaultStatement"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">int32_t TypeChecker::visitDefaultStatement           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1DefaultStatement.html">DefaultStatement</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>stat</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a10">UTAP::StatementVisitor</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a15" doxytag="UTAP::TypeChecker::visitDoWhileStatement"></a><p>
+<a class="anchor" name="a16" doxytag="UTAP::TypeChecker::visitDoWhileStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -353,7 +215,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a10">UTAP::Sta
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a6">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a5">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a5" doxytag="UTAP::TypeChecker::visitEdge"></a><p>
@@ -386,7 +248,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a6">UTAP::Stat
 Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a7">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="UTAP::TypeChecker::visitEmptyStatement"></a><p>
+<a class="anchor" name="a11" doxytag="UTAP::TypeChecker::visitEmptyStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -413,10 +275,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a7">UTAP:
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a1">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a0">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="UTAP::TypeChecker::visitExprStatement"></a><p>
+<a class="anchor" name="a12" doxytag="UTAP::TypeChecker::visitExprStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -443,10 +305,10 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a1">UTAP::Stat
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a2">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a1">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="UTAP::TypeChecker::visitForStatement"></a><p>
+<a class="anchor" name="a13" doxytag="UTAP::TypeChecker::visitForStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -473,7 +335,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a2">UTAP::Stat
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a3">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a2">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a8" doxytag="UTAP::TypeChecker::visitFunction"></a><p>
@@ -506,7 +368,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a3">UTAP::Stat
 Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a10">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a20" doxytag="UTAP::TypeChecker::visitIfStatement"></a><p>
+<a class="anchor" name="a18" doxytag="UTAP::TypeChecker::visitIfStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -533,7 +395,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a10">UTAP
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a11">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a10">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a6" doxytag="UTAP::TypeChecker::visitInstance"></a><p>
@@ -566,7 +428,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a11">UTAP::Sta
 Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a8">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="UTAP::TypeChecker::visitIterationStatement"></a><p>
+<a class="anchor" name="a14" doxytag="UTAP::TypeChecker::visitIterationStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -593,7 +455,37 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a8">UTAP:
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a4">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a3">UTAP::AbstractStatementVisitor</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a10" doxytag="UTAP::TypeChecker::visitProcess"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TypeChecker::visitProcess           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a9">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a9" doxytag="UTAP::TypeChecker::visitProgressMeasure"></a><p>
@@ -623,7 +515,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a4">UTAP::Stat
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a11">UTAP::SystemVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a12">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a7" doxytag="UTAP::TypeChecker::visitProperty"></a><p>
@@ -654,7 +546,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a11">UTAP
     </td>
   </tr>
 </table>
-<a class="anchor" name="a23" doxytag="UTAP::TypeChecker::visitReturnStatement"></a><p>
+<a class="anchor" name="a19" doxytag="UTAP::TypeChecker::visitReturnStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -681,7 +573,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a11">UTAP
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a14">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a13">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a4" doxytag="UTAP::TypeChecker::visitState"></a><p>
@@ -714,45 +606,15 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a14">UTAP::Sta
 Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a6">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="UTAP::TypeChecker::visitSwitchStatement"></a><p>
+<a class="anchor" name="a2" doxytag="UTAP::TypeChecker::visitSystemAfter"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">int32_t TypeChecker::visitSwitchStatement           </td>
+          <td class="md" nowrap valign="top">void TypeChecker::visitSystemAfter           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1SwitchStatement.html">SwitchStatement</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>stat</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a8">UTAP::StatementVisitor</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a2" doxytag="UTAP::TypeChecker::visitTemplateBefore"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">bool TypeChecker::visitTemplateBefore           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -771,7 +633,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a8">UTAP::Stat
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1ContextVisitor.html#a1">UTAP::ContextVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a2">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a3" doxytag="UTAP::TypeChecker::visitVariable"></a><p>
@@ -804,7 +666,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1ContextVisitor.html#a1">UTAP
 Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a3">UTAP::SystemVisitor</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="UTAP::TypeChecker::visitWhileStatement"></a><p>
+<a class="anchor" name="a15" doxytag="UTAP::TypeChecker::visitWhileStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -831,12 +693,12 @@ Reimplemented from <a class="el" href="classUTAP_1_1SystemVisitor.html#a3">UTAP:
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a5">UTAP::StatementVisitor</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractStatementVisitor.html#a4">UTAP::AbstractStatementVisitor</a>.    </td>
   </tr>
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="typechecker_8h-source.html">typechecker.h</a><li><a class="el" href="typechecker_8cpp.html">typechecker.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

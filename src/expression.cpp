@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -21,6 +21,7 @@
 
 #include <cassert>
 #include <algorithm>
+#include <stdexcept>
 
 #include "utap/builder.h"
 #include "utap/system.h"
@@ -86,13 +87,37 @@ expression_t expression_t::clone() const
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
-    expr.data->type = data->type;
     if (data->sub)
     {
 	expr.data->sub = new expression_t[getSize()];
 	std::copy(data->sub, data->sub + getSize(), expr.data->sub);
     }
     return expr;
+}
+
+expression_t expression_t::subst(symbol_t symbol, expression_t expr) const
+{
+    if (empty())
+    {
+	return *this;
+    }
+    else if (getKind() == IDENTIFIER && getSymbol() == symbol)
+    {
+	return expr;
+    }
+    else if (getSize() == 0)
+    {
+	return *this;
+    }
+    else
+    {
+	expression_t e = clone();
+	for (size_t i = 0; i < getSize(); i++)
+	{
+	    e[i] = e[i].subst(symbol, expr);
+	}
+	return e;
+    }
 }
 
 expression_t::~expression_t()
@@ -120,7 +145,7 @@ const position_t &expression_t::getPosition() const
     return data->position;
 }
 
-uint32_t expression_t::getSize() const
+size_t expression_t::getSize() const
 {
     if (empty())
     {
@@ -203,6 +228,7 @@ uint32_t expression_t::getSize() const
     case LEADSTO: 
 	return 2;
     case FORALL:
+    case EXISTS:
 	return 2;
     default:
 	assert(0);
@@ -329,13 +355,6 @@ symbol_t expression_t::getSymbol()
     return ((const expression_t*)this)->getSymbol();
 }
 
-/**
-   Returns the symbol of a variable reference. The expression must be
-   a left-hand side value. The symbol returned is the symbol of the
-   variable the expression if resulting in a reference to. NOTE: In
-   case of inline if, the symbol referenced by the 'true' part is
-   returned.
-*/
 const symbol_t expression_t::getSymbol() const
 {
     assert(data);
@@ -346,7 +365,7 @@ const symbol_t expression_t::getSymbol() const
 	return data->symbol;
       
     case DOT:
-	return get(0).getType().getFrame()[data->value];
+	return get(0).getSymbol();
       
     case ARRAY:
 	return get(0).getSymbol();
@@ -376,43 +395,49 @@ const symbol_t expression_t::getSymbol() const
 
     case SYNC:
 	return get(0).getSymbol();
-	
+
     case FUNCALL:
-	//Functions cannot return references (yet!)
+	return get(0).getSymbol();
 
     default:
 	return symbol_t();
     }
 }
 
-/** Returns true if expr might be a reference to a symbol in the
-    set. NOTE: This method does not use the getSymbol() call, since
-    that one always returns the 'true' result of an inline if.
- */
-bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
+void expression_t::getSymbols(std::set<symbol_t> &symbols) const
 {
-    if (empty())
+    if (empty()) 
     {
-	return false;
+	return;
     }
 
     switch (getKind()) 
     {
     case IDENTIFIER:
-	return (symbols.find(data->symbol) != symbols.end());
+	symbols.insert(data->symbol);
+	break;
+
+    case DOT:
+	get(0).getSymbols(symbols);
+	break;
+      
     case ARRAY:
-	return get(0).isReferenceTo(symbols);
+	get(0).getSymbols(symbols);
+	break;
+      
     case PREINCREMENT:
     case PREDECREMENT:
-	return get(0).isReferenceTo(symbols);
-    case COMMA:
-	return get(1).isReferenceTo(symbols);
-    case DOT:
-	return get(0).isReferenceTo(symbols) 
-	    || symbols.find(getSymbol()) != symbols.end();
-
+	get(0).getSymbols(symbols);
+	break;
+    
     case INLINEIF:
-	return get(1).isReferenceTo(symbols) || get(2).isReferenceTo(symbols);
+	get(1).getSymbols(symbols);
+	get(2).getSymbols(symbols);
+	break;
+      
+    case COMMA:
+	get(1).getSymbols(symbols);
+	break;
 
     case ASSIGN:
     case ASSPLUS:
@@ -425,131 +450,44 @@ bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
     case ASSXOR:
     case ASSLSHIFT:
     case ASSRSHIFT:
-	return get(0).isReferenceTo(symbols);
+	get(0).getSymbols(symbols);
+	break;
+
+    case SYNC:
+	get(0).getSymbols(symbols);
+	break;	
+
     default:
-	// This operation will not result in a reference
-	return false;
+	// Do nothing
+	break;
     }
 }
 
-/** Returns true if \a fun changes any of the variables in \a variables. */
-static bool changes(function_t *fun, const std::set<symbol_t> &variables)
+/** Returns true if expr might be a reference to a symbol in the
+    set. */
+bool expression_t::isReferenceTo(const std::set<symbol_t> &symbols) const
 {
-    set<symbol_t>::const_iterator first1, first2, last1, last2;
-    first1 = fun->changes.begin();
-    last1 = fun->changes.end();
-    first2 = variables.begin();
-    last2 = variables.end();
-
-    while (first1 != last1 && first2 != last2)
-    {
-	if (*first1 < *first2)
-	{
-	    ++first1;
-	}
-	else if (*first2 < *first1)
-	{
-	    ++first2;
-	}
-	else
-	{
-	    return true;
-	}
-    }
-    return false;
+    std::set<symbol_t> s;
+    getSymbols(s);    
+    return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end()) 
+	!= symbols.end();
 }
 
 bool expression_t::changesVariable(const std::set<symbol_t> &symbols) const
 {
-    function_t *fun;
-    frame_t parameters;
-
-    if (empty())
-    {
-	return false;
-    }
-
-    for (uint32_t i = 0; i < getSize(); i++) 
-    {
-	if (get(i).changesVariable(symbols)) 
-	{
-	    return true;  
-	}
-    }
-
-    switch (getKind()) 
-    {
-    case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
-    case POSTINCREMENT:
-    case POSTDECREMENT:
-    case PREINCREMENT:
-    case PREDECREMENT:
-	return get(0).isReferenceTo(symbols);
-      
-    case FUNCALL:
-	fun = (function_t*)get(0).getSymbol().getData();
-	
-	// Check if symbols contains arguments to non-constant reference params
-	parameters = fun->uid.getType().getParameters();
-	for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
-	{
-	    type_t type = parameters[i].getType();
-	    if (type.hasPrefix(prefix::REFERENCE)
-		&& !type.hasPrefix(prefix::CONSTANT)
-		&& get(i + 1).isReferenceTo(symbols))
-	    {
-		return true;
-	    }
-	}
-
-	return changes(fun, symbols);
-
-    default:
-	return false;
-    }
+    std::set<symbol_t> changes;
+    collectPossibleWrites(changes);
+    return find_first_of(symbols.begin(), symbols.end(),
+			 changes.begin(), changes.end()) != symbols.end();
 }
 
 bool expression_t::dependsOn(const std::set<symbol_t> &symbols) const
 {
-    if (empty())
-    {
-	return false;
-    }
-
-    for (uint32_t i = 0; i < getSize(); i++) 
-    {
-	if (get(i).dependsOn(symbols)) 
-	{
-	    return true;
-	}
-    }
-
-    switch (getKind())
-    {
-	const function_t *fun;
-
-    case IDENTIFIER:
-	return symbols.find(data->symbol) != symbols.end();
-
-    case FUNCALL:
-	fun = static_cast<const function_t*>(get(0).getSymbol().getData());
-	return find_first_of(symbols.begin(), symbols.end(),
-			     fun->depends.begin(), fun->depends.end())
-	    != symbols.end();
-	
-    default:
-	return false;
-    }    
+    std::set<symbol_t> dependencies;
+    collectPossibleReads(dependencies);
+    return find_first_of(
+	symbols.begin(), symbols.end(),
+	dependencies.begin(), dependencies.end()) != symbols.end();
 }
 
 int expression_t::getPrecedence() const
@@ -621,6 +559,7 @@ int expression_t::getPrecedence(kind_t kind)
 	return 15;
 
     case FORALL:
+    case EXISTS:
 	return 13; // REVISIT!
 
     case ASSIGN:
@@ -655,6 +594,9 @@ int expression_t::getPrecedence(kind_t kind)
     case LEADSTO:
     case LIST:
 	return -1; // TODO
+
+    default:
+	throw std::runtime_error("Strange expression");
     }
     assert(0);
     return 0;
@@ -691,16 +633,6 @@ static void append(char *&str, char *&end, int &size, const char *s)
     {
 	*end = 0;
     }
-    
-//     int strlen = end - str;
-//     int space = size - strlen;
-//     int slen = strlcpy(end, s, space);
-//     if (slen >= space) {
-// 	ensure(str, end, size, strlen + slen + 1);
-// 	append(str, end, size, s);
-//     } else {
-// 	end += slen;
-//     }
 }
 
 static void append(char *&str, char *&end, int &size, char c)
@@ -965,8 +897,8 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 
     case DOT:
     {
-	type_t base = get(0).getType().getBase();
-	if (base == type_t::PROCESS || base == type_t::RECORD) 
+	type_t type = get(0).getType();
+	if (type.isProcess() || type.isRecord())
 	{
 	    if (precedence > get(0).getPrecedence()) 
 	    {
@@ -979,7 +911,7 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 		get(0).toString(old, str, end, size);
 	    }
 	    append(str, end, size, '.');
-	    append(str, end, size, get(0).getType().getFrame()[data->value].getName().c_str());
+	    append(str, end, size, type.getRecordLabel(data->value).c_str());
 	} 
 	else 
 	{
@@ -1116,6 +1048,18 @@ void expression_t::toString(bool old, char *&str, char *&end, int &size) const
 	append(str, end, size, ") ");
 	get(1).toString(old, str, end, size);
 	break;
+
+    case EXISTS:
+	append(str, end, size, "exists (");
+	append(str, end, size, get(0).getSymbol().getName().c_str());
+	append(str, end, size, ":");
+	append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+	append(str, end, size, ") ");
+	get(1).toString(old, str, end, size);
+	break;
+
+    default:
+	throw std::runtime_error("Strange exception");
     }
 }
 
@@ -1154,8 +1098,8 @@ std::string expression_t::toString(bool old) const
 void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
 {
     function_t *fun;
-    frame_t parameters;
     symbol_t symbol;
+    type_t type;
 
     if (empty())
     {
@@ -1184,27 +1128,25 @@ void expression_t::collectPossibleWrites(set<symbol_t> &symbols) const
     case POSTDECREMENT:
     case PREINCREMENT:
     case PREDECREMENT:
-	symbols.insert(get(0).getSymbol());
+	get(0).getSymbols(symbols);
 	break;
       
     case FUNCALL:
 	// Add all symbols which are changed by the function
 	symbol = get(0).getSymbol();
-	if (symbol.getType().getBase() == type_t::FUNCTION && symbol.getData())
+	if (symbol.getType().isFunction() && symbol.getData())
 	{
 	    fun = (function_t*)symbol.getData();
 
 	    symbols.insert(fun->changes.begin(), fun->changes.end());
 
 	    // Add arguments to non-constant reference parameters
-	    parameters = fun->uid.getType().getParameters();
-	    for (uint32_t i = 0; i < min(getSize() - 1, parameters.getSize()); i++)
+	    type = fun->uid.getType();
+	    for (uint32_t i = 1; i < min(getSize(), type.size()); i++)
 	    {
-		type_t type = parameters[i].getType();
-		if (type.hasPrefix(prefix::REFERENCE)
-		    && !type.hasPrefix(prefix::CONSTANT))
+		if (type[i].is(REF) && !type[i].is(CONSTANT))
 		{
-		    symbols.insert(get(i + 1).getSymbol());
+		    get(i).getSymbols(symbols);
 		}
 	    }
 	}
@@ -1240,7 +1182,7 @@ void expression_t::collectPossibleReads(set<symbol_t> &symbols) const
     case FUNCALL:
 	// Add all symbols which are used by the function	
 	symbol = get(0).getSymbol();
-	if (symbol.getType().getBase() == type_t::FUNCTION && symbol.getData())
+	if (symbol.getType().isFunction() && symbol.getData())
 	{
 	    fun = (function_t*)symbol.getData();
 	    symbols.insert(fun->depends.begin(), fun->depends.end());
@@ -1253,17 +1195,15 @@ void expression_t::collectPossibleReads(set<symbol_t> &symbols) const
 }
 
 
-expression_t expression_t::createConstant(
-    const position_t &pos, int32_t value)
+expression_t expression_t::createConstant(int32_t value, position_t pos)
 {
     expression_t expr(CONSTANT, pos);
     expr.data->value = value;
-    expr.data->type = type_t::INT;
+    expr.data->type = type_t::createPrimitive(Constants::INT);
     return expr;
 }
 
-expression_t expression_t::createIdentifier(
-    const position_t &pos, symbol_t symbol)
+expression_t expression_t::createIdentifier(symbol_t symbol, position_t pos)
 {
     expression_t expr(IDENTIFIER, pos);
     expr.data->symbol = symbol;
@@ -1273,14 +1213,13 @@ expression_t expression_t::createIdentifier(
     }
     else
     {
-	expr.data->type = type_t::UNKNOWN;
+	expr.data->type = type_t();
     }
     return expr;
 }
 
 expression_t expression_t::createNary(
-    const position_t &pos, kind_t kind,
-    const vector<expression_t> &sub, type_t type)
+    kind_t kind, const vector<expression_t> &sub, position_t pos, type_t type)
 {
     assert(kind == LIST || kind == FUNCALL);
     expression_t expr(kind, pos);
@@ -1295,7 +1234,7 @@ expression_t expression_t::createNary(
 }
 
 expression_t expression_t::createUnary(
-    const position_t &pos, kind_t kind, expression_t sub, type_t type)
+    kind_t kind, expression_t sub, position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
     expr.data->sub = new expression_t[1];
@@ -1305,8 +1244,8 @@ expression_t expression_t::createUnary(
 }
 
 expression_t expression_t::createBinary(
-    const position_t &pos, kind_t kind, 
-    expression_t left, expression_t right, type_t type)
+    kind_t kind, expression_t left, expression_t right, 
+    position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
     expr.data->sub = new expression_t[2];
@@ -1317,8 +1256,8 @@ expression_t expression_t::createBinary(
 }
 
 expression_t expression_t::createTernary(
-    const position_t &pos, kind_t kind, 
-    expression_t e1, expression_t e2, expression_t e3, type_t type)
+    kind_t kind, expression_t e1, expression_t e2, expression_t e3, 
+    position_t pos, type_t type)
 {
     expression_t expr(kind, pos);
     expr.data->sub = new expression_t[3];
@@ -1330,7 +1269,7 @@ expression_t expression_t::createTernary(
 }
 
 expression_t expression_t::createDot(
-    const position_t &pos, expression_t e, int32_t idx, type_t type)
+    expression_t e, int32_t idx, position_t pos, type_t type)
 {
     expression_t expr(DOT, pos);
     expr.data->index = idx;
@@ -1341,7 +1280,7 @@ expression_t expression_t::createDot(
 }
 
 expression_t expression_t::createSync(
-    const position_t &pos, expression_t e, synchronisation_t s)
+    expression_t e, synchronisation_t s, position_t pos)
 {
     expression_t expr(SYNC, pos);
     expr.data->sync = s;
@@ -1350,344 +1289,11 @@ expression_t expression_t::createSync(
     return expr;
 }
 
-expression_t expression_t::createDeadlock(const position_t &pos)
+expression_t expression_t::createDeadlock(position_t pos)
 {
     expression_t expr(DEADLOCK, pos);
-    expr.data->type = type_t::CONSTRAINT;
+    expr.data->type = type_t::createPrimitive(CONSTRAINT);
     return expr;
-}
-
-Interpreter::Interpreter()
-{
-
-}
-
-Interpreter::Interpreter(const std::map<symbol_t, expression_t> &valuation)
-    : valuation(valuation)
-{
-
-}
-
-void Interpreter::addValuation(const std::map<symbol_t, expression_t> &v)
-{
-    valuation.insert(v.begin(), v.end());
-}
-    
-int32_t Interpreter::evaluate(const expression_t expr) const
-    throw (InterpreterException)
-{
-    vector<int32_t> v;
-    evaluate(expr, v);
-    assert(v.size() == 1);
-    return v[0];
-}
-
-int32_t Interpreter::evaluateBinary(int32_t left, kind_t op, int32_t right) const
-{
-    switch (op) 
-    {
-    case PLUS:
-	return left + right;
-    case MINUS:
-	return left - right;
-    case MULT:
-	return left * right;
-    case DIV:
-	return left / right;
-    case MOD:
-	return left % right;
-    case BIT_AND:
-	return left & right;
-    case BIT_OR:
-	return left | right;
-    case BIT_XOR:
-	return left ^ right;
-    case BIT_LSHIFT:
-	return left << right;
-    case BIT_RSHIFT:
-	return left >> right;
-    case AND:
-	return left && right;
-    case OR:
-	return left || right;
-    case LT:
-	return left < right;
-    case LE:
-	return left <= right;
-    case EQ:
-	return left == right;
-    case NEQ:
-	return left != right;
-    case GE:
-	return left >= right;
-    case GT:
-	return left > right;
-    case MIN:
-	return min(left, right);
-    case MAX:
-	return max(left, right);
-    default:
-	throw InterpreterException();
-    }
-}
-
-void Interpreter::evaluate(
-    const expression_t expr, std::vector<int32_t> &result) const
-    throw (InterpreterException)
-{
-    int32_t left, right;
-    size_t size;
-
-    if (expr.empty())
-    {
-	throw InterpreterException();
-    }
-    
-    switch (expr.getKind()) 
-    {
-    case PLUS:
-    case MINUS:
-    case MULT:
-    case DIV:
-    case MOD:
-    case BIT_AND:
-    case BIT_OR:
-    case BIT_XOR:
-    case BIT_LSHIFT:
-    case BIT_RSHIFT:
-    case AND:
-    case OR:
-    case LT:
-    case LE:
-    case EQ:
-    case NEQ:
-    case GE:
-    case GT:
-    case MIN:
-    case MAX:
-	size = result.size();
-
-	/* Evaluate left side.
-	 */
-	evaluate(expr[0], result);
-	if (size + 1!= result.size())
-	{
-	    throw InterpreterException();
-	}
-	left = result.back(); result.pop_back();
-
-	/* Evaluate right side.
-	 */
-	evaluate(expr[1], result);
-	if (size + 1 != result.size())
-	{
-	    throw InterpreterException();
-	}
-	right = result.back(); result.pop_back();
-
-	result.push_back(evaluateBinary(left, expr.getKind(), right));
-	break;
-
-    case IDENTIFIER:
-    {
-	map<symbol_t, expression_t>::const_iterator i
-	    = valuation.find(expr.getSymbol());
-	if (i == valuation.end()) 
-	{
-	    throw InterpreterException();
-	}
-
-	evaluate(i->second, result);
-	break;
-    }
-	
-    case CONSTANT:
-	result.push_back(expr.getValue());
-	break;
-
-    case LIST:
-	for (uint32_t i = 0; i < expr.getSize(); i++)
-	{
-	    evaluate(expr[i], result);
-	}
-	break;
-	    
-    case ARRAY: 
-    {
-	type_t type = expr[0].getType();
-	int32_t lower = evaluate(type.getArraySize().getRange().first);
-	int32_t upper = evaluate(type.getArraySize().getRange().second);
-	int32_t element = sizeOfType(type.getSub());
-
-	/* Evaluate index.
-	 */
-	evaluate(expr[1], result);
-	if (result.size() == 0)
-	{
-	    throw InterpreterException();
-	}
-	int32_t index = result.back();
-	result.pop_back();
-
-	if (index < lower || index > upper)
-	{
-	    throw InterpreterException();
-	}
-
-	/* Evaluate array.
-	 */
-	int32_t first = result.size();
-	evaluate(expr[0], result);
-	int32_t last = result.size();
-
-	if (last - first != element * (upper - lower + 1))
-	{
-	    throw InterpreterException();
-	}
-	
-	/* Remove the things we do not want.
-	 */
-	result.erase(result.end() - (upper - index) * element, result.end());
-	result.erase(result.end() - (index - lower + 1) * element, result.end() - element);
-	break;
-    }
-
-    case UNARY_MINUS:
-	size = result.size();
-	evaluate(expr[0], result);
-	if (size + 1 != result.size())
-	{
-	    throw InterpreterException();
-	}
-	result.back() = -result.back();
-	break;
-
-    case NOT:
-	size = result.size();
-	evaluate(expr[0], result);
-	if (size + 1 != result.size())
-	{
-	    throw InterpreterException();
-	}
-	result.back() = !result.back();
-	break;
-
-    case DOT:
-    {
-	/* Evaluate record.
-	 */
-	size = result.size();
-	evaluate(expr[0], result);
-	if (result.size() - size != sizeOfType(expr[0].getType()))
-	{
-	    throw InterpreterException();
-	}
-
-	int32_t index = expr.getIndex();
-	frame_t frame = expr[0].getType().getRecordFields();
-	size_t esize = sizeOfType(frame[index].getType());
-
-	if (index < 0 || index >= (int32_t)frame.getSize())
-	{
-	    throw InterpreterException();
-	}
-	
-	/* Delete data after index.
-	 */
-	size_t space = 0;
-	for (size_t i = index + 1; i < frame.getSize(); i++) 
-	{
-	    space += sizeOfType(frame[i].getType());
-	}
-	result.erase(result.end() - space, result.end());
-	
-	/* Delete data before index.
-	 */
-	space = 0;
-	for (int32_t i = 0; i < index; i++)
-	{
-	    space += sizeOfType(frame[i].getType());
-	}
-	result.erase(result.end() - space - esize, result.end() - esize);
-
-	break;
-    }	    
-    
-    case INLINEIF:
-    {
-	/* Evaluate condition.
-	 */
-	size = result.size();
-	evaluate(expr[0], result);
-	if (size + 1 != result.size())
-	{
-	    throw InterpreterException();
-	}
-	int condition = result.back(); result.pop_back();
-
-	/* Evaluate proper operand. 
-	 */
-	if (condition)
-	{
-	    evaluate(expr[1], result);
-	}
-	else
-	{
-	    evaluate(expr[2], result);
-	}	
-	break;
-    }
-	    
-    default:
-	throw InterpreterException();
-    }
-}
-
-range_t Interpreter::evaluate(
-    std::pair<expression_t, expression_t> range) const
-    throw (InterpreterException)
-{
-    return range_t(evaluate(range.first), evaluate(range.second));
-}
-
-
-/** Returns the number of integer elements needed to represent a
-    variable of this type. */
-size_t Interpreter::sizeOfType(type_t type) const
-{
-    type_t base = type.getBase();
-    if (base == type_t::CHANNEL || base == type_t::CLOCK || base == type_t::INT || base == type_t::BOOL || base == type_t::LOCATION)
-    {
-	return 1;
-    }
-    if (base == type_t::ARRAY) 
-    {
-	int32_t size = 
-	    evaluate(type.getArraySize().getRange().second) -
-	    evaluate(type.getArraySize().getRange().first) + 1;
-	if (size <= 0)
-	{
-	    throw InterpreterException();
-	}
-	return size * sizeOfType(type.getSub());
-    }
-    if (base == type_t::RECORD || base == type_t::PROCESS) 
-    {
-	size_t sum = 0;
-	frame_t frame = type.getFrame();
-	for (size_t i = 0; i < frame.getSize(); i++)
-	{
-	    sum += sizeOfType(frame[i].getType());
-	}
-	return sum;
-    }
-    
-    return 0;
-}
-
-const map<symbol_t, expression_t> &Interpreter::getValuation() const
-{
-    return valuation;
 }
 
 ostream &operator<< (ostream &o, const expression_t &e) 

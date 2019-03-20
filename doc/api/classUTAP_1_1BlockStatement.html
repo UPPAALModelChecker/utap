@@ -34,21 +34,23 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a2">accept</a> (<a class="el" href="classUTAP_1_1StatementVisitor.html">StatementVisitor</a> *visitor)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a3">getFrame</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a3">returns</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a4">push_stat</a> (<a class="el" href="classUTAP_1_1Statement.html">Statement</a> *stat)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a4">getFrame</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1Statement.html">Statement</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a5">pop_stat</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a5">push_stat</a> (<a class="el" href="classUTAP_1_1Statement.html">Statement</a> *stat)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1Statement.html">Statement</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a6">back</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1Statement.html">Statement</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a6">pop_stat</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w0">const_iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a7">begin</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1Statement.html">Statement</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a7">back</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w0">const_iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a8">end</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w0">const_iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a8">begin</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w1">iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a9">begin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w0">const_iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a9">end</a> () const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w1">iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a10">end</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w1">iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a10">begin</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1BlockStatement.html#w1">iterator</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#a11">end</a> ()</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">std::vector&lt; <a class="el" href="classUTAP_1_1Statement.html">Statement</a> * &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1BlockStatement.html#p0">stats</a></td></tr>
@@ -192,7 +194,7 @@ Implements <a class="el" href="classUTAP_1_1Statement.html#a1">UTAP::Statement</
 Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP::SwitchStatement</a>, <a class="el" href="classUTAP_1_1CaseStatement.html#a1">UTAP::CaseStatement</a>, and <a class="el" href="classUTAP_1_1DefaultStatement.html#a1">UTAP::DefaultStatement</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="UTAP::BlockStatement::back"></a><p>
+<a class="anchor" name="a7" doxytag="UTAP::BlockStatement::back"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -219,7 +221,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="UTAP::BlockStatement::begin"></a><p>
+<a class="anchor" name="a10" doxytag="UTAP::BlockStatement::begin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -246,7 +248,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="UTAP::BlockStatement::begin"></a><p>
+<a class="anchor" name="a8" doxytag="UTAP::BlockStatement::begin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -273,7 +275,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="UTAP::BlockStatement::end"></a><p>
+<a class="anchor" name="a11" doxytag="UTAP::BlockStatement::end"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -300,7 +302,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="UTAP::BlockStatement::end"></a><p>
+<a class="anchor" name="a9" doxytag="UTAP::BlockStatement::end"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -327,7 +329,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="UTAP::BlockStatement::getFrame"></a><p>
+<a class="anchor" name="a4" doxytag="UTAP::BlockStatement::getFrame"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -354,7 +356,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="UTAP::BlockStatement::pop_stat"></a><p>
+<a class="anchor" name="a6" doxytag="UTAP::BlockStatement::pop_stat"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -381,7 +383,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="UTAP::BlockStatement::push_stat"></a><p>
+<a class="anchor" name="a5" doxytag="UTAP::BlockStatement::push_stat"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -407,6 +409,37 @@ Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a1">UTAP:
 
 <p>
     </td>
+  </tr>
+</table>
+<a class="anchor" name="a3" doxytag="UTAP::BlockStatement::returns"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bool BlockStatement::returns           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1Statement.html#a2">UTAP::Statement</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SwitchStatement.html#a2">UTAP::SwitchStatement</a>, <a class="el" href="classUTAP_1_1CaseStatement.html#a2">UTAP::CaseStatement</a>, and <a class="el" href="classUTAP_1_1DefaultStatement.html#a2">UTAP::DefaultStatement</a>.    </td>
   </tr>
 </table>
 <hr><h2>Member Data Documentation</h2>
@@ -460,7 +493,7 @@ Reimplemented from <a class="el" href="structUTAP_1_1declarations__t.html#o0">UT
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="statement_8h-source.html">statement.h</a><li><a class="el" href="statement_8cpp.html">statement.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

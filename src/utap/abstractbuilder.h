@@ -25,8 +25,9 @@
 #include <exception>
 #include <string>
 
-#include "builder.h"
-#include "utap.h"
+#include "utap/builder.h"
+#include "utap/utap.h"
+#include "utap/position.h"
 
 namespace UTAP
 {
@@ -43,15 +44,11 @@ namespace UTAP
     class AbstractBuilder : public ParserBuilder
     {
     protected:
-	/* A pointer to the error handler */
-	ErrorHandler *errorHandler;
-
 	position_t position;
     public:
         AbstractBuilder();
 
-	virtual void setErrorHandler(ErrorHandler *);
-	virtual void setPosition(const position_t &);
+	virtual void setPosition(uint32_t, uint32_t);
 
 	/************************************************************
 	 * Query functions
@@ -62,24 +59,26 @@ namespace UTAP
 	/************************************************************
 	 * Types
 	 */
-	virtual void typeName(int32_t prefix, const char* name, int range);
-	// 2 expr if range==true
-	virtual void typeStruct(int32_t prefix, uint32_t fields);
-
-	virtual void structField(const char* name, uint32_t dim); 
-	// 1 type and dim array sizes
-	virtual void structFieldEnd();
-
-	virtual void declTypeDef(const char* name, uint32_t dim); 
-	// 1 type and dim array sizes
-	virtual void declTypeDefEnd();
+	virtual void typeDuplicate();
+	virtual void typePop();
+	virtual void typeBool(PREFIX);
+	virtual void typeInt(PREFIX);
+	virtual void typeBoundedInt(PREFIX);
+	virtual void typeChannel(PREFIX);
+	virtual void typeClock();
+	virtual void typeVoid();
+	virtual void typeScalar(PREFIX);
+	virtual void typeName(PREFIX, const char* name);
+	virtual void typeStruct(PREFIX, uint32_t fields);
+	virtual void typeArrayOfSize(size_t);
+	virtual void typeArrayOfType(size_t);
+	virtual void structField(const char* name); 
+	virtual void declTypeDef(const char* name); 
 
 	/************************************************************
 	 * Variable declarations
 	 */
-	virtual void declVar(const char* name, uint32_t dim, bool init); 
-	// 1 type, dims, initializer if init==true
-	virtual void declVarEnd();
+	virtual void declVar(const char* name, bool init); 
 	virtual void declInitialiserList(uint32_t num); // n initialisers
 	virtual void declFieldInit(const char* name); // 1 initialiser
 
@@ -91,18 +90,14 @@ namespace UTAP
 	/************************************************************
 	 * Function declarations
 	 */
-	virtual void declParameter(const char* name, bool reference, uint32_t dim);
-	// 1 type, dim array sizes
-	virtual void declParameterEnd(); // pop parameter type
-    
-	virtual void declFuncBegin(const char* name, uint32_t n); // n paramaters
+	virtual void declParameter(const char* name, bool);
+	virtual void declFuncBegin(const char* name); // n paramaters
 	virtual void declFuncEnd(); // 1 block
 
 	/************************************************************
 	 * Process declarations
 	 */
-	virtual void procTemplateSet(const char *name);
-	virtual void procBegin(const char* name, uint32_t n, uint32_t m);
+	virtual void procBegin(const char* name);
 	virtual void procEnd(); // 1 ProcBody
 	virtual void procState(const char* name, bool hasInvariant); // 1 expr
 	virtual void procStateCommit(const char* name); // mark previously decl. state
@@ -155,7 +150,6 @@ namespace UTAP
 	virtual void exprNat(int32_t); // natural number
 	virtual void exprCallBegin();
 	virtual void exprCallEnd(uint32_t n); // n exprs as arguments
-	virtual void exprArg(uint32_t n); // 1 exprs as n-th argument for fn-call
 	virtual void exprArray(); // 2 expr 
 	virtual void exprPostIncrement(); // 1 expr
 	virtual void exprPreIncrement(); // 1 expr
@@ -170,17 +164,20 @@ namespace UTAP
 	virtual void exprDeadlock();
 	virtual void exprForAllBegin(const char *name);
 	virtual void exprForAllEnd(const char *name);
+	virtual void exprExistsBegin(const char *name);
+	virtual void exprExistsEnd(const char *name);
     
 	/************************************************************
 	 * System declaration
 	 */
-	virtual void instantiationBegin(const char*, const char*);
-	virtual void instantiationEnd(const char *, const char *, uint32_t n); // n arguments
+	virtual void instantiationBegin(const char*, size_t, const char*);
+	virtual void instantiationEnd(
+	    const char *, size_t, const char *, size_t); 
 	virtual void process(const char*);
 
 	virtual void done();    
 
-	virtual void property(Constants::kind_t, int line);
+	virtual void property(Constants::kind_t);
 
 	/********************************************************************
 	 * Guiding
@@ -194,9 +191,11 @@ namespace UTAP
 	 * Priority
 	 */
 
-	virtual void lowPriority(const char*);
-	virtual void samePriority(const char*);
-	virtual void higherPriority(const char*);
+	virtual void incProcPriority();
+	virtual void incChanPriority();
+	virtual void chanPriority();
+	virtual void procPriority(const char*);
+	virtual void defaultChanPriority();
     };
 }
 #endif

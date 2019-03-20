@@ -20,7 +20,7 @@
 <a href="classUTAP_1_1IOInterface-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#a0">IOInterface</a> (const char *_title, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> &amp;<a class="el" href="tracer_8cpp.html#a0">ta</a>)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#a0">IOInterface</a> (const char *_title, <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> &amp;ta)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Analyse the system and extract I/O information:.  <a href="#a0"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#a1">~IOInterface</a> ()</td></tr>
@@ -81,7 +81,7 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#b2">addVar</a> (const <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;, <a class="el" href="classUTAP_1_1IOInterface.html#x2">str2strs_t</a> &amp;, <a class="el" href="classUTAP_1_1IOInterface.html#x3">str2tas_t</a> &amp;)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#b3">visitProcess</a> (<a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#b3">visitProcess</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#b4">visitExpression</a> (const <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;)</td></tr>
 
@@ -106,7 +106,7 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1IOInterface_1_1iota__t.html">iota_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#p7">cTA</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#p8">cP</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#p8">cP</a></td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">const char *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1IOInterface.html#p9">cChan</a></td></tr>
 
@@ -912,7 +912,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a4">UTAP::Stat
         <tr>
           <td class="md" nowrap valign="top">void IOInterface::visitProcess           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [protected]</code></td>
@@ -1098,7 +1098,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a5">UTAP::Stat
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a>* <a class="el" href="classUTAP_1_1IOInterface.html#p8">UTAP::IOInterface::cP</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a>* <a class="el" href="classUTAP_1_1IOInterface.html#p8">UTAP::IOInterface::cP</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -1370,7 +1370,7 @@ Implements <a class="el" href="classUTAP_1_1StatementVisitor.html#a5">UTAP::Stat
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="iointerface_8h-source.html">iointerface.h</a><li><a class="el" href="iointerface_8cpp.html">iointerface.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

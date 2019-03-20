@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -25,17 +25,21 @@
 #include <inttypes.h>
 #include <exception>
 
+#include "utap/common.h"
+#include "utap/position.h"
+#include "utap/type.h"
+
 namespace UTAP
 {
     class frame_t;
-    class type_t;
     class expression_t;
     
     class NoParentException : public std::exception {};
 
     /** An integer range. 
      */
-    class range_t {
+    class range_t 
+    {
     public:
 	int lower, upper;
 
@@ -81,7 +85,6 @@ namespace UTAP
 	uint32_t size() const;
     };
 
-
     /**
        A reference to a symbol.
 
@@ -108,7 +111,7 @@ namespace UTAP
 	symbol_data *data;
     protected:
 	friend class frame_t;
-	symbol_t(void *frame, type_t &type, std::string name, void *user);
+	symbol_t(void *frame, type_t type, std::string name, void *user);
     public:
 	/** Default constructor */
 	symbol_t();
@@ -220,6 +223,9 @@ namespace UTAP
 	symbol_t addSymbol(std::string name, type_t, void *user = NULL);
 
 	/** Add all symbols from the given frame */
+	void add(symbol_t);
+
+	/** Add all symbols from the given frame */
 	void add(frame_t);
 	
 	/** Resolves a name in this frame or a parent frame. */
@@ -237,214 +243,6 @@ namespace UTAP
 	/** Creates and returns a new sub-frame. */
 	static frame_t createFrame(const frame_t &parent);
     };
-
-    namespace prefix {
-	enum prefix_t {
-	    URGENT = 1,
-	    COMMITTED = 2,
-	    CONSTANT = 4,
-	    BROADCAST = 8,
-	    REFERENCE = 16,
-	    META = 32,
-            WINNING = 64,
-            LOSING = 128
-	};
-    }
-
-    /**
-       A reference to a type.
-
-       Types are represented as type objects. Type objects cannot be
-       access directly. You need to use an instance of type_t to
-       access a type object. Internally, type objects are reference
-       counted and do not need to be deallocated manually. 
-
-       Types are either primitive such as clocks or channels, or
-       contructed types such as structs and array.  Primitive types
-       are allocated statically and can be accessed via the static
-       member fields of the type_t class. Constructed types are
-       created using one of the static factory methods in the type_t
-       class.
-
-       All types have a base type. For primitive types, the base type
-       is the type itself. For constructed types, the base type
-       indicates the type constructor (i.e. if this is an array,
-       record, etc.). In addition, all types can have a number of
-       prefixes, such as URGENT, COMMITTED, CONSTANT, BROADCAST, and
-       REFERENCE.
-
-       Constructed types can have other fields: Integers have a range,
-       arrays have a size and a sub-type, records have fields,
-       functions have parameters and a return type (the sub-type),
-       templates have parameters, and named types have a sub-type.
-    */
-    class type_t
-    {
-    private:
-	struct type_data;
-	type_data *data;
-	type_t(void *);
-    public:
-	/** Default constructor */
-	type_t();
-
-	/** Copy constructor */
-	type_t(const type_t &);
-
-	/** Destructor */
-	~type_t();
-
-	/** Assignment operator */
-	const type_t &operator = (const type_t &);
-
-	/** Equality operator */
-	bool operator == (const type_t &) const;
-
-	/** Inequality operator */
-	bool operator != (const type_t &) const;
-	
-	/** Returns the base type of this frame. */
-	type_t getBase() const;
-
-	/** Returns the fields of a record type */
-	frame_t getRecordFields() const;
-
-	/** Returns the parameters of a function or template type */
-	frame_t getParameters() const;
-
-	/** Polymorphic version of getRecordFields() and getParameters() */
-	frame_t getFrame() const;
-	
-	/** Returns the sub-type of this type. */
-	type_t getSub();
-
- 	/** Returns the return-type of a function. */
- 	type_t getReturnType();
- 
-	/** Returns the true if this type has the given prefix */
-	bool hasPrefix(prefix::prefix_t) const;
-
-	/** Sets or clears a prefix. */
-	type_t setPrefix(bool set, prefix::prefix_t) const;
-
-	/** Returns the size of an array */
-	type_t getArraySize() const;
-
-	/** Returns the range of an integer type. */
-	std::pair<expression_t, expression_t> getRange() const;
-
-	/** Print type to the given output stream. */
-	std::string toString();
-
-	/** Returns true if this is an integer. */
-	bool isInteger() const {
-	    return getBase() == type_t::INT;
-	}
-
-	/** Returns true if this is a boolean or integer. */
-	bool isValue() const {
-	    return getBase() == type_t::INT || getBase() == type_t::BOOL;
-	}
-
-	/** Returns true if this is a scalar or integer. */
-	bool isScalar() const {
-	    return getBase() == type_t::SCALAR || isInteger();
-	}
-
-	/** Returns true if this is a clock. */
-	bool isClock() const {
-	    return getBase() == type_t::CLOCK;
-	}
-
-	/** Returns true if this is a record. */
-	bool isRecord() const {
-	    return getBase() == type_t::RECORD;
-	}
-	
-	/** Returns true if this is a clock difference. */
-	bool isDiff() const {
-	    return getBase() == type_t::DIFF;
-	}
-
-
-	/** Returns true if this is a void. */
-	bool isVoid() const {
-	    return getBase() == type_t::VOID_TYPE;
-	}
-
-	/* Returns true if this is an invariant, boolean or integer. */
-	bool isInvariant() const {
-	    return getBase() == type_t::INVARIANT || isValue();
-	}
-
-	/* Returns true if this is a guard, invariant, boolean or integer. */
-	bool isGuard() const {
-	    return getBase() == type_t::GUARD || isInvariant();
-	}
-
-	/* Returns true if this is a constraint, guard, invariant,
-	 * boolean or integer. 
-	 */
-	bool isConstraint() const {
-	    return getBase() == type_t::CONSTRAINT || isGuard();
-	}
-
-	bool isArray() const {
-	    return getBase() == type_t::ARRAY;
-	}
-
-	/** Creates and returns a new integer type with the given range */
-	static type_t createInteger(expression_t, expression_t);
-
-	/** Create and returns a new scalar set type of the given size */
-	static type_t createScalarSet(expression_t, expression_t);
-	
-	/** Creates and returns a new record type */
-	static type_t createRecord(frame_t);
-
-	/** Creates and returns a new function type */
-	static type_t createFunction(frame_t, type_t);
-
-	/** Creates and returns a new array type */
-	static type_t createArray(type_t, type_t);
-
-	/** Creates and returns a new named type */
-	static type_t createTypeName(type_t);
-
-	/** Creates and returns a new template type */
-	static type_t createTemplate(frame_t);
-
-	/** Creates and returns a new process type */
-	static type_t createProcess(frame_t);
-
-	/** Create a new primitive type */
-	static type_t createBase();
-
-	static type_t UNKNOWN;
-	static type_t VOID_TYPE;
-	static type_t CLOCK;
-	static type_t INT;
-	static type_t BOOL;
-	static type_t SCALAR;
-	static type_t LOCATION;
-	static type_t CHANNEL;
-	static type_t TEMPLATE;
-	static type_t INSTANCE;
-	static type_t FUNCTION;
-	static type_t ARRAY;
-	static type_t RECORD;
-	static type_t PROCESS;
-	static type_t NTYPE;
-	static type_t INVARIANT;
-	static type_t INVARIANT_WR;  /* with rate */
-	static type_t GUARD;
-	static type_t DIFF;
-	static type_t CONSTRAINT;
-	static type_t COST;
-	static type_t RATE;
-    };
 }
-
-std::ostream &operator << (std::ostream &o, UTAP::type_t t);
 
 #endif

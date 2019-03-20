@@ -28,7 +28,6 @@
 
 using UTAP::ParserBuilder;
 using UTAP::SystemBuilder;
-using UTAP::ErrorHandler;
 using UTAP::TypeException;
 using UTAP::TypeChecker;
 using UTAP::SystemVisitor;
@@ -61,7 +60,8 @@ int main(int argc, char *argv[])
     int format = 2;
     char c;
 
-    while ((c = getopt(argc,argv,"bcef:hrx")) != -1) {
+    while ((c = getopt(argc,argv,"bcef:hrx")) != -1) 
+    {
 	switch(c) {
 	case 'b':
 	    old = true;
@@ -73,9 +73,16 @@ int main(int argc, char *argv[])
 	    erd = true;
 	    break;
 	case 'f':
-	    if (strcmp(optarg, "dot")==0) format = 0;
-	    else if (strcmp(optarg, "tron")==0) format = 1;
-	    else {
+	    if (strcmp(optarg, "dot")==0) 
+	    {
+		format = 0;
+	    }
+	    else if (strcmp(optarg, "tron")==0) 
+	    {
+		format = 1;
+	    }
+	    else 
+	    {
 		cerr << "-f expects either 'gui' or 'dot' argument.\n";
 		exit(EXIT_FAILURE);
 	    }
@@ -96,34 +103,45 @@ int main(int argc, char *argv[])
 
 //    ParserBuilder *b = new SystemBuilder(&system);
 
-    ErrorHandler handler;
-    try {
-	if (argc - optind != 1) { printHelp(argv[0]); exit(EXIT_FAILURE); }
-	if (strcasecmp(".xml", argv[optind] + strlen(argv[optind]) - 4) == 0) {
-	    parseXMLFile(argv[optind], &handler, &system, !old);
-	} else {
-	    parseXTA(argv[optind], &handler, &system, !old);
+    try 
+    {
+	if (argc - optind != 1)
+	{
+	    printHelp(argv[0]); exit(EXIT_FAILURE); 
 	}
-    } catch (TypeException e) {
+	if (strcasecmp(".xml", argv[optind] + strlen(argv[optind]) - 4) == 0) 
+	{
+	    parseXMLFile(argv[optind], &system, !old);
+	}
+	else 
+	{
+	    parseXTA(argv[optind], &system, !old);
+	}
+    } 
+    catch (TypeException e) 
+    {
 	cerr << e.what() << endl;
     }
 
-    TypeChecker tc(&system, &handler);
+    TypeChecker tc(&system);
     system.accept(tc);
 
-    vector<ErrorHandler::error_t>::const_iterator it;
-    const vector<ErrorHandler::error_t> &errors = handler.getErrors();
-    const vector<ErrorHandler::error_t> &warns = handler.getWarnings();
+    vector<UTAP::error_t>::const_iterator it;
+    const vector<UTAP::error_t> &errors = system.getErrors();
+    const vector<UTAP::error_t> &warns = system.getWarnings();
 
     for (it = errors.begin(); it != errors.end(); it++)
-	cerr << *it << endl;
+    {
+   	cerr << *it << endl;
+    }
     for (it = warns.begin(); it != warns.end(); it++)
-	cerr << *it << endl;
-
-//    delete b;
+    {
+   	cerr << *it << endl;
+    }
 
     IOInterface io(argv[optind], system);
-    switch (format) {
+    switch (format) 
+    {
     case 0:
     default:
 	io.printForDot(std::cout, ranked, erd, chanEdge);

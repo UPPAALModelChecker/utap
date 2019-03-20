@@ -7,7 +7,10 @@
 <div class="qindex"><a class="qindex" href="index.html">Main&nbsp;Page</a> | <a class="qindex" href="namespaces.html">Namespace List</a> | <a class="qindex" href="hierarchy.html">Class&nbsp;Hierarchy</a> | <a class="qindex" href="annotated.html">Class&nbsp;List</a> | <a class="qindex" href="dirs.html">Directories</a> | <a class="qindex" href="files.html">File&nbsp;List</a> | <a class="qindex" href="namespacemembers.html">Namespace&nbsp;Members</a> | <a class="qindex" href="functions.html">Class&nbsp;Members</a> | <a class="qindex" href="globals.html">File&nbsp;Members</a></div>
 <div class="nav">
 <a class="el" href="namespaceUTAP.html">UTAP</a>::<a class="el" href="classUTAP_1_1ExpressionBuilder.html">ExpressionBuilder</a></div>
-<h1>UTAP::ExpressionBuilder Class Reference</h1><code>#include &lt;<a class="el" href="expressionbuilder_8h-source.html">expressionbuilder.h</a>&gt;</code>
+<h1>UTAP::ExpressionBuilder Class Reference</h1>Partial implementation of the builder interface: The <a class="el" href="classUTAP_1_1ExpressionBuilder.html">ExpressionBuilder</a> implements all expression related methods.  
+<a href="#_details">More...</a>
+<p>
+<code>#include &lt;<a class="el" href="expressionbuilder_8h-source.html">expressionbuilder.h</a>&gt;</code>
 <p>
 <p>Inheritance diagram for UTAP::ExpressionBuilder:
 <p><center><img src="classUTAP_1_1ExpressionBuilder.png" usemap="#UTAP::ExpressionBuilder_map" border="0" alt=""></center>
@@ -23,66 +26,104 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a1">getExpressions</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a2">typeName</a> (int32_t prefix, const char *name, int range)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a2">addPosition</a> (uint32_t <a class="el" href="classUTAP_1_1AbstractBuilder.html#p0">position</a>, uint32_t offset, uint32_t line, std::string path)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Push a new type onto the type stack.  <a href="#a2"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a3">isType</a> (const char *)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add mapping from an absolute position to a relative XML element.  <a href="#a2"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a3">handleError</a> (std::string)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Must return true if and only if name is registered in the symbol table as a named type, for instance, "int" or "bool" or a user defined type.  <a href="#a3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a4">isLocation</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a4">handleWarning</a> (std::string)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">exprTrue</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">typeDuplicate</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a6">exprFalse</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Duplicate type at the top of the type stack.  <a href="#a5"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a6">typePop</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a7">exprId</a> (const char *varName)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Pop type at the topof the type stack.  <a href="#a6"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a7">typeBool</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a8">exprNat</a> (int32_t)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a boolean type is parsed.  <a href="#a7"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a8">typeInt</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a9">exprCallBegin</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever an integer type is parsed.  <a href="#a8"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a9">typeBoundedInt</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a10">exprCallEnd</a> (uint32_t n)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever an integer type with a range is parsed.  <a href="#a9"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a10">typeChannel</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a11">exprArg</a> (uint32_t n)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a channel type is parsed.  <a href="#a10"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a11">typeClock</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">exprArray</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a clock type is parsed.  <a href="#a11"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">typeVoid</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a13">exprPostIncrement</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a void type is parsed.  <a href="#a12"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a13">typeScalar</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a14">exprPreIncrement</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a scalar type is parsed.  <a href="#a13"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a14">typeName</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a15">exprPostDecrement</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called when a type name has been parsed.  <a href="#a14"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a15">isType</a> (const char *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a16">exprPreDecrement</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Must return true if and only if name is registered in the symbol table as a named type, for instance, "int" or "bool" or a user defined type.  <a href="#a15"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a16">isLocation</a> (const char *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">exprAssignment</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">exprTrue</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a18">exprUnary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> unaryop)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a18">exprFalse</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a19">exprBinary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> binaryop)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a19">exprId</a> (const char *varName)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a20">exprInlineIf</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a20">exprNat</a> (int32_t)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a21">exprComma</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a21">exprCallBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a22">exprDot</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a22">exprCallEnd</a> (uint32_t n)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a23">exprDeadlock</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a23">exprArray</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a24">exprForAllBegin</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a24">exprPostIncrement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a25">exprForAllEnd</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a25">exprPreIncrement</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a26">exprPostDecrement</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a27">exprPreDecrement</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a28">exprAssignment</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a29">exprUnary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> unaryop)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a30">exprBinary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> binaryop)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a31">exprInlineIf</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a32">exprComma</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a33">exprDot</a> (const char *)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a34">exprDeadlock</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a35">exprForAllBegin</a> (const char *name)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a36">exprForAllEnd</a> (const char *name)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a37">exprExistsBegin</a> (const char *name)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#a38">exprExistsEnd</a> (const char *name)</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b0">pushFrame</a> (<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>)</td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Push a new frame.  <a href="#b0"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b1">popFrame</a> ()</td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Pop the topmost frame.  <a href="#b1"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b2">resolve</a> (std::string, <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;)</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b3">makeConstant</a> (int value)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b4">applyPrefix</a> (int32_t prefix, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b4">applyPrefix</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Given a prefix and a type, this method creates a new type by applying the prefix.  <a href="#b4"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#b5">allowProcessReferences</a> ()</td></tr>
@@ -91,18 +132,35 @@
 <tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p0">fragments</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p1">system</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Expression stack.  <a href="#p0"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p1">typeFragments</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">UTAP::ExpressionBuilder::TypeFragments</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p2">typeFragments</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Type stack.  <a href="#p1"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::stack&lt; <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p2">frames</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::stack&lt; <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p3">frames</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Frame stack.  <a href="#p2"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p3">system</a></td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Pointer to the system under construction.  <a href="#p3"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p4">currentTemplate</a></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The template currently being parsed.  <a href="#p4"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder.html#p5">scalar_count</a></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Counter for creating unique scalarset names.  <a href="#p5"></a><br></td></tr>
 <tr><td colspan="2"><br><h2>Classes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1ExpressionFragments.html">ExpressionFragments</a></td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">class &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a></td></tr>
 
 </table>
+<hr><a name="_details"></a><h2>Detailed Description</h2>
+Partial implementation of the builder interface: The <a class="el" href="classUTAP_1_1ExpressionBuilder.html">ExpressionBuilder</a> implements all expression related methods. 
+<p>
+In order to support quantifier expressions, this class also handles the type related methods.<p>
+This class does not implement any declaration related methods.<p>
+Internally, three stacks are maintained: One for expressions, one for types and for frames (scopes). 
+<p>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" name="a0" doxytag="UTAP::ExpressionBuilder::ExpressionBuilder"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
@@ -133,6 +191,59 @@
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
+<a class="anchor" name="a2" doxytag="UTAP::ExpressionBuilder::addPosition"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::addPosition           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>line</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>std::string&nbsp;</td>
+          <td class="mdname" nowrap> <em>path</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Add mapping from an absolute position to a relative XML element. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a1">UTAP::ParserBuilder</a>.    </td>
+  </tr>
+</table>
 <a class="anchor" name="b5" doxytag="UTAP::ExpressionBuilder::allowProcessReferences"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
@@ -170,8 +281,8 @@ This is only interesting when parsing properties. In this case the method should
         <tr>
           <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a> ExpressionBuilder::applyPrefix           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">int32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>prefix</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -201,37 +312,7 @@ Given a prefix and a type, this method creates a new type by applying the prefix
 TypeExceptions might be thrown if the combination of the prefix and the type is illegal.     </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="UTAP::ExpressionBuilder::exprArg"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void ExpressionBuilder::exprArg           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>n</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a65">UTAP::AbstractBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a12" doxytag="UTAP::ExpressionBuilder::exprArray"></a><p>
+<a class="anchor" name="a23" doxytag="UTAP::ExpressionBuilder::exprArray"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -257,10 +338,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a65">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a70">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="UTAP::ExpressionBuilder::exprAssignment"></a><p>
+<a class="anchor" name="a28" doxytag="UTAP::ExpressionBuilder::exprAssignment"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -268,7 +349,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">UT
         <tr>
           <td class="md" nowrap valign="top">void ExpressionBuilder::exprAssignment           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>op</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -287,10 +368,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a75">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a19" doxytag="UTAP::ExpressionBuilder::exprBinary"></a><p>
+<a class="anchor" name="a30" doxytag="UTAP::ExpressionBuilder::exprBinary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -298,7 +379,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">UT
         <tr>
           <td class="md" nowrap valign="top">void ExpressionBuilder::exprBinary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>binaryop</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -317,10 +398,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a73">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a77">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="UTAP::ExpressionBuilder::exprCallBegin"></a><p>
+<a class="anchor" name="a21" doxytag="UTAP::ExpressionBuilder::exprCallBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -346,12 +427,12 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a73">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a63">UTAP::AbstractBuilder</a>.
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a68">UTAP::AbstractBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a54">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a43">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="UTAP::ExpressionBuilder::exprCallEnd"></a><p>
+<a class="anchor" name="a22" doxytag="UTAP::ExpressionBuilder::exprCallEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -378,10 +459,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a54">UTAP::
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a64">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a69">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a21" doxytag="UTAP::ExpressionBuilder::exprComma"></a><p>
+<a class="anchor" name="a32" doxytag="UTAP::ExpressionBuilder::exprComma"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -407,10 +488,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a64">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a75">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a79">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a23" doxytag="UTAP::ExpressionBuilder::exprDeadlock"></a><p>
+<a class="anchor" name="a34" doxytag="UTAP::ExpressionBuilder::exprDeadlock"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -436,10 +517,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a75">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a77">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a81">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a22" doxytag="UTAP::ExpressionBuilder::exprDot"></a><p>
+<a class="anchor" name="a33" doxytag="UTAP::ExpressionBuilder::exprDot"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -466,10 +547,70 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a77">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a76">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a80">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="UTAP::ExpressionBuilder::exprFalse"></a><p>
+<a class="anchor" name="a37" doxytag="UTAP::ExpressionBuilder::exprExistsBegin"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::exprExistsBegin           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a84">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a38" doxytag="UTAP::ExpressionBuilder::exprExistsEnd"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::exprExistsEnd           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a85">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a18" doxytag="UTAP::ExpressionBuilder::exprFalse"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -495,10 +636,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a76">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a60">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a65">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a24" doxytag="UTAP::ExpressionBuilder::exprForAllBegin"></a><p>
+<a class="anchor" name="a35" doxytag="UTAP::ExpressionBuilder::exprForAllBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -525,10 +666,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a60">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a78">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a82">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a25" doxytag="UTAP::ExpressionBuilder::exprForAllEnd"></a><p>
+<a class="anchor" name="a36" doxytag="UTAP::ExpressionBuilder::exprForAllEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -555,10 +696,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a78">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a79">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a83">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="UTAP::ExpressionBuilder::exprId"></a><p>
+<a class="anchor" name="a19" doxytag="UTAP::ExpressionBuilder::exprId"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -585,10 +726,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a79">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a61">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a20" doxytag="UTAP::ExpressionBuilder::exprInlineIf"></a><p>
+<a class="anchor" name="a31" doxytag="UTAP::ExpressionBuilder::exprInlineIf"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -614,10 +755,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a61">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a74">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a78">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="UTAP::ExpressionBuilder::exprNat"></a><p>
+<a class="anchor" name="a20" doxytag="UTAP::ExpressionBuilder::exprNat"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -644,10 +785,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a74">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a62">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a67">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="UTAP::ExpressionBuilder::exprPostDecrement"></a><p>
+<a class="anchor" name="a26" doxytag="UTAP::ExpressionBuilder::exprPostDecrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -673,10 +814,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a62">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a69">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a73">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="UTAP::ExpressionBuilder::exprPostIncrement"></a><p>
+<a class="anchor" name="a24" doxytag="UTAP::ExpressionBuilder::exprPostIncrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -702,10 +843,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a69">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a67">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="UTAP::ExpressionBuilder::exprPreDecrement"></a><p>
+<a class="anchor" name="a27" doxytag="UTAP::ExpressionBuilder::exprPreDecrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -731,10 +872,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a67">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a70">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a74">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="UTAP::ExpressionBuilder::exprPreIncrement"></a><p>
+<a class="anchor" name="a25" doxytag="UTAP::ExpressionBuilder::exprPreIncrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -760,10 +901,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a70">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a68">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="UTAP::ExpressionBuilder::exprTrue"></a><p>
+<a class="anchor" name="a17" doxytag="UTAP::ExpressionBuilder::exprTrue"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -789,10 +930,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a68">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a59">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a64">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a18" doxytag="UTAP::ExpressionBuilder::exprUnary"></a><p>
+<a class="anchor" name="a29" doxytag="UTAP::ExpressionBuilder::exprUnary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -800,7 +941,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a59">UT
         <tr>
           <td class="md" nowrap valign="top">void ExpressionBuilder::exprUnary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>unaryop</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -819,7 +960,7 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a59">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a76">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="a1" doxytag="UTAP::ExpressionBuilder::getExpressions"></a><p>
@@ -849,7 +990,67 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">UT
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="UTAP::ExpressionBuilder::isLocation"></a><p>
+<a class="anchor" name="a3" doxytag="UTAP::ExpressionBuilder::handleError"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::handleError           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">std::string&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a3">UTAP::ParserBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a4" doxytag="UTAP::ExpressionBuilder::handleWarning"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::handleWarning           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">std::string&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a4">UTAP::ParserBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a16" doxytag="UTAP::ExpressionBuilder::isLocation"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -876,10 +1077,10 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">UT
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a4">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="UTAP::ExpressionBuilder::isType"></a><p>
+<a class="anchor" name="a15" doxytag="UTAP::ExpressionBuilder::isType"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -908,7 +1109,7 @@ Must return true if and only if name is registered in the symbol table as a name
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTAP::AbstractBuilder</a>.    </td>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a2">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
 <a class="anchor" name="b3" doxytag="UTAP::ExpressionBuilder::makeConstant"></a><p>
@@ -963,6 +1164,8 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTA
     <td>
 
 <p>
+Pop the topmost frame. 
+<p>
     </td>
   </tr>
 </table>
@@ -990,6 +1193,8 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTA
     </td>
     <td>
 
+<p>
+Push a new frame. 
 <p>
     </td>
   </tr>
@@ -1031,7 +1236,197 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTA
     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="UTAP::ExpressionBuilder::typeName"></a><p>
+<a class="anchor" name="a7" doxytag="UTAP::ExpressionBuilder::typeBool"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeBool           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a boolean type is parsed. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a6">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a9" doxytag="UTAP::ExpressionBuilder::typeBoundedInt"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeBoundedInt           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever an integer type with a range is parsed. 
+<p>
+Expressions for the lower and upper have been pushed before. 
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a8">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a10" doxytag="UTAP::ExpressionBuilder::typeChannel"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeChannel           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a channel type is parsed. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a9">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a11" doxytag="UTAP::ExpressionBuilder::typeClock"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeClock           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a clock type is parsed. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a10">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a5" doxytag="UTAP::ExpressionBuilder::typeDuplicate"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeDuplicate           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Duplicate type at the top of the type stack. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a4">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a8" doxytag="UTAP::ExpressionBuilder::typeInt"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeInt           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever an integer type is parsed. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a7">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a14" doxytag="UTAP::ExpressionBuilder::typeName"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1039,20 +1434,14 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTA
         <tr>
           <td class="md" nowrap valign="top">void ExpressionBuilder::typeName           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">int32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>prefix</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap>const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>int&nbsp;</td>
-          <td class="mdname" nowrap> <em>range</em></td>
+          <td class="mdname" nowrap> <em>name</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -1071,14 +1460,133 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">UTA
     <td>
 
 <p>
-Push a new type onto the type stack. 
+Called when a type name has been parsed. 
 <p>
-This type might subsequently be used to declare e.g. variables. Range indicates the number range or rate expressions (currently, it might be 0, 1 or 2). The corresponding number of fragments will be popped from the expression stack. 
+Prefix indicates whether the type named was prefixed (e.g. with 'const'). 
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a13">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a6" doxytag="UTAP::ExpressionBuilder::typePop"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typePop           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Pop type at the topof the type stack. 
+<p>
+
 <p>
 Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">UTAP::AbstractBuilder</a>.    </td>
   </tr>
 </table>
+<a class="anchor" name="a13" doxytag="UTAP::ExpressionBuilder::typeScalar"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeScalar           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a scalar type is parsed. 
+<p>
+The size of the scalar set was pushed as an expression before. 
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a12">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a12" doxytag="UTAP::ExpressionBuilder::typeVoid"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void ExpressionBuilder::typeVoid           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a void type is parsed. 
+<p>
+
+<p>
+Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a11">UTAP::AbstractBuilder</a>.    </td>
+  </tr>
+</table>
 <hr><h2>Member Data Documentation</h2>
+<a class="anchor" name="p4" doxytag="UTAP::ExpressionBuilder::currentTemplate"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a>* <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p4">UTAP::ExpressionBuilder::currentTemplate</a><code> [protected]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+The template currently being parsed. 
+<p>
+    </td>
+  </tr>
+</table>
 <a class="anchor" name="p0" doxytag="UTAP::ExpressionBuilder::fragments"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
@@ -1099,16 +1607,18 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">UTA
     <td>
 
 <p>
+Expression stack. 
+<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="p3" doxytag="UTAP::ExpressionBuilder::frames"></a><p>
+<a class="anchor" name="p2" doxytag="UTAP::ExpressionBuilder::frames"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::stack&lt;<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&gt; <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p3">UTAP::ExpressionBuilder::frames</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">std::stack&lt;<a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&gt; <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p2">UTAP::ExpressionBuilder::frames</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -1122,16 +1632,18 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">UTA
     <td>
 
 <p>
+Frame stack. 
+<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="p1" doxytag="UTAP::ExpressionBuilder::system"></a><p>
+<a class="anchor" name="p5" doxytag="UTAP::ExpressionBuilder::scalar_count"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>* <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p1">UTAP::ExpressionBuilder::system</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">int32_t <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p5">UTAP::ExpressionBuilder::scalar_count</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -1145,16 +1657,18 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">UTA
     <td>
 
 <p>
+Counter for creating unique scalarset names. 
+<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="p2" doxytag="UTAP::ExpressionBuilder::typeFragments"></a><p>
+<a class="anchor" name="p3" doxytag="UTAP::ExpressionBuilder::system"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">class <a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">UTAP::ExpressionBuilder::TypeFragments</a>  <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p2">UTAP::ExpressionBuilder::typeFragments</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>* <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p3">UTAP::ExpressionBuilder::system</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -1167,13 +1681,40 @@ Reimplemented from <a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">UTA
     </td>
     <td>
 
+<p>
+Pointer to the system under construction. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="p1" doxytag="UTAP::ExpressionBuilder::typeFragments"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html">TypeFragments</a> <a class="el" href="classUTAP_1_1ExpressionBuilder.html#p1">UTAP::ExpressionBuilder::typeFragments</a><code> [protected]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Type stack. 
 <p>
     </td>
   </tr>
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="expressionbuilder_8h-source.html">expressionbuilder.h</a><li><a class="el" href="expressionbuilder_8cpp.html">expressionbuilder.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

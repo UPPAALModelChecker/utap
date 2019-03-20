@@ -21,10 +21,9 @@
 
 /*********************************************************************
  * This bison grammar file contains both grammars for old and new XTA
- * formats plus entry points to separate XTA parts to be used in XML
+ * formats plus entry points for various productions used in the XML
  * parser.
  * 
- * Location tracking is used from lex file (need bison 1.35 or later).
  * There are numerous problems with parser error recognition and
  * recovery in general, since the XTA language contains some tricky
  * properties:
@@ -36,85 +35,38 @@
  * 2) Since entity terminating token is not always clear, there might
  * appear continuous error reports on the same code as no recovery is
  * made. Please report it, this might be corrected.
- *
- * 3) It is very hard to forsee the posibly missing terminals.  It is
- * likely that a bison generated message will be reported.
- * E.g. process declaration might be missing the '(' ')' (old XTA).
- * Please report with example if effects are not acceptable.
- *
- * 4) There are errors which could not be classified with current
- * bison restrictions (read only one token ahead) and therefore these
- * errors could not be recovered (manually). E.g. function and
- * variable declarations might contain some garbage before '('
- * (function) or '[' (array declaration) symbol.
- *
  */
 
 %{
 
 #include "libparser.h"
+#include "utap/position.h"
 
 using namespace std;
 using namespace UTAP;
 using namespace Constants;
 
-struct Position
-{
-    int32_t first_line, first_column, last_line, last_column;
-    char *text;  // Unused - needed for compatibility with bison 1.28
-    void reset() {
-	first_column = first_line = 1; 
-	last_column = last_line = 1; 
-    };
-    void lines(int32_t num) {
-	last_column = 1;
-	last_line += num;
-    };
-    void step() {
-	first_column = last_column;       
-	first_line = last_line;
-    };
-};
+#define YYLLOC_DEFAULT(Current, Rhs, N)			  	        \
+    do									\
+      if (N)								\
+	{								\
+	  (Current).start        = YYRHSLOC (Rhs, 1).start;	        \
+	  (Current).end          = YYRHSLOC (Rhs, N).end;	        \
+	}								\
+      else								\
+	{								\
+	  (Current).start        = (Current).end   =		        \
+	    YYRHSLOC (Rhs, 0).end;			  	        \
+	}								\
+    while (0)
 
-std::ostream &operator <<(std::ostream &out, const position_t &loc);
+#define YYLTYPE position_t
 
-#define YYLTYPE Position
-
-static YYLTYPE last_loc; 
-static ErrorHandler *errorHandler;
 static ParserBuilder *ch;
 static syntax_t syntax;
 static int syntax_token = 0;
 
 static void utap_error(const char* msg);
-static void utap_error(const TypeException& te, int32_t fl, int32_t fc,
-		       int32_t ll, int32_t lc);
-
-#define REPORT_ERROR(loc, exc) utap_error(exc, loc.first_line, loc.first_column, loc.last_line, loc.last_column);
-  
-// List of all parser error messages
-static const char* PE_ARGLIST = "argument expression list expected";
-static const char* PE_ASSIGN = "'=' expected";
-static const char* PE_ASSIGN_EXP = "assignment expression expected";
-static const char* PE_BANG = "'!' expected";
-static const char* PE_COLON = "':' expected";
-static const char* PE_CONST_EXP = "constant expression expected";
-static const char* PE_EXPR = "expression expected";
-static const char* PE_GUARD_EXP = "guard expression expected";
-static const char* PE_INV = "invariant expression expected";
-static const char* PE_LBRACE = "'{' expected";
-static const char* PE_LBRACES = "'(' or '{' expected";
-static const char* PE_LPAREN = "'(' expected";
-static const char* PE_MEMBER = "member declarations expected";
-static const char* PE_PARAMETERS = "parameters expected";
-static const char* PE_PROCID = "process identifiers expected";
-static const char* PE_QUE = "'?' expected";
-static const char* PE_RPAREN = "')' expected";
-static const char* PE_SEMICOLON = "';' expected";
-static const char* PE_STATE_DECL = "state declaration expected";
-static const char* PE_STATEID = "state identifier expected";
-static const char* PE_SYNC_EXP = "synchronization expression expected";
-static const char* PE_TRANS_DECL = "edge declaration expected";
 
 static int lexer_flex();
   
@@ -130,19 +82,13 @@ static int utap_lex()
 }
 
 static char rootTransId[MAXLEN];
-static int32_t g_parameter_count;
+
+/* Counter used during array parsing. */
+static int types = 0;
 
 #define YYERROR_VERBOSE 1
 
-//#define CALL(first,last,call) do { ch->call; } while (0)
-
-#define CALL(first,last,call) do { errorHandler->setCurrentPosition(first.first_line, first.first_column, last.last_line, last.last_column); ch->setPosition(position_t(first.first_line, first.first_column, last.last_line, last.last_column)); try { ch->call; } catch (TypeException &te) { errorHandler->handleError(te.what()); } } while (0)
-//           try { ch->done(); }
-// 	  catch(TypeException te) { 
-// 	    utap_error(te, @2.first_line, @2.first_column, 
-// 			 @2.last_line, @2.last_column); 
-// 	  }
-
+#define CALL(first,last,call) do { ch->setPosition(first.start, last.end); try { ch->call; } catch (TypeException &te) { ch->handleError(te.what()); } } while (0)
 
 %}
 
@@ -165,7 +111,7 @@ static int32_t g_parameter_count;
 %token T_KW_AND T_KW_OR T_KW_IMPLY T_KW_NOT
 
 /* Quantifiers */
-%token T_FORALL
+%token T_FORALL T_EXISTS
 
 /* Relation operations:*/
 %token T_LT T_LEQ T_EQ T_NEQ T_GEQ T_GT
@@ -173,7 +119,7 @@ static int32_t g_parameter_count;
 /* Special statement keywords: */
 %token T_FOR T_WHILE T_DO T_BREAK T_CONTINUE T_SWITCH T_IF T_ELSE 
 %token T_CASE T_DEFAULT T_RETURN
-%token T_CHAN_PRIORITY T_PROC_PRIORITY
+%token T_PRIORITY
 
 /* Variable type declaration keywords: */
 %token T_TYPEDEF T_STRUCT 
@@ -185,12 +131,15 @@ static int32_t g_parameter_count;
 %token T_ARROW T_UNCONTROL_ARROW T_WINNING T_LOSING
 
 /* Property tokens */
-%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO T_QUIT
+%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO 
 
 /* Miscelanious: */
 %token T_ERROR 
 %token <string>T_ID T_TYPENAME
 %token <number>T_NAT
+
+/* Types */
+%token T_BOOL T_INT T_CHAN T_CLOCK T_VOID T_SCALAR
 
 /* Syntax switch tokens */
 %token T_NEW T_NEW_DECLARATION T_NEW_LOCAL_DECL T_NEW_INST T_NEW_SYSTEM 
@@ -200,18 +149,16 @@ static int32_t g_parameter_count;
 %token T_OLD_PARAMETERS T_OLD_INVARIANT T_OLD_GUARD T_OLD_ASSIGN
 %token T_PROPERTY T_EXPRESSION 
 
-%type <number> ArgList ArrayDecl FieldDeclList FieldDeclIdList FieldDecl
-%type <number> OptionalParameterList ParameterList FieldInitList TypeIdList 
-%type <number> OldProcParams OldProcParamList OldProcParam OldProcConstParam
-%type <number> OptionalTemplateSetList
+%type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
+%type <number> ParameterList FieldInitList 
+%type <number> OptionalInstanceParameterList
 %type <kind> Quantifier
-%type <number> Type TypePrefix Range 
+%type <prefix> Type TypePrefix 
 %type <string> Id
-%type <number> OldConstDeclIdList
 %type <kind> UnaryOp AssignOp
 %type <flag> VarInit 
 
-%right T_FORALL
+%right T_FORALL T_EXISTS
 %left T_KW_OR T_KW_IMPLY
 %left T_KW_AND
 %right T_KW_NOT
@@ -234,6 +181,7 @@ static int32_t g_parameter_count;
 %union {
     bool flag;
     int number;
+    ParserBuilder::PREFIX prefix;
     kind_t kind;
     char string[MAXLEN];
 }
@@ -245,11 +193,11 @@ static int32_t g_parameter_count;
 
 Uppaal:
           T_NEW XTA { CALL(@2, @2, done()); }
-	| T_NEW_DECLARATION Declaration { }
+	| T_NEW_DECLARATION Declarations { }
 	| T_NEW_LOCAL_DECL ProcLocalDeclList { }
-	| T_NEW_INST Inst { }
-	| T_NEW_SYSTEM System { }
-	| T_NEW_PARAMETERS ParameterList { g_parameter_count = $2; }
+	| T_NEW_INST Declarations { }
+	| T_NEW_SYSTEM XTA { }
+	| T_NEW_PARAMETERS ParameterList { }
 	| T_NEW_INVARIANT Expression { }
         | T_NEW_SELECT SelectList { }
 	| T_NEW_GUARD Expression { CALL(@2, @2, procGuard()); }
@@ -258,8 +206,8 @@ Uppaal:
 	| T_OLD OldXTA { CALL(@2, @2, done()); }
 	| T_OLD_DECLARATION OldDeclaration { }
 	| T_OLD_LOCAL_DECL OldVarDeclList { }
-	| T_OLD_INST Inst { }
-        | T_OLD_PARAMETERS OldProcParamList { g_parameter_count = $2; }
+	| T_OLD_INST Instantiations { }
+        | T_OLD_PARAMETERS OldProcParamList { }
 	| T_OLD_INVARIANT OldInvariant { }
 	| T_OLD_GUARD OldGuardList { CALL(@2, @2, procGuard()); }
 	| T_OLD_ASSIGN ExprList { CALL(@2, @2, procUpdate()); }
@@ -268,64 +216,73 @@ Uppaal:
 	;
 
 XTA: 
-	Declaration Inst System
+	Declarations System
 	;
 
-Inst:
+Instantiations:
 	/* empty */
-	| Inst T_ID T_ASSIGNMENT T_ID '(' {
-          CALL(@2, @4, instantiationBegin($2, $4));
-	} ArgList ')' ';' {
-	  CALL(@2, @9, instantiationEnd($2, $4, $7));
-	}
-	| Inst T_ID T_ASSIGNMENT T_ID '(' error ')' ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ARGLIST));
-	}
-	| Inst T_ID T_ASSIGNMENT T_ID '(' error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_RPAREN));
-	}
-	| Inst T_ID T_ASSIGNMENT T_ID error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LPAREN));
-	}
-	| Inst T_ID error ';' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN));
-	}
+	| Instantiations Instantiation
+	| error ';'
 	;
 
-System: ChanPriorityDecl ProcPriorityDecl SysDecl Progress;
+Instantiation:
+	T_ID OptionalInstanceParameterList T_ASSIGNMENT T_ID '(' {
+          CALL(@1, @4, instantiationBegin($1, $2, $4));
+	} ArgList ')' ';' {
+	  CALL(@1, @9, instantiationEnd($1, $2, $4, $7));
+	};
 
-ChanPriorityDecl:
-        /* empty */
-        | T_CHAN_PRIORITY PriorityOrder ';'
+OptionalInstanceParameterList:
+	  { $$ = 0; }
+	| '(' ')' 
+	  {
+		$$ = 0; 
+	  }
+        | '(' ParameterList ')'
+	  {
+		$$ = $2;
+	  };
+
+System: SysDecl Progress;
+
+PriorityDecl: 
+        T_CHAN T_PRIORITY ChannelList ';'
+	| T_CHAN T_PRIORITY error ';'
         ;
 
-ProcPriorityDecl:
-        /* empty */
-        | T_PROC_PRIORITY PriorityOrder ';'
-        ;
+ChannelList:
+	ChanElement
+	| ChannelList ',' ChanElement
+	| ChannelList ChanLessThan ChanElement
+	;
 
-PriorityOrder:
-	T_ID { CALL(@1, @1, lowPriority($1)); }
-	| PriorityOrder T_EQ T_ID { CALL(@3, @3, samePriority($3)); }
-	| PriorityOrder T_LT T_ID { CALL(@3, @3, higherPriority($3)); }
-	| PriorityOrder T_EQ error
-	| PriorityOrder T_LT error 
+ChanLessThan:
+	T_LT { CALL(@1, @1, incChanPriority()); };
+
+ChanElement:
+	/* Cannot use 'Expression', since we use '<' (T_LT) as a separator. */
+	ChanExpression { CALL(@1, @1, chanPriority()); }
+	| T_DEFAULT { CALL(@1, @1, defaultChanPriority()); }
+	;
+
+ChanExpression:
+	T_ID { CALL(@1, @1, exprId($1)); }
+	| ChanExpression '[' Expression ']' { CALL(@1, @4, exprArray()); }
 	;
 
 SysDecl:
 	T_SYSTEM ProcessList ';'
-        | T_SYSTEM ProcessList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-        | T_SYSTEM error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_PROCID));
-	}
+        | T_SYSTEM error ';'
 	;
 
 ProcessList:
 	T_ID { CALL(@1, @1, process($1)); }
 	| ProcessList ',' T_ID { CALL(@3, @3, process($3)); }
-	;
+	| ProcessList ProcLessThan T_ID { CALL(@3, @3, process($3)); }
+        ;
+
+ProcLessThan:
+	T_LT { CALL(@1, @1, incProcPriority()); };
 
 Progress:
 	/* empty */
@@ -340,14 +297,16 @@ ProgressMeasureList:
             CALL(@2, @2, declProgress(false));
         };
 
-Declaration:
+Declarations:
 	/* empty */
-	| Declaration FunctionDecl
-	| Declaration VariableDecl
-	| Declaration TypeDecl
-	| Declaration ProcDecl
-	| Declaration BeforeUpdateDecl
-	| Declaration AfterUpdateDecl
+	| Declarations FunctionDecl
+	| Declarations VariableDecl
+	| Declarations TypeDecl
+	| Declarations ProcDecl
+	| Declarations BeforeUpdateDecl
+	| Declarations AfterUpdateDecl
+	| Declarations Instantiation
+	| Declarations PriorityDecl
 	| error ';'
 	;
 
@@ -361,17 +320,15 @@ FunctionDecl:
 	 * been called, we will also call declFuncEnd().
 	 */
 	Type Id OptionalParameterList '{' { 
-	  CALL(@2, @3, declFuncBegin($2, $3));
+	  CALL(@1, @2, declFuncBegin($2));
 	} BlockLocalDeclList StatementList '}' {
-	  CALL(@1, @8, declFuncEnd());
+	  CALL(@8, @8, declFuncEnd());
 	};
 
 OptionalParameterList:
-          '(' ')' { $$ = 0; }
-        | '(' ParameterList ')' { $$ = $2; }
-        | '(' error ')' { 
-	  $$ = 0; 
-	}
+          '(' ')' 
+        | '(' ParameterList ')'
+        | '(' error ')' 
         ;
 
 ParameterList:
@@ -380,19 +337,17 @@ ParameterList:
 	;
 
 Parameter:
-	Type '&' T_ID ArrayDecl {
-          CALL(@1, @4, declParameter($3, true, $4));
-          CALL(@1, @4, declParameterEnd());
+	  Type '&' T_ID ArrayDecl {
+          CALL(@1, @4, declParameter($3, true));
 	}
 	| Type T_ID ArrayDecl {
-          CALL(@1, @3, declParameter($2, false, $3));
-          CALL(@1, @3, declParameterEnd());
+          CALL(@1, @3, declParameter($2, false));
 	}
 	;
 
 VariableDecl:
 	Type DeclIdList ';' { 
-          CALL(@1, @3, declVarEnd());
+	    CALL(@1, @3, typePop());
 	}
 	;
 
@@ -402,8 +357,10 @@ DeclIdList:
 	;
 
 DeclId:
-	Id ArrayDecl VarInit { 
-	  CALL(@1, @3, declVar($1, $2, $3));
+	Id {
+	    CALL(@1, @1, typeDuplicate());
+	} ArrayDecl VarInit { 
+	    CALL(@1, @4, declVar($1, $4));
 	}
 	;
 
@@ -434,48 +391,91 @@ FieldInit:
 	;
 
 ArrayDecl:
-	/* empty */ { $$=0; }
-	| ArrayDecl '[' Expression ']' { $$=$1+1; }
-	| ArrayDecl '[' error ']' {
-	  CALL(@3, @3, exprNat(1));
-	  REPORT_ERROR(last_loc, TypeException(PE_CONST_EXP));
-	  $$=$1+1; 
-	}
+        { types = 0; } ArrayDecl2;
+
+ArrayDecl2:
+	/* empty */ 
+	| '[' Expression ']'        ArrayDecl2 { CALL(@1, @3, typeArrayOfSize(types)); }
+	| '[' Type ']' { types++; } ArrayDecl2 { CALL(@1, @3, typeArrayOfType(types--)); }
+	| '[' error ']' ArrayDecl2
 	;
 
 TypeDecl:
 	T_TYPEDEF Type TypeIdList ';' {
-	  CALL(@1, @4, declTypeDefEnd());
+	  CALL(@1, @4, typePop());
 	}
-	| T_TYPEDEF error ';' { 
-	  CALL(@1, @3, declTypeDefEnd());  
-	}
+	| T_TYPEDEF error ';'
 	;
 
 TypeIdList:
-	TypeId { $$ = 1; }
-	| TypeIdList ',' TypeId { $$ = $1+1; }
+	TypeId
+	| TypeIdList ',' TypeId 
 	;
 
 TypeId:
-	Id ArrayDecl { 
-	  CALL(@1, @2, declTypeDef($1, $2));
+	Id {
+	    CALL(@1, @1, typeDuplicate());
+	} ArrayDecl { 
+	    CALL(@1, @3, declTypeDef($1));
 	}
 	;
 
 Type: 
-	TypePrefix T_TYPENAME Range { 
-	    CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @3,
-		 typeName($1, $2, $3));
+	T_TYPENAME { 
+	    CALL(@1, @1, typeName(ParserBuilder::PREFIX_NONE, $1));
+	}
+	| TypePrefix T_TYPENAME { 
+	    CALL(@1, @2, typeName($1, $2));
+	}
+	| T_STRUCT '{' FieldDeclList '}' { 
+	    CALL(@1, @4, typeStruct(ParserBuilder::PREFIX_NONE, $3));
 	}
 	| TypePrefix T_STRUCT '{' FieldDeclList '}' { 
-	    CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @5,
-	       typeStruct($1, $4));
+	    CALL(@1, @5, typeStruct($1, $4));
+	}
+	| T_STRUCT '{' error '}' { 
+	  CALL(@1, @4, typeStruct(ParserBuilder::PREFIX_NONE, 0));
 	}
 	| TypePrefix T_STRUCT '{' error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_MEMBER));
-	  CALL(($1 == ParserBuilder::PREFIX_NONE ? @2 : @1), @5,
-	       typeStruct($1, 0));
+	  CALL(@1, @5, typeStruct(ParserBuilder::PREFIX_NONE, 0));
+	}
+	| T_BOOL {
+	  CALL(@1, @1, typeBool(ParserBuilder::PREFIX_NONE));
+	}
+	| TypePrefix T_BOOL {
+	  CALL(@1, @2, typeBool($1));
+	}
+	| T_INT {
+	  CALL(@1, @1, typeInt(ParserBuilder::PREFIX_NONE));
+	}
+	| TypePrefix T_INT {
+	  CALL(@1, @2, typeInt($1));
+	}
+	| T_INT '[' Expression ',' Expression ']' 
+        {
+	  CALL(@1, @6, typeBoundedInt(ParserBuilder::PREFIX_NONE));
+	}
+	| TypePrefix T_INT  '[' Expression ',' Expression ']' {
+	  CALL(@1, @7, typeBoundedInt($1));
+	}
+	| T_CHAN {
+	  CALL(@1, @1, typeChannel(ParserBuilder::PREFIX_NONE));
+	}
+	| TypePrefix T_CHAN {
+	  CALL(@1, @2, typeChannel($1));
+	}
+	| T_CLOCK {
+	  CALL(@1, @1, typeClock());
+	}
+	| T_VOID {
+	  CALL(@1, @1, typeVoid());
+	}
+	| T_SCALAR '[' Expression ']' 
+        {
+	  CALL(@1, @4, typeScalar(ParserBuilder::PREFIX_NONE));
+	}
+	| TypePrefix T_SCALAR  '[' Expression ']' {
+	  CALL(@1, @5, typeScalar($1));
 	}
 	;
 
@@ -492,7 +492,7 @@ FieldDeclList:
 FieldDecl:
 	Type FieldDeclIdList ';' {
 	  $$ = $2; 
-	  CALL(@1, @3, structFieldEnd());
+	  CALL(@1, @3, typePop());
 	}
 	;
 
@@ -502,56 +502,31 @@ FieldDeclIdList:
 	;
 
 FieldDeclId:
-	Id ArrayDecl { 
-	  CALL(@1, @2, structField($1, $2));
+	Id {
+	    CALL(@1, @1, typeDuplicate());
+	} ArrayDecl { 
+	    CALL(@1, @3, structField($1));
 	}
 	;
 
 TypePrefix:
-          { $$ = ParserBuilder::PREFIX_NONE; }
-	| T_URGENT    { $$ = ParserBuilder::PREFIX_URGENT; }
+	  T_URGENT    { $$ = ParserBuilder::PREFIX_URGENT; }
 	| T_BROADCAST { $$ = ParserBuilder::PREFIX_BROADCAST; }
         | T_URGENT T_BROADCAST { $$ = ParserBuilder::PREFIX_URGENT_BROADCAST; }
 	| T_CONST  { $$ = ParserBuilder::PREFIX_CONST; } 
         | T_META { $$ = ParserBuilder::PREFIX_META; }
         ;
-
-Range:
-	/* empty */ { $$ = 0; }
-        | '[' Expression ']' { $$ = 1; }
-        | '[' Expression ',' Expression ']' { $$ = 2; }
-        | '[' error ']' {
-	    $$ = 0;
-        }
-	;
         
 /*********************************************************************
  * Process declaration
  */
 
-OptionalTemplateSetList:
-	/* empty */ { $$ = 0; }
-	| '[' TemplateSet ']' OptionalTemplateSetList { $$ = $4 + 1; };
-
-TemplateSet:
-	T_ID ':' Type { 
-	    CALL(@1, @3, procTemplateSet($1)); 
-	};
-
 ProcDecl:
-	T_PROCESS Id OptionalTemplateSetList OptionalParameterList '{' { 
-	  CALL(@1, @4, procBegin($2, 0, $3));
+	T_PROCESS Id OptionalParameterList '{' { 
+	  CALL(@1, @4, procBegin($2));
 	} 
         ProcBody '}' { 
 	  CALL(@6, @7, procEnd());
-	}
-	| T_PROCESS Id '{' {
-	  utap_error(TypeException(PE_LPAREN), 
-		     @3.first_line, @3.first_column, 
-		     @3.last_line, @3.last_column);
-	  CALL(@1, @3, procBegin($2, 0, 0));
-	} ProcBody '}' {
-	  CALL(@4, @5, procEnd());
 	}
 	;
 
@@ -568,12 +543,6 @@ ProcLocalDeclList:
 
 States:
 	T_STATE StateDeclList ';'
-	| T_STATE StateDeclList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_STATE error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATE_DECL));
-	}
 	| error ';'
 	;
 
@@ -590,7 +559,6 @@ StateDecl:
 	  CALL(@1, @4, procState($1, true));
 	}
 	| T_ID '{' error '}' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_INV));
 	  CALL(@1, @4, procState($1, false));
 	}
 	;
@@ -605,9 +573,7 @@ Init:
 Transitions:
 	/* empty */
 	| T_TRANS TransitionList ';'
-	| T_TRANS error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
+	| T_TRANS error ';' 
 	;
 
 TransitionList:
@@ -663,23 +629,15 @@ Guard:
 	  CALL(@2, @2, procGuard());
         }
 	| T_GUARD Expression error ';' {
-	  REPORT_ERROR(yylloc, TypeException(PE_SEMICOLON));
 	  CALL(@2, @3, procGuard());
 	}
-	| T_GUARD error ';' {
-	  REPORT_ERROR(yylloc, TypeException(PE_GUARD_EXP));
-	}
+	| T_GUARD error ';'
 	;
 
 Sync:
 	/* empty */ 
 	| T_SYNC SyncExpr ';'
-	| T_SYNC SyncExpr error ';' {
-	  REPORT_ERROR(yylloc, TypeException(PE_SEMICOLON));
-	}
-	| T_SYNC error ';' {
-	  REPORT_ERROR(yylloc, TypeException(PE_SYNC_EXP));
-	}
+	| T_SYNC error ';' 
 	;
 
 SyncExpr:
@@ -687,14 +645,12 @@ SyncExpr:
 	  CALL(@1, @2, procSync(SYNC_BANG));
 	}
 	| Expression error T_EXCLAM { 
-	  REPORT_ERROR(last_loc, TypeException(PE_BANG));
 	  CALL(@1, @2, procSync(SYNC_QUE));
 	}
 	| Expression '?' { 
 	  CALL(@1, @2, procSync(SYNC_QUE));
 	}
 	| Expression error '?' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_QUE));
 	  CALL(@1, @2, procSync(SYNC_QUE));
 	}
 	;
@@ -704,9 +660,7 @@ Assign:
 	| T_ASSIGN ExprList ';' {
 	  CALL(@2, @2, procUpdate());	  
 	}
-	| T_ASSIGN error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_ASSIGN_EXP));
-	}
+	| T_ASSIGN error ';' 
 	;
 
 LocFlags:
@@ -719,42 +673,22 @@ LocFlags:
 
 Commit:
 	T_COMMIT CStateList ';'
-	| T_COMMIT CStateList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_COMMIT error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	}
+	| T_COMMIT error ';' 
 	;
 
 Urgent:
-	T_URGENT UStateList ';' {}
-	| T_URGENT UStateList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_URGENT error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	}
+	T_URGENT UStateList ';'
+	| T_URGENT error ';' 
 	;
 
 Winning:
 	T_WINNING WStateList ';'
-	| T_WINNING WStateList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_WINNING error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	}
+	| T_WINNING error ';' 
 	;
 
 Losing:
 	T_LOSING LStateList ';'
-	| T_LOSING LStateList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_LOSING error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_STATEID));
-	}
+	| T_LOSING error ';' 
 	;
 
 CStateList:
@@ -905,7 +839,6 @@ SwitchCase:
 	  CALL(@1, @3, caseBegin());
 	}
 	  StatementList {
-	    REPORT_ERROR(last_loc, TypeException(PE_EXPR)); 
 	    CALL(@4, @4, caseEnd());
 	  }
 	| T_DEFAULT ':' { 
@@ -915,7 +848,6 @@ SwitchCase:
 	    CALL(@3, @3, defaultEnd());
 	  }
 	| T_DEFAULT error ':' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_COLON)); 
 	  CALL(@1, @3, defaultBegin());
 	}
 	  StatementList { 
@@ -950,19 +882,16 @@ Expression:
 	| Expression '(' {
 	    CALL(@1, @2, exprCallBegin());
 	  } error ')' {   
-	    REPORT_ERROR(last_loc, TypeException(PE_ARGLIST));
 	    CALL(@1, @5, exprCallEnd(0));
 	}
 	| Expression '[' Expression ']' { 
 	  CALL(@1, @4, exprArray());
 	}
 	| Expression '[' error ']' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
 	  CALL(@1, @4, exprFalse());
 	}
 	| '(' Expression ')'
 	| '(' error ')' {
-	  REPORT_ERROR(last_loc, TypeException(PE_EXPR));
 	  CALL(@1, @3, exprFalse());
 	}
 	| Expression T_INCREMENT { 
@@ -1069,8 +998,13 @@ Expression:
         | T_FORALL '(' Id ':' Type ')' {
 	    CALL(@1, @6, exprForAllBegin($3));
         } Expression {
-	    CALL(@8, @8, exprForAllEnd($3));
+	    CALL(@1, @8, exprForAllEnd($3));
         } %prec T_FORALL
+        | T_EXISTS '(' Id ':' Type ')' {
+	    CALL(@1, @6, exprExistsBegin($3));
+        } Expression {
+	    CALL(@1, @8, exprExistsEnd($3));
+        } %prec T_EXISTS
         | Assignment
 	;
 
@@ -1106,11 +1040,9 @@ ArgList:
 	/* empty */ { $$=0; }
 	| Expression { 
 	    $$ = 1; 
-	    CALL(@1, @1, exprArg(0));
 	}
         | ArgList ',' Expression { 
 	    $$ = $1 + 1; 
-	    CALL(@3, @3, exprArg($1));
 	}
 	;
 
@@ -1119,7 +1051,7 @@ ArgList:
  */
 
 OldXTA: 
-	OldDeclaration Inst System;
+	OldDeclaration Instantiations System;
 
 
 OldDeclaration:
@@ -1131,20 +1063,22 @@ OldDeclaration:
 OldVarDecl:
 	VariableDecl
 	| T_OLDCONST { 
-	  CALL(@1, @1, typeName(ParserBuilder::PREFIX_CONST, "int", 0));
+	  CALL(@1, @1, typeInt(ParserBuilder::PREFIX_CONST));
 	} OldConstDeclIdList ';' { 
-	  CALL(@1, @3, declVarEnd());
+	  CALL(@1, @3, typePop());
 	}
         | T_OLDCONST error ';';
 
 OldConstDeclIdList:
-	OldConstDeclId { $$=1; }
-	| OldConstDeclIdList ',' OldConstDeclId { $$=$1+1; }
+	OldConstDeclId 
+	| OldConstDeclIdList ',' OldConstDeclId
 	;
 
 OldConstDeclId:
-	T_ID ArrayDecl Initializer { 
-	  CALL(@1, @3, declVar($1, $2, true));
+	T_ID {
+	  CALL(@1, @1, typeDuplicate());
+	} ArrayDecl Initializer { 
+	  CALL(@1, @4, declVar($1, true));
 	}
 	;
 
@@ -1153,34 +1087,31 @@ OldConstDeclId:
  */
 OldProcDecl:
 	T_PROCESS Id OldProcParams '{' { 
-	  CALL(@1, @4, procBegin($2, 0, $3));
+	  CALL(@1, @4, procBegin($2));
 	}
         OldProcBody '}' { 
 	  CALL(@5, @6, procEnd());
 	} 
 	| T_PROCESS Id OldProcParams error '{' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACE));
-	  CALL(@1, @5, procBegin($2, 0, $3));
+	  CALL(@1, @5, procBegin($2));
 	}
         OldProcBody '}' { 
 	  CALL(@6, @7, procEnd());
 	} 
 	| T_PROCESS Id error '{' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_LBRACES));
-	  CALL(@1, @4, procBegin($2, 0, 0));
+	  CALL(@1, @4, procBegin($2));
 	}
         OldProcBody '}' { 
 	  CALL(@5, @6, procEnd());
 	} 
 	| T_PROCESS error '{' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PROCID));
-	  CALL(@1, @3, procBegin("_", 0, 0));
+	  CALL(@1, @3, procBegin("_"));
 	}
         OldProcBody '}' { 
 	  CALL(@4, @5, procEnd());
 	} 
 	| T_PROCESS Id '{' { 
-	  CALL(@1, @3, procBegin($2, 0, 0));
+	  CALL(@1, @3, procBegin($2));
 	}
 	OldProcBody '}' { 
 	  CALL(@4, @5, procEnd());
@@ -1188,53 +1119,45 @@ OldProcDecl:
 	;
 
 OldProcParams:
-	'(' ')' { $$ = 0; }
-	| '(' OldProcParamList ')' { $$ = $2; }
-	| '(' error ')' { 
-	  REPORT_ERROR(last_loc, TypeException(PE_PARAMETERS));	  
-	  $$ = 0; 
-	}
+	'(' ')' 
+	| '(' OldProcParamList ')' 
+	| '(' error ')' 
 	;
 
 OldProcParamList:
         OldProcParam { 
-	  $$ = $1; 
-	  CALL(@1, @1, declParameterEnd());
+	  CALL(@1, @1, typePop());
 	}
-        | OldProcConstParam {
-	  $$ = $1;
-	  CALL(@1, @1, declParameterEnd());
-        }
+        | OldProcConstParam 
 	| OldProcParamList ';' OldProcParam { 
-	  $$ = $1 + $3;
-	  CALL(@1, @3, declParameterEnd());
+	  CALL(@1, @3, typePop());
 	}
-	| OldProcParamList ';' OldProcConstParam { 
-	  $$ = $1 + $3;
-	  CALL(@1, @3, declParameterEnd());
-	}
+	| OldProcParamList ';' OldProcConstParam
 	;
 
 OldProcParam:
-	Type T_ID ArrayDecl {
-          CALL(@1, @3, declParameter($2, $3 == 0, $3));
-	  $$ = 1;
+	Type {
+	    CALL(@1, @1, typeDuplicate());
+	} T_ID ArrayDecl {
+	    CALL(@1, @4, declParameter($3, true));
 	}
-	| OldProcParam ',' T_ID ArrayDecl { 
-	  CALL(@1, @4, declParameter($3, $4 == 0, $4));
-	  $$ = $1 + 1;
+	| OldProcParam {
+	    CALL(@1, @1, typeDuplicate());
+	} ',' T_ID ArrayDecl { 
+	    CALL(@1, @5, declParameter($4, true));
 	} 
 	;
 
 OldProcConstParam:
-	T_OLDCONST T_ID ArrayDecl {
-	  CALL(@1, @1, typeName(ParserBuilder::PREFIX_CONST, "int", false));
-	  CALL(@2, @3, declParameter($2, false, $3));
-	  $$ = 1;
+	T_OLDCONST {
+	    CALL(@1, @1, typeInt(ParserBuilder::PREFIX_CONST));
+	} T_ID ArrayDecl {
+	    CALL(@3, @4, declParameter($3, false));
 	}
-	| OldProcConstParam ',' T_ID ArrayDecl { 
-	  CALL(@1, @4, declParameter($3, false, $4));
-	  $$ = $1 + 1;
+	| OldProcConstParam ',' {
+	    CALL(@1, @1, typeInt(ParserBuilder::PREFIX_CONST));
+	} T_ID ArrayDecl { 
+	    CALL(@4, @5, declParameter($4, false));
 	} 
 	;
 
@@ -1269,7 +1192,6 @@ OldStateDecl:
 OldInvariant:
 	Expression
 	| Expression error ',' {	  
-	  REPORT_ERROR(last_loc, TypeException(PE_INV));
 	}
 	| OldInvariant ',' Expression { 
 	  CALL(@1, @3, exprBinary(AND));
@@ -1279,12 +1201,7 @@ OldInvariant:
 OldTransitions:
 	/* empty */
 	| T_TRANS OldTransitionList ';'
-	| T_TRANS OldTransitionList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
-	}
-	| T_TRANS error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_TRANS_DECL));
-	}
+	| T_TRANS error ';' 
 	;
 
 OldTransitionList:
@@ -1317,7 +1234,6 @@ OldGuard:
 	  CALL(@2, @2, procGuard());
 	}
 	| T_GUARD OldGuardList error ';' {
-	  REPORT_ERROR(last_loc, TypeException(PE_SEMICOLON));
 	  CALL(@2, @3, procGuard());
 	}
 	;
@@ -1338,14 +1254,11 @@ PropertyList2:
 
 Property:
 	/* empty */
-        | T_QUIT {
-		ch->quit();	
-	}
         | Quantifier Expression {
-		ch->property($1, @1.first_line);
+	    CALL(@1, @2, property($1));
 	}
 	| Expression T_LEADSTO Expression {
-		ch->property(LEADSTO, @1.first_line);
+	    CALL(@1, @3, property(LEADSTO));
 	};
 
 Quantifier:
@@ -1360,20 +1273,8 @@ Quantifier:
 
 static void utap_error(const char* msg)
 {
-    errorHandler->setCurrentPosition(
-	yylloc.first_line, yylloc.first_column, 
-	yylloc.last_line, yylloc.last_column);
-    errorHandler->handleError(msg);
-    last_loc = yylloc;
-}
-
-static void utap_error(
-    const TypeException& te, int32_t fl, int32_t fc,
-    int32_t ll, int32_t lc)
-{
-    errorHandler->setCurrentPosition(fl, fc, ll, lc);
-    errorHandler->handleError(te.what());
-    last_loc = yylloc;
+    ch->setPosition(yylloc.start, yylloc.end);
+    ch->handleError(msg);
 }
 
 static void setStartToken(xta_part_t part, bool newxta)
@@ -1423,88 +1324,79 @@ static void setStartToken(xta_part_t part, bool newxta)
 }
 
 static int32_t parseXTA(ParserBuilder *aParserBuilder,
-		 ErrorHandler *err, bool newxta, xta_part_t part)
+			bool newxta, xta_part_t part, std::string xpath)
 {
     // Select syntax
     syntax = (syntax_t)((newxta ? SYNTAX_NEW : SYNTAX_OLD) | SYNTAX_GUIDING);
     setStartToken(part, newxta);
 
-    // Set parser builder and error handler
+    // Set parser builder 
     ch = aParserBuilder;
-    ch->setErrorHandler(err);
-    errorHandler = err;
     
     // Reset position tracking
-    yylloc.reset();
+    PositionTracker::setPath(ch, xpath);
 
     // Parse string
     int res = 0;
-
-    g_parameter_count = 0;
 
     if (utap_parse()) 
     {
 	res = -1;
     }
-    else 
-    {
-	res = g_parameter_count;
-    }
 
     ch = NULL;
-    errorHandler = NULL;
     return res;
 }
 
-static int32_t parseProperty(ParserBuilder *aParserBuilder, ErrorHandler *err)
+static int32_t parseProperty(ParserBuilder *aParserBuilder)
 {
     // Select syntax
     syntax = SYNTAX_PROPERTY;
     setStartToken(S_PROPERTY, false);
 
-    // Set parser builder and error handler
+    // Set parser builder 
     ch = aParserBuilder;
-    ch->setErrorHandler(err);
-    errorHandler = err;    
     
     // Reset position tracking
-    yylloc.reset();
+    PositionTracker::setPath(ch, "");
 
     return utap_parse() ? -1 : 0;
 }
 
 int32_t parseXTA(const char *str, ParserBuilder *builder,
-		 ErrorHandler *err, bool newxta, xta_part_t part)
+		 bool newxta, xta_part_t part, std::string xpath)
 {
     utap__scan_string(str);
-    int32_t res = parseXTA(builder, err, newxta, part);
+    int32_t res = parseXTA(builder, newxta, part, xpath);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
 
-int32_t parseXTA(FILE *file, ParserBuilder *builder,
-    ErrorHandler *err, bool newxta)
+int32_t parseXTA(const char *str, ParserBuilder *builder, bool newxta)
+{
+    return parseXTA(str, builder, newxta, S_XTA, "");
+}
+
+int32_t parseXTA(FILE *file, ParserBuilder *builder, bool newxta)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int res = parseXTA(builder, err, newxta, S_XTA);
+    int res = parseXTA(builder, newxta, S_XTA, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
 
-int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder, 
-		      ErrorHandler *err)
+int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder)
 {
     utap__scan_string(str);
-    int32_t res = parseProperty(aParserBuilder, err);
+    int32_t res = parseProperty(aParserBuilder);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
 
-int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder, 
-		      ErrorHandler *err)
+int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int32_t res = parseProperty(aParserBuilder, err);
+    int32_t res = parseProperty(aParserBuilder);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }

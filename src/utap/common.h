@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -28,91 +28,10 @@
 #include <inttypes.h>
 #endif
 #include <string>
-#include <iostream>
 #include <vector>
 
 namespace UTAP
 {
-    class XPath
-    {
-    public:
-	virtual ~XPath() {};
-	virtual std::string get() const = 0;
-    };
-    
-    struct position_t 
-    {
-	int32_t first_line, first_column, last_line, last_column;
-	position_t() {}
-	position_t(int fl, int fc, int ll, int lc)
-	    : first_line(fl), first_column(fc), last_line(ll), last_column(lc)
-	    {}
-    };
-
-    class ErrorHandler
-    {
-    public:
-	struct error_t
-	{
-	    int32_t fline, fcolumn, lline, lcolumn;
-
-	    std::string xpath;
-	    std::string msg;
-
-	    error_t(int32_t fl, int32_t fc, int32_t ll, int32_t lc)
-		: fline(fl), fcolumn(fc), lline(ll), lcolumn(lc)
-		  {}
-
-	    error_t(const error_t &err)
-		: fline(err.fline), fcolumn(err.fcolumn),
-		  lline(err.lline), lcolumn(err.lcolumn),
-		  xpath(err.xpath), msg(err.msg) {}
-
-	    void setPath(std::string path) { xpath = path; }
-	    void setMessage(std::string value) { msg = value; }
-	};
-    private:
-	std::vector<error_t> errors;
-	std::vector<error_t> warnings;
-	const XPath *currentPath;
-	int first_line, first_column, last_line, last_column;
-    public:
-	ErrorHandler();
-
-	// Sets the call back object for the current patch.
-	// Clears the current position.
-	void setCurrentPath(const XPath *path);
-
-	// Sets the current position of the parser. Any errors or
-	// warnings will be assumed to be at this position.
-	void setCurrentPosition(int first_line, int first_column, int last_line, int last_column);
-
-	// Sets the current position of the parser. Any errors or
-	// warnings will be assumed to be at this position.
-	void setCurrentPosition(const position_t &);
-
-	// Called when an error is detected
-	void handleError(const char *, ...);
-
-	// Called when a warning is issued
-	void handleWarning(const char *, ...);
-
-	// Returns the errors
-	const std::vector<error_t> &getErrors() const;
-
-	// Returns the warnings
-	const std::vector<error_t> &getWarnings() const;
-
-	// True if there are one or more errors
-	bool hasErrors() const;
-
-	// True if there are one or more warnings
-	bool hasWarnings() const;
-
-	// Clears the list of errors and warnings
-	void clear();
-    };
-
     namespace Constants
     {
 	enum kind_t 
@@ -148,6 +67,7 @@ namespace UTAP
 	     */
 	    NOT = 30,
 	    FORALL = 31,
+	    EXISTS = 32,
 
 	    /********************************************************
 	     * Assignment operators
@@ -192,7 +112,41 @@ namespace UTAP
 	    COMMA = 523,
 	    SYNC = 525,
 	    DEADLOCK = 526,
-	    FUNCALL = 527
+	    FUNCALL = 527,
+
+	    /*******************************************************
+	     * Types
+	     */
+	    UNKNOWN = 600,
+	    VOID_TYPE = 601,
+	    CLOCK = 602,
+	    INT = 603,
+	    BOOL = 604,
+	    SCALAR = 605,
+	    LOCATION = 606,
+	    CHANNEL = 607,
+	    COST = 608,
+	    INVARIANT = 609,
+	    INVARIANT_WR = 610,
+	    GUARD = 611,
+	    DIFF = 612,
+	    CONSTRAINT= 613,
+
+	    RANGE = 650,
+	    LABEL = 651,
+	    RECORD = 652,
+	    REF = 654,
+	    URGENT = 655,
+	    COMMITTED = 656,
+	    WINNING = 657,
+	    LOSING = 658,
+	    BROADCAST = 659,
+	    TYPEDEF = 661,
+	    PROCESS = 662,
+	    PROCESSSET = 663,
+	    INSTANCE = 665,
+	    META = 667,
+	    FUNCTION = 668
 	};
 
 	/**********************************************************
@@ -215,7 +169,5 @@ namespace UTAP
     } xta_part_t;
 
 }
-
-std::ostream &operator <<(std::ostream &out, const UTAP::ErrorHandler::error_t &e);
 
 #endif

@@ -10,7 +10,7 @@
 <h1>expression.h</h1><a href="expression_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment">00001 <span class="comment">// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-</span>
 00002 
 00003 <span class="comment">/* libutap - Uppaal Timed Automata Parser.</span>
-00004 <span class="comment">   Copyright (C) 2002-2003 Uppsala University and Aalborg University.</span>
+00004 <span class="comment">   Copyright (C) 2002-2006 Uppsala University and Aalborg University.</span>
 00005 <span class="comment">   </span>
 00006 <span class="comment">   This library is free software; you can redistribute it and/or</span>
 00007 <span class="comment">   modify it under the terms of the GNU Lesser General Public License</span>
@@ -37,147 +37,125 @@
 00028 
 00029 <span class="preprocessor">#include "<a class="code" href="common_8h.html">utap/common.h</a>"</span>
 00030 <span class="preprocessor">#include "<a class="code" href="symbols_8h.html">utap/symbols.h</a>"</span>
-00031 
-00032 <span class="keyword">namespace </span>UTAP
-00033 {
-<a name="l00067"></a><a class="code" href="classUTAP_1_1expression__t.html">00067</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> 
-00068     {
-00069     <span class="keyword">private</span>:
-00070         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, <span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
-00071     <span class="keyword">public</span>:
-00073         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>();
-00074 
-00076         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;);
-00077 
-00079         <a class="code" href="classUTAP_1_1expression__t.html#a2">~expression_t</a>();
-00080 
-00082         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a3">clone</a>() <span class="keyword">const</span>;
-00083 
-00085         <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a4">getKind</a>() <span class="keyword">const</span>;
-00086 
-00088         uint32_t <a class="code" href="classUTAP_1_1expression__t.html#a5">getSize</a>() <span class="keyword">const</span>;
-00089 
-00091         <span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a6">getPosition</a>() <span class="keyword">const</span>;  
-00092         
-00094         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a7">getType</a>() <span class="keyword">const</span>;
-00095 
-00097         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a8">setType</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
-00098 
-00101         int32_t <a class="code" href="classUTAP_1_1expression__t.html#a9">getValue</a>() <span class="keyword">const</span>;
-00102 
-00104         int32_t <a class="code" href="classUTAP_1_1expression__t.html#a10">getIndex</a>() <span class="keyword">const</span>;
-00105 
-00107         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a11">empty</a>() <span class="keyword">const</span>;
-00108 
-00110         <a class="code" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a12">getSync</a>() <span class="keyword">const</span>;
-00111 
-00113         std::string <a class="code" href="classUTAP_1_1expression__t.html#a13">toString</a>(<span class="keywordtype">bool</span> old = <span class="keyword">false</span>) <span class="keyword">const</span>;
-00114 
-00116         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a14">operator[]</a>(uint32_t);
-00117         
-00119         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a14">operator[]</a>(uint32_t) <span class="keyword">const</span>;
-00120 
-00122         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a16">get</a>(uint32_t);
-00123 
-00125         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a16">get</a>(uint32_t) <span class="keyword">const</span>;
-00126 
-00128         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a18">operator=</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;);
-00129 
-00131         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a19">equal</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;) <span class="keyword">const</span>;
-00132 
-00135         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a20">getSymbol</a>();
-00136 
-00139         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a20">getSymbol</a>() <span class="keyword">const</span>;
-00140 
-00143         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a22">isReferenceTo</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
-00144 
-00147         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a23">changesVariable</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
-00148 
-00151         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a24">dependsOn</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
-00152 
-00153         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a25">collectPossibleWrites</a>(std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
-00154         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a26">collectPossibleReads</a>(std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
-00155 
-00158         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a27">operator &lt; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
-00159  
-00162         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a28">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
-00163  
-00164         <span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1expression__t.html#e0">getPrecedence</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>); 
+00031 <span class="preprocessor">#include "<a class="code" href="position_8h.html">utap/position.h</a>"</span>
+00032 
+00033 <span class="keyword">namespace </span>UTAP
+00034 {
+<a name="l00068"></a><a class="code" href="classUTAP_1_1expression__t.html">00068</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> 
+00069     {
+00070     <span class="keyword">private</span>:
+00071         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>, <span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
+00072     <span class="keyword">public</span>:
+00074         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>();
+00075 
+00077         <a class="code" href="classUTAP_1_1expression__t.html#a0">expression_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;);
+00078 
+00080         <a class="code" href="classUTAP_1_1expression__t.html#a2">~expression_t</a>();
+00081 
+00083         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a3">clone</a>() <span class="keyword">const</span>;
+00084 
+00086         <a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a4">getKind</a>() <span class="keyword">const</span>;
+00087 
+00089         size_t <a class="code" href="classUTAP_1_1expression__t.html#a5">getSize</a>() <span class="keyword">const</span>;
+00090 
+00092         <span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a6">getPosition</a>() <span class="keyword">const</span>;  
+00093         
+00095         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a7">getType</a>() <span class="keyword">const</span>;
+00096 
+00098         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a8">setType</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
+00099 
+00102         int32_t <a class="code" href="classUTAP_1_1expression__t.html#a9">getValue</a>() <span class="keyword">const</span>;
+00103 
+00105         int32_t <a class="code" href="classUTAP_1_1expression__t.html#a10">getIndex</a>() <span class="keyword">const</span>;
+00106 
+00108         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a11">empty</a>() <span class="keyword">const</span>;
+00109 
+00111         <a class="code" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a12">getSync</a>() <span class="keyword">const</span>;
+00112 
+00114         std::string <a class="code" href="classUTAP_1_1expression__t.html#a13">toString</a>(<span class="keywordtype">bool</span> old = <span class="keyword">false</span>) <span class="keyword">const</span>;
+00115 
+00117         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a14">operator[]</a>(uint32_t);
+00118         
+00120         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a14">operator[]</a>(uint32_t) <span class="keyword">const</span>;
+00121 
+00123         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a16">get</a>(uint32_t);
+00124 
+00126         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a16">get</a>(uint32_t) <span class="keyword">const</span>;
+00127 
+00129         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;<a class="code" href="classUTAP_1_1expression__t.html#a18">operator=</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;);
+00130 
+00132         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a19">equal</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> &amp;) <span class="keyword">const</span>;
+00133         
+00144         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a20">getSymbol</a>();
+00145 
+00156         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a21">getSymbols</a>(std::set&lt;symbol_t&gt; &amp;symbols) <span class="keyword">const</span>;
+00157 
+00160         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a20">getSymbol</a>() <span class="keyword">const</span>;
+00161 
+00164         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a23">isReferenceTo</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
 00165 
-00167         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e1">createConstant</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, int32_t);
-00168 
-00170         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e2">createIdentifier</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>);
-00171 
-00173         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e3">createUnary</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>,
-00174                                         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="classUTAP_1_1type__t.html#s0">type_t::UNKNOWN</a>);
-00176         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e4">createBinary</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>,
-00177                                          <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
-00178                                          <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="classUTAP_1_1type__t.html#s0">type_t::UNKNOWN</a>);
-00179 
-00181         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e5">createTernary</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;,
-00182                                           <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, 
-00183                                           <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
-00184                                           <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="classUTAP_1_1type__t.html#s0">type_t::UNKNOWN</a>);
-00185 
-00187         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e6">createNary</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, 
-00188                                        <span class="keyword">const</span> std::vector&lt;expression_t&gt; &amp;,
-00189                                        <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="classUTAP_1_1type__t.html#s0">type_t::UNKNOWN</a>);
-00190 
-00192         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e7">createDot</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
-00193                                       int32_t = -1, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="classUTAP_1_1type__t.html#s0">type_t::UNKNOWN</a>);
+00168         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a24">changesVariable</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
+00169 
+00172         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a25">dependsOn</a>(<span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
+00173 
+00174         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a26">collectPossibleWrites</a>(std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
+00175         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a27">collectPossibleReads</a>(std::set&lt;symbol_t&gt; &amp;) <span class="keyword">const</span>;
+00176 
+00179         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a28">operator &lt; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
+00180  
+00183         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1expression__t.html#a29">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
+00184 
+00185         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#a30">subst</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>;
+00186  
+00187         <span class="keyword">static</span> <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1expression__t.html#e0">getPrecedence</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>); 
+00188 
+00190         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e1">createConstant</a>(int32_t, <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>());
+00191 
+00193         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e2">createIdentifier</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>());
 00194 
-00196         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e8">createSync</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, 
-00197                                        <a class="code" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a>);
-00198 
-00200         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e9">createDeadlock</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
-00201 
-00202     <span class="keyword">private</span>:
-00203         <span class="keyword">struct </span>expression_data;
-00204         expression_data *data;
-00205         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1expression__t.html#e0">getPrecedence</a>() <span class="keyword">const</span>;
-00206         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a13">toString</a>(<span class="keywordtype">bool</span>, <span class="keywordtype">char</span> *&amp;str, <span class="keywordtype">char</span> *&amp;end, <span class="keywordtype">int</span> &amp;size) <span class="keyword">const</span>;
-00207     };
-00208 
-<a name="l00209"></a><a class="code" href="classUTAP_1_1InterpreterException.html">00209</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1InterpreterException.html">InterpreterException</a> : <span class="keyword">public</span> std::exception
-00210     {
-00211     <span class="keyword">public</span>:
-<a name="l00212"></a><a class="code" href="classUTAP_1_1InterpreterException.html#a0">00212</a>         <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="classUTAP_1_1InterpreterException.html#a0">what</a>() const throw() { <span class="keywordflow">return</span> <span class="stringliteral">"InterpreterException"</span>; }
-00213     };
-00214 
-<a name="l00215"></a><a class="code" href="classUTAP_1_1Interpreter.html">00215</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1Interpreter.html">Interpreter</a>
-00216     {
-00217     <span class="keyword">private</span>:
-00218         std::map&lt;symbol_t, expression_t&gt; valuation;
-00219         int32_t evaluateBinary(int32_t left, <a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, int32_t right) <span class="keyword">const</span>;
-00220     <span class="keyword">public</span>:
-00221         <a class="code" href="classUTAP_1_1Interpreter.html#a0">Interpreter</a>();
-00222         <a class="code" href="classUTAP_1_1Interpreter.html#a0">Interpreter</a>(<span class="keyword">const</span> std::map&lt;symbol_t, expression_t&gt; &amp;);
-00223 
-00224         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1Interpreter.html#a2">addValuation</a>(<span class="keyword">const</span> std::map&lt;symbol_t, expression_t&gt; &amp;);
-00225 
-00226         <span class="keyword">const</span> std::map&lt;symbol_t, expression_t&gt; &amp;<a class="code" href="classUTAP_1_1Interpreter.html#a3">getValuation</a>() <span class="keyword">const</span>;
-00227 
-00228         int32_t <a class="code" href="classUTAP_1_1Interpreter.html#a4">evaluate</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>) <span class="keyword">const</span>
-00229             <span class="keywordflow">throw</span> (<a class="code" href="classUTAP_1_1InterpreterException.html">InterpreterException</a>);
-00230         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1Interpreter.html#a4">evaluate</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, std::vector&lt;int32_t&gt; &amp;) <span class="keyword">const</span>
-00231             <span class="keywordflow">throw</span> (<a class="code" href="classUTAP_1_1InterpreterException.html">InterpreterException</a>);
-00232         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1Interpreter.html#a4">evaluate</a>(
-00233             std::pair&lt;expression_t, expression_t&gt;) <span class="keyword">const</span>
-00234             <span class="keywordflow">throw</span> (<a class="code" href="classUTAP_1_1InterpreterException.html">InterpreterException</a>);
-00235 
-00236         size_t <a class="code" href="classUTAP_1_1Interpreter.html#a7">sizeOfType</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>) <span class="keyword">const</span>;
+00196         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e3">createUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
+00197                                         <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>(),
+00198                                         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="tracer_8cpp.html#a28">type_t</a>());
+00200         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e4">createBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>,
+00201                                          <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
+00202                                          <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>(),
+00203                                          <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="tracer_8cpp.html#a28">type_t</a>());
+00204 
+00206         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e5">createTernary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, 
+00207                                           <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>,
+00208                                           <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>(),
+00209                                           <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="tracer_8cpp.html#a28">type_t</a>());
+00210 
+00212         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e6">createNary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>, 
+00213                                        <span class="keyword">const</span> std::vector&lt;expression_t&gt; &amp;,
+00214                                        <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>(),
+00215                                        <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="tracer_8cpp.html#a28">type_t</a>());
+00216 
+00218         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e7">createDot</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, int32_t = -1,
+00219                                       <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>(), 
+00220                                       <a class="code" href="classUTAP_1_1type__t.html">type_t</a> = <a class="code" href="tracer_8cpp.html#a28">type_t</a>());
+00221 
+00223         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e8">createSync</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, 
+00224                                        <a class="code" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a>,
+00225                                        <a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>());
+00226 
+00228         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1expression__t.html#e9">createDeadlock</a>(<a class="code" href="structUTAP_1_1position__t.html">position_t</a> = <a class="code" href="structUTAP_1_1position__t.html">position_t</a>());
+00229 
+00230     <span class="keyword">private</span>:
+00231         <span class="keyword">struct </span>expression_data;
+00232         expression_data *data;
+00233         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1expression__t.html#e0">getPrecedence</a>() <span class="keyword">const</span>;
+00234         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1expression__t.html#a13">toString</a>(<span class="keywordtype">bool</span>, <span class="keywordtype">char</span> *&amp;str, <span class="keywordtype">char</span> *&amp;end, <span class="keywordtype">int</span> &amp;size) <span class="keyword">const</span>;
+00235     };
+00236 }
 00237 
-00238     };
+00238 std::ostream &amp;<a class="code" href="expression_8cpp.html#a44">operator&lt;&lt; </a>(std::ostream &amp;o, <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">UTAP::expression_t</a> &amp;e);
 00239 
-00240 }
-00241 
-00242 std::ostream &amp;<a class="code" href="error_8cpp.html#a0">operator&lt;&lt; </a>(std::ostream &amp;o, <span class="keyword">const</span> <a class="code" href="classUTAP_1_1expression__t.html">UTAP::expression_t</a> &amp;e);
+00240 <span class="preprocessor">#endif</span>
+00241 <span class="preprocessor"></span>
+00242 
 00243 
-00244 <span class="preprocessor">#endif</span>
-00245 <span class="preprocessor"></span>
-00246 
-00247 
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

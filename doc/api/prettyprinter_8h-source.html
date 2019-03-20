@@ -62,86 +62,93 @@
 00053     <span class="keyword">public</span>:
 00054         <a class="code" href="classUTAP_1_1PrettyPrinter.html#a0">PrettyPrinter</a>(std::ostream &amp;stream);
 00055 
-00056         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a1">setErrorHandler</a>(<a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *);
-00057         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a2">setPosition</a>(<span class="keyword">const</span> <a class="code" href="structUTAP_1_1position__t.html">position_t</a> &amp;);
-00058     
-00059         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a3">isType</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00060         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a4">typeName</a>(int32_t prefix, <span class="keyword">const</span> <span class="keywordtype">char</span> *type, <span class="keywordtype">int</span> range);
-00061         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a5">declTypeDef</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t dim); 
-00062         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a6">declTypeDefEnd</a>();
-00063         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a7">declVar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, uint32_t dim, <span class="keywordtype">bool</span> init);
-00064         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a8">declVarEnd</a>();
-00065         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a9">declInitialiserList</a>(uint32_t num);
-00066         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a10">declFieldInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name);
-00067         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a11">declParameter</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span> reference, uint32_t dim);
-00068         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a12">declParameterEnd</a>();
-00069         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a13">declFuncBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t n);
-00070         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a14">declFuncEnd</a>();
-00071         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a15">blockBegin</a>();
-00072         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a16">blockEnd</a>();
-00073         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a17">emptyStatement</a>();
-00074         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a18">forBegin</a>();
-00075         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a19">forEnd</a>();
-00076         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a20">iterationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 id, 1 type</span>
-00077         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a21">iterationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 stat</span>
-00078         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a22">whileBegin</a>();
-00079         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a23">whileEnd</a>();
-00080         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a24">doWhileBegin</a>();
-00081         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a25">doWhileEnd</a>();
-00082         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a26">ifBegin</a>();
-00083         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a27">ifElse</a>();
-00084         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a28">ifEnd</a>(<span class="keywordtype">bool</span>);
-00085         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a29">breakStatement</a>();
-00086         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a30">continueStatement</a>();
-00087         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a31">exprStatement</a>();
-00088         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a32">returnStatement</a>(<span class="keywordtype">bool</span> hasValue);
-00089         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a33">procTemplateSet</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00090         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a34">procBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, uint32_t n, uint32_t m);
-00091         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a35">procState</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keywordtype">bool</span> hasInvariant);
-00092         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a36">procStateUrgent</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00093         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a37">procStateCommit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00094         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a38">procStateWinning</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00095         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a39">procStateLosing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00096         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a40">procStateInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00097         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a41">procSelect</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00098         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a42">procGuard</a>();
-00099         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a43">procSync</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a> type);
-00100         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a44">procUpdate</a>();
-00101         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a45">procEdgeBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *source, <span class="keyword">const</span> <span class="keywordtype">char</span> *target, <span class="keyword">const</span> <span class="keywordtype">bool</span> control);
-00102         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a46">procEdgeEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *source, <span class="keyword">const</span> <span class="keywordtype">char</span> *target);
-00103         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a47">procEnd</a>();
-00104         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a48">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00105         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a49">exprNat</a>(int32_t n);
-00106         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a50">exprTrue</a>();
-00107         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a51">exprFalse</a>();
-00108         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a52">exprCallBegin</a>();
-00109         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a53">exprCallEnd</a>(uint32_t n);
-00110         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a54">exprArg</a>(uint32_t n);
-00111         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a55">exprArray</a>();
-00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a56">exprPostIncrement</a>();
-00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a57">exprPreIncrement</a>();
-00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a58">exprPostDecrement</a>();
-00115         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a59">exprPreDecrement</a>();
-00116         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a60">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op);
-00117         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a61">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op);
-00118         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a62">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op);
-00119         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a63">exprInlineIf</a>();
-00120         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a64">exprComma</a>();
-00121         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a65">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *);
-00122         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a66">exprDeadlock</a>();
-00123         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a67">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00124         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a68">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-00125         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a69">beforeUpdate</a>();
-00126         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a70">afterUpdate</a>();
-00127         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a71">instantiationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keyword">const</span> <span class="keywordtype">char</span> *templ);
-00128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a72">instantiationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keywordtype">id</span>, <span class="keyword">const</span> <span class="keywordtype">char</span>* templ, uint32_t n);
-00129         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a73">process</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
-00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a74">done</a>();
-00131     };
-00132 }
-00133 
-00134 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00056         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a1">addPosition</a>(
+00057             uint32_t <a class="code" href="classUTAP_1_1AbstractBuilder.html#p0">position</a>, uint32_t offset, uint32_t line, std::string path);
+00058 
+00059         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a2">handleError</a>(std::string);
+00060         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a3">handleWarning</a>(std::string);
+00061 
+00062         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a4">typeBool</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00063         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a5">typeInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00064         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a6">typeBoundedInt</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00065         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a7">typeChannel</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00066         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a8">typeClock</a>();
+00067         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a9">typeVoid</a>();
+00068         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a10">typeScalar</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>);
+00069         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a11">typeName</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, <span class="keyword">const</span> <span class="keywordtype">char</span> *type);
+00070         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a12">declTypeDef</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name); 
+00071         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a13">declVar</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keywordtype">bool</span> init);
+00072         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a14">declInitialiserList</a>(uint32_t num);
+00073         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a15">declFieldInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00074         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a16">declParameter</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">bool</span>);
+00075         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a17">declFuncBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00076         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a18">declFuncEnd</a>();
+00077         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a19">blockBegin</a>();
+00078         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a20">blockEnd</a>();
+00079         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a21">emptyStatement</a>();
+00080         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a22">forBegin</a>();
+00081         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a23">forEnd</a>();
+00082         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a24">iterationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 id, 1 type</span>
+00083         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a25">iterationEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name); <span class="comment">// 1 stat</span>
+00084         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a26">whileBegin</a>();
+00085         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a27">whileEnd</a>();
+00086         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a28">doWhileBegin</a>();
+00087         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a29">doWhileEnd</a>();
+00088         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a30">ifBegin</a>();
+00089         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a31">ifElse</a>();
+00090         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a32">ifEnd</a>(<span class="keywordtype">bool</span>);
+00091         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a33">breakStatement</a>();
+00092         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a34">continueStatement</a>();
+00093         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a35">exprStatement</a>();
+00094         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a36">returnStatement</a>(<span class="keywordtype">bool</span> hasValue);
+00095         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a37">procBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name);
+00096         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a38">procState</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, <span class="keywordtype">bool</span> hasInvariant);
+00097         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a39">procStateUrgent</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00098         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a40">procStateCommit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00099         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a41">procStateWinning</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00100         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a42">procStateLosing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00101         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a43">procStateInit</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00102         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a44">procSelect</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00103         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a45">procGuard</a>();
+00104         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a46">procSync</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a> type);
+00105         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a47">procUpdate</a>();
+00106         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a48">procEdgeBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *source, <span class="keyword">const</span> <span class="keywordtype">char</span> *target, <span class="keyword">const</span> <span class="keywordtype">bool</span> control);
+00107         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a49">procEdgeEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *source, <span class="keyword">const</span> <span class="keywordtype">char</span> *target);
+00108         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a50">procEnd</a>();
+00109         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a51">exprId</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00110         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a52">exprNat</a>(int32_t n);
+00111         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a53">exprTrue</a>();
+00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a54">exprFalse</a>();
+00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a55">exprCallBegin</a>();
+00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a56">exprCallEnd</a>(uint32_t n);
+00115         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a57">exprArray</a>();
+00116         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a58">exprPostIncrement</a>();
+00117         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a59">exprPreIncrement</a>();
+00118         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a60">exprPostDecrement</a>();
+00119         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a61">exprPreDecrement</a>();
+00120         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a62">exprAssignment</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op);
+00121         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a63">exprUnary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op);
+00122         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a64">exprBinary</a>(<a class="code" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op);
+00123         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a65">exprInlineIf</a>();
+00124         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a66">exprComma</a>();
+00125         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a67">exprDot</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *);
+00126         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a68">exprDeadlock</a>();
+00127         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a69">exprForAllBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a70">exprForAllEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00129         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a71">exprExistsBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00130         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a72">exprExistsEnd</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+00131         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a73">beforeUpdate</a>();
+00132         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a74">afterUpdate</a>();
+00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a75">instantiationBegin</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *, size_t, <span class="keyword">const</span> <span class="keywordtype">char</span> *);
+00134         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a76">instantiationEnd</a>(
+00135             <span class="keyword">const</span> <span class="keywordtype">char</span> *, size_t, <span class="keyword">const</span> <span class="keywordtype">char</span> *, size_t);
+00136         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a77">process</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>);
+00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PrettyPrinter.html#a78">done</a>();
+00138     };
+00139 }
+00140 
+00141 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

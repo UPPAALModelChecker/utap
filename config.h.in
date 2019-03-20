@@ -15,6 +15,15 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if you have the <boost/bind.hpp> header file. */
+#undef HAVE_BOOST_BIND_HPP
+
+/* Define to 1 if you have the <boost/lambda/bind.hpp> header file. */
+#undef HAVE_BOOST_LAMBDA_BIND_HPP
+
+/* Define to 1 if you have the <boost/lambda/lambda.hpp> header file. */
+#undef HAVE_BOOST_LAMBDA_LAMBDA_HPP
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 

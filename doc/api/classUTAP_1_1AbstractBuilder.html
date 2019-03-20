@@ -22,200 +22,221 @@
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a0">AbstractBuilder</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a1">setErrorHandler</a> (<a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a1">setPosition</a> (uint32_t, uint32_t)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Set the error handler to the given handler.  <a href="#a1"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a2">setPosition</a> (const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets the current position.  <a href="#a1"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a2">isType</a> (const char *)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Sets the current position.  <a href="#a2"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">isType</a> (const char *)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Must return true if and only if name is registered in the symbol table as a named type, for instance, "int" or "bool" or a user defined type.  <a href="#a2"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a3">isLocation</a> (const char *)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Must return true if and only if name is registered in the symbol table as a named type, for instance, "int" or "bool" or a user defined type.  <a href="#a3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a4">isLocation</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a4">typeDuplicate</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">typeName</a> (int32_t prefix, const char *name, int range)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Duplicate type at the top of the type stack.  <a href="#a4"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a5">typePop</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called when a type name has been parsed.  <a href="#a5"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a6">typeStruct</a> (int32_t prefix, uint32_t fields)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Pop type at the topof the type stack.  <a href="#a5"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a6">typeBool</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called when a struct-type has been parsed.  <a href="#a6"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a7">structField</a> (const char *name, uint32_t dim)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a boolean type is parsed.  <a href="#a6"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a7">typeInt</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to declare a field of a structure.  <a href="#a7"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a8">structFieldEnd</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever an integer type is parsed.  <a href="#a7"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a8">typeBoundedInt</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called at the end of a series of field declarations of the same type.  <a href="#a8"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a9">declTypeDef</a> (const char *name, uint32_t dim)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever an integer type with a range is parsed.  <a href="#a8"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a9">typeChannel</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used when a typedef declaration was parsed.  <a href="#a9"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a10">declTypeDefEnd</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a channel type is parsed.  <a href="#a9"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a10">typeClock</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called at the end of a series of type name declarations of the same type.  <a href="#a10"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a11">declVar</a> (const char *name, uint32_t dim, bool init)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a clock type is parsed.  <a href="#a10"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a11">typeVoid</a> ()</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to when a variable declaration has been parsed.  <a href="#a11"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a12">declVarEnd</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a void type is parsed.  <a href="#a11"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a12">typeScalar</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called at the end of a series of variable declarations of the same type.  <a href="#a12"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a13">declInitialiserList</a> (uint32_t num)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called whenever a scalar type is parsed.  <a href="#a12"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a13">typeName</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a14">declFieldInit</a> (const char *name)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called when a type name has been parsed.  <a href="#a13"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a14">typeStruct</a> (<a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>, uint32_t fields)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a15">declProgress</a> (bool)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called when a struct-type has been parsed.  <a href="#a14"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a15">typeArrayOfSize</a> (size_t)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Guard progress measure declaration.  <a href="#a15"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a16">declParameter</a> (const char *name, bool reference, uint32_t dim)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to create an array type.  <a href="#a15"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a16">typeArrayOfType</a> (size_t)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a17">declParameterEnd</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to create an array type.  <a href="#a16"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a17">structField</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a18">declFuncBegin</a> (const char *name, uint32_t n)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to declare a field of a structure.  <a href="#a17"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a18">declTypeDef</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a19">declFuncEnd</a> ()</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Used when a typedef declaration was parsed.  <a href="#a18"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a19">declVar</a> (const char *name, bool init)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a20">procTemplateSet</a> (const char *name)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Called to when a variable declaration has been parsed.  <a href="#a19"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a20">declInitialiserList</a> (uint32_t num)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a21">procBegin</a> (const char *name, uint32_t n, uint32_t m)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a21">declFieldInit</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a22">procEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a22">declProgress</a> (bool)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a23">procState</a> (const char *name, bool hasInvariant)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Guard progress measure declaration.  <a href="#a22"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a23">declParameter</a> (const char *name, bool)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a24">procStateCommit</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a24">declFuncBegin</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a25">procStateUrgent</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a25">declFuncEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a26">procStateWinning</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a26">procBegin</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a27">procStateLosing</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a27">procEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a28">procStateInit</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a28">procState</a> (const char *name, bool hasInvariant)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a29">procEdgeBegin</a> (const char *from, const char *to, const bool control)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a29">procStateCommit</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a30">procEdgeEnd</a> (const char *from, const char *to)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a30">procStateUrgent</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a31">procSelect</a> (const char *id)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a31">procStateWinning</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a32">procGuard</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a32">procStateLosing</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a33">procSync</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a> type)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a33">procStateInit</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a34">procUpdate</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a34">procEdgeBegin</a> (const char *from, const char *to, const bool control)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a35">blockBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a35">procEdgeEnd</a> (const char *from, const char *to)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a36">blockEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a36">procSelect</a> (const char *id)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a37">emptyStatement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a37">procGuard</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a38">forBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a38">procSync</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a> type)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a39">forEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a39">procUpdate</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a40">iterationBegin</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a40">blockBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a41">iterationEnd</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a41">blockEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a42">whileBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a42">emptyStatement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a43">whileEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a43">forBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a44">doWhileBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a44">forEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a45">doWhileEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a45">iterationBegin</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a46">ifBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a46">iterationEnd</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a47">ifElse</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a47">whileBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a48">ifEnd</a> (bool)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a48">whileEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a49">breakStatement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a49">doWhileBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a50">continueStatement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a50">doWhileEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a51">switchBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a51">ifBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a52">switchEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a52">ifElse</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a53">caseBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a53">ifEnd</a> (bool)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a54">caseEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a54">breakStatement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a55">defaultBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a55">continueStatement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a56">defaultEnd</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a56">switchBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a57">exprStatement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a57">switchEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a58">returnStatement</a> (bool)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a58">caseBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a59">exprTrue</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a59">caseEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a60">exprFalse</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a60">defaultBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a61">exprId</a> (const char *varName)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a61">defaultEnd</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a62">exprNat</a> (int32_t)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a62">exprStatement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a63">exprCallBegin</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a63">returnStatement</a> (bool)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a64">exprCallEnd</a> (uint32_t n)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a64">exprTrue</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a65">exprArg</a> (uint32_t n)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a65">exprFalse</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">exprArray</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a66">exprId</a> (const char *varName)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a67">exprPostIncrement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a67">exprNat</a> (int32_t)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a68">exprPreIncrement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a68">exprCallBegin</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a69">exprPostDecrement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a69">exprCallEnd</a> (uint32_t n)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a70">exprPreDecrement</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a70">exprArray</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">exprAssignment</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> op)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a71">exprPostIncrement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">exprUnary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> unaryop)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a72">exprPreIncrement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a73">exprBinary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a> binaryop)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a73">exprPostDecrement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a74">exprInlineIf</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a74">exprPreDecrement</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a75">exprComma</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a75">exprAssignment</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> op)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a76">exprDot</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a76">exprUnary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> unaryop)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a77">exprDeadlock</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a77">exprBinary</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a> binaryop)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a78">exprForAllBegin</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a78">exprInlineIf</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a79">exprForAllEnd</a> (const char *name)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a79">exprComma</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a80">instantiationBegin</a> (const char *, const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a80">exprDot</a> (const char *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a81">instantiationEnd</a> (const char *, const char *, uint32_t n)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a81">exprDeadlock</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a82">process</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a82">exprForAllBegin</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a83">done</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a83">exprForAllEnd</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a84">property</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>, int line)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a84">exprExistsBegin</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a85">beforeUpdate</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a85">exprExistsEnd</a> (const char *name)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a86">afterUpdate</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a86">instantiationBegin</a> (const char *, size_t, const char *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a87">lowPriority</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a87">instantiationEnd</a> (const char *, size_t, const char *, size_t)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a88">samePriority</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a88">process</a> (const char *)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a89">higherPriority</a> (const char *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a89">done</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a90">property</a> (<a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a91">beforeUpdate</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a92">afterUpdate</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a93">incProcPriority</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a94">incChanPriority</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a95">chanPriority</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a96">procPriority</a> (const char *)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">virtual void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#a97">defaultChanPriority</a> ()</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#p0">errorHandler</a></td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#p1">position</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1AbstractBuilder.html#p0">position</a></td></tr>
 
 </table>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
@@ -247,7 +268,7 @@
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a86" doxytag="UTAP::AbstractBuilder::afterUpdate"></a><p>
+<a class="anchor" name="a92" doxytag="UTAP::AbstractBuilder::afterUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -273,12 +294,12 @@
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a86">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a96">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a70">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a60">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a74">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a49">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a85" doxytag="UTAP::AbstractBuilder::beforeUpdate"></a><p>
+<a class="anchor" name="a91" doxytag="UTAP::AbstractBuilder::beforeUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -304,12 +325,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a70">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a85">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a95">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a69">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a59">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a73">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a48">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a35" doxytag="UTAP::AbstractBuilder::blockBegin"></a><p>
+<a class="anchor" name="a40" doxytag="UTAP::AbstractBuilder::blockBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -335,12 +356,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a69">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a34">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a44">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a15">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a30">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a19">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a27">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a36" doxytag="UTAP::AbstractBuilder::blockEnd"></a><p>
+<a class="anchor" name="a41" doxytag="UTAP::AbstractBuilder::blockEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -366,12 +387,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a15">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a35">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a45">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a16">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a31">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a20">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a28">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a49" doxytag="UTAP::AbstractBuilder::breakStatement"></a><p>
+<a class="anchor" name="a54" doxytag="UTAP::AbstractBuilder::breakStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -397,12 +418,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a16">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a48">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a58">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a29">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a44">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a33">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a53" doxytag="UTAP::AbstractBuilder::caseBegin"></a><p>
+<a class="anchor" name="a58" doxytag="UTAP::AbstractBuilder::caseBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -428,12 +449,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a29">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a52">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a48">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a62">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a54" doxytag="UTAP::AbstractBuilder::caseEnd"></a><p>
+<a class="anchor" name="a59" doxytag="UTAP::AbstractBuilder::caseEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -459,12 +478,41 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a48">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a53">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a49">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a63">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a50" doxytag="UTAP::AbstractBuilder::continueStatement"></a><p>
+<a class="anchor" name="a95" doxytag="UTAP::AbstractBuilder::chanPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::chanPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a99">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a52">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a55" doxytag="UTAP::AbstractBuilder::continueStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -490,12 +538,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a49">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a49">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a59">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a30">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a45">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a34">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="UTAP::AbstractBuilder::declFieldInit"></a><p>
+<a class="anchor" name="a21" doxytag="UTAP::AbstractBuilder::declFieldInit"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -522,12 +570,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a30">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a13">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a25">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a10">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a9">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a15">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a8">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a18" doxytag="UTAP::AbstractBuilder::declFuncBegin"></a><p>
+<a class="anchor" name="a24" doxytag="UTAP::AbstractBuilder::declFuncBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -536,18 +584,9 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a10">UTAP::
           <td class="md" nowrap valign="top">void AbstractBuilder::declFuncBegin           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>n</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"><code> [virtual]</code></td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
         </tr>
       </table>
     </td>
@@ -563,12 +602,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a10">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a17">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a28">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a13">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a13">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a17">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a11">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a19" doxytag="UTAP::AbstractBuilder::declFuncEnd"></a><p>
+<a class="anchor" name="a25" doxytag="UTAP::AbstractBuilder::declFuncEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -594,12 +633,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a13">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a18">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a29">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a14">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a14">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a18">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a12">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="UTAP::AbstractBuilder::declInitialiserList"></a><p>
+<a class="anchor" name="a20" doxytag="UTAP::AbstractBuilder::declInitialiserList"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -626,12 +665,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a14">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a12">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a24">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a9">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a8">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a14">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a7">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="UTAP::AbstractBuilder::declParameter"></a><p>
+<a class="anchor" name="a23" doxytag="UTAP::AbstractBuilder::declParameter"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -646,13 +685,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a9">UTAP::P
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap>bool&nbsp;</td>
-          <td class="mdname" nowrap> <em>reference</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>dim</em></td>
+          <td class="mdname" nowrap></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -673,43 +706,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a9">UTAP::P
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a15">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a27">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a11">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a11">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a16">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a10">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="UTAP::AbstractBuilder::declParameterEnd"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::declParameterEnd           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a16">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a12">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a12">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a15" doxytag="UTAP::AbstractBuilder::declProgress"></a><p>
+<a class="anchor" name="a22" doxytag="UTAP::AbstractBuilder::declProgress"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -738,12 +740,12 @@ Guard progress measure declaration.
 <p>
 Requires two expressions if <em>hasGuard</em> is true, otherwise one. 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a14">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a26">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a10">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a9">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="UTAP::AbstractBuilder::declTypeDef"></a><p>
+<a class="anchor" name="a18" doxytag="UTAP::AbstractBuilder::declTypeDef"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -752,49 +754,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a10">UTAP::
           <td class="md" nowrap valign="top">void AbstractBuilder::declTypeDef           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>dim</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Used when a typedef declaration was parsed. 
-<p>
-name is the name of the new type, and dim is the dimension of array types. 
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a8">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a5">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a4">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a10" doxytag="UTAP::AbstractBuilder::declTypeDefEnd"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::declTypeDefEnd           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
         </tr>
@@ -810,16 +770,16 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a5">UTAP::P
     <td>
 
 <p>
-Called at the end of a series of type name declarations of the same type. 
+Used when a typedef declaration was parsed. 
 <p>
-
+name is the name of the new type. 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a9">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a22">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a6">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a5">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a12">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a5">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="UTAP::AbstractBuilder::declVar"></a><p>
+<a class="anchor" name="a19" doxytag="UTAP::AbstractBuilder::declVar"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -829,12 +789,6 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a6">UTAP::P
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
           <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>dim</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -863,45 +817,12 @@ Called to when a variable declaration has been parsed.
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a10">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a23">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a7">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a6">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a13">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a6">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="UTAP::AbstractBuilder::declVarEnd"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::declVarEnd           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Called at the end of a series of variable declarations of the same type. 
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a11">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a8">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a7">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a55" doxytag="UTAP::AbstractBuilder::defaultBegin"></a><p>
+<a class="anchor" name="a60" doxytag="UTAP::AbstractBuilder::defaultBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -927,12 +848,41 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a8">UTAP::P
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a54">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a50">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a64">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a56" doxytag="UTAP::AbstractBuilder::defaultEnd"></a><p>
+<a class="anchor" name="a97" doxytag="UTAP::AbstractBuilder::defaultChanPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::defaultChanPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a101">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a54">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a61" doxytag="UTAP::AbstractBuilder::defaultEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -958,12 +908,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a50">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a55">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a51">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a65">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a83" doxytag="UTAP::AbstractBuilder::done"></a><p>
+<a class="anchor" name="a89" doxytag="UTAP::AbstractBuilder::done"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -989,12 +937,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a51">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a82">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a93">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a74">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a58">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a78">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a47">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a44" doxytag="UTAP::AbstractBuilder::doWhileBegin"></a><p>
+<a class="anchor" name="a49" doxytag="UTAP::AbstractBuilder::doWhileBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1020,12 +968,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a74">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a43">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a53">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a24">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a39">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a28">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a36">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a45" doxytag="UTAP::AbstractBuilder::doWhileEnd"></a><p>
+<a class="anchor" name="a50" doxytag="UTAP::AbstractBuilder::doWhileEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1051,12 +999,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a24">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a44">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a54">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a25">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a40">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a29">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a37">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a37" doxytag="UTAP::AbstractBuilder::emptyStatement"></a><p>
+<a class="anchor" name="a42" doxytag="UTAP::AbstractBuilder::emptyStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1082,44 +1030,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a25">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a36">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a46">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a17">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a32">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a21">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a29">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a65" doxytag="UTAP::AbstractBuilder::exprArg"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::exprArg           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>n</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a64">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a11">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a54">UTAP::PrettyPrinter</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a66" doxytag="UTAP::AbstractBuilder::exprArray"></a><p>
+<a class="anchor" name="a70" doxytag="UTAP::AbstractBuilder::exprArray"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1145,12 +1061,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a11">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a65">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a74">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a55">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a23">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a57">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a71" doxytag="UTAP::AbstractBuilder::exprAssignment"></a><p>
+<a class="anchor" name="a75" doxytag="UTAP::AbstractBuilder::exprAssignment"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1158,7 +1074,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">UT
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::exprAssignment           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>op</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -1177,12 +1093,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a70">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a79">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a60">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a28">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a62">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a73" doxytag="UTAP::AbstractBuilder::exprBinary"></a><p>
+<a class="anchor" name="a77" doxytag="UTAP::AbstractBuilder::exprBinary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1190,7 +1106,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">UT
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::exprBinary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>binaryop</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -1209,12 +1125,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a72">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a81">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a19">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a62">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a30">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a64">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a63" doxytag="UTAP::AbstractBuilder::exprCallBegin"></a><p>
+<a class="anchor" name="a68" doxytag="UTAP::AbstractBuilder::exprCallBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1240,12 +1156,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a19">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a62">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a72">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a9">UTAP::ExpressionBuilder</a>, <a class="el" href="classUTAP_1_1PrettyPrinter.html#a52">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a54">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a21">UTAP::ExpressionBuilder</a>, <a class="el" href="classUTAP_1_1PrettyPrinter.html#a55">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a43">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a64" doxytag="UTAP::AbstractBuilder::exprCallEnd"></a><p>
+<a class="anchor" name="a69" doxytag="UTAP::AbstractBuilder::exprCallEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1272,12 +1188,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a9">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a63">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a73">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a10">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a53">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a22">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a56">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a75" doxytag="UTAP::AbstractBuilder::exprComma"></a><p>
+<a class="anchor" name="a79" doxytag="UTAP::AbstractBuilder::exprComma"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1303,12 +1219,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a10">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a74">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a83">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a21">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a64">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a32">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a66">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a77" doxytag="UTAP::AbstractBuilder::exprDeadlock"></a><p>
+<a class="anchor" name="a81" doxytag="UTAP::AbstractBuilder::exprDeadlock"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1334,12 +1250,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a21">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a76">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a85">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a23">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a66">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a34">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a68">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a76" doxytag="UTAP::AbstractBuilder::exprDot"></a><p>
+<a class="anchor" name="a80" doxytag="UTAP::AbstractBuilder::exprDot"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1366,12 +1282,76 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a23">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a75">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a84">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a22">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a65">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a33">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a67">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a60" doxytag="UTAP::AbstractBuilder::exprFalse"></a><p>
+<a class="anchor" name="a84" doxytag="UTAP::AbstractBuilder::exprExistsBegin"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::exprExistsBegin           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a88">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a37">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a71">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a85" doxytag="UTAP::AbstractBuilder::exprExistsEnd"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::exprExistsEnd           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a89">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a38">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a72">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a65" doxytag="UTAP::AbstractBuilder::exprFalse"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1397,12 +1377,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a22">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a58">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a68">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a6">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a51">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a18">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a54">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a78" doxytag="UTAP::AbstractBuilder::exprForAllBegin"></a><p>
+<a class="anchor" name="a82" doxytag="UTAP::AbstractBuilder::exprForAllBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1429,12 +1409,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a6">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a77">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a86">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a24">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a67">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a35">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a69">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a79" doxytag="UTAP::AbstractBuilder::exprForAllEnd"></a><p>
+<a class="anchor" name="a83" doxytag="UTAP::AbstractBuilder::exprForAllEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1461,12 +1441,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a24">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a78">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a87">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a25">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a68">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a36">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a70">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a61" doxytag="UTAP::AbstractBuilder::exprId"></a><p>
+<a class="anchor" name="a66" doxytag="UTAP::AbstractBuilder::exprId"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1493,12 +1473,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a25">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a60">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a70">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a7">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a48">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a19">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a51">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a74" doxytag="UTAP::AbstractBuilder::exprInlineIf"></a><p>
+<a class="anchor" name="a78" doxytag="UTAP::AbstractBuilder::exprInlineIf"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1524,12 +1504,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a7">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a73">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a82">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a20">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a63">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a31">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a65">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a62" doxytag="UTAP::AbstractBuilder::exprNat"></a><p>
+<a class="anchor" name="a67" doxytag="UTAP::AbstractBuilder::exprNat"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1556,12 +1536,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a20">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a61">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a71">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a8">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a49">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a20">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a52">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a69" doxytag="UTAP::AbstractBuilder::exprPostDecrement"></a><p>
+<a class="anchor" name="a73" doxytag="UTAP::AbstractBuilder::exprPostDecrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1587,12 +1567,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a8">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a68">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a77">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a15">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a58">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a26">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a60">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a67" doxytag="UTAP::AbstractBuilder::exprPostIncrement"></a><p>
+<a class="anchor" name="a71" doxytag="UTAP::AbstractBuilder::exprPostIncrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1618,12 +1598,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a15">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a66">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a75">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a13">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a56">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a24">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a58">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a70" doxytag="UTAP::AbstractBuilder::exprPreDecrement"></a><p>
+<a class="anchor" name="a74" doxytag="UTAP::AbstractBuilder::exprPreDecrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1649,12 +1629,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a13">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a69">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a78">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a16">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a59">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a27">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a61">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a68" doxytag="UTAP::AbstractBuilder::exprPreIncrement"></a><p>
+<a class="anchor" name="a72" doxytag="UTAP::AbstractBuilder::exprPreIncrement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1680,12 +1660,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a16">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a67">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a76">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a14">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a57">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a25">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a59">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a57" doxytag="UTAP::AbstractBuilder::exprStatement"></a><p>
+<a class="anchor" name="a62" doxytag="UTAP::AbstractBuilder::exprStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1711,12 +1691,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a14">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a56">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a66">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a31">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a52">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a35">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a41">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a59" doxytag="UTAP::AbstractBuilder::exprTrue"></a><p>
+<a class="anchor" name="a64" doxytag="UTAP::AbstractBuilder::exprTrue"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1742,12 +1722,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a31">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a59">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a69">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a50">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a17">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a53">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a72" doxytag="UTAP::AbstractBuilder::exprUnary"></a><p>
+<a class="anchor" name="a76" doxytag="UTAP::AbstractBuilder::exprUnary"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1755,7 +1735,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">UTA
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::exprUnary           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>unaryop</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -1774,12 +1754,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a71">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a80">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a18">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a61">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a29">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a63">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a38" doxytag="UTAP::AbstractBuilder::forBegin"></a><p>
+<a class="anchor" name="a43" doxytag="UTAP::AbstractBuilder::forBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1805,12 +1785,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a18">UT
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a37">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a47">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a18">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a33">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a22">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a30">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a39" doxytag="UTAP::AbstractBuilder::forEnd"></a><p>
+<a class="anchor" name="a44" doxytag="UTAP::AbstractBuilder::forEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1836,44 +1816,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a18">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a38">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a48">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a19">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a34">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a23">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a31">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a89" doxytag="UTAP::AbstractBuilder::higherPriority"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::higherPriority           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a89">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a63">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a46" doxytag="UTAP::AbstractBuilder::ifBegin"></a><p>
+<a class="anchor" name="a51" doxytag="UTAP::AbstractBuilder::ifBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1899,12 +1847,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a63">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a45">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a55">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a26">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a41">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a30">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a38">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a47" doxytag="UTAP::AbstractBuilder::ifElse"></a><p>
+<a class="anchor" name="a52" doxytag="UTAP::AbstractBuilder::ifElse"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1930,12 +1878,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a26">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a46">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a56">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a27">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a42">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a31">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a39">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a48" doxytag="UTAP::AbstractBuilder::ifEnd"></a><p>
+<a class="anchor" name="a53" doxytag="UTAP::AbstractBuilder::ifEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1962,12 +1910,74 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a27">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a47">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a57">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a28">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a43">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a32">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a40">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a80" doxytag="UTAP::AbstractBuilder::instantiationBegin"></a><p>
+<a class="anchor" name="a94" doxytag="UTAP::AbstractBuilder::incChanPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::incChanPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a98">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a51">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a93" doxytag="UTAP::AbstractBuilder::incProcPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::incProcPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a97">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a50">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a86" doxytag="UTAP::AbstractBuilder::instantiationBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -1976,6 +1986,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a28">UTAP::
           <td class="md" nowrap valign="top">void AbstractBuilder::instantiationBegin           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>size_t&nbsp;</td>
           <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
@@ -2003,12 +2019,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a28">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a79">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a90">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a71">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a55">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a75">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a44">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a81" doxytag="UTAP::AbstractBuilder::instantiationEnd"></a><p>
+<a class="anchor" name="a87" doxytag="UTAP::AbstractBuilder::instantiationEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2022,14 +2038,20 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a71">UTAP::
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
+          <td class="md" nowrap>size_t&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
           <td class="md" nowrap>const char *&nbsp;</td>
           <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>n</em></td>
+          <td class="md" nowrap>size_t&nbsp;</td>
+          <td class="mdname" nowrap></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -2050,12 +2072,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a71">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a80">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a91">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a72">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a56">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a76">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a45">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="UTAP::AbstractBuilder::isLocation"></a><p>
+<a class="anchor" name="a3" doxytag="UTAP::AbstractBuilder::isLocation"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2082,10 +2104,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a72">UTAP::
 <p>
 
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a4">UTAP::ExpressionBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a16">UTAP::ExpressionBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="UTAP::AbstractBuilder::isType"></a><p>
+<a class="anchor" name="a2" doxytag="UTAP::AbstractBuilder::isType"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2114,12 +2136,12 @@ Must return true if and only if name is registered in the symbol table as a name
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a3">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a7">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a3">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a3">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a15">UTAP::ExpressionBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a40" doxytag="UTAP::AbstractBuilder::iterationBegin"></a><p>
+<a class="anchor" name="a45" doxytag="UTAP::AbstractBuilder::iterationBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2146,12 +2168,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a3">UTA
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a39">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a49">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a20">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a35">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a24">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a32">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a41" doxytag="UTAP::AbstractBuilder::iterationEnd"></a><p>
+<a class="anchor" name="a46" doxytag="UTAP::AbstractBuilder::iterationEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2178,21 +2200,21 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a20">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a40">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a50">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a21">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a36">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a25">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a33">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a87" doxytag="UTAP::AbstractBuilder::lowPriority"></a><p>
+<a class="anchor" name="a26" doxytag="UTAP::AbstractBuilder::procBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::lowPriority           </td>
+          <td class="md" nowrap valign="top">void AbstractBuilder::procBegin           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
         </tr>
@@ -2210,59 +2232,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a21">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a87">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a30">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a61">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a37">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a13">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a21" doxytag="UTAP::AbstractBuilder::procBegin"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::procBegin           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>n</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>m</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a20">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a34">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a16">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a29" doxytag="UTAP::AbstractBuilder::procEdgeBegin"></a><p>
+<a class="anchor" name="a34" doxytag="UTAP::AbstractBuilder::procEdgeBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2304,12 +2279,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a34">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a28">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a38">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a45">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a24">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a48">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a21">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a30" doxytag="UTAP::AbstractBuilder::procEdgeEnd"></a><p>
+<a class="anchor" name="a35" doxytag="UTAP::AbstractBuilder::procEdgeEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2345,12 +2320,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a45">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a29">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a39">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a46">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a25">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a49">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a22">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a22" doxytag="UTAP::AbstractBuilder::procEnd"></a><p>
+<a class="anchor" name="a27" doxytag="UTAP::AbstractBuilder::procEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2376,12 +2351,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a46">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a21">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a31">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a47">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a17">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a50">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a14">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a82" doxytag="UTAP::AbstractBuilder::process"></a><p>
+<a class="anchor" name="a88" doxytag="UTAP::AbstractBuilder::process"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2408,12 +2383,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a47">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a81">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a92">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a73">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a57">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a77">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a46">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a32" doxytag="UTAP::AbstractBuilder::procGuard"></a><p>
+<a class="anchor" name="a37" doxytag="UTAP::AbstractBuilder::procGuard"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2439,12 +2414,44 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a73">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a31">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a41">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a42">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a27">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a45">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a24">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a31" doxytag="UTAP::AbstractBuilder::procSelect"></a><p>
+<a class="anchor" name="a96" doxytag="UTAP::AbstractBuilder::procPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::procPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a100">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a53">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a36" doxytag="UTAP::AbstractBuilder::procSelect"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2471,12 +2478,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a42">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a30">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a40">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a41">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a26">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a44">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a23">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a23" doxytag="UTAP::AbstractBuilder::procState"></a><p>
+<a class="anchor" name="a28" doxytag="UTAP::AbstractBuilder::procState"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2512,12 +2519,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a41">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a22">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a32">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a35">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a18">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a38">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a15">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a24" doxytag="UTAP::AbstractBuilder::procStateCommit"></a><p>
+<a class="anchor" name="a29" doxytag="UTAP::AbstractBuilder::procStateCommit"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2544,12 +2551,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a35">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a23">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a33">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a37">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a19">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a40">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a16">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a28" doxytag="UTAP::AbstractBuilder::procStateInit"></a><p>
+<a class="anchor" name="a33" doxytag="UTAP::AbstractBuilder::procStateInit"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2576,12 +2583,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a37">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a27">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a37">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a40">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a23">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a43">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a20">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a27" doxytag="UTAP::AbstractBuilder::procStateLosing"></a><p>
+<a class="anchor" name="a32" doxytag="UTAP::AbstractBuilder::procStateLosing"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2608,12 +2615,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a40">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a26">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a36">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a39">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a22">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a42">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a19">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a25" doxytag="UTAP::AbstractBuilder::procStateUrgent"></a><p>
+<a class="anchor" name="a30" doxytag="UTAP::AbstractBuilder::procStateUrgent"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2640,12 +2647,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a39">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a24">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a34">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a36">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a20">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a39">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a17">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a26" doxytag="UTAP::AbstractBuilder::procStateWinning"></a><p>
+<a class="anchor" name="a31" doxytag="UTAP::AbstractBuilder::procStateWinning"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2672,12 +2679,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a36">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a25">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a35">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a38">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a21">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a41">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a18">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a33" doxytag="UTAP::AbstractBuilder::procSync"></a><p>
+<a class="anchor" name="a38" doxytag="UTAP::AbstractBuilder::procSync"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2685,7 +2692,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a38">UTAP::
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::procSync           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a57">Constants::synchronisation_t</a>&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a87">Constants::synchronisation_t</a>&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>type</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
@@ -2704,44 +2711,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a38">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a32">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a42">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a43">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a28">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a46">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a25">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a20" doxytag="UTAP::AbstractBuilder::procTemplateSet"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::procTemplateSet           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a19">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a33">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a15">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a34" doxytag="UTAP::AbstractBuilder::procUpdate"></a><p>
+<a class="anchor" name="a39" doxytag="UTAP::AbstractBuilder::procUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2767,12 +2742,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a33">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a33">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a43">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a44">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a29">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a47">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a26">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a84" doxytag="UTAP::AbstractBuilder::property"></a><p>
+<a class="anchor" name="a90" doxytag="UTAP::AbstractBuilder::property"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2780,19 +2755,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a44">UTAP::
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::property           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a56">Constants::kind_t</a>&nbsp;</td>
-          <td class="mdname" nowrap>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>int&nbsp;</td>
-          <td class="mdname" nowrap> <em>line</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"><code> [virtual]</code></td>
+          <td class="md" nowrap valign="top"><a class="el" href="namespaceUTAP_1_1Constants.html#a86">Constants::kind_t</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
         </tr>
       </table>
     </td>
@@ -2808,10 +2774,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a44">UTAP::
 <p>
 
 <p>
-Reimplemented from <a class="el" href="classUTAP_1_1ParserBuilder.html#a84">UTAP::ParserBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a94">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a58" doxytag="UTAP::AbstractBuilder::returnStatement"></a><p>
+<a class="anchor" name="a63" doxytag="UTAP::AbstractBuilder::returnStatement"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2838,78 +2804,12 @@ Reimplemented from <a class="el" href="classUTAP_1_1ParserBuilder.html#a84">UTAP
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a57">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a67">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a32">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a53">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a36">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a42">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a88" doxytag="UTAP::AbstractBuilder::samePriority"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::samePriority           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a88">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a62">UTAP::SystemBuilder</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a1" doxytag="UTAP::AbstractBuilder::setErrorHandler"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::setErrorHandler           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Set the error handler to the given handler. 
-<p>
-Errors are reported by calling this handler or by throwing a <a class="el" href="classUTAP_1_1TypeException.html">TypeException</a>. 
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a1">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a1">UTAP::PrettyPrinter</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a2" doxytag="UTAP::AbstractBuilder::setPosition"></a><p>
+<a class="anchor" name="a1" doxytag="UTAP::AbstractBuilder::setPosition"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -2917,48 +2817,14 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a1">UTAP::P
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::setPosition           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1position__t.html">position_t</a> &amp;&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap><code> [virtual]</code></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Sets the current position. 
-<p>
-The current position indicates where in the input file the current productions can be found. 
-<p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a2">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a2">UTAP::PrettyPrinter</a>.    </td>
-  </tr>
-</table>
-<a class="anchor" name="a7" doxytag="UTAP::AbstractBuilder::structField"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::structField           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
+          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap>uint32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>dim</em></td>
+          <td class="mdname" nowrap></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -2977,24 +2843,23 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a2">UTAP::P
     <td>
 
 <p>
-Called to declare a field of a structure. 
+Sets the current position. 
 <p>
-The type of the field has been reported using a typeXXX method prior to the call of <a class="el" href="classUTAP_1_1AbstractBuilder.html#a7">structField()</a>. In case of array fields, 'dim' expressions indicating the array sizes have been reported. 
+The current position indicates where in the input file the current productions can be found. 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a6">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a2">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a2">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="UTAP::AbstractBuilder::structFieldEnd"></a><p>
+<a class="anchor" name="a17" doxytag="UTAP::AbstractBuilder::structField"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">void AbstractBuilder::structFieldEnd           </td>
+          <td class="md" nowrap valign="top">void AbstractBuilder::structField           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap><code> [virtual]</code></td>
         </tr>
@@ -3010,16 +2875,16 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a2">UTAP::S
     <td>
 
 <p>
-Called at the end of a series of field declarations of the same type. 
+Called to declare a field of a structure. 
 <p>
-
+The type of the field has been reported using a typeXXX method prior to the call of <a class="el" href="classUTAP_1_1AbstractBuilder.html#a17">structField()</a>. In case of array fields, 'dim' expressions indicating the array sizes have been reported. 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a7">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a21">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a3">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a4">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a51" doxytag="UTAP::AbstractBuilder::switchBegin"></a><p>
+<a class="anchor" name="a56" doxytag="UTAP::AbstractBuilder::switchBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3045,12 +2910,10 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a3">UTAP::S
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a50">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a46">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a60">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a52" doxytag="UTAP::AbstractBuilder::switchEnd"></a><p>
+<a class="anchor" name="a57" doxytag="UTAP::AbstractBuilder::switchEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3076,12 +2939,280 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a46">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a51">UTAP::ParserBuilder</a>.
-<p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a47">UTAP::SystemBuilder</a>.    </td>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a61">UTAP::ParserBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="UTAP::AbstractBuilder::typeName"></a><p>
+<a class="anchor" name="a15" doxytag="UTAP::AbstractBuilder::typeArrayOfSize"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeArrayOfSize           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">size_t&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called to create an array type. 
+<p>
+The size of the array was previously pushed as an expression. 
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a16">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a1">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a16" doxytag="UTAP::AbstractBuilder::typeArrayOfType"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeArrayOfType           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">size_t&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called to create an array type. 
+<p>
+The size of the array was previously pushed as a type. 
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a17">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a2">UTAP::SystemBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a6" doxytag="UTAP::AbstractBuilder::typeBool"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeBool           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a boolean type is parsed. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a10">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a7">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a4">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a8" doxytag="UTAP::AbstractBuilder::typeBoundedInt"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeBoundedInt           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever an integer type with a range is parsed. 
+<p>
+Expressions for the lower and upper have been pushed before. 
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a12">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a9">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a6">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a9" doxytag="UTAP::AbstractBuilder::typeChannel"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeChannel           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a channel type is parsed. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a13">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a10">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a7">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a10" doxytag="UTAP::AbstractBuilder::typeClock"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeClock           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a clock type is parsed. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a14">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a11">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a8">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a4" doxytag="UTAP::AbstractBuilder::typeDuplicate"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeDuplicate           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Duplicate type at the top of the type stack. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a8">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a5">UTAP::ExpressionBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a7" doxytag="UTAP::AbstractBuilder::typeInt"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeInt           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever an integer type is parsed. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a11">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a8">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a5">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a13" doxytag="UTAP::AbstractBuilder::typeName"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3089,20 +3220,14 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a47">UTAP::
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::typeName           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">int32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>prefix</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap>const char *&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>int&nbsp;</td>
-          <td class="mdname" nowrap> <em>range</em></td>
+          <td class="mdname" nowrap> <em>name</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -3123,14 +3248,81 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a47">UTAP::
 <p>
 Called when a type name has been parsed. 
 <p>
-Prefix indicates whether the type named was prefixed (e.g. with 'const'). The range argument indicates whether a range was given for the type (in that case two expressions were reported using the exprXXX methods). 
+Prefix indicates whether the type named was prefixed (e.g. with 'const'). 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a4">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a19">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a2">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a4">UTAP::PrettyPrinter</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a14">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a11">UTAP::PrettyPrinter</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="UTAP::AbstractBuilder::typeStruct"></a><p>
+<a class="anchor" name="a5" doxytag="UTAP::AbstractBuilder::typePop"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typePop           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Pop type at the topof the type stack. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a9">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a6">UTAP::ExpressionBuilder</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a12" doxytag="UTAP::AbstractBuilder::typeScalar"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeScalar           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a scalar type is parsed. 
+<p>
+The size of the scalar set was pushed as an expression before. 
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a18">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a13">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a10">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a14" doxytag="UTAP::AbstractBuilder::typeStruct"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3138,8 +3330,8 @@ Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a2">UTA
         <tr>
           <td class="md" nowrap valign="top">void AbstractBuilder::typeStruct           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">int32_t&nbsp;</td>
-          <td class="mdname" nowrap> <em>prefix</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ParserBuilder.html#w6">PREFIX</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -3168,12 +3360,45 @@ Called when a struct-type has been parsed.
 <p>
 Prior to the call 'fields' fields must have been declared using the structXXX methods. 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a5">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a20">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a1">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a3">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a42" doxytag="UTAP::AbstractBuilder::whileBegin"></a><p>
+<a class="anchor" name="a11" doxytag="UTAP::AbstractBuilder::typeVoid"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void AbstractBuilder::typeVoid           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap><code> [virtual]</code></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Called whenever a void type is parsed. 
+<p>
+
+<p>
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a15">UTAP::ParserBuilder</a>.
+<p>
+Reimplemented in <a class="el" href="classUTAP_1_1ExpressionBuilder.html#a12">UTAP::ExpressionBuilder</a>, and <a class="el" href="classUTAP_1_1PrettyPrinter.html#a9">UTAP::PrettyPrinter</a>.    </td>
+  </tr>
+</table>
+<a class="anchor" name="a47" doxytag="UTAP::AbstractBuilder::whileBegin"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3199,12 +3424,12 @@ Reimplemented in <a class="el" href="classUTAP_1_1SystemBuilder.html#a1">UTAP::S
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a41">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a51">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a22">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a37">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a26">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a34">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
-<a class="anchor" name="a43" doxytag="UTAP::AbstractBuilder::whileEnd"></a><p>
+<a class="anchor" name="a48" doxytag="UTAP::AbstractBuilder::whileEnd"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -3230,42 +3455,19 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a22">UTAP::
 <p>
 
 <p>
-Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a42">UTAP::ParserBuilder</a>.
+Implements <a class="el" href="classUTAP_1_1ParserBuilder.html#a52">UTAP::ParserBuilder</a>.
 <p>
-Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a23">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a38">UTAP::SystemBuilder</a>.    </td>
+Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a27">UTAP::PrettyPrinter</a>, and <a class="el" href="classUTAP_1_1SystemBuilder.html#a35">UTAP::SystemBuilder</a>.    </td>
   </tr>
 </table>
 <hr><h2>Member Data Documentation</h2>
-<a class="anchor" name="p0" doxytag="UTAP::AbstractBuilder::errorHandler"></a><p>
+<a class="anchor" name="p0" doxytag="UTAP::AbstractBuilder::position"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a>* <a class="el" href="classUTAP_1_1AbstractBuilder.html#p0">UTAP::AbstractBuilder::errorHandler</a><code> [protected]</code>          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="p1" doxytag="UTAP::AbstractBuilder::position"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a> <a class="el" href="classUTAP_1_1AbstractBuilder.html#p1">UTAP::AbstractBuilder::position</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a> <a class="el" href="classUTAP_1_1AbstractBuilder.html#p0">UTAP::AbstractBuilder::position</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -3284,7 +3486,7 @@ Reimplemented in <a class="el" href="classUTAP_1_1PrettyPrinter.html#a23">UTAP::
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="abstractbuilder_8h-source.html">abstractbuilder.h</a><li><a class="el" href="abstractbuilder_8cpp.html">abstractbuilder.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

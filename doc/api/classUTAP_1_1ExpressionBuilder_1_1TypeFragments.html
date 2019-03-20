@@ -12,23 +12,23 @@
 <a href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
 <tr><td colspan="2"><br><h2>Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">~TypeFragments</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a0">operator[]</a> (int idx)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::pair&lt; <a class="el" href="classUTAP_1_1type__t.html">type_t</a>, char * &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">operator[]</a> (int idx)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a1">push</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> value)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">push</a> (<a class="el" href="classUTAP_1_1type__t.html">type_t</a> value)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a2">pop</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">pop</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1ExpressionBuilder_1_1TypeFragments.html#a3">duplicate</a> ()</td></tr>
 
 </table>
-<hr><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" name="a0" doxytag="UTAP::ExpressionBuilder::TypeFragments::~TypeFragments"></a><p>
+<hr><h2>Member Function Documentation</h2>
+<a class="anchor" name="a3" doxytag="UTAP::ExpressionBuilder::TypeFragments::duplicate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">UTAP::ExpressionBuilder::TypeFragments::~TypeFragments           </td>
+          <td class="md" nowrap valign="top">void UTAP::ExpressionBuilder::TypeFragments::duplicate           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -49,14 +49,13 @@
     </td>
   </tr>
 </table>
-<hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a1" doxytag="UTAP::ExpressionBuilder::TypeFragments::operator[]"></a><p>
+<a class="anchor" name="a0" doxytag="UTAP::ExpressionBuilder::TypeFragments::operator[]"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::pair&lt;<a class="el" href="classUTAP_1_1type__t.html">type_t</a>, char *&gt;&amp; UTAP::ExpressionBuilder::TypeFragments::operator[]           </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1type__t.html">type_t</a>&amp; UTAP::ExpressionBuilder::TypeFragments::operator[]           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">int&nbsp;</td>
           <td class="mdname1" valign="top" nowrap> <em>idx</em>          </td>
@@ -78,7 +77,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a3" doxytag="UTAP::ExpressionBuilder::TypeFragments::pop"></a><p>
+<a class="anchor" name="a2" doxytag="UTAP::ExpressionBuilder::TypeFragments::pop"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -105,7 +104,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="UTAP::ExpressionBuilder::TypeFragments::push"></a><p>
+<a class="anchor" name="a1" doxytag="UTAP::ExpressionBuilder::TypeFragments::push"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -135,7 +134,7 @@
 </table>
 <hr>The documentation for this class was generated from the following file:<ul>
 <li><a class="el" href="expressionbuilder_8h-source.html">expressionbuilder.h</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

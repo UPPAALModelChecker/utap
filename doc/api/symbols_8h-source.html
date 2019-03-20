@@ -10,7 +10,7 @@
 <h1>symbols.h</h1><a href="symbols_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment">00001 <span class="comment">// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-</span>
 00002 
 00003 <span class="comment">/* libutap - Uppaal Timed Automata Parser.</span>
-00004 <span class="comment">   Copyright (C) 2002 Uppsala University and Aalborg University.</span>
+00004 <span class="comment">   Copyright (C) 2002-2006 Uppsala University and Aalborg University.</span>
 00005 <span class="comment">   </span>
 00006 <span class="comment">   This library is free software; you can redistribute it and/or</span>
 00007 <span class="comment">   modify it under the terms of the GNU Lesser General Public License</span>
@@ -34,283 +34,140 @@
 00025 <span class="preprocessor">#include &lt;inttypes.h&gt;</span>
 00026 <span class="preprocessor">#include &lt;exception&gt;</span>
 00027 
-00028 <span class="keyword">namespace </span>UTAP
-00029 {
-00030     <span class="keyword">class </span>frame_t;
-00031     <span class="keyword">class </span>type_t;
-00032     <span class="keyword">class </span>expression_t;
-00033     
-<a name="l00034"></a><a class="code" href="classUTAP_1_1NoParentException.html">00034</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1NoParentException.html">NoParentException</a> : <span class="keyword">public</span> std::exception {};
-00035 
-<a name="l00038"></a><a class="code" href="classUTAP_1_1range__t.html">00038</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1range__t.html">range_t</a> {
-00039     <span class="keyword">public</span>:
-<a name="l00040"></a><a class="code" href="classUTAP_1_1range__t.html#o1">00040</a>         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1range__t.html#o0">lower</a>, <a class="code" href="classUTAP_1_1range__t.html#o1">upper</a>;
-00041 
-00043         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>();
-00044 
-00046         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keywordtype">int</span>);
-00047 
-00049         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keywordtype">int</span>,<span class="keywordtype">int</span>);
-00050 
-00052         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keyword">const</span> std::pair&lt;int,int&gt; &amp;);
-00053 
-00055         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a4">intersect</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00056 
-00058         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a5">join</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00059 
-00061         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a6">contains</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00062 
-00064         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a6">contains</a>(int32_t) <span class="keyword">const</span>;
-00065 
-00067         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a8">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00068 
-00070         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a9">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00071 
-00073         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a10">operator| </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00074 
-00076         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a11">operator&amp; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
-00077 
-00079         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a12">isEmpty</a>() <span class="keyword">const</span>;
-00080 
-00081         uint32_t <a class="code" href="classUTAP_1_1range__t.html#a13">size</a>() <span class="keyword">const</span>;
-00082     };
-00083 
+00028 <span class="preprocessor">#include "<a class="code" href="common_8h.html">utap/common.h</a>"</span>
+00029 <span class="preprocessor">#include "<a class="code" href="position_8h.html">utap/position.h</a>"</span>
+00030 <span class="preprocessor">#include "<a class="code" href="type_8h.html">utap/type.h</a>"</span>
+00031 
+00032 <span class="keyword">namespace </span>UTAP
+00033 {
+00034     <span class="keyword">class </span>frame_t;
+00035     <span class="keyword">class </span>expression_t;
+00036     
+<a name="l00037"></a><a class="code" href="classUTAP_1_1NoParentException.html">00037</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1NoParentException.html">NoParentException</a> : <span class="keyword">public</span> std::exception {};
+00038 
+<a name="l00041"></a><a class="code" href="classUTAP_1_1range__t.html">00041</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1range__t.html">range_t</a> 
+00042     {
+00043     <span class="keyword">public</span>:
+<a name="l00044"></a><a class="code" href="classUTAP_1_1range__t.html#o1">00044</a>         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1range__t.html#o0">lower</a>, <a class="code" href="classUTAP_1_1range__t.html#o1">upper</a>;
+00045 
+00047         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>();
+00048 
+00050         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keywordtype">int</span>);
+00051 
+00053         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keywordtype">int</span>,<span class="keywordtype">int</span>);
+00054 
+00056         <a class="code" href="classUTAP_1_1range__t.html#a0">range_t</a>(<span class="keyword">const</span> std::pair&lt;int,int&gt; &amp;);
+00057 
+00059         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a4">intersect</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00060 
+00062         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a5">join</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00063 
+00065         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a6">contains</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00066 
+00068         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a6">contains</a>(int32_t) <span class="keyword">const</span>;
+00069 
+00071         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a8">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00072 
+00074         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a9">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00075 
+00077         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a10">operator| </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00078 
+00080         <a class="code" href="classUTAP_1_1range__t.html">range_t</a> <a class="code" href="classUTAP_1_1range__t.html#a11">operator&amp; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1range__t.html">range_t</a> &amp;) <span class="keyword">const</span>;
+00081 
+00083         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1range__t.html#a12">isEmpty</a>() <span class="keyword">const</span>;
 00084 
-<a name="l00104"></a><a class="code" href="classUTAP_1_1symbol__t.html">00104</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>
-00105     {
-00106     <span class="keyword">private</span>:
-00107         <span class="keyword">struct </span>symbol_data;
-00108         symbol_data *data;
-00109     <span class="keyword">protected</span>:
-<a name="l00110"></a><a class="code" href="classUTAP_1_1symbol__t.html#n0">00110</a>         <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>;
-00111         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>(<span class="keywordtype">void</span> *frame, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;type, std::string name, <span class="keywordtype">void</span> *user);
-00112     <span class="keyword">public</span>:
-00114         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>();
-00115 
-00117         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
-00118         
-00120         <a class="code" href="classUTAP_1_1symbol__t.html#a2">~symbol_t</a>();
-00121 
-00123         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;<a class="code" href="classUTAP_1_1symbol__t.html#a3">operator = </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
+00085         uint32_t <a class="code" href="classUTAP_1_1range__t.html#a13">size</a>() <span class="keyword">const</span>;
+00086     };
+00087 
+<a name="l00107"></a><a class="code" href="classUTAP_1_1symbol__t.html">00107</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>
+00108     {
+00109     <span class="keyword">private</span>:
+00110         <span class="keyword">struct </span>symbol_data;
+00111         symbol_data *data;
+00112     <span class="keyword">protected</span>:
+<a name="l00113"></a><a class="code" href="classUTAP_1_1symbol__t.html#n0">00113</a>         <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>;
+00114         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>(<span class="keywordtype">void</span> *frame, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string name, <span class="keywordtype">void</span> *user);
+00115     <span class="keyword">public</span>:
+00117         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>();
+00118 
+00120         <a class="code" href="classUTAP_1_1symbol__t.html#a0">symbol_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
+00121         
+00123         <a class="code" href="classUTAP_1_1symbol__t.html#a2">~symbol_t</a>();
 00124 
-00126         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a4">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
+00126         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;<a class="code" href="classUTAP_1_1symbol__t.html#a3">operator = </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;);
 00127 
-00129         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a5">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
+00129         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a4">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
 00130 
-00132         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a6">operator &lt; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
-00133         
-00135         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1symbol__t.html#a7">getFrame</a>();
-00136 
-00138         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1symbol__t.html#a8">getType</a>() <span class="keyword">const</span>;
+00132         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a5">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
+00133 
+00135         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1symbol__t.html#a6">operator &lt; </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;) <span class="keyword">const</span>;
+00136         
+00138         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1symbol__t.html#a7">getFrame</a>();
 00139 
-00141         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1symbol__t.html#a9">setType</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
-00142         
-00144         <span class="keywordtype">void</span> *<a class="code" href="classUTAP_1_1symbol__t.html#a10">getData</a>();
-00145 
-00147         <span class="keyword">const</span> <span class="keywordtype">void</span> *<a class="code" href="classUTAP_1_1symbol__t.html#a10">getData</a>() <span class="keyword">const</span>;
+00141         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="classUTAP_1_1symbol__t.html#a8">getType</a>() <span class="keyword">const</span>;
+00142 
+00144         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1symbol__t.html#a9">setType</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
+00145         
+00147         <span class="keywordtype">void</span> *<a class="code" href="classUTAP_1_1symbol__t.html#a10">getData</a>();
 00148 
-00150         std::string <a class="code" href="classUTAP_1_1symbol__t.html#a12">getName</a>() <span class="keyword">const</span>;
-00151         
-00153         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1symbol__t.html#a13">setData</a>(<span class="keywordtype">void</span> *);
-00154     };
-00155 
-<a name="l00177"></a><a class="code" href="classUTAP_1_1frame__t.html">00177</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>
-00178     {
-00179     <span class="keyword">private</span>:
-00180         <span class="keyword">struct </span>frame_data;
-00181         frame_data *data;
-00182     <span class="keyword">protected</span>:
-<a name="l00183"></a><a class="code" href="classUTAP_1_1frame__t.html#n0">00183</a>         <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>;
-00184         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>(<span class="keywordtype">void</span> *);
-00185     <span class="keyword">public</span>:
-00187         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>();
-00188 
-00190         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;);
+00150         <span class="keyword">const</span> <span class="keywordtype">void</span> *<a class="code" href="classUTAP_1_1symbol__t.html#a10">getData</a>() <span class="keyword">const</span>;
+00151 
+00153         std::string <a class="code" href="classUTAP_1_1symbol__t.html#a12">getName</a>() <span class="keyword">const</span>;
+00154         
+00156         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1symbol__t.html#a13">setData</a>(<span class="keywordtype">void</span> *);
+00157     };
+00158 
+<a name="l00180"></a><a class="code" href="classUTAP_1_1frame__t.html">00180</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>
+00181     {
+00182     <span class="keyword">private</span>:
+00183         <span class="keyword">struct </span>frame_data;
+00184         frame_data *data;
+00185     <span class="keyword">protected</span>:
+<a name="l00186"></a><a class="code" href="classUTAP_1_1frame__t.html#n0">00186</a>         <span class="keyword">friend</span> <span class="keyword">class </span><a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>;
+00187         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>(<span class="keywordtype">void</span> *);
+00188     <span class="keyword">public</span>:
+00190         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>();
 00191 
-00193         <a class="code" href="classUTAP_1_1frame__t.html#a2">~frame_t</a>();
+00193         <a class="code" href="classUTAP_1_1frame__t.html#a0">frame_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;);
 00194 
-00196         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;<a class="code" href="classUTAP_1_1frame__t.html#a3">operator = </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;);
+00196         <a class="code" href="classUTAP_1_1frame__t.html#a2">~frame_t</a>();
 00197 
-00199         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a4">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;) <span class="keyword">const</span>;
+00199         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;<a class="code" href="classUTAP_1_1frame__t.html#a3">operator = </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;);
 00200 
-00202         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a5">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;) <span class="keyword">const</span>;
-00203         
-00205         uint32_t <a class="code" href="classUTAP_1_1frame__t.html#a6">getSize</a>() <span class="keyword">const</span>;
-00206 
-00208         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a7">getSymbol</a>(int32_t);
+00202         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a4">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;) <span class="keyword">const</span>;
+00203 
+00205         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a5">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;) <span class="keyword">const</span>;
+00206         
+00208         uint32_t <a class="code" href="classUTAP_1_1frame__t.html#a6">getSize</a>() <span class="keyword">const</span>;
 00209 
-00211         int32_t <a class="code" href="classUTAP_1_1frame__t.html#a8">getIndexOf</a>(std::string name) <span class="keyword">const</span>;
+00211         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a7">getSymbol</a>(int32_t);
 00212 
-00214         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a9">operator[] </a>(int32_t);
+00214         int32_t <a class="code" href="classUTAP_1_1frame__t.html#a8">getIndexOf</a>(std::string name) <span class="keyword">const</span>;
 00215 
-00217         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a9">operator[] </a>(int32_t) <span class="keyword">const</span>;
+00217         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a9">operator[] </a>(int32_t);
 00218 
-00220         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a11">addSymbol</a>(std::string name, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>, <span class="keywordtype">void</span> *user = NULL);
+00220         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a9">operator[] </a>(int32_t) <span class="keyword">const</span>;
 00221 
-00223         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1frame__t.html#a12">add</a>(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
-00224         
-00226         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a13">resolve</a>(std::string name, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;<a class="code" href="namespaceUTAP.html#a36">symbol</a>);
+00223         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a11">addSymbol</a>(std::string name, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>, <span class="keywordtype">void</span> *user = NULL);
+00224 
+00226         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1frame__t.html#a12">add</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>);
 00227 
-00229         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a14">getParent</a>() throw (<a class="code" href="classUTAP_1_1NoParentException.html">NoParentException</a>);
-00230 
-00232         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a15">hasParent</a>() const;
+00229         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1frame__t.html#a12">add</a>(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
+00230         
+00232         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a14">resolve</a>(std::string name, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> &amp;<a class="code" href="namespaceUTAP.html#a36">symbol</a>);
 00233 
-00235         static <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1frame__t.html#e0">createFrame</a>();
+00235         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1frame__t.html#a15">getParent</a>() throw (<a class="code" href="classUTAP_1_1NoParentException.html">NoParentException</a>);
 00236 
-00238         static <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> createFrame(const <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;parent);
-00239     };
-00240 
-<a name="l00241"></a><a class="code" href="namespaceUTAP_1_1prefix.html">00241</a>     namespace prefix {
-<a name="l00242"></a><a class="code" href="namespaceUTAP_1_1prefix.html#a8">00242</a>         <span class="keyword">enum</span> <a class="code" href="namespaceUTAP_1_1prefix.html#a8">prefix_t</a> {
-00243             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a0">URGENT</a> = 1,
-00244             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a1">COMMITTED</a> = 2,
-00245             <a class="code" href="namespaceUTAP_1_1Constants.html#a56a40">CONSTANT</a> = 4,
-00246             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a3">BROADCAST</a> = 8,
-00247             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a4">REFERENCE</a> = 16,
-00248             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a5">META</a> = 32,
-00249             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a6">WINNING</a> = 64,
-00250             <a class="code" href="namespaceUTAP_1_1prefix.html#a8a7">LOSING</a> = 128
-00251         };
-00252     }
-00253 
-<a name="l00281"></a><a class="code" href="classUTAP_1_1type__t.html">00281</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1type__t.html">type_t</a>
-00282     {
-00283     <span class="keyword">private</span>:
-00284         <span class="keyword">struct </span>type_data;
-00285         type_data *data;
-00286         <a class="code" href="classUTAP_1_1type__t.html">type_t</a>(<span class="keywordtype">void</span> *);
-00287     <span class="keyword">public</span>:
-00289         <a class="code" href="classUTAP_1_1type__t.html">type_t</a>();
-00290 
-00292         <a class="code" href="classUTAP_1_1type__t.html">type_t</a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;);
-00293 
-00295         ~<a class="code" href="classUTAP_1_1type__t.html">type_t</a>();
-00296 
-00298         <span class="keyword">const</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;<a class="code" href="classUTAP_1_1frame__t.html#a3">operator = </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;);
-00299 
-00301         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a4">operator == </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;) <span class="keyword">const</span>;
-00302 
-00304         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a5">operator != </a>(<span class="keyword">const</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> &amp;) <span class="keyword">const</span>;
-00305         
-00307         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> getBase() <span class="keyword">const</span>;
-00308 
-00310         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> getRecordFields() <span class="keyword">const</span>;
-00311 
-00313         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> getParameters() <span class="keyword">const</span>;
-00314 
-00316         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> getFrame() <span class="keyword">const</span>;
-00317         
-00319         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> getSub();
-00320 
-00322         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> getReturnType();
-00323  
-00325         <span class="keywordtype">bool</span> hasPrefix(<a class="code" href="namespaceUTAP_1_1prefix.html#a8">prefix::prefix_t</a>) <span class="keyword">const</span>;
-00326 
-00328         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> setPrefix(<span class="keywordtype">bool</span> set, <a class="code" href="namespaceUTAP_1_1prefix.html#a8">prefix::prefix_t</a>) <span class="keyword">const</span>;
-00329 
-00331         <a class="code" href="classUTAP_1_1type__t.html">type_t</a> getArraySize() <span class="keyword">const</span>;
-00332 
-00334         std::pair&lt;expression_t, expression_t&gt; getRange() <span class="keyword">const</span>;
-00335 
-00337         std::string toString();
-00338 
-<a name="l00340"></a><a class="code" href="classUTAP_1_1type__t.html#a17">00340</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a3">isInteger</a>()<span class="keyword"> const </span>{
-00341             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s3">type_t::INT</a>;
-00342         }
-00343 
-<a name="l00345"></a><a class="code" href="classUTAP_1_1type__t.html#a18">00345</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a4">isValue</a>()<span class="keyword"> const </span>{
-00346             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s3">type_t::INT</a> || getBase() == <a class="code" href="classUTAP_1_1type__t.html#s4">type_t::BOOL</a>;
-00347         }
-00348 
-<a name="l00350"></a><a class="code" href="classUTAP_1_1type__t.html#a19">00350</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a2">isScalar</a>()<span class="keyword"> const </span>{
-00351             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s5">type_t::SCALAR</a> || <a class="code" href="typechecker_8cpp.html#a3">isInteger</a>();
-00352         }
-00353 
-<a name="l00355"></a><a class="code" href="classUTAP_1_1type__t.html#a20">00355</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a5">isClock</a>()<span class="keyword"> const </span>{
-00356             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s2">type_t::CLOCK</a>;
-00357         }
-00358 
-<a name="l00360"></a><a class="code" href="classUTAP_1_1type__t.html#a21">00360</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a6">isRecord</a>()<span class="keyword"> const </span>{
-00361             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s12">type_t::RECORD</a>;
-00362         }
-00363         
-<a name="l00365"></a><a class="code" href="classUTAP_1_1type__t.html#a22">00365</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a7">isDiff</a>()<span class="keyword"> const </span>{
-00366             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s18">type_t::DIFF</a>;
-00367         }
-00368 
-00369 
-<a name="l00371"></a><a class="code" href="classUTAP_1_1type__t.html#a23">00371</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a1">isVoid</a>()<span class="keyword"> const </span>{
-00372             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s1">type_t::VOID_TYPE</a>;
-00373         }
-00374 
-00375         <span class="comment">/* Returns true if this is an invariant, boolean or integer. */</span>
-<a name="l00376"></a><a class="code" href="classUTAP_1_1type__t.html#a24">00376</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a8">isInvariant</a>()<span class="keyword"> const </span>{
-00377             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s15">type_t::INVARIANT</a> || <a class="code" href="typechecker_8cpp.html#a4">isValue</a>();
-00378         }
-00379 
-00380         <span class="comment">/* Returns true if this is a guard, invariant, boolean or integer. */</span>
-<a name="l00381"></a><a class="code" href="classUTAP_1_1type__t.html#a25">00381</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a10">isGuard</a>()<span class="keyword"> const </span>{
-00382             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s17">type_t::GUARD</a> || <a class="code" href="typechecker_8cpp.html#a8">isInvariant</a>();
-00383         }
-00384 
-00385         <span class="comment">/* Returns true if this is a constraint, guard, invariant,</span>
-00386 <span class="comment">         * boolean or integer. </span>
-00387 <span class="comment">         */</span>
-<a name="l00388"></a><a class="code" href="classUTAP_1_1type__t.html#a26">00388</a>         <span class="keywordtype">bool</span> <a class="code" href="typechecker_8cpp.html#a11">isConstraint</a>()<span class="keyword"> const </span>{
-00389             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s19">type_t::CONSTRAINT</a> || <a class="code" href="typechecker_8cpp.html#a10">isGuard</a>();
-00390         }
-00391 
-<a name="l00392"></a><a class="code" href="classUTAP_1_1type__t.html#a27">00392</a>         <span class="keywordtype">bool</span> isArray()<span class="keyword"> const </span>{
-00393             <span class="keywordflow">return</span> getBase() == <a class="code" href="classUTAP_1_1type__t.html#s11">type_t::ARRAY</a>;
-00394         }
-00395 
-00397         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createInteger(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00398 
-00400         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createScalarSet(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00401         
-00403         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createRecord(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
-00404 
-00406         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createFunction(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
-00407 
-00409         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createArray(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
-00410 
-00412         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createTypeName(<a class="code" href="classUTAP_1_1type__t.html">type_t</a>);
-00413 
-00415         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createTemplate(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
-00416 
-00418         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createProcess(<a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>);
-00419 
-00421         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> createBase();
-00422 
-<a name="l00423"></a><a class="code" href="classUTAP_1_1type__t.html#s0">00423</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> UNKNOWN;
-<a name="l00424"></a><a class="code" href="classUTAP_1_1type__t.html#s1">00424</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> VOID_TYPE;
-<a name="l00425"></a><a class="code" href="classUTAP_1_1type__t.html#s2">00425</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> CLOCK;
-<a name="l00426"></a><a class="code" href="classUTAP_1_1type__t.html#s3">00426</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> INT;
-<a name="l00427"></a><a class="code" href="classUTAP_1_1type__t.html#s4">00427</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> BOOL;
-<a name="l00428"></a><a class="code" href="classUTAP_1_1type__t.html#s5">00428</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> SCALAR;
-<a name="l00429"></a><a class="code" href="classUTAP_1_1type__t.html#s6">00429</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> LOCATION;
-<a name="l00430"></a><a class="code" href="classUTAP_1_1type__t.html#s7">00430</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> CHANNEL;
-<a name="l00431"></a><a class="code" href="classUTAP_1_1type__t.html#s8">00431</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> TEMPLATE;
-<a name="l00432"></a><a class="code" href="classUTAP_1_1type__t.html#s9">00432</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> INSTANCE;
-<a name="l00433"></a><a class="code" href="classUTAP_1_1type__t.html#s10">00433</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> FUNCTION;
-<a name="l00434"></a><a class="code" href="classUTAP_1_1type__t.html#s11">00434</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="namespaceUTAP_1_1Constants.html#a56a41">ARRAY</a>;
-<a name="l00435"></a><a class="code" href="classUTAP_1_1type__t.html#s12">00435</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> RECORD;
-<a name="l00436"></a><a class="code" href="classUTAP_1_1type__t.html#s13">00436</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> PROCESS;
-<a name="l00437"></a><a class="code" href="classUTAP_1_1type__t.html#s14">00437</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> NTYPE;
-<a name="l00438"></a><a class="code" href="classUTAP_1_1type__t.html#s15">00438</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> INVARIANT;
-<a name="l00439"></a><a class="code" href="classUTAP_1_1type__t.html#s16">00439</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> INVARIANT_WR;  <span class="comment">/* with rate */</span>
-<a name="l00440"></a><a class="code" href="classUTAP_1_1type__t.html#s17">00440</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> GUARD;
-<a name="l00441"></a><a class="code" href="classUTAP_1_1type__t.html#s18">00441</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> DIFF;
-<a name="l00442"></a><a class="code" href="classUTAP_1_1type__t.html#s19">00442</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> CONSTRAINT;
-<a name="l00443"></a><a class="code" href="classUTAP_1_1type__t.html#s20">00443</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> COST;
-<a name="l00444"></a><a class="code" href="classUTAP_1_1type__t.html#s21">00444</a>         <span class="keyword">static</span> <a class="code" href="classUTAP_1_1type__t.html">type_t</a> <a class="code" href="namespaceUTAP_1_1Constants.html#a56a14">RATE</a>;
-00445     };
-00446 }
-00447 
-00448 std::ostream &amp;<a class="code" href="namespaceUTAP.html#a32">operator &lt;&lt; </a>(std::ostream &amp;o, <a class="code" href="classUTAP_1_1type__t.html">UTAP::type_t</a> t);
-00449 
-00450 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00238         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1frame__t.html#a16">hasParent</a>() const;
+00239 
+00241         static <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="classUTAP_1_1frame__t.html#e0">createFrame</a>();
+00242 
+00244         static <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> createFrame(const <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> &amp;parent);
+00245     };
+00246 }
+00247 
+00248 #endif
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

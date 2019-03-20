@@ -38,7 +38,6 @@ extern "C"
 
 using UTAP::ParserBuilder;
 using UTAP::TimedAutomataSystem;
-using UTAP::ErrorHandler;
 using std::vector;
 using std::endl;
 using std::cout;
@@ -70,31 +69,17 @@ int main(int argc, char *argv[])
 
     ParserBuilder *b = new UTAP::PrettyPrinter(cout);
     
-    ErrorHandler handler;
     if (xml) 
     {
 	if (argc - optind != 1)
 	{
 	    exit(1);
 	}
-	parseXMLFile(argv[optind], b, &handler, !old);
+	parseXMLFile(argv[optind], b, !old);
     }
     else 
     {
-	parseXTA(stdin, b, &handler, !old);
-    }
-
-    vector<ErrorHandler::error_t>::const_iterator it;
-    const vector<ErrorHandler::error_t> &errors = handler.getErrors();
-    const vector<ErrorHandler::error_t> &warns = handler.getWarnings();
-
-    for (it = errors.begin(); it != errors.end(); it++)
-    {
-   	cerr << *it << endl;
-    }
-    for (it = warns.begin(); it != warns.end(); it++)
-    {
-   	cerr << *it << endl;
+	parseXTA(stdin, b, !old);
     }
 
     delete b;

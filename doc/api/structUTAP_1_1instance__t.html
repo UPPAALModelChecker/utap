@@ -7,24 +7,72 @@
 <div class="qindex"><a class="qindex" href="index.html">Main&nbsp;Page</a> | <a class="qindex" href="namespaces.html">Namespace List</a> | <a class="qindex" href="hierarchy.html">Class&nbsp;Hierarchy</a> | <a class="qindex" href="annotated.html">Class&nbsp;List</a> | <a class="qindex" href="dirs.html">Directories</a> | <a class="qindex" href="files.html">File&nbsp;List</a> | <a class="qindex" href="namespacemembers.html">Namespace&nbsp;Members</a> | <a class="qindex" href="functions.html">Class&nbsp;Members</a> | <a class="qindex" href="globals.html">File&nbsp;Members</a></div>
 <div class="nav">
 <a class="el" href="namespaceUTAP.html">UTAP</a>::<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a></div>
-<h1>UTAP::instance_t Struct Reference</h1><code>#include &lt;<a class="el" href="system_8h-source.html">system.h</a>&gt;</code>
+<h1>UTAP::instance_t Struct Reference</h1>Partial instance of a template.  
+<a href="#_details">More...</a>
+<p>
+<code>#include &lt;<a class="el" href="system_8h-source.html">system.h</a>&gt;</code>
 <p>
 <p>Inheritance diagram for UTAP::instance_t:
 <p><center><img src="structUTAP_1_1instance__t.png" usemap="#UTAP::instance_t_map" border="0" alt=""></center>
 <map name="UTAP::instance_t_map">
-<area href="structUTAP_1_1process__t.html" alt="UTAP::process_t" shape="rect" coords="0,56,107,80">
+<area href="structUTAP_1_1template__t.html" alt="UTAP::template_t" shape="rect" coords="0,56,107,80">
 </map>
 <a href="structUTAP_1_1instance__t-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
 <tr><td colspan="2"><br><h2>Public Attributes</h2></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o0">uid</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">const <a class="el" href="structUTAP_1_1template__t.html">template_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o1">templ</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The name.  <a href="#o0"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o1">parameters</a></td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The parameters.  <a href="#o1"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o2">mapping</a></td></tr>
 
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The arguments.  <a href="#o2"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o3">arguments</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o4">unbound</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o5">templ</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1instance__t.html#o6">restricted</a></td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Restricted variables.  <a href="#o6"></a><br></td></tr>
 </table>
+<hr><a name="_details"></a><h2>Detailed Description</h2>
+Partial instance of a template. 
+<p>
+Every template is also a partial instance of itself and therefore <a class="el" href="structUTAP_1_1template__t.html">template_t</a> is derived from <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a>. A complete instance is just a partial instance without any parameters.<p>
+Even though it is possible to make partial instances of partial instances, they are not represented hierarchically: All parameters and arguments are merged into this one struct. Therefore <em>parameters</em> contains both bound and unbound symbols: Unbound symbols are parameters of this instance. Bound symbols are inherited from another instance. Symbols in <em>parameters</em> are ordered such that unbound symbols are listed first, i.e., uid.getType().size() == parameters.getSize().<p>
+<em>mapping</em> binds parameters to expressions.<p>
+<em>arguments</em> is the number of arguments given by the partial instance. The first <em>arguments</em> bound symbols of <em>parameters</em> are the corresponding parameters. For templates, <em>arguments</em> is obviously 0.<p>
+Restricted variables are those that are used either directly or indirectly in the definition of array sizes. Any restricted parameters have restriction on the kind of arguments they accept (they must not depend on any free process parameters).<p>
+If i is an instance, then i.uid.getData() == i. 
+<p>
 <hr><h2>Member Data Documentation</h2>
+<a class="anchor" name="o3" doxytag="UTAP::instance_t::arguments"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">size_t <a class="el" href="structUTAP_1_1instance__t.html#o3">UTAP::instance_t::arguments</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
 <a class="anchor" name="o2" doxytag="UTAP::instance_t::mapping"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
@@ -45,16 +93,68 @@
     <td>
 
 <p>
+The arguments. 
+<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="o1" doxytag="UTAP::instance_t::templ"></a><p>
+<a class="anchor" name="o1" doxytag="UTAP::instance_t::parameters"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1template__t.html">template_t</a>* <a class="el" href="structUTAP_1_1instance__t.html#o1">UTAP::instance_t::templ</a>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="el" href="structUTAP_1_1instance__t.html#o1">UTAP::instance_t::parameters</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+The parameters. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="o6" doxytag="UTAP::instance_t::restricted"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">std::set&lt;<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&gt; <a class="el" href="structUTAP_1_1instance__t.html#o6">UTAP::instance_t::restricted</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+Restricted variables. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="o5" doxytag="UTAP::instance_t::templ"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">struct <a class="el" href="structUTAP_1_1template__t.html">template_t</a>* <a class="el" href="structUTAP_1_1instance__t.html#o5">UTAP::instance_t::templ</a>          </td>
         </tr>
       </table>
     </td>
@@ -91,12 +191,37 @@
     <td>
 
 <p>
+The name. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="o4" doxytag="UTAP::instance_t::unbound"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">size_t <a class="el" href="structUTAP_1_1instance__t.html#o4">UTAP::instance_t::unbound</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
     </td>
   </tr>
 </table>
 <hr>The documentation for this struct was generated from the following file:<ul>
 <li><a class="el" href="system_8h-source.html">system.h</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

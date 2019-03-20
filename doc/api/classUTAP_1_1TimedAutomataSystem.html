@@ -22,61 +22,91 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1template__t.html">template_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a3">getTemplates</a> ()</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the templates of the system.  <a href="#a3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1process__t.html">process_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a4">getProcesses</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a4">getProcesses</a> ()</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the processes of the system.  <a href="#a4"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a5">addVariableToFunction</a> (<a class="el" href="structUTAP_1_1function__t.html">function_t</a> *, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>, <a class="el" href="classUTAP_1_1type__t.html">type_t</a>, std::string, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> initital)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a5">addPosition</a> (uint32_t position, uint32_t offset, uint32_t line, std::string path)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a6">addVariable</a> (<a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> initial)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const <a class="el" href="structUTAP_1_1Positions_1_1line__t.html">Positions::line_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a6">findPosition</a> (uint32_t position) const </td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a7">addProgressMeasure</a> (<a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> guard, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> measure)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a7">addVariableToFunction</a> (<a class="el" href="structUTAP_1_1function__t.html">function_t</a> *, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>, <a class="el" href="classUTAP_1_1type__t.html">type_t</a>, std::string, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> initital)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a8">addTemplate</a> (std::string, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> templateset, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> params)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a8">addVariable</a> (<a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> initial)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Creates and returns a new template.  <a href="#a8"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a9">addInstance</a> (std::string name, const <a class="el" href="structUTAP_1_1template__t.html">template_t</a> *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a9">addProgressMeasure</a> (<a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> guard, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> measure)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a10">addProcess</a> (<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1template__t.html">template_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a10">addTemplate</a> (std::string, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> params)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a11">accept</a> (<a class="el" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a> &amp;)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Creates and returns a new template.  <a href="#a10"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a11">addInstance</a> (std::string name, <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;instance, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> params, const std::vector&lt; <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;arguments)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">const std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a12">getConstants</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a12">addProcess</a> (<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;instance)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns the set of symbols declared as constants.  <a href="#a12"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">const std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>,<br>
- <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a13">getConstantValuation</a> () const </td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a13">accept</a> (<a class="el" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a> &amp;)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a valuation for the constants.  <a href="#a13"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a14">getConstantValuation</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a14">setBeforeUpdate</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Returns a valuation for the constants.  <a href="#a14"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a15">setBeforeUpdate</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a15">getBeforeUpdate</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a16">getBeforeUpdate</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a16">setAfterUpdate</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a17">setAfterUpdate</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a17">getAfterUpdate</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a18">getAfterUpdate</a> ()</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a18">setChanPriority</a> (<a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> chan, int priority)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const std::list&lt; <a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a19">getChanPriorities</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a20">getMutableChanPriorities</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a21">setDefaultChanPriority</a> (int priority)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a22">getTauPriority</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a23">setProcPriority</a> (const char *name, int priority)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a24">getProcPriority</a> (const char *name) const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a25">hasPriorityDeclaration</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a26">addError</a> (<a class="el" href="structUTAP_1_1position__t.html">position_t</a>, std::string)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a27">addWarning</a> (<a class="el" href="structUTAP_1_1position__t.html">position_t</a>, std::string)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a28">hasErrors</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a29">hasWarnings</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const std::vector&lt; <a class="el" href="structUTAP_1_1error__t.html">error_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a30">getErrors</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">const std::vector&lt; <a class="el" href="structUTAP_1_1error__t.html">error_t</a> &gt; &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a31">getWarnings</a> () const </td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a32">clearErrors</a> ()</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#a33">clearWarnings</a> ()</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#b0">addVariable</a> (std::list&lt; <a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> &gt; &amp;<a class="el" href="tracer_8cpp.html#a5">variables</a>, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> frame, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type, std::string)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> *&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#b0">addVariable</a> (std::list&lt; <a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> &gt; &amp;<a class="el" href="tracer_8cpp.html#a9">variables</a>, <a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> frame, <a class="el" href="classUTAP_1_1type__t.html">type_t</a> type, std::string)</td></tr>
 
 <tr><td colspan="2"><br><h2>Protected Attributes</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1template__t.html">template_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p0">templates</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p0">hasPriorities</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p1">instances</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p1">defaultChanPriority</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1process__t.html">process_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p2">processes</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p2">chanPriorities</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p3">constants</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::map&lt; std::string, int &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p3">procPriority</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p4">constantValuation</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1template__t.html">template_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p4">templates</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p5">global</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p5">instances</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p6">beforeUpdate</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p6">processes</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p7">afterUpdate</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p7">global</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p8">beforeUpdate</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p9">afterUpdate</a></td></tr>
 
 </table>
 <hr><h2>Constructor &amp; Destructor Documentation</h2>
@@ -135,7 +165,7 @@
   </tr>
 </table>
 <hr><h2>Member Function Documentation</h2>
-<a class="anchor" name="a11" doxytag="UTAP::TimedAutomataSystem::accept"></a><p>
+<a class="anchor" name="a13" doxytag="UTAP::TimedAutomataSystem::accept"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -163,21 +193,21 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a9" doxytag="UTAP::TimedAutomataSystem::addInstance"></a><p>
+<a class="anchor" name="a26" doxytag="UTAP::TimedAutomataSystem::addError"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp; TimedAutomataSystem::addInstance           </td>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::addError           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">std::string&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap>const <a class="el" href="structUTAP_1_1template__t.html">template_t</a> *&nbsp;</td>
+          <td class="md" nowrap>std::string&nbsp;</td>
           <td class="mdname" nowrap></td>
         </tr>
         <tr>
@@ -200,16 +230,114 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a10" doxytag="UTAP::TimedAutomataSystem::addProcess"></a><p>
+<a class="anchor" name="a11" doxytag="UTAP::TimedAutomataSystem::addInstance"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> &amp; TimedAutomataSystem::addProcess           </td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp; TimedAutomataSystem::addInstance           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>uid</em>          </td>
+          <td class="md" nowrap valign="top">std::string&nbsp;</td>
+          <td class="mdname" nowrap> <em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
+          <td class="mdname" nowrap> <em>instance</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>params</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>const std::vector&lt; <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp;&nbsp;</td>
+          <td class="mdname" nowrap> <em>arguments</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a5" doxytag="UTAP::TimedAutomataSystem::addPosition"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::addPosition           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>offset</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>uint32_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>line</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>std::string&nbsp;</td>
+          <td class="mdname" nowrap> <em>path</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a12" doxytag="UTAP::TimedAutomataSystem::addProcess"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::addProcess           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>instance</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
         </tr>
@@ -228,7 +356,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="UTAP::TimedAutomataSystem::addProgressMeasure"></a><p>
+<a class="anchor" name="a9" doxytag="UTAP::TimedAutomataSystem::addProgressMeasure"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -271,7 +399,7 @@
     </td>
   </tr>
 </table>
-<a class="anchor" name="a8" doxytag="UTAP::TimedAutomataSystem::addTemplate"></a><p>
+<a class="anchor" name="a10" doxytag="UTAP::TimedAutomataSystem::addTemplate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -281,12 +409,6 @@
           <td class="md" valign="top">(&nbsp;</td>
           <td class="md" nowrap valign="top">std::string&nbsp;</td>
           <td class="mdname" nowrap>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>templateset</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -313,7 +435,7 @@
 <p>
 Creates and returns a new template. 
 <p>
-The template is created with the given name and parameters and added to the global frame. The new template is set to be the current template. The method does not check for duplicate declarations.     </td>
+The template is created with the given name and parameters and added to the global frame. The method does not check for duplicate declarations. An instance with the same name and parameters is added as well.     </td>
   </tr>
 </table>
 <a class="anchor" name="b0" doxytag="UTAP::TimedAutomataSystem::addVariable"></a><p>
@@ -365,7 +487,7 @@ The template is created with the given name and parameters and added to the glob
     </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="UTAP::TimedAutomataSystem::addVariable"></a><p>
+<a class="anchor" name="a8" doxytag="UTAP::TimedAutomataSystem::addVariable"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -414,7 +536,7 @@ The template is created with the given name and parameters and added to the glob
     </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="UTAP::TimedAutomataSystem::addVariableToFunction"></a><p>
+<a class="anchor" name="a7" doxytag="UTAP::TimedAutomataSystem::addVariableToFunction"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -469,7 +591,126 @@ The template is created with the given name and parameters and added to the glob
     </td>
   </tr>
 </table>
-<a class="anchor" name="a18" doxytag="UTAP::TimedAutomataSystem::getAfterUpdate"></a><p>
+<a class="anchor" name="a27" doxytag="UTAP::TimedAutomataSystem::addWarning"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::addWarning           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1position__t.html">position_t</a>&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>std::string&nbsp;</td>
+          <td class="mdname" nowrap></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a32" doxytag="UTAP::TimedAutomataSystem::clearErrors"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::clearErrors           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a33" doxytag="UTAP::TimedAutomataSystem::clearWarnings"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::clearWarnings           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a6" doxytag="UTAP::TimedAutomataSystem::findPosition"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">const <a class="el" href="structUTAP_1_1Positions_1_1line__t.html">Positions::line_t</a> &amp; TimedAutomataSystem::findPosition           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">uint32_t&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>position</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a17" doxytag="UTAP::TimedAutomataSystem::getAfterUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -496,7 +737,7 @@ The template is created with the given name and parameters and added to the glob
     </td>
   </tr>
 </table>
-<a class="anchor" name="a16" doxytag="UTAP::TimedAutomataSystem::getBeforeUpdate"></a><p>
+<a class="anchor" name="a15" doxytag="UTAP::TimedAutomataSystem::getBeforeUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -523,13 +764,13 @@ The template is created with the given name and parameters and added to the glob
     </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="UTAP::TimedAutomataSystem::getConstants"></a><p>
+<a class="anchor" name="a19" doxytag="UTAP::TimedAutomataSystem::getChanPriorities"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">const set&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> &gt; &amp; TimedAutomataSystem::getConstants           </td>
+          <td class="md" nowrap valign="top">const std::list&lt; <a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a> &gt; &amp; TimedAutomataSystem::getChanPriorities           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -547,47 +788,16 @@ The template is created with the given name and parameters and added to the glob
     <td>
 
 <p>
-Returns the set of symbols declared as constants. 
-<p>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a14" doxytag="UTAP::TimedAutomataSystem::getConstantValuation"></a><p>
+<a class="anchor" name="a30" doxytag="UTAP::TimedAutomataSystem::getErrors"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp; TimedAutomataSystem::getConstantValuation           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap>          </td>
-          <td class="md" valign="top">&nbsp;)&nbsp;</td>
-          <td class="md" nowrap></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Returns a valuation for the constants. 
-<p>
-<a class="el" href="namespaceUTAP_1_1Constants.html">Constants</a> evaluate to their initial value. This valuation is populated by the type checker, hence it is empty until the type checker has been run.     </td>
-  </tr>
-</table>
-<a class="anchor" name="a13" doxytag="UTAP::TimedAutomataSystem::getConstantValuation"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">const map&lt; <a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> &gt; &amp; TimedAutomataSystem::getConstantValuation           </td>
+          <td class="md" nowrap valign="top">const vector&lt; <a class="el" href="structUTAP_1_1error__t.html">UTAP::error_t</a> &gt; &amp; TimedAutomataSystem::getErrors           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -605,9 +815,7 @@ Returns a valuation for the constants.
     <td>
 
 <p>
-Returns a valuation for the constants. 
-<p>
-<a class="el" href="namespaceUTAP_1_1Constants.html">Constants</a> evaluate to their initial value. This valuation is populated by the type checker, hence it is empty until the type checker has been run.     </td>
+    </td>
   </tr>
 </table>
 <a class="anchor" name="a2" doxytag="UTAP::TimedAutomataSystem::getGlobals"></a><p>
@@ -639,13 +847,40 @@ Returns the global declarations of the system.
     </td>
   </tr>
 </table>
+<a class="anchor" name="a20" doxytag="UTAP::TimedAutomataSystem::getMutableChanPriorities"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">std::list&lt; <a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a> &gt; &amp; TimedAutomataSystem::getMutableChanPriorities           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
 <a class="anchor" name="a4" doxytag="UTAP::TimedAutomataSystem::getProcesses"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">list&lt; <a class="el" href="structUTAP_1_1process__t.html">process_t</a> &gt; &amp; TimedAutomataSystem::getProcesses           </td>
+          <td class="md" nowrap valign="top">list&lt; <a class="el" href="structUTAP_1_1instance__t.html">instance_t</a> &gt; &amp; TimedAutomataSystem::getProcesses           </td>
           <td class="md" valign="top">(&nbsp;</td>
           <td class="mdname1" valign="top" nowrap>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
@@ -664,6 +899,61 @@ Returns the global declarations of the system.
 
 <p>
 Returns the processes of the system. 
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a24" doxytag="UTAP::TimedAutomataSystem::getProcPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">int TimedAutomataSystem::getProcPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>name</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a22" doxytag="UTAP::TimedAutomataSystem::getTauPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">int TimedAutomataSystem::getTauPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
 <p>
     </td>
   </tr>
@@ -697,7 +987,115 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a17" doxytag="UTAP::TimedAutomataSystem::setAfterUpdate"></a><p>
+<a class="anchor" name="a31" doxytag="UTAP::TimedAutomataSystem::getWarnings"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">const vector&lt; <a class="el" href="structUTAP_1_1error__t.html">UTAP::error_t</a> &gt; &amp; TimedAutomataSystem::getWarnings           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a28" doxytag="UTAP::TimedAutomataSystem::hasErrors"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bool TimedAutomataSystem::hasErrors           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a25" doxytag="UTAP::TimedAutomataSystem::hasPriorityDeclaration"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bool TimedAutomataSystem::hasPriorityDeclaration           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a29" doxytag="UTAP::TimedAutomataSystem::hasWarnings"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bool TimedAutomataSystem::hasWarnings           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap> const</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a16" doxytag="UTAP::TimedAutomataSystem::setAfterUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -725,7 +1123,7 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="UTAP::TimedAutomataSystem::setBeforeUpdate"></a><p>
+<a class="anchor" name="a14" doxytag="UTAP::TimedAutomataSystem::setBeforeUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -753,14 +1151,116 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
+<a class="anchor" name="a18" doxytag="UTAP::TimedAutomataSystem::setChanPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::setChanPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&nbsp;</td>
+          <td class="mdname" nowrap> <em>chan</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>int&nbsp;</td>
+          <td class="mdname" nowrap> <em>priority</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a21" doxytag="UTAP::TimedAutomataSystem::setDefaultChanPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::setDefaultChanPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">int&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>priority</em>          </td>
+          <td class="md" valign="top">&nbsp;)&nbsp;</td>
+          <td class="md" nowrap></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a23" doxytag="UTAP::TimedAutomataSystem::setProcPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">void TimedAutomataSystem::setProcPriority           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>int&nbsp;</td>
+          <td class="mdname" nowrap> <em>priority</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
 <hr><h2>Member Data Documentation</h2>
-<a class="anchor" name="p7" doxytag="UTAP::TimedAutomataSystem::afterUpdate"></a><p>
+<a class="anchor" name="p9" doxytag="UTAP::TimedAutomataSystem::afterUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p7">UTAP::TimedAutomataSystem::afterUpdate</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p9">UTAP::TimedAutomataSystem::afterUpdate</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -777,13 +1277,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p6" doxytag="UTAP::TimedAutomataSystem::beforeUpdate"></a><p>
+<a class="anchor" name="p8" doxytag="UTAP::TimedAutomataSystem::beforeUpdate"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p6">UTAP::TimedAutomataSystem::beforeUpdate</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p8">UTAP::TimedAutomataSystem::beforeUpdate</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -800,13 +1300,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p3" doxytag="UTAP::TimedAutomataSystem::constants"></a><p>
+<a class="anchor" name="p2" doxytag="UTAP::TimedAutomataSystem::chanPriorities"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::set&lt;<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p3">UTAP::TimedAutomataSystem::constants</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p2">UTAP::TimedAutomataSystem::chanPriorities</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -823,13 +1323,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p4" doxytag="UTAP::TimedAutomataSystem::constantValuation"></a><p>
+<a class="anchor" name="p1" doxytag="UTAP::TimedAutomataSystem::defaultChanPriority"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::map&lt;<a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>, <a class="el" href="classUTAP_1_1expression__t.html">expression_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p4">UTAP::TimedAutomataSystem::constantValuation</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">int <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p1">UTAP::TimedAutomataSystem::defaultChanPriority</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -846,13 +1346,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p5" doxytag="UTAP::TimedAutomataSystem::global"></a><p>
+<a class="anchor" name="p7" doxytag="UTAP::TimedAutomataSystem::global"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p5">UTAP::TimedAutomataSystem::global</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1declarations__t.html">declarations_t</a> <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p7">UTAP::TimedAutomataSystem::global</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -869,13 +1369,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p1" doxytag="UTAP::TimedAutomataSystem::instances"></a><p>
+<a class="anchor" name="p0" doxytag="UTAP::TimedAutomataSystem::hasPriorities"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p1">UTAP::TimedAutomataSystem::instances</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">bool <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p0">UTAP::TimedAutomataSystem::hasPriorities</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -892,13 +1392,13 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p2" doxytag="UTAP::TimedAutomataSystem::processes"></a><p>
+<a class="anchor" name="p5" doxytag="UTAP::TimedAutomataSystem::instances"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1process__t.html">process_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p2">UTAP::TimedAutomataSystem::processes</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p5">UTAP::TimedAutomataSystem::instances</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -915,13 +1415,59 @@ Returns the templates of the system.
     </td>
   </tr>
 </table>
-<a class="anchor" name="p0" doxytag="UTAP::TimedAutomataSystem::templates"></a><p>
+<a class="anchor" name="p6" doxytag="UTAP::TimedAutomataSystem::processes"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1template__t.html">template_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p0">UTAP::TimedAutomataSystem::templates</a><code> [protected]</code>          </td>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1instance__t.html">instance_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p6">UTAP::TimedAutomataSystem::processes</a><code> [protected]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="p3" doxytag="UTAP::TimedAutomataSystem::procPriority"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">std::map&lt;std::string,int&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p3">UTAP::TimedAutomataSystem::procPriority</a><code> [protected]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="p4" doxytag="UTAP::TimedAutomataSystem::templates"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1template__t.html">template_t</a>&gt; <a class="el" href="classUTAP_1_1TimedAutomataSystem.html#p4">UTAP::TimedAutomataSystem::templates</a><code> [protected]</code>          </td>
         </tr>
       </table>
     </td>
@@ -940,7 +1486,7 @@ Returns the templates of the system.
 </table>
 <hr>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="system_8h-source.html">system.h</a><li><a class="el" href="system_8cpp.html">system.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

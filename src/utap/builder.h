@@ -23,8 +23,9 @@
 #define UTAP_BUILDER_HH
 
 #include <cstdio>
-#include <iostream>
-#include <exception>
+#include <stdexcept>
+#include <string>
+#include <boost/format.hpp>
 
 #include "utap/common.h"
 
@@ -35,16 +36,12 @@ namespace UTAP
      * implementations of the ParserBuilder interface to indicate that
      * a type error has occurred.
      */
-    class TypeException : public std::exception 
+    class TypeException : public std::runtime_error
     {
-    private:
-	char _what[256];
     public:
-	TypeException(const char *fmt, ...);
-	const char *what() const throw ();
+	TypeException(std::string);
+	TypeException(const boost::format &);
     };
-
-    std::ostream& operator <<(std::ostream& out, const TypeException& exc);
 
     /**
      * The ParserBuilder interface is used by the parser to output the
@@ -70,20 +67,14 @@ namespace UTAP
      * The proper protocol for declaring a new type name is to
      *
      * - report the type using the typeXXX methods
-     * - report dim expressions indicating the array sizes
-     * - call declTypeDef(name, dim) to declare the type-name
-     * - Repeat item 2 & 3 for all type names
-     * - call declTypeDefEnd() 
+     * - call declTypeDef(name) to declare the type-name
      *
      * The proper protocol for declaring a variable is to
      *
      * - report the type using the typeXXX methods
-     * - report dim expressions indicating the array sizes
      * - optionally report an expression for the initialiser
-     * - call declVar(name, dim, init), where init is true if and
+     * - call declVar(name, init), where init is true if and
      *   only if an initialiser has been reported
-     * - repeat item 2, 3 & 4 for each variable
-     * - call declVarEnd()
      */
     class ParserBuilder
     {
@@ -91,29 +82,38 @@ namespace UTAP
 	/*********************************************************************
 	 * Prefixes
 	 */
-	static const int32_t PREFIX_NONE = 0;
-	static const int32_t PREFIX_CONST = 1;
-	static const int32_t PREFIX_URGENT = 2;
-	static const int32_t PREFIX_BROADCAST = 4;
-	static const int32_t PREFIX_URGENT_BROADCAST = 
-	PREFIX_URGENT | PREFIX_BROADCAST;
-	static const int32_t PREFIX_META = 8;
+	enum PREFIX { PREFIX_NONE = 0,
+		      PREFIX_CONST = 1,
+		      PREFIX_URGENT = 2,
+		      PREFIX_BROADCAST = 4,
+		      PREFIX_URGENT_BROADCAST = 6,
+		      PREFIX_META = 8 };
 
 	virtual ~ParserBuilder() {}
 
-	/**
-	 * Set the error handler to the given handler. Errors are
-	 * reported by calling this handler or by throwing a
-	 * TypeException.
+	/** 
+	 * Add mapping from an absolute position to a relative XML
+	 * element.
 	 */
-	virtual void setErrorHandler(ErrorHandler *) = 0;
+	virtual void addPosition(
+	    uint32_t position, uint32_t offset, uint32_t line, std::string path) = 0;
 
 	/**
 	 * Sets the current position. The current position indicates
 	 * where in the input file the current productions can be
 	 * found.
 	 */
-	virtual void setPosition(const position_t &) = 0;
+	virtual void setPosition(uint32_t a, uint32_t b) = 0;
+
+	// Called when an error is detected
+	virtual void handleError(std::string) = 0;
+
+	// Called when a warning is issued
+	virtual void handleWarning(std::string) = 0;
+
+	void handleWarning(const char *msg, ...);
+
+	void handleError(const char *msg, ...);
     
 	/**
 	 * Must return true if and only if name is registered in the
@@ -122,21 +122,74 @@ namespace UTAP
 	 */
 	virtual bool isType(const char*) = 0;
 
+	/** Duplicate type at the top of the type stack. */
+	virtual void typeDuplicate() = 0;
+
+	/** Pop type at the topof the type stack. */
+	virtual void typePop() = 0;
+
+	/** 
+	 * Called whenever a boolean type is parsed. 
+	 */
+	virtual void typeBool(PREFIX) = 0;
+	
+	/** 
+	 * Called whenever an integer type is parsed.
+	 */
+	virtual void typeInt(PREFIX) = 0;
+
+	/** 
+	 * Called whenever an integer type with a range is
+	 * parsed. Expressions for the lower and upper have been
+	 * pushed before.
+	 */
+	virtual void typeBoundedInt(PREFIX) = 0;
+
+	/** 
+	 * Called whenever a channel type is parsed.
+	 */
+	virtual void typeChannel(PREFIX) = 0;
+
+	/** 
+	 * Called whenever a clock type is parsed.
+	 */
+	virtual void typeClock() = 0;
+
+	/** 
+	 * Called whenever a void type is parsed.
+	 */
+	virtual void typeVoid() = 0;
+	
+	/**
+	 * Called to create an array type. The size of the array was
+	 * previously pushed as an expression.
+	 */
+	virtual void typeArrayOfSize(size_t) = 0;
+
+	/**
+	 * Called to create an array type. The size of the array was
+	 * previously pushed as a type.
+	 */
+	virtual void typeArrayOfType(size_t) = 0;
+
+	/** 
+	 * Called whenever a scalar type is parsed. The size of the
+	 * scalar set was pushed as an expression before.
+	 */
+	virtual void typeScalar(PREFIX) = 0;
+
 	/**
 	 * Called when a type name has been parsed. Prefix indicates
-	 * whether the type named was prefixed (e.g. with
-	 * 'const'). The range argument indicates whether a range was
-	 * given for the type (in that case two expressions were
-	 * reported using the exprXXX methods).
+	 * whether the type named was prefixed (e.g. with 'const').
 	 */
-	virtual void typeName(int32_t prefix, const char* name, int range) = 0;
+	virtual void typeName(PREFIX, const char* name) = 0;
 
 	/**
 	 * Called when a struct-type has been parsed. Prior to the
 	 * call 'fields' fields must have been declared using the
 	 * structXXX methods.
 	 */
-	virtual void typeStruct(int32_t prefix, uint32_t fields) = 0;
+	virtual void typeStruct(PREFIX, uint32_t fields) = 0;
 
 	/**
 	 * Called to declare a field of a structure. The type of the
@@ -144,37 +197,19 @@ namespace UTAP
 	 * call of structField(). In case of array fields, 'dim'
 	 * expressions indicating the array sizes have been reported.
 	 */
-	virtual void structField(const char* name, uint32_t dim) = 0; 
-
-	/** 
-	 * Called at the end of a series of field declarations of the
-	 * same type.
-	 */
-	virtual void structFieldEnd() = 0;
+	virtual void structField(const char* name) = 0; 
 
 	/** 
 	 * Used when a typedef declaration was parsed. name is the
-	 * name of the new type, and dim is the dimension of array
-	 * types.
+	 * name of the new type.
 	 */
-	virtual void declTypeDef(const char* name, uint32_t dim) = 0; 
-
-	/**
-	 * Called at the end of a series of type name declarations of
-	 * the same type.
-	 */
-	virtual void declTypeDefEnd() = 0;
+	virtual void declTypeDef(const char* name) = 0; 
 
 	/**
 	 * Called to when a variable declaration has been parsed. 
 	 */
-	virtual void declVar(const char* name, uint32_t dim, bool init) = 0; 
+	virtual void declVar(const char* name, bool init) = 0; 
 
-	/**
- 	 * Called at the end of a series of variable declarations of
-	 * the same type.
-	 */
-	virtual void declVarEnd() = 0;
 	virtual void declInitialiserList(uint32_t num) = 0; // n initialisers
 	virtual void declFieldInit(const char* name) = 0; // 1 initialiser
 	
@@ -187,18 +222,15 @@ namespace UTAP
 	/********************************************************************
 	 * Function declarations
 	 */
-	virtual void declParameter(const char* name, bool reference, uint32_t dim) = 0;
-	// 1 type, dim array sizes
-	virtual void declParameterEnd() = 0; // pop parameter type
+	virtual void declParameter(const char* name, bool ref) = 0;
   
-	virtual void declFuncBegin(const char* name, uint32_t n) = 0; // n paramaters
+	virtual void declFuncBegin(const char* name) = 0;
 	virtual void declFuncEnd() = 0; // 1 block
 
 	/********************************************************************
 	 * Process declarations
 	 */
-	virtual void procTemplateSet(const char *name) = 0;
-	virtual void procBegin(const char* name, uint32_t m, uint32_t n) = 0; // n template set declarations, m parameters
+	virtual void procBegin(const char* name) = 0; // m parameters
 	virtual void procEnd() = 0; // 1 ProcBody
 	virtual void procState(const char* name, bool hasInvariant) = 0; // 1 expr
 	virtual void procStateCommit(const char* name) = 0; // mark previously decl. state
@@ -250,7 +282,6 @@ namespace UTAP
 	virtual void exprNat(int32_t) = 0; // natural number
 	virtual void exprCallBegin() = 0;
 	virtual void exprCallEnd(uint32_t n) = 0; // n exprs as arguments
-	virtual void exprArg(uint32_t n) = 0; // 1 expr for n-th fn call argument (indexed from 0)
 	virtual void exprArray() = 0; // 2 expr 
 	virtual void exprPostIncrement() = 0; // 1 expr
 	virtual void exprPreIncrement() = 0; // 1 expr
@@ -265,20 +296,23 @@ namespace UTAP
 	virtual void exprDeadlock() = 0;
 	virtual void exprForAllBegin(const char *name) = 0;
 	virtual void exprForAllEnd(const char *name) = 0;
+	virtual void exprExistsBegin(const char *name) = 0;
+	virtual void exprExistsEnd(const char *name) = 0;
 
 	/********************************************************************
 	 * System declaration
 	 */
-	virtual void instantiationBegin(const char* id, const char* templ) = 0;
-	virtual void instantiationEnd(const char* id, const char* templ, uint32_t n) = 0; // n arguments
+	virtual void instantiationBegin(
+	    const char* id, size_t parameters, const char* templ) = 0;
+	virtual void instantiationEnd(
+	    const char* id, size_t parameters, const char* templ, size_t arguments) = 0;
 	virtual void process(const char*) = 0;
 	virtual void done() = 0; // marks the end of the file
 
 	/********************************************************************
 	 * Properties
 	 */
-	virtual void quit() {}
-	virtual void property(Constants::kind_t kind, int line) {}
+	virtual void property(Constants::kind_t kind) = 0;
 
 	/********************************************************************
 	 * Guiding
@@ -289,9 +323,11 @@ namespace UTAP
 	/********************************************************************
 	 * Priority
 	 */
-	virtual void lowPriority(const char*) = 0;
-	virtual void samePriority(const char*) = 0;
-	virtual void higherPriority(const char*) = 0;
+	virtual void incProcPriority() = 0;
+	virtual void incChanPriority() = 0;
+	virtual void chanPriority() = 0;
+	virtual void procPriority(const char*) = 0;
+	virtual void defaultChanPriority() = 0;
     };
 }
     
@@ -302,8 +338,9 @@ namespace UTAP
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXTA(FILE *, UTAP::ParserBuilder *, UTAP::ErrorHandler *,
-		 bool newxta);
+int32_t parseXTA(FILE *, UTAP::ParserBuilder *, bool newxta);
+
+int32_t parseXTA(const char*, UTAP::ParserBuilder *, bool newxta);
 
 /**
  * Parse a buffer in the XTA format, reporting the system to the given
@@ -312,8 +349,9 @@ int32_t parseXTA(FILE *, UTAP::ParserBuilder *, UTAP::ErrorHandler *,
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXTA(const char*, UTAP::ParserBuilder *, UTAP::ErrorHandler *,
-		 bool newxta, UTAP::xta_part_t part = UTAP::S_XTA);
+int32_t parseXTA(const char*, UTAP::ParserBuilder *, 
+		 bool newxta, UTAP::xta_part_t part, std::string xpath);
+
 
 /**
  * Parse a buffer in the XML format, reporting the system to the given
@@ -323,7 +361,7 @@ int32_t parseXTA(const char*, UTAP::ParserBuilder *, UTAP::ErrorHandler *,
  * function returns with a positive value.
  */
 int32_t parseXMLBuffer(const char *buffer, UTAP::ParserBuilder *,
-		       UTAP::ErrorHandler *, bool newxta);
+		       bool newxta);
 
 /**
  * Parse the file with the given name assuming it is in the XML
@@ -333,8 +371,7 @@ int32_t parseXMLBuffer(const char *buffer, UTAP::ParserBuilder *,
  * otherwise the 3.x syntax is used. On success, this function returns
  * with a positive value.
  */
-int32_t parseXMLFile(const char *filename, UTAP::ParserBuilder *,
-		     UTAP::ErrorHandler *, bool newxta);
+int32_t parseXMLFile(const char *filename, UTAP::ParserBuilder *, bool newxta);
 
 /**
  * Parse properties from a buffer. The properties are reported using
@@ -342,15 +379,13 @@ int32_t parseXMLFile(const char *filename, UTAP::ParserBuilder *,
  * ErrorHandler.
  */
 int32_t parseProperty(const char *str,
-		      UTAP::ParserBuilder *aParserBuilder, 
-		      UTAP::ErrorHandler *);
+		      UTAP::ParserBuilder *aParserBuilder);
 
 /**
  * Parse properties from a file. The properties are reported using the
  * given ParserBuilder and errors are reported using the ErrorHandler.
  */
-int32_t parseProperty(FILE *, UTAP::ParserBuilder *aParserBuilder,
-		      UTAP::ErrorHandler *);
+int32_t parseProperty(FILE *, UTAP::ParserBuilder *aParserBuilder);
 
 
 #endif

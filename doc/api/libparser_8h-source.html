@@ -32,7 +32,7 @@
 00023 <span class="preprocessor"></span><span class="preprocessor">#define UTAP_LIBPARSER_HH</span>
 00024 <span class="preprocessor"></span>
 00025 <span class="preprocessor">#include &lt;functional&gt;</span>
-00026 
+00026     
 00027 <span class="preprocessor">#include "<a class="code" href="builder_8h.html">utap/builder.h</a>"</span>
 00028 
 <a name="l00029"></a><a class="code" href="libparser_8h.html#a0">00029</a> <span class="preprocessor">#define MAXLEN 64</span>
@@ -43,10 +43,30 @@
 00034                 <a class="code" href="libparser_8h.html#a6a4">SYNTAX_GUIDING</a> = 8 };
 00035 
 00036 <span class="comment">// Defined in keywords.cc</span>
-00037 <span class="keyword">extern</span> <span class="keywordtype">bool</span> <a class="code" href="keywords_8cc.html#a0">isKeyword</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, uint32_t <a class="code" href="parser_8cc.html#a176">syntax</a>);
-00038  
-00039 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00037 <span class="keyword">extern</span> <span class="keywordtype">bool</span> <a class="code" href="keywords_8cc.html#a0">isKeyword</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *<span class="keywordtype">id</span>, uint32_t <a class="code" href="parser_8cc.html#a184">syntax</a>);
+00038 
+00039 <span class="keyword">namespace </span>UTAP
+00040 {
+<a name="l00045"></a><a class="code" href="classUTAP_1_1PositionTracker.html">00045</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1PositionTracker.html">PositionTracker</a>
+00046     {
+00047     <span class="keyword">public</span>:
+<a name="l00048"></a><a class="code" href="classUTAP_1_1PositionTracker.html#s0">00048</a>         <span class="keyword">static</span> uint32_t <a class="code" href="classUTAP_1_1PositionTracker.html#s0">line</a>;
+<a name="l00049"></a><a class="code" href="classUTAP_1_1PositionTracker.html#s1">00049</a>         <span class="keyword">static</span> uint32_t <a class="code" href="classUTAP_1_1PositionTracker.html#s1">offset</a>;
+<a name="l00050"></a><a class="code" href="classUTAP_1_1PositionTracker.html#s2">00050</a>         <span class="keyword">static</span> uint32_t <a class="code" href="classUTAP_1_1PositionTracker.html#s2">position</a>;
+<a name="l00051"></a><a class="code" href="classUTAP_1_1PositionTracker.html#s3">00051</a>         <span class="keyword">static</span> std::string <a class="code" href="classUTAP_1_1PositionTracker.html#s3">path</a>;
+00052         
+00054         <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PositionTracker.html#e0">reset</a>();
+00055 
+00064         <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PositionTracker.html#e1">setPath</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *builder, std::string s);
+00065 
+00070         <span class="keyword">static</span> <span class="keywordtype">int</span>  <a class="code" href="classUTAP_1_1PositionTracker.html#e2">increment</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *builder, <span class="keywordtype">int</span> n);
+00071 
+00076         <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1PositionTracker.html#e3">newline</a>(<a class="code" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *builder, <span class="keywordtype">int</span> n);
+00077     };
+00078 }
+00079 
+00080 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

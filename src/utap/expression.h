@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -28,6 +28,7 @@
 
 #include "utap/common.h"
 #include "utap/symbols.h"
+#include "utap/position.h"
 
 namespace UTAP
 {
@@ -85,7 +86,7 @@ namespace UTAP
 	Constants::kind_t getKind() const;
 
 	/** Returns the number of subexpression. */
-	uint32_t getSize() const;
+	size_t getSize() const;
 
 	/** Returns the position of this expression. */
 	const position_t &getPosition() const;	
@@ -129,10 +130,30 @@ namespace UTAP
 
 	/** Equality operator */
 	bool equal(const expression_t &) const;
-
-	/** Returns the symbol this expression evaluates to. Notice
-	    that not all expression evaluate to a symbol. */
+	
+	/** 
+	 *  Returns the symbol of a variable reference. The expression
+	 *  must be a left-hand side value. In case of
+	 *  dot-expressions, the member field is returned. In case of
+	 *  an inline if, the 'true' branch is returned.
+	 *
+	 *  (a=1).getSymbol() returns 'a'
+	 *  (s.f).getSymbol() returns 'f'
+	 *  (i<1?j:k).getSymbol() returns 'j'
+	 */
 	symbol_t getSymbol();
+
+	/** 
+	 * Returns the set of symbols this expression might resolve
+	 * into. In case of inline if, both the 'true' and 'false'
+	 * branch is added. In case of dot-expressions, both the left
+	 * hand reference and the member field are returned.
+	 *
+	 * (a=1).getSymbol() returns 'a'
+	 * (s.f).getSymbol() returns 's,f'
+	 * (i<1?j:k).getSymbol() returns 'j,k'
+	 */
+	void getSymbols(std::set<symbol_t> &symbols) const;
 
 	/** Returns the symbol this expression evaluates to. Notice
 	    that not all expression evaluate to a symbol. */
@@ -160,44 +181,51 @@ namespace UTAP
  	/** Equallity operator. Returns true if the two references point
  	    to the same expression object. */
  	bool operator == (const expression_t) const;
+
+	expression_t subst(symbol_t, expression_t) const;
  
  	static int getPrecedence(Constants::kind_t); 
 
 	/** Create a CONSTANT expression. */
-	static expression_t createConstant(const position_t &, int32_t);
+	static expression_t createConstant(int32_t, position_t = position_t());
 
 	/** Create an IDENTIFIER expression */
-	static expression_t createIdentifier(const position_t &, symbol_t);
+	static expression_t createIdentifier(symbol_t, position_t = position_t());
 
 	/** Create a unary expression */
-	static expression_t createUnary(const position_t &, Constants::kind_t,
-					expression_t, type_t = type_t::UNKNOWN);
+	static expression_t createUnary(Constants::kind_t, expression_t,
+					position_t = position_t(),
+					type_t = type_t());
 	/** Create a binary expression */
-	static expression_t createBinary(const position_t &, Constants::kind_t,
+	static expression_t createBinary(Constants::kind_t,
 					 expression_t, expression_t,
-					 type_t = type_t::UNKNOWN);
+					 position_t = position_t(),
+					 type_t = type_t());
 
 	/** Create a ternary expression */
-	static expression_t createTernary(const position_t &,
-					  Constants::kind_t, expression_t, 
+	static expression_t createTernary(Constants::kind_t, expression_t, 
 					  expression_t, expression_t,
-					  type_t = type_t::UNKNOWN);
+					  position_t = position_t(),
+					  type_t = type_t());
 
 	/** Create an n-ary expression */
-	static expression_t createNary(const position_t &, Constants::kind_t, 
+	static expression_t createNary(Constants::kind_t, 
 				       const std::vector<expression_t> &,
-				       type_t = type_t::UNKNOWN);
+				       position_t = position_t(),
+				       type_t = type_t());
 
 	/** Create a DOT expression */
-	static expression_t createDot(const position_t &, expression_t,
-				      int32_t = -1, type_t = type_t::UNKNOWN);
+	static expression_t createDot(expression_t, int32_t = -1,
+				      position_t = position_t(), 
+				      type_t = type_t());
 
 	/** Create a SYNC expression */
-	static expression_t createSync(const position_t &, expression_t, 
-				       Constants::synchronisation_t);
+	static expression_t createSync(expression_t, 
+				       Constants::synchronisation_t,
+				       position_t = position_t());
 
 	/** Create a DEADLOCK expression */
-	static expression_t createDeadlock(const position_t &);
+	static expression_t createDeadlock(position_t = position_t());
 
     private:
 	struct expression_data;
@@ -205,38 +233,6 @@ namespace UTAP
 	int getPrecedence() const;
 	void toString(bool, char *&str, char *&end, int &size) const;
     };
-
-    class InterpreterException : public std::exception
-    {
-    public:
-	const char *what() const throw() { return "InterpreterException"; }
-    };
-
-    class Interpreter
-    {
-    private:
-	std::map<symbol_t, expression_t> valuation;
-	int32_t evaluateBinary(int32_t left, Constants::kind_t, int32_t right) const;
-    public:
-	Interpreter();
-	Interpreter(const std::map<symbol_t, expression_t> &);
-
-	void addValuation(const std::map<symbol_t, expression_t> &);
-
-	const std::map<symbol_t, expression_t> &getValuation() const;
-
-	int32_t evaluate(const expression_t) const
-	    throw (InterpreterException);
-	void evaluate(const expression_t, std::vector<int32_t> &) const
-	    throw (InterpreterException);
-	range_t evaluate(
-	    std::pair<expression_t, expression_t>) const
-	    throw (InterpreterException);
-
-	size_t sizeOfType(type_t) const;
-
-    };
-
 }
 
 std::ostream &operator<< (std::ostream &o, const UTAP::expression_t &e);

@@ -8,8 +8,9 @@
 <div class="nav">
 <a class="el" href="dir_000000.html">src</a>&nbsp;/&nbsp;<a class="el" href="dir_000001.html">utap</a></div>
 <h1>builder.h File Reference</h1><code>#include &lt;cstdio&gt;</code><br>
-<code>#include &lt;iostream&gt;</code><br>
-<code>#include &lt;exception&gt;</code><br>
+<code>#include &lt;stdexcept&gt;</code><br>
+<code>#include &lt;string&gt;</code><br>
+<code>#include &lt;boost/format.hpp&gt;</code><br>
 <code>#include "<a class="el" href="common_8h-source.html">utap/common.h</a>"</code><br>
 
 <p>
@@ -19,65 +20,28 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">namespace &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP.html">UTAP</a></td></tr>
 
 <tr><td colspan="2"><br><h2>Functions</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP.html#a32">operator&lt;&lt;</a> (std::ostream &amp;out, const TypeException &amp;exc)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a0">parseXTA</a> (FILE *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, bool newxta)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a1">parseXTA</a> (FILE *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *, bool newxta)</td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a file in the XTA format, reporting the system to the given implementation of the the ParserBuilder interface and reporting errors to the ErrorHandler.  <a href="#a0"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a1">parseXTA</a> (const char *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, bool newxta)</td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a file in the XTA format, reporting the system to the given implementation of the the ParserBuilder interface and reporting errors to the ErrorHandler.  <a href="#a1"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a2">parseXTA</a> (const char *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *, bool newxta, <a class="el" href="namespaceUTAP.html#a37">UTAP::xta_part_t</a> part=UTAP::S_XTA)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a2">parseXTA</a> (const char *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, bool newxta, <a class="el" href="namespaceUTAP.html#a37">UTAP::xta_part_t</a> part, std::string xpath)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a buffer in the XTA format, reporting the system to the given implementation of the the ParserBuilder interface and reporting errors to the ErrorHandler.  <a href="#a2"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a3">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *, bool newxta)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a3">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, bool newxta)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse a buffer in the XML format, reporting the system to the given implementation of the the ParserBuilder interface and reporting errors to the ErrorHandler.  <a href="#a3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a4">parseXMLFile</a> (const char *filename, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *, bool newxta)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a4">parseXMLFile</a> (const char *filename, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *, bool newxta)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse the file with the given name assuming it is in the XML format, reporting the system to the given implementation of the the ParserBuilder interface and reporting errors to the ErrorHandler.  <a href="#a4"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a5">parseProperty</a> (const char *str, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *aParserBuilder, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a5">parseProperty</a> (const char *str, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *aParserBuilder)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse properties from a buffer.  <a href="#a5"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a6">parseProperty</a> (FILE *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *aParserBuilder, <a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="builder_8h.html#a6">parseProperty</a> (FILE *, <a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *aParserBuilder)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Parse properties from a file.  <a href="#a6"></a><br></td></tr>
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="file_a32" doxytag="builder.h::operator<<"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">std::ostream&amp; UTAP::operator&lt;&lt;           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">std::ostream &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>out</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>const TypeException &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>exc</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
 <a class="anchor" name="a6" doxytag="builder.h::parseProperty"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
@@ -93,13 +57,7 @@
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>aParserBuilder</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap></td>
+          <td class="mdname" nowrap> <em>aParserBuilder</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -138,13 +96,7 @@ The properties are reported using the given ParserBuilder and errors are reporte
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>aParserBuilder</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap></td>
+          <td class="mdname" nowrap> <em>aParserBuilder</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -183,12 +135,6 @@ The properties are reported using the given ParserBuilder and errors are reporte
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *&nbsp;</td>
-          <td class="mdname" nowrap>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
           <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
@@ -239,12 +185,6 @@ If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap>bool&nbsp;</td>
           <td class="mdname" nowrap> <em>newxta</em></td>
         </tr>
@@ -290,12 +230,6 @@ If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
           <td class="md" nowrap>bool&nbsp;</td>
           <td class="mdname" nowrap> <em>newxta</em>, </td>
         </tr>
@@ -303,7 +237,13 @@ If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="namespaceUTAP.html#a37">UTAP::xta_part_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>part</em> = <code>UTAP::S_XTA</code></td>
+          <td class="mdname" nowrap> <em>part</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>std::string&nbsp;</td>
+          <td class="mdname" nowrap> <em>xpath</em></td>
         </tr>
         <tr>
           <td class="md"></td>
@@ -335,7 +275,7 @@ If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used
         <tr>
           <td class="md" nowrap valign="top">int32_t parseXTA           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">FILE *&nbsp;</td>
+          <td class="md" nowrap valign="top">const char *&nbsp;</td>
           <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
@@ -347,7 +287,44 @@ If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used
         <tr>
           <td class="md" nowrap align="right"></td>
           <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">UTAP::ErrorHandler</a> *&nbsp;</td>
+          <td class="md" nowrap>bool&nbsp;</td>
+          <td class="mdname" nowrap> <em>newxta</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a0" doxytag="builder.h::parseXTA"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">int32_t parseXTA           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">FILE *&nbsp;</td>
+          <td class="mdname" nowrap>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">UTAP::ParserBuilder</a> *&nbsp;</td>
           <td class="mdname" nowrap>, </td>
         </tr>
         <tr>
@@ -378,7 +355,7 @@ Parse a file in the XTA format, reporting the system to the given implementation
 If newxta is true, then the 4.x syntax is used; otherwise the 3.x syntax is used. On success, this function returns with a positive value.     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

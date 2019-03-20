@@ -23,7 +23,6 @@
 #include "utap/utap.h"
 
 using UTAP::TimedAutomataSystem;
-using UTAP::ErrorHandler;
 using std::endl;
 using std::cout;
 using std::cerr;
@@ -31,50 +30,57 @@ using std::vector;
 
 int main(int argc, char *argv[])
 {
-    bool old = false;
-  
-    if (argc < 2 || argc > 3)
+    try 
     {
-	std::cerr << "Synopsis: check [-b] <filename>" << std::endl;
-	exit(1);
-    }
-
-    old = (strcmp(argv[1], "-b") == 0);
-
-    TimedAutomataSystem system;
-    ErrorHandler handler;
-    const char *name = argv[argc - 1];
-
-    if (strlen(name) > 4 && strcasecmp(".xml", name + strlen(name) - 4) == 0) 
-    {
-	parseXMLFile(name, &handler, &system, !old);
-    }
-    else 
-    {
-	FILE *file = fopen(name, "r");
-	if (!file) 
+	bool old = false;
+	
+	if (argc < 2 || argc > 3)
 	{
-	   perror("check");
-           exit(1);
+	    std::cerr << "Synopsis: check [-b] <filename>" << std::endl;
+	    exit(1);
 	}
-	parseXTA(file, &handler, &system, !old);
-	fclose(file);
-    } 
-
-    vector<ErrorHandler::error_t>::const_iterator it;
-    const vector<ErrorHandler::error_t> &errors = handler.getErrors();
-    const vector<ErrorHandler::error_t> &warns = handler.getWarnings();
-
-    for (it = errors.begin(); it != errors.end(); it++)
-    {
-   	cerr << *it << endl;
+	
+	old = (strcmp(argv[1], "-b") == 0);
+	
+	TimedAutomataSystem system;
+	const char *name = argv[argc - 1];
+	
+	if (strlen(name) > 4 && strcasecmp(".xml", name + strlen(name) - 4) == 0) 
+	{
+	    parseXMLFile(name, &system, !old);
+	}
+	else 
+	{
+	    FILE *file = fopen(name, "r");
+	    if (!file) 
+	    {
+		perror("check");
+		exit(1);
+	    }
+	    parseXTA(file, &system, !old);
+	    fclose(file);
+	} 
+	
+	vector<UTAP::error_t>::const_iterator it;
+	const vector<UTAP::error_t> &errors = system.getErrors();
+	const vector<UTAP::error_t> &warns = system.getWarnings();
+	
+	for (it = errors.begin(); it != errors.end(); it++)
+	{
+	    cerr << *it << endl;
+	}
+	for (it = warns.begin(); it != warns.end(); it++)
+	{
+	    cerr << *it << endl;
+	}
+	
+	return 0;
     }
-    for (it = warns.begin(); it != warns.end(); it++)
+    catch (std::exception &e)
     {
-   	cerr << *it << endl;
+	cerr << e.what() << endl;
+	return 1;
     }
-
-    return 0;
 }
 
 

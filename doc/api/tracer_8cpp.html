@@ -9,188 +9,156 @@
 <a class="el" href="dir_000000.html">src</a></div>
 <h1>tracer.cpp File Reference</h1><code>#include &lt;cstdio&gt;</code><br>
 <code>#include &lt;climits&gt;</code><br>
-<code>#include &lt;algorithm&gt;</code><br>
-<code>#include &lt;string&gt;</code><br>
 <code>#include &lt;vector&gt;</code><br>
-<code>#include &lt;list&gt;</code><br>
-<code>#include &lt;functional&gt;</code><br>
-<code>#include "<a class="el" href="utap_8h-source.html">utap/utap.h</a>"</code><br>
+<code>#include &lt;string&gt;</code><br>
+<code>#include &lt;stdexcept&gt;</code><br>
+<code>#include &lt;iostream&gt;</code><br>
+<code>#include &lt;map&gt;</code><br>
 <table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
+<tr><td colspan="2"><br><h2>Enumerations</h2></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a28">type_t</a> { <br>
+&nbsp;&nbsp;<a class="el" href="tracer_8cpp.html#a28a12">CONST</a>, 
+<a class="el" href="tracer_8cpp.html#a28a13">CLOCK</a>, 
+<a class="el" href="tracer_8cpp.html#a28a14">VAR</a>, 
+<a class="el" href="tracer_8cpp.html#a28a15">META</a>, 
+<br>
+&nbsp;&nbsp;<a class="el" href="tracer_8cpp.html#a28a16">COST</a>, 
+<a class="el" href="tracer_8cpp.html#a28a17">LOCATION</a>, 
+<a class="el" href="tracer_8cpp.html#a28a18">FIXED</a>
+<br>
+ }</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">enum &nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a29">flags_t</a> { <a class="el" href="tracer_8cpp.html#a29a19">NONE</a>, 
+<a class="el" href="tracer_8cpp.html#a29a20">COMMITTED</a>, 
+<a class="el" href="tracer_8cpp.html#a29a21">URGENT</a>
+ }</td></tr>
+
 <tr><td colspan="2"><br><h2>Functions</h2></td></tr>
-<tr><td class="memTemplParams" nowrap colspan="2">template&lt;class T&gt; </td></tr>
-<tr><td class="memTemplItemLeft" nowrap align="right" valign="top">const T &amp;&nbsp;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a8">ith</a> (const list&lt; T &gt; &amp;collection, int i)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">bool&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a22">read</a> (FILE *file, char *str, size_t n)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a9">addVariable</a> (vector&lt; string &gt; &amp;<a class="el" href="tracer_8cpp.html#a5">variables</a>, string prefix, string name, list&lt; int &gt; &amp;dimensions)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a23">loadIF</a> (FILE *file)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a10">analyzeVariable</a> (<a class="el" href="structUTAP_1_1process__t.html">process_t</a> *process, const <a class="el" href="structUTAP_1_1variable__t.html">variable_t</a> variable)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a24">operator&lt;&lt;</a> (ostream &amp;o, const State &amp;state)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a11">operator&lt;&lt;</a> (ostream &amp;o, const State &amp;state)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a25">operator&lt;&lt;</a> (ostream &amp;o, const Transition &amp;t)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">ostream &amp;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a12">operator&lt;&lt;</a> (ostream &amp;o, const Transition &amp;t)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a26">loadTrace</a> (FILE *file)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a13">loadTrace</a> (const char *trace)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">void&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a14">loadModel</a> (const char *model)</td></tr>
-
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a15">main</a> (int argc, char *argv[])</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a27">main</a> (int argc, char *argv[])</td></tr>
 
 <tr><td colspan="2"><br><h2>Variables</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static <a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a0">ta</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">vector&lt; cell_t &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a0">layout</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a1">processCount</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">vector&lt; int &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a1">instructions</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a2">variableCount</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">vector&lt; process_t &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a2">processes</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static int&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a3">clockCount</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">vector&lt; edge_t &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a3">edges</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static vector&lt; string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a4">clocks</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">map&lt; int, string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a4">expressions</a></td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static vector&lt; string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a5">variables</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a5">processCount</a> = 0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bound_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a6">infinity</a> = { INT_MAX &gt;&gt; 1, 1 }</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a6">variableCount</a> = 0</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">static bound_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a7">zero</a> = { 0, 0 }</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static size_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a7">clockCount</a> = 0</td></tr>
 
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static vector&lt; string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a8">clocks</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static vector&lt; string &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a9">variables</a></td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bound_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a10">infinity</a> = { INT_MAX &gt;&gt; 1, 1 }</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static bound_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="tracer_8cpp.html#a11">zero</a> = { 0, 0 }</td></tr>
+
+</table>
+<hr><h2>Enumeration Type Documentation</h2>
+<a class="anchor" name="a29" doxytag="tracer.cpp::flags_t"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">enum <a class="el" href="tracer_8cpp.html#a29">flags_t</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+<dl compact><dt><b>Enumeration values: </b></dt><dd>
+<table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" name="a29a19" doxytag="NONE"></a>NONE</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a29a20" doxytag="COMMITTED"></a>COMMITTED</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a29a21" doxytag="URGENT"></a>URGENT</em>&nbsp;</td><td>
+</td></tr>
+</table>
+</dl>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a28" doxytag="tracer.cpp::type_t"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">enum <a class="el" href="tracer_8cpp.html#a28">type_t</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+<dl compact><dt><b>Enumeration values: </b></dt><dd>
+<table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" name="a28a12" doxytag="CONST"></a>CONST</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a13" doxytag="CLOCK"></a>CLOCK</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a14" doxytag="VAR"></a>VAR</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a15" doxytag="META"></a>META</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a16" doxytag="COST"></a>COST</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a17" doxytag="LOCATION"></a>LOCATION</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a28a18" doxytag="FIXED"></a>FIXED</em>&nbsp;</td><td>
+</td></tr>
+</table>
+</dl>
+    </td>
+  </tr>
 </table>
 <hr><h2>Function Documentation</h2>
-<a class="anchor" name="a9" doxytag="tracer.cpp::addVariable"></a><p>
+<a class="anchor" name="a23" doxytag="tracer.cpp::loadIF"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">void addVariable           </td>
+          <td class="md" nowrap valign="top">void loadIF           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">vector&lt; string &gt; &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>variables</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>string&nbsp;</td>
-          <td class="mdname" nowrap> <em>prefix</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>string&nbsp;</td>
-          <td class="mdname" nowrap> <em>name</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>list&lt; int &gt; &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>dimensions</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="a10" doxytag="tracer.cpp::analyzeVariable"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void analyzeVariable           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top"><a class="el" href="structUTAP_1_1process__t.html">process_t</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>process</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>const <a class="el" href="structUTAP_1_1variable__t.html">variable_t</a>&nbsp;</td>
-          <td class="mdname" nowrap> <em>variable</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="a8" doxytag="tracer.cpp::ith"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="mdPrefix" colspan="4">
-template&lt;class T&gt; </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap valign="top">const T&amp; ith           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const list&lt; T &gt; &amp;&nbsp;</td>
-          <td class="mdname" nowrap> <em>collection</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap>int&nbsp;</td>
-          <td class="mdname" nowrap> <em>i</em></td>
-        </tr>
-        <tr>
-          <td class="md"></td>
-          <td class="md">)&nbsp;</td>
-          <td class="md" colspan="2"></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="a14" doxytag="tracer.cpp::loadModel"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">void loadModel           </td>
-          <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>model</em>          </td>
+          <td class="md" nowrap valign="top">FILE *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>file</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
         </tr>
@@ -209,7 +177,7 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a13" doxytag="tracer.cpp::loadTrace"></a><p>
+<a class="anchor" name="a26" doxytag="tracer.cpp::loadTrace"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -217,8 +185,8 @@ template&lt;class T&gt; </td>
         <tr>
           <td class="md" nowrap valign="top">void loadTrace           </td>
           <td class="md" valign="top">(&nbsp;</td>
-          <td class="md" nowrap valign="top">const char *&nbsp;</td>
-          <td class="mdname1" valign="top" nowrap> <em>trace</em>          </td>
+          <td class="md" nowrap valign="top">FILE *&nbsp;</td>
+          <td class="mdname1" valign="top" nowrap> <em>file</em>          </td>
           <td class="md" valign="top">&nbsp;)&nbsp;</td>
           <td class="md" nowrap></td>
         </tr>
@@ -237,7 +205,7 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a15" doxytag="tracer.cpp::main"></a><p>
+<a class="anchor" name="a27" doxytag="tracer.cpp::main"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -274,7 +242,7 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a12" doxytag="tracer.cpp::operator<<"></a><p>
+<a class="anchor" name="a25" doxytag="tracer.cpp::operator<<"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -311,7 +279,7 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a11" doxytag="tracer.cpp::operator<<"></a><p>
+<a class="anchor" name="a24" doxytag="tracer.cpp::operator<<"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -348,14 +316,57 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
+<a class="anchor" name="a22" doxytag="tracer.cpp::read"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bool read           </td>
+          <td class="md" valign="top">(&nbsp;</td>
+          <td class="md" nowrap valign="top">FILE *&nbsp;</td>
+          <td class="mdname" nowrap> <em>file</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>char *&nbsp;</td>
+          <td class="mdname" nowrap> <em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="md" nowrap align="right"></td>
+          <td class="md"></td>
+          <td class="md" nowrap>size_t&nbsp;</td>
+          <td class="mdname" nowrap> <em>n</em></td>
+        </tr>
+        <tr>
+          <td class="md"></td>
+          <td class="md">)&nbsp;</td>
+          <td class="md" colspan="2"></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
 <hr><h2>Variable Documentation</h2>
-<a class="anchor" name="a3" doxytag="tracer.cpp::clockCount"></a><p>
+<a class="anchor" name="a7" doxytag="tracer.cpp::clockCount"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">int <a class="el" href="tracer_8cpp.html#a3">clockCount</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">size_t <a class="el" href="tracer_8cpp.html#a7">clockCount</a> = 0<code> [static]</code>          </td>
         </tr>
       </table>
     </td>
@@ -372,13 +383,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a4" doxytag="tracer.cpp::clocks"></a><p>
+<a class="anchor" name="a8" doxytag="tracer.cpp::clocks"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">vector&lt;string&gt; <a class="el" href="tracer_8cpp.html#a4">clocks</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">vector&lt;string&gt; <a class="el" href="tracer_8cpp.html#a8">clocks</a><code> [static]</code>          </td>
         </tr>
       </table>
     </td>
@@ -395,13 +406,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a6" doxytag="tracer.cpp::infinity"></a><p>
+<a class="anchor" name="a3" doxytag="tracer.cpp::edges"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">bound_t <a class="el" href="tracer_8cpp.html#a6">infinity</a> = { INT_MAX &gt;&gt; 1, 1 }<code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">vector&lt;edge_t&gt; <a class="el" href="tracer_8cpp.html#a3">edges</a>          </td>
         </tr>
       </table>
     </td>
@@ -418,13 +429,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a1" doxytag="tracer.cpp::processCount"></a><p>
+<a class="anchor" name="a4" doxytag="tracer.cpp::expressions"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">int <a class="el" href="tracer_8cpp.html#a1">processCount</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">map&lt;int,string&gt; <a class="el" href="tracer_8cpp.html#a4">expressions</a>          </td>
         </tr>
       </table>
     </td>
@@ -441,13 +452,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a0" doxytag="tracer.cpp::ta"></a><p>
+<a class="anchor" name="a10" doxytag="tracer.cpp::infinity"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> <a class="el" href="tracer_8cpp.html#a0">ta</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">bound_t <a class="el" href="tracer_8cpp.html#a10">infinity</a> = { INT_MAX &gt;&gt; 1, 1 }<code> [static]</code>          </td>
         </tr>
       </table>
     </td>
@@ -464,13 +475,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a2" doxytag="tracer.cpp::variableCount"></a><p>
+<a class="anchor" name="a1" doxytag="tracer.cpp::instructions"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">int <a class="el" href="tracer_8cpp.html#a2">variableCount</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">vector&lt;int&gt; <a class="el" href="tracer_8cpp.html#a1">instructions</a>          </td>
         </tr>
       </table>
     </td>
@@ -487,13 +498,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a5" doxytag="tracer.cpp::variables"></a><p>
+<a class="anchor" name="a0" doxytag="tracer.cpp::layout"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">vector&lt;string&gt; <a class="el" href="tracer_8cpp.html#a5">variables</a><code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">vector&lt;cell_t&gt; <a class="el" href="tracer_8cpp.html#a0">layout</a>          </td>
         </tr>
       </table>
     </td>
@@ -510,13 +521,13 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<a class="anchor" name="a7" doxytag="tracer.cpp::zero"></a><p>
+<a class="anchor" name="a5" doxytag="tracer.cpp::processCount"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">bound_t <a class="el" href="tracer_8cpp.html#a7">zero</a> = { 0, 0 }<code> [static]</code>          </td>
+          <td class="md" nowrap valign="top">size_t <a class="el" href="tracer_8cpp.html#a5">processCount</a> = 0<code> [static]</code>          </td>
         </tr>
       </table>
     </td>
@@ -533,7 +544,99 @@ template&lt;class T&gt; </td>
     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<a class="anchor" name="a2" doxytag="tracer.cpp::processes"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">vector&lt;process_t&gt; <a class="el" href="tracer_8cpp.html#a2">processes</a>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a6" doxytag="tracer.cpp::variableCount"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">size_t <a class="el" href="tracer_8cpp.html#a6">variableCount</a> = 0<code> [static]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a9" doxytag="tracer.cpp::variables"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">vector&lt;string&gt; <a class="el" href="tracer_8cpp.html#a9">variables</a><code> [static]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<a class="anchor" name="a11" doxytag="tracer.cpp::zero"></a><p>
+<table class="mdTable" cellpadding="2" cellspacing="0">
+  <tr>
+    <td class="mdRow">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td class="md" nowrap valign="top">bound_t <a class="el" href="tracer_8cpp.html#a11">zero</a> = { 0, 0 }<code> [static]</code>          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<table cellspacing="5" cellpadding="0" border="0">
+  <tr>
+    <td>
+      &nbsp;
+    </td>
+    <td>
+
+<p>
+    </td>
+  </tr>
+</table>
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

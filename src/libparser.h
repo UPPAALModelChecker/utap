@@ -23,7 +23,7 @@
 #define UTAP_LIBPARSER_HH
 
 #include <functional>
-
+    
 #include "utap/builder.h"
 
 #define MAXLEN 64
@@ -35,5 +35,46 @@ enum syntax_t { SYNTAX_OLD = 1,
 
 // Defined in keywords.cc
 extern bool isKeyword(const char *id, uint32_t syntax);
- 
+
+namespace UTAP
+{
+    /**
+     * Help class used by the lexer, parser and xmlreader to keep
+     * track of the current position. 
+     */
+    class PositionTracker
+    {
+    public:
+	static uint32_t line;
+	static uint32_t offset;
+	static uint32_t position;
+	static std::string path;
+	
+	/** Resets position tracker to position 0. */
+	static void reset();
+
+	/**
+	 * Sets the current path to \a s, offset to 0 and line to 1.
+	 * Sets the position of \a builder to [position, position + 1)
+	 * (a one character dummy position; this is useful when
+	 * assigning error messages to XML elements without a text
+	 * content). Adds position to \a builder and increments it by
+	 * 1.
+	 */
+	static void setPath(ParserBuilder *builder, std::string s);
+
+	/**
+	 * Sets the position of \a builder to [position, position + n)
+	 * and increments position and offset by \a n.
+	 */
+	static int  increment(ParserBuilder *builder, int n);
+
+	/**
+	 * Increments line by \a n and adds the position to \a
+	 * builder.
+	 */
+	static void newline(ParserBuilder *builder, int n);
+    };
+}
+
 #endif

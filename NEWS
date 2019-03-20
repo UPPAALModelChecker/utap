@@ -1,3 +1,27 @@
+New in 0.90
+
+This is the version of UTAP used in UPPAAL 3.6 Beta 3.  The tracer
+utility no longer uses libutap. Instead it parses the UPPAAL
+intermediate format introduced in UPPAAL 3.6 Beta 1. 
+
+Position tracking (the mechanism used to map an expression to some
+position in the input file) has been reimplemented. The representation
+of types in UTAP has been reimplemented. 
+
+The interpreter for expressions has been removed. It was broken and
+could not be fixed without reimplementing major parts of the UPPAAL
+interpreter (not included in UTAP). This also means that errors
+related to the range of variables or expressions are no longer
+detected by the TypeChecker class.
+
+New in 0.80
+
+This is the version used in UPPAAL 3.6 Alpha 1. It contains a lot of
+bug fixes since version 0.70. Likely there are some API
+incompatibilities, but it should not be hard to adapt your program to
+version 0.80. Notice that configure now accepts the --enable-cora
+option to enable the extensions used by UPPAAL CORA.
+
 New in 0.70
 * This is a backport of the internal development code
 * This is the parser used in Uppaal 3.4.8.

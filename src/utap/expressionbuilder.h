@@ -31,6 +31,19 @@
 
 namespace UTAP
 {
+    /** 
+     * Partial implementation of the builder interface: The
+     * ExpressionBuilder implements all expression related
+     * methods. 
+     *
+     * In order to support quantifier expressions, this class also
+     * handles the type related methods.
+     *
+     * This class does not implement any declaration related methods.
+     *
+     * Internally, three stacks are maintained: One for expressions,
+     * one for types and for frames (scopes).
+     */
     class ExpressionBuilder : public AbstractBuilder 
     {
     public:
@@ -49,39 +62,44 @@ namespace UTAP
 	    uint32_t size() { return data.size(); }
 	};
 
-    protected:
-	/* Expression stack */
-	ExpressionFragments fragments;
-
-	/* Pointer to the intermediate system under construction */
-	TimedAutomataSystem *system;
-
-	/* The stack of type fragments. A type fragment is a pair
-	 * consiting of a type and an optional name (the name is used
-	 * for fields of a structure).
-	 */
 	class TypeFragments 
 	{
 	private:
-	    std::vector<std::pair<type_t, char *> > data;
+	    std::vector<type_t> data;
 	public:
-	    ~TypeFragments() 
-                { while (!data.empty()) pop(); }
-	    std::pair<type_t, char *> &operator[] (int idx)
+	    type_t &operator[](int idx)
 		{ return data[data.size() - idx - 1]; }
 	    void push(type_t value)
-		{ data.push_back(std::make_pair(value, (char*)NULL)); }
+		{ data.push_back(value); }
 	    void pop()
-		{ assert(!data.empty()); free(data.back().second); data.pop_back(); }
-	} typeFragments;
+		{ assert(!data.empty()); data.pop_back(); }
+	    void duplicate()
+		{ assert(!data.empty()); data.push_back(data.back()); }
+	};
 
-	/* Current frame */
+    protected:
+	/** Expression stack. */
+	ExpressionFragments fragments;
+
+	/** Type stack. */
+	TypeFragments typeFragments;
+
+	/** Frame stack. */
 	std::stack<frame_t> frames;
 
-	/* Push a new frame. */
+	/** Pointer to the system under construction. */
+	TimedAutomataSystem *system;
+
+	/** The template currently being parsed. */
+	template_t *currentTemplate;
+
+	/** Counter for creating unique scalarset names. */
+	int32_t scalar_count;
+
+	/** Push a new frame. */
 	void pushFrame(frame_t);
 	
-	/* Pop the topmost frame. */
+	/** Pop the topmost frame. */
 	void popFrame();
 
 	bool resolve(std::string, symbol_t &);
@@ -93,7 +111,7 @@ namespace UTAP
 	 * by applying the prefix. TypeExceptions might be thrown if
 	 * the combination of the prefix and the type is illegal.
 	 */
-	type_t applyPrefix(int32_t prefix, type_t type);
+	type_t applyPrefix(PREFIX, type_t type);
 
 	/**
 	 * If this method returns true, it is allowed to access the
@@ -109,42 +127,45 @@ namespace UTAP
 	ExpressionBuilder(TimedAutomataSystem *);
 	ExpressionFragments &getExpressions();
 
-	/************************************************************
-	 * Types
-	 */
-	virtual void typeName(int32_t prefix, const char* name, int range);
+	virtual void addPosition(
+	    uint32_t position, uint32_t offset, uint32_t line, std::string path);
 
-	/************************************************************
-	 * Query functions
-	 */
+	virtual void handleError(std::string);
+	virtual void handleWarning(std::string);
+	virtual void typeDuplicate();
+	virtual void typePop();
+	virtual void typeBool(PREFIX);
+	virtual void typeInt(PREFIX);
+	virtual void typeBoundedInt(PREFIX);
+	virtual void typeChannel(PREFIX);
+	virtual void typeClock();
+	virtual void typeVoid();
+	virtual void typeScalar(PREFIX);
+	virtual void typeName(PREFIX, const char* name);
 	virtual bool isType(const char*);
 	virtual bool isLocation(const char*);
-
-	/************************************************************
-	 * Expressions
-	 */
 	virtual void exprTrue();
 	virtual void exprFalse();
 	virtual void exprId(const char * varName);
-	virtual void exprNat(int32_t); // natural number
+	virtual void exprNat(int32_t);
 	virtual void exprCallBegin();
-	virtual void exprCallEnd(uint32_t n); // n exprs as arguments
-	virtual void exprArg(uint32_t n); // 1 exprs as n-th argument for fn-call
-	virtual void exprArray(); // 2 expr 
-	virtual void exprPostIncrement(); // 1 expr
-	virtual void exprPreIncrement(); // 1 expr
-	virtual void exprPostDecrement(); // 1 expr
-	virtual void exprPreDecrement(); // 1 expr
-	virtual void exprAssignment(Constants::kind_t op); // 2 expr
-	virtual void exprUnary(Constants::kind_t unaryop); // 1 expr
-	virtual void exprBinary(Constants::kind_t binaryop); // 2 expr
-	virtual void exprInlineIf(); // 3 expr
-	virtual void exprComma(); // 2 expr
-	virtual void exprDot(const char *); // 1 expr
+	virtual void exprCallEnd(uint32_t n);
+	virtual void exprArray();
+	virtual void exprPostIncrement();
+	virtual void exprPreIncrement(); 
+	virtual void exprPostDecrement();
+	virtual void exprPreDecrement(); 
+	virtual void exprAssignment(Constants::kind_t op);
+	virtual void exprUnary(Constants::kind_t unaryop); 
+	virtual void exprBinary(Constants::kind_t binaryop); 
+	virtual void exprInlineIf(); 
+	virtual void exprComma(); 
+	virtual void exprDot(const char *);
 	virtual void exprDeadlock();
 	virtual void exprForAllBegin(const char *name);
 	virtual void exprForAllEnd(const char *name);
-
+	virtual void exprExistsBegin(const char *name);
+	virtual void exprExistsEnd(const char *name);
     };
 }
 

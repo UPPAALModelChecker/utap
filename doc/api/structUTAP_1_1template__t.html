@@ -15,7 +15,8 @@
 <p>Inheritance diagram for UTAP::template_t:
 <p><center><img src="structUTAP_1_1template__t.png" usemap="#UTAP::template_t_map" border="0" alt=""></center>
 <map name="UTAP::template_t_map">
-<area href="structUTAP_1_1declarations__t.html" alt="UTAP::declarations_t" shape="rect" coords="0,0,129,24">
+<area href="structUTAP_1_1instance__t.html" alt="UTAP::instance_t" shape="rect" coords="0,0,129,24">
+<area href="structUTAP_1_1declarations__t.html" alt="UTAP::declarations_t" shape="rect" coords="139,0,268,24">
 </map>
 <a href="structUTAP_1_1template__t-members.html">List of all members.</a><table border="0" cellpadding="0" cellspacing="0">
 <tr><td></td></tr>
@@ -27,32 +28,23 @@
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Add edge to template.  <a href="#a1"></a><br></td></tr>
 <tr><td colspan="2"><br><h2>Public Attributes</h2></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o0">uid</a></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o0">init</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Symbol of the template.  <a href="#o0"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o1">nr</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The initial location.  <a href="#o0"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o1">templateset</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Placement in input file.  <a href="#o1"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o2">init</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Template set decls.  <a href="#o1"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1state__t.html">state_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o2">states</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The initial location.  <a href="#o2"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o3">templateset</a></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Locations.  <a href="#o2"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1edge__t.html">edge_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o3">edges</a></td></tr>
 
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Template set decls.  <a href="#o3"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a>&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o4">parameters</a></td></tr>
-
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">The parameters.  <a href="#o4"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1state__t.html">state_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o5">states</a></td></tr>
-
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Locations.  <a href="#o5"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">std::list&lt; <a class="el" href="structUTAP_1_1edge__t.html">edge_t</a> &gt;&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="structUTAP_1_1template__t.html#o6">edges</a></td></tr>
-
-<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Edges.  <a href="#o6"></a><br></td></tr>
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Edges.  <a href="#o3"></a><br></td></tr>
 </table>
 <hr><a name="_details"></a><h2>Detailed Description</h2>
 Information about a template. 
 <p>
-A template is a parameterised automaton. 
+A template is a parameterised automaton with local declarations of variables and functions. 
 <p>
 <hr><h2>Member Function Documentation</h2>
 <a class="anchor" name="a1" doxytag="UTAP::template_t::addEdge"></a><p>
@@ -140,13 +132,13 @@ Add another location to template.
   </tr>
 </table>
 <hr><h2>Member Data Documentation</h2>
-<a class="anchor" name="o6" doxytag="UTAP::template_t::edges"></a><p>
+<a class="anchor" name="o3" doxytag="UTAP::template_t::edges"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1edge__t.html">edge_t</a>&gt; <a class="el" href="structUTAP_1_1template__t.html#o6">UTAP::template_t::edges</a>          </td>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1edge__t.html">edge_t</a>&gt; <a class="el" href="structUTAP_1_1template__t.html#o3">UTAP::template_t::edges</a>          </td>
         </tr>
       </table>
     </td>
@@ -165,13 +157,13 @@ Edges.
     </td>
   </tr>
 </table>
-<a class="anchor" name="o2" doxytag="UTAP::template_t::init"></a><p>
+<a class="anchor" name="o0" doxytag="UTAP::template_t::init"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="el" href="structUTAP_1_1template__t.html#o2">UTAP::template_t::init</a>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="el" href="structUTAP_1_1template__t.html#o0">UTAP::template_t::init</a>          </td>
         </tr>
       </table>
     </td>
@@ -190,63 +182,13 @@ The initial location.
     </td>
   </tr>
 </table>
-<a class="anchor" name="o1" doxytag="UTAP::template_t::nr"></a><p>
+<a class="anchor" name="o2" doxytag="UTAP::template_t::states"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top">int32_t <a class="el" href="structUTAP_1_1template__t.html#o1">UTAP::template_t::nr</a>          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Placement in input file. 
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="o4" doxytag="UTAP::template_t::parameters"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="el" href="structUTAP_1_1template__t.html#o4">UTAP::template_t::parameters</a>          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-The parameters. 
-<p>
-    </td>
-  </tr>
-</table>
-<a class="anchor" name="o5" doxytag="UTAP::template_t::states"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1state__t.html">state_t</a>&gt; <a class="el" href="structUTAP_1_1template__t.html#o5">UTAP::template_t::states</a>          </td>
+          <td class="md" nowrap valign="top">std::list&lt;<a class="el" href="structUTAP_1_1state__t.html">state_t</a>&gt; <a class="el" href="structUTAP_1_1template__t.html#o2">UTAP::template_t::states</a>          </td>
         </tr>
       </table>
     </td>
@@ -265,13 +207,13 @@ Locations.
     </td>
   </tr>
 </table>
-<a class="anchor" name="o3" doxytag="UTAP::template_t::templateset"></a><p>
+<a class="anchor" name="o1" doxytag="UTAP::template_t::templateset"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
       <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="el" href="structUTAP_1_1template__t.html#o3">UTAP::template_t::templateset</a>          </td>
+          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="el" href="structUTAP_1_1template__t.html#o1">UTAP::template_t::templateset</a>          </td>
         </tr>
       </table>
     </td>
@@ -290,34 +232,9 @@ Template set decls.
     </td>
   </tr>
 </table>
-<a class="anchor" name="o0" doxytag="UTAP::template_t::uid"></a><p>
-<table class="mdTable" cellpadding="2" cellspacing="0">
-  <tr>
-    <td class="mdRow">
-      <table cellpadding="0" cellspacing="0" border="0">
-        <tr>
-          <td class="md" nowrap valign="top"><a class="el" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="el" href="structUTAP_1_1template__t.html#o0">UTAP::template_t::uid</a>          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-<table cellspacing="5" cellpadding="0" border="0">
-  <tr>
-    <td>
-      &nbsp;
-    </td>
-    <td>
-
-<p>
-Symbol of the template. 
-<p>
-    </td>
-  </tr>
-</table>
 <hr>The documentation for this struct was generated from the following files:<ul>
 <li><a class="el" href="system_8h-source.html">system.h</a><li><a class="el" href="system_8cpp.html">system.cpp</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:13 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

@@ -48,7 +48,8 @@
 <br>
 &nbsp;&nbsp;<a class="el" href="namespaceUTAP.html#a38a29">TAG_TARGET</a>, 
 <a class="el" href="namespaceUTAP.html#a38a30">TAG_LABEL</a>, 
-<a class="el" href="namespaceUTAP.html#a38a31">TAG_NAIL</a>
+<a class="el" href="namespaceUTAP.html#a38a31">TAG_NAIL</a>, 
+<a class="el" href="namespaceUTAP.html#a38a32">TAG_NONE</a>
 <br>
  }</td></tr>
 
@@ -64,9 +65,9 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static string&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUTAP.html#a36">symbol</a> (const char *str)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">Extracts the alpha-numerical symbol used for variable/type identifiers.  <a href="#a36"></a><br></td></tr>
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="xmlreader_8cpp.html#a23">parseXMLFile</a> (const char *filename, <a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *pb, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *errHandler, bool newxta)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="xmlreader_8cpp.html#a24">parseXMLFile</a> (const char *filename, <a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *pb, bool newxta)</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="xmlreader_8cpp.html#a24">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *pb, <a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *errHandler, bool newxta)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">int32_t&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="xmlreader_8cpp.html#a25">parseXMLBuffer</a> (const char *buffer, <a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *pb, bool newxta)</td></tr>
 
 </table>
 <hr><h2>Enumeration Type Documentation</h2>
@@ -131,6 +132,8 @@ We use gperf to generate a perfect hash function to map tag strings to one of th
 <tr><td valign="top"><em><a class="anchor" name="a38a30" doxytag="TAG_LABEL"></a>TAG_LABEL</em>&nbsp;</td><td>
 </td></tr>
 <tr><td valign="top"><em><a class="anchor" name="a38a31" doxytag="TAG_NAIL"></a>TAG_NAIL</em>&nbsp;</td><td>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" name="a38a32" doxytag="TAG_NONE"></a>TAG_NONE</em>&nbsp;</td><td>
 </td></tr>
 </table>
 </dl>
@@ -224,7 +227,7 @@ Returns TRUE if string is zero length or contains only white spaces otherwise FA
     </td>
   </tr>
 </table>
-<a class="anchor" name="a24" doxytag="xmlreader.cpp::parseXMLBuffer"></a><p>
+<a class="anchor" name="a25" doxytag="xmlreader.cpp::parseXMLBuffer"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -240,12 +243,6 @@ Returns TRUE if string is zero length or contains only white spaces otherwise FA
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>pb</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>errHandler</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -273,7 +270,7 @@ Returns TRUE if string is zero length or contains only white spaces otherwise FA
     </td>
   </tr>
 </table>
-<a class="anchor" name="a23" doxytag="xmlreader.cpp::parseXMLFile"></a><p>
+<a class="anchor" name="a24" doxytag="xmlreader.cpp::parseXMLFile"></a><p>
 <table class="mdTable" cellpadding="2" cellspacing="0">
   <tr>
     <td class="mdRow">
@@ -289,12 +286,6 @@ Returns TRUE if string is zero length or contains only white spaces otherwise FA
           <td class="md"></td>
           <td class="md" nowrap><a class="el" href="classUTAP_1_1ParserBuilder.html">ParserBuilder</a> *&nbsp;</td>
           <td class="mdname" nowrap> <em>pb</em>, </td>
-        </tr>
-        <tr>
-          <td class="md" nowrap align="right"></td>
-          <td class="md"></td>
-          <td class="md" nowrap><a class="el" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *&nbsp;</td>
-          <td class="mdname" nowrap> <em>errHandler</em>, </td>
         </tr>
         <tr>
           <td class="md" nowrap align="right"></td>
@@ -353,7 +344,7 @@ Identifier starts with alpha and further might contain digits, white spaces are 
 Throws a <a class="el" href="classUTAP_1_1TypeException.html">TypeException</a> is identifier is invalid or a newly allocated string to be destroyed with delete [].     </td>
   </tr>
 </table>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

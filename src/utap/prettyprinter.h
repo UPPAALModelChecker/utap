@@ -53,20 +53,26 @@ namespace UTAP
     public:
 	PrettyPrinter(std::ostream &stream);
 
-	virtual void setErrorHandler(ErrorHandler *);
-	virtual void setPosition(const position_t &);
-    
-	virtual bool isType(const char *id);
-	virtual void typeName(int32_t prefix, const char *type, int range);
-	virtual void declTypeDef(const char* name, uint32_t dim); 
-	virtual void declTypeDefEnd();
-	virtual void declVar(const char *id, uint32_t dim, bool init);
-	virtual void declVarEnd();
+	virtual void addPosition(
+	    uint32_t position, uint32_t offset, uint32_t line, std::string path);
+
+	virtual void handleError(std::string);
+	virtual void handleWarning(std::string);
+
+	virtual void typeBool(PREFIX);
+	virtual void typeInt(PREFIX);
+	virtual void typeBoundedInt(PREFIX);
+	virtual void typeChannel(PREFIX);
+	virtual void typeClock();
+	virtual void typeVoid();
+	virtual void typeScalar(PREFIX);
+	virtual void typeName(PREFIX, const char *type);
+	virtual void declTypeDef(const char* name); 
+	virtual void declVar(const char *id, bool init);
 	virtual void declInitialiserList(uint32_t num);
 	virtual void declFieldInit(const char* name);
-	virtual void declParameter(const char* name, bool reference, uint32_t dim);
-	virtual void declParameterEnd();
-	virtual void declFuncBegin(const char* name, uint32_t n);
+	virtual void declParameter(const char* name, bool);
+	virtual void declFuncBegin(const char* name);
 	virtual void declFuncEnd();
 	virtual void blockBegin();
 	virtual void blockEnd();
@@ -86,8 +92,7 @@ namespace UTAP
 	virtual void continueStatement();
 	virtual void exprStatement();
 	virtual void returnStatement(bool hasValue);
-	virtual void procTemplateSet(const char *name);
-	virtual void procBegin(const char* name, uint32_t n, uint32_t m);
+	virtual void procBegin(const char* name);
 	virtual void procState(const char *id, bool hasInvariant);
 	virtual void procStateUrgent(const char *id);
 	virtual void procStateCommit(const char *id);
@@ -107,7 +112,6 @@ namespace UTAP
 	virtual void exprFalse();
 	virtual void exprCallBegin();
 	virtual void exprCallEnd(uint32_t n);
-	virtual void exprArg(uint32_t n);
 	virtual void exprArray();
 	virtual void exprPostIncrement();
 	virtual void exprPreIncrement();
@@ -122,10 +126,13 @@ namespace UTAP
 	virtual void exprDeadlock();
 	virtual void exprForAllBegin(const char *name);
 	virtual void exprForAllEnd(const char *name);
+	virtual void exprExistsBegin(const char *name);
+	virtual void exprExistsEnd(const char *name);
 	virtual void beforeUpdate();
 	virtual void afterUpdate();
-	virtual void instantiationBegin(const char *id, const char *templ);
-	virtual void instantiationEnd(const char* id, const char* templ, uint32_t n);
+	virtual void instantiationBegin(const char *, size_t, const char *);
+	virtual void instantiationEnd(
+	    const char *, size_t, const char *, size_t);
 	virtual void process(const char *id);
 	virtual void done();
     };

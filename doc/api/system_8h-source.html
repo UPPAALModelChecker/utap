@@ -10,8 +10,8 @@
 <h1>system.h</h1><a href="system_8h.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment">00001 <span class="comment">// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-</span>
 00002 
 00003 <span class="comment">/* libutap - Uppaal Timed Automata Parser.</span>
-00004 <span class="comment">   Copyright (C) 2002-2004 Uppsala University and Aalborg University.</span>
-00005 <span class="comment">   </span>
+00004 <span class="comment">   Copyright (C) 2002-2006 Uppsala University and Aalborg University.</span>
+00005 <span class="comment"></span>
 00006 <span class="comment">   This library is free software; you can redistribute it and/or</span>
 00007 <span class="comment">   modify it under the terms of the GNU Lesser General Public License</span>
 00008 <span class="comment">   as published by the Free Software Foundation; either version 2.1 of</span>
@@ -38,221 +38,209 @@
 00029 
 00030 <span class="preprocessor">#include "<a class="code" href="symbols_8h.html">utap/symbols.h</a>"</span>
 00031 <span class="preprocessor">#include "<a class="code" href="expression_8h.html">utap/expression.h</a>"</span>
-00032 
-00033 <span class="keyword">namespace </span>UTAP
-00034 {
-<a name="l00039"></a><a class="code" href="structUTAP_1_1variable__t.html">00039</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> 
-00040     {
-<a name="l00041"></a><a class="code" href="structUTAP_1_1variable__t.html#o0">00041</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1variable__t.html#o0">uid</a>;      
-<a name="l00042"></a><a class="code" href="structUTAP_1_1variable__t.html#o1">00042</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1variable__t.html#o1">expr</a>; 
-00043     };
-00044 
-<a name="l00051"></a><a class="code" href="structUTAP_1_1state__t.html">00051</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1state__t.html">state_t</a> 
-00052     {
-<a name="l00053"></a><a class="code" href="structUTAP_1_1state__t.html#o0">00053</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1state__t.html#o0">uid</a>;           
-<a name="l00054"></a><a class="code" href="structUTAP_1_1state__t.html#o1">00054</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1state__t.html#o1">invariant</a>; 
-<a name="l00055"></a><a class="code" href="structUTAP_1_1state__t.html#o2">00055</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1state__t.html#o2">costrate</a>;  
-<a name="l00056"></a><a class="code" href="structUTAP_1_1state__t.html#o3">00056</a>         int32_t <a class="code" href="structUTAP_1_1state__t.html#o3">locNr</a>;          
-00057     };
-00058 
-<a name="l00063"></a><a class="code" href="structUTAP_1_1edge__t.html">00063</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> 
-00064     {
-<a name="l00065"></a><a class="code" href="structUTAP_1_1edge__t.html#o0">00065</a>         <span class="keywordtype">int</span> <a class="code" href="structUTAP_1_1edge__t.html#o0">nr</a>;                 
-<a name="l00066"></a><a class="code" href="structUTAP_1_1edge__t.html#o1">00066</a>         <span class="keywordtype">bool</span> <a class="code" href="structUTAP_1_1edge__t.html#o1">control</a>;           
-<a name="l00067"></a><a class="code" href="structUTAP_1_1edge__t.html#o2">00067</a>         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> *<a class="code" href="structUTAP_1_1edge__t.html#o2">src</a>;           
-<a name="l00068"></a><a class="code" href="structUTAP_1_1edge__t.html#o3">00068</a>         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> *<a class="code" href="structUTAP_1_1edge__t.html#o3">dst</a>;           
-<a name="l00069"></a><a class="code" href="structUTAP_1_1edge__t.html#o4">00069</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o4">select</a>;         
-<a name="l00070"></a><a class="code" href="structUTAP_1_1edge__t.html#o5">00070</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o5">guard</a>;     
-<a name="l00071"></a><a class="code" href="structUTAP_1_1edge__t.html#o6">00071</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o6">assign</a>;    
-<a name="l00072"></a><a class="code" href="structUTAP_1_1edge__t.html#o7">00072</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o7">sync</a>;      
-00073     };
-00074 
-00075     <span class="keyword">class </span><a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a>; <span class="comment">// Forward declaration</span>
-00076 
-<a name="l00080"></a><a class="code" href="structUTAP_1_1function__t.html">00080</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1function__t.html">function_t</a>
-00081     {
-<a name="l00082"></a><a class="code" href="structUTAP_1_1function__t.html#o0">00082</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1function__t.html#o0">uid</a>;                
-<a name="l00083"></a><a class="code" href="structUTAP_1_1function__t.html#o1">00083</a>         std::set&lt;symbol_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o1">changes</a>;  
-<a name="l00084"></a><a class="code" href="structUTAP_1_1function__t.html#o2">00084</a>         std::set&lt;symbol_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o2">depends</a>;  
-<a name="l00085"></a><a class="code" href="structUTAP_1_1function__t.html#o3">00085</a>         std::list&lt;variable_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o3">variables</a>;
-<a name="l00086"></a><a class="code" href="structUTAP_1_1function__t.html#o4">00086</a>         <a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *<a class="code" href="structUTAP_1_1function__t.html#o4">body</a>;        
-<a name="l00087"></a><a class="code" href="structUTAP_1_1function__t.html#a0">00087</a>         <a class="code" href="structUTAP_1_1function__t.html#a0">function_t</a>() : <a class="code" href="structUTAP_1_1function__t.html#o4">body</a>(NULL) {}
-00088         <a class="code" href="structUTAP_1_1function__t.html#a1">~function_t</a>();
-00089     };
-00090 
-00091     <span class="keyword">struct </span>template_t;
-00092         
-<a name="l00093"></a><a class="code" href="structUTAP_1_1instance__t.html">00093</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> 
-00094     {
-<a name="l00095"></a><a class="code" href="structUTAP_1_1instance__t.html#o0">00095</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1instance__t.html#o0">uid</a>;
-<a name="l00096"></a><a class="code" href="structUTAP_1_1instance__t.html#o1">00096</a>         <span class="keyword">const</span> <a class="code" href="structUTAP_1_1template__t.html">template_t</a> *<a class="code" href="structUTAP_1_1instance__t.html#o1">templ</a>;
-<a name="l00097"></a><a class="code" href="structUTAP_1_1instance__t.html#o2">00097</a>         std::map&lt;symbol_t, expression_t&gt; <a class="code" href="structUTAP_1_1instance__t.html#o2">mapping</a>;
-00098     };
-00099 
-<a name="l00100"></a><a class="code" href="structUTAP_1_1progress__t.html">00100</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1progress__t.html">progress_t</a>
-00101     {
-<a name="l00102"></a><a class="code" href="structUTAP_1_1progress__t.html#o0">00102</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1progress__t.html#o0">guard</a>;
-<a name="l00103"></a><a class="code" href="structUTAP_1_1progress__t.html#o1">00103</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1progress__t.html#o1">measure</a>;
-00104     };
-00105 
-<a name="l00110"></a><a class="code" href="structUTAP_1_1declarations__t.html">00110</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> 
-00111     {
-<a name="l00112"></a><a class="code" href="structUTAP_1_1declarations__t.html#o0">00112</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1declarations__t.html#o0">frame</a>;
-<a name="l00113"></a><a class="code" href="structUTAP_1_1declarations__t.html#o1">00113</a>         std::list&lt;variable_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o1">variables</a>;        
-<a name="l00114"></a><a class="code" href="structUTAP_1_1declarations__t.html#o2">00114</a>         std::list&lt;function_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o2">functions</a>;        
-<a name="l00115"></a><a class="code" href="structUTAP_1_1declarations__t.html#o3">00115</a>         std::list&lt;progress_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o3">progress</a>;         
-00118         <span class="keywordtype">bool</span> <a class="code" href="structUTAP_1_1declarations__t.html#a0">addFunction</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="code" href="structUTAP_1_1function__t.html">function_t</a> *&amp;);
-00119     };
-00120 
-<a name="l00125"></a><a class="code" href="structUTAP_1_1template__t.html">00125</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1template__t.html">template_t</a> : <span class="keyword">public</span> <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a>
-00126     {
-<a name="l00127"></a><a class="code" href="structUTAP_1_1template__t.html#o0">00127</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1template__t.html#o0">uid</a>;                           
-<a name="l00128"></a><a class="code" href="structUTAP_1_1template__t.html#o1">00128</a>         int32_t <a class="code" href="structUTAP_1_1template__t.html#o1">nr</a>;                             
-<a name="l00129"></a><a class="code" href="structUTAP_1_1template__t.html#o2">00129</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1template__t.html#o2">init</a>;                          
-<a name="l00130"></a><a class="code" href="structUTAP_1_1template__t.html#o3">00130</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1template__t.html#o3">templateset</a>;                    
-<a name="l00131"></a><a class="code" href="structUTAP_1_1template__t.html#o4">00131</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1template__t.html#o4">parameters</a>;                     
-<a name="l00132"></a><a class="code" href="structUTAP_1_1template__t.html#o5">00132</a>         std::list&lt;state_t&gt; <a class="code" href="structUTAP_1_1template__t.html#o5">states</a>;              
-<a name="l00133"></a><a class="code" href="structUTAP_1_1template__t.html#o6">00133</a>         std::list&lt;edge_t&gt; <a class="code" href="structUTAP_1_1template__t.html#o6">edges</a>;                
-00136         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;<a class="code" href="structUTAP_1_1template__t.html#a0">addLocation</a>(std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> inv);
-00137 
-00139         <a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;<a class="code" href="structUTAP_1_1template__t.html#a1">addEdge</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> src, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> dst, <span class="keywordtype">bool</span> type);
-00140     };
-00141 
-<a name="l00147"></a><a class="code" href="structUTAP_1_1process__t.html">00147</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1process__t.html">process_t</a> : <span class="keyword">public</span> <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> 
-00148     {
-<a name="l00149"></a><a class="code" href="structUTAP_1_1process__t.html#o0">00149</a>         int32_t <a class="code" href="structUTAP_1_1process__t.html#o0">nr</a>;             
-00150     };
-00151 
-00152     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>;
-00153     
-<a name="l00154"></a><a class="code" href="classUTAP_1_1SystemVisitor.html">00154</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>
-00155     {
-00156     <span class="keyword">public</span>:
-<a name="l00157"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a0">00157</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a0">~SystemVisitor</a>() {}
-<a name="l00158"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a1">00158</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a1">visitSystemBefore</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *) {}
-<a name="l00159"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a2">00159</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a2">visitSystemAfter</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *) {}
-<a name="l00160"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a3">00160</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a3">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;) {}
-<a name="l00161"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a4">00161</a>         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a4">visitTemplateBefore</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;) { <span class="keywordflow">return</span> <span class="keyword">true</span>; }
-<a name="l00162"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a5">00162</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a5">visitTemplateAfter</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;) {}
-<a name="l00163"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a6">00163</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a6">visitState</a>(<a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;) {}
-<a name="l00164"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a7">00164</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a7">visitEdge</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;) {}
-<a name="l00165"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a8">00165</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a8">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;) {}
-<a name="l00166"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a9">00166</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a9">visitProcess</a>(<a class="code" href="structUTAP_1_1process__t.html">process_t</a> &amp;) {}
-<a name="l00167"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a10">00167</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a10">visitFunction</a>(<a class="code" href="structUTAP_1_1function__t.html">function_t</a> &amp;) {}
-<a name="l00168"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a11">00168</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a11">visitProgressMeasure</a>(<a class="code" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;) {}
+00032 <span class="preprocessor">#include "<a class="code" href="position_8h.html">utap/position.h</a>"</span>
+00033 
+00034 <span class="keyword">namespace </span>UTAP
+00035 {
+<a name="l00040"></a><a class="code" href="structUTAP_1_1variable__t.html">00040</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1variable__t.html">variable_t</a>
+00041     {
+<a name="l00042"></a><a class="code" href="structUTAP_1_1variable__t.html#o0">00042</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1variable__t.html#o0">uid</a>;      
+<a name="l00043"></a><a class="code" href="structUTAP_1_1variable__t.html#o1">00043</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1variable__t.html#o1">expr</a>; 
+00044     };
+00045 
+<a name="l00052"></a><a class="code" href="structUTAP_1_1state__t.html">00052</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1state__t.html">state_t</a>
+00053     {
+<a name="l00054"></a><a class="code" href="structUTAP_1_1state__t.html#o0">00054</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1state__t.html#o0">uid</a>;           
+<a name="l00055"></a><a class="code" href="structUTAP_1_1state__t.html#o1">00055</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1state__t.html#o1">invariant</a>; 
+<a name="l00056"></a><a class="code" href="structUTAP_1_1state__t.html#o2">00056</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1state__t.html#o2">costrate</a>;  
+<a name="l00057"></a><a class="code" href="structUTAP_1_1state__t.html#o3">00057</a>         int32_t <a class="code" href="structUTAP_1_1state__t.html#o3">locNr</a>;          
+00058     };
+00059 
+<a name="l00064"></a><a class="code" href="structUTAP_1_1edge__t.html">00064</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1edge__t.html">edge_t</a>
+00065     {
+<a name="l00066"></a><a class="code" href="structUTAP_1_1edge__t.html#o0">00066</a>         <span class="keywordtype">int</span> <a class="code" href="structUTAP_1_1edge__t.html#o0">nr</a>;                 
+<a name="l00067"></a><a class="code" href="structUTAP_1_1edge__t.html#o1">00067</a>         <span class="keywordtype">bool</span> <a class="code" href="structUTAP_1_1edge__t.html#o1">control</a>;           
+<a name="l00068"></a><a class="code" href="structUTAP_1_1edge__t.html#o2">00068</a>         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> *<a class="code" href="structUTAP_1_1edge__t.html#o2">src</a>;           
+<a name="l00069"></a><a class="code" href="structUTAP_1_1edge__t.html#o3">00069</a>         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> *<a class="code" href="structUTAP_1_1edge__t.html#o3">dst</a>;           
+<a name="l00070"></a><a class="code" href="structUTAP_1_1edge__t.html#o4">00070</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o4">select</a>;         
+<a name="l00071"></a><a class="code" href="structUTAP_1_1edge__t.html#o5">00071</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o5">guard</a>;     
+<a name="l00072"></a><a class="code" href="structUTAP_1_1edge__t.html#o6">00072</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o6">assign</a>;    
+<a name="l00073"></a><a class="code" href="structUTAP_1_1edge__t.html#o7">00073</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1edge__t.html#o7">sync</a>;      
+00074     };
+00075 
+00076     <span class="keyword">class </span><a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a>; <span class="comment">// Forward declaration</span>
+00077 
+<a name="l00081"></a><a class="code" href="structUTAP_1_1function__t.html">00081</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1function__t.html">function_t</a>
+00082     {
+<a name="l00083"></a><a class="code" href="structUTAP_1_1function__t.html#o0">00083</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1function__t.html#o0">uid</a>;                
+<a name="l00084"></a><a class="code" href="structUTAP_1_1function__t.html#o1">00084</a>         std::set&lt;symbol_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o1">changes</a>;  
+<a name="l00085"></a><a class="code" href="structUTAP_1_1function__t.html#o2">00085</a>         std::set&lt;symbol_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o2">depends</a>;  
+<a name="l00086"></a><a class="code" href="structUTAP_1_1function__t.html#o3">00086</a>         std::list&lt;variable_t&gt; <a class="code" href="structUTAP_1_1function__t.html#o3">variables</a>; 
+<a name="l00087"></a><a class="code" href="structUTAP_1_1function__t.html#o4">00087</a>         <a class="code" href="classUTAP_1_1BlockStatement.html">BlockStatement</a> *<a class="code" href="structUTAP_1_1function__t.html#o4">body</a>;        
+<a name="l00088"></a><a class="code" href="structUTAP_1_1function__t.html#a0">00088</a>         <a class="code" href="structUTAP_1_1function__t.html#a0">function_t</a>() : <a class="code" href="structUTAP_1_1function__t.html#o4">body</a>(NULL) {}
+00089         <a class="code" href="structUTAP_1_1function__t.html#a1">~function_t</a>();
+00090     };
+00091 
+<a name="l00092"></a><a class="code" href="structUTAP_1_1progress__t.html">00092</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1progress__t.html">progress_t</a>
+00093     {
+<a name="l00094"></a><a class="code" href="structUTAP_1_1progress__t.html#o0">00094</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1progress__t.html#o0">guard</a>;
+<a name="l00095"></a><a class="code" href="structUTAP_1_1progress__t.html#o1">00095</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1progress__t.html#o1">measure</a>;
+00096     };
+00097 
+<a name="l00102"></a><a class="code" href="structUTAP_1_1declarations__t.html">00102</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a>
+00103     {
+<a name="l00104"></a><a class="code" href="structUTAP_1_1declarations__t.html#o0">00104</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1declarations__t.html#o0">frame</a>;
+<a name="l00105"></a><a class="code" href="structUTAP_1_1declarations__t.html#o1">00105</a>         std::list&lt;variable_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o1">variables</a>;        
+<a name="l00106"></a><a class="code" href="structUTAP_1_1declarations__t.html#o2">00106</a>         std::list&lt;function_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o2">functions</a>;        
+<a name="l00107"></a><a class="code" href="structUTAP_1_1declarations__t.html#o3">00107</a>         std::list&lt;progress_t&gt; <a class="code" href="structUTAP_1_1declarations__t.html#o3">progress</a>;         
+00110         <span class="keywordtype">bool</span> <a class="code" href="structUTAP_1_1declarations__t.html#a0">addFunction</a>(<a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="code" href="structUTAP_1_1function__t.html">function_t</a> *&amp;);
+00111     };
+00112 
+<a name="l00142"></a><a class="code" href="structUTAP_1_1instance__t.html">00142</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1instance__t.html">instance_t</a>
+00143     {
+<a name="l00144"></a><a class="code" href="structUTAP_1_1instance__t.html#o0">00144</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1instance__t.html#o0">uid</a>;                             
+<a name="l00145"></a><a class="code" href="structUTAP_1_1instance__t.html#o1">00145</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1instance__t.html#o1">parameters</a>;                       
+<a name="l00146"></a><a class="code" href="structUTAP_1_1instance__t.html#o2">00146</a>         std::map&lt;symbol_t, expression_t&gt; <a class="code" href="structUTAP_1_1instance__t.html#o2">mapping</a>; 
+<a name="l00147"></a><a class="code" href="structUTAP_1_1instance__t.html#o3">00147</a>         size_t <a class="code" href="structUTAP_1_1instance__t.html#o3">arguments</a>;
+<a name="l00148"></a><a class="code" href="structUTAP_1_1instance__t.html#o4">00148</a>         size_t <a class="code" href="structUTAP_1_1instance__t.html#o4">unbound</a>;
+<a name="l00149"></a><a class="code" href="structUTAP_1_1instance__t.html#o5">00149</a>         <span class="keyword">struct </span><a class="code" href="structUTAP_1_1template__t.html">template_t</a> *<a class="code" href="structUTAP_1_1instance__t.html#o5">templ</a>;
+<a name="l00150"></a><a class="code" href="structUTAP_1_1instance__t.html#o6">00150</a>         std::set&lt;symbol_t&gt; <a class="code" href="structUTAP_1_1instance__t.html#o6">restricted</a>;          
+00151     };
+00152 
+<a name="l00157"></a><a class="code" href="structUTAP_1_1template__t.html">00157</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1template__t.html">template_t</a> : <span class="keyword">public</span> <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a>, <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a>
+00158     {
+<a name="l00159"></a><a class="code" href="structUTAP_1_1template__t.html#o0">00159</a>         <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> <a class="code" href="structUTAP_1_1template__t.html#o0">init</a>;                          
+<a name="l00160"></a><a class="code" href="structUTAP_1_1template__t.html#o1">00160</a>         <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> <a class="code" href="structUTAP_1_1template__t.html#o1">templateset</a>;                    
+<a name="l00161"></a><a class="code" href="structUTAP_1_1template__t.html#o2">00161</a>         std::list&lt;state_t&gt; <a class="code" href="structUTAP_1_1template__t.html#o2">states</a>;              
+<a name="l00162"></a><a class="code" href="structUTAP_1_1template__t.html#o3">00162</a>         std::list&lt;edge_t&gt; <a class="code" href="structUTAP_1_1template__t.html#o3">edges</a>;                
+00165         <a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;<a class="code" href="structUTAP_1_1template__t.html#a0">addLocation</a>(std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> inv);
+00166 
+00168         <a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;<a class="code" href="structUTAP_1_1template__t.html#a1">addEdge</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> src, <a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> dst, <span class="keywordtype">bool</span> type);
 00169     };
 00170 
-<a name="l00171"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">00171</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>
-00172     {
-00173     <span class="keyword">public</span>:
-00174         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a0">TimedAutomataSystem</a>();
-00175         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a1">~TimedAutomataSystem</a>();
-00176 
-00178         <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a2">getGlobals</a>();
-00179 
-00181         std::list&lt;template_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a3">getTemplates</a>();
-00182 
-00184         std::list&lt;process_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a4">getProcesses</a>();
-00185 
-00186         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a5">addVariableToFunction</a>(
-00187             <a class="code" href="structUTAP_1_1function__t.html">function_t</a> *, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>, std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> initital);
-00188         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a6">addVariable</a>(
-00189             <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> initial);
-00190         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a7">addProgressMeasure</a>(
-00191             <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> guard, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> measure);
-00192 
-00193         <a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a8">addTemplate</a>(std::string, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> templateset, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> params);
-00194         <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a9">addInstance</a>(std::string name, <span class="keyword">const</span> <a class="code" href="structUTAP_1_1template__t.html">template_t</a> *);
-00195         <a class="code" href="structUTAP_1_1process__t.html">process_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a10">addProcess</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid);
-00196         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a11">accept</a>(<a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a> &amp;);
-00197 
-00199         <span class="keyword">const</span> std::set&lt;symbol_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a12">getConstants</a>() <span class="keyword">const</span>;
-00200 
-00207         <span class="keyword">const</span> std::map&lt;symbol_t, expression_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a13">getConstantValuation</a>() <span class="keyword">const</span>;
-00208 
-00215         std::map&lt;symbol_t, expression_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a13">getConstantValuation</a>();       
+00171 
+<a name="l00176"></a><a class="code" href="structUTAP_1_1chan__priority__t.html">00176</a>     <span class="keyword">struct </span><a class="code" href="structUTAP_1_1chan__priority__t.html">chan_priority_t</a>
+00177     {
+<a name="l00178"></a><a class="code" href="structUTAP_1_1chan__priority__t.html#o0">00178</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="structUTAP_1_1chan__priority__t.html#o0">chanElement</a>;
+<a name="l00179"></a><a class="code" href="structUTAP_1_1chan__priority__t.html#o1">00179</a>         <span class="keywordtype">int</span> <a class="code" href="structUTAP_1_1chan__priority__t.html#o1">chanPriority</a>;
+00180     };
+00181 
+00182     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>;
+00183 
+<a name="l00184"></a><a class="code" href="classUTAP_1_1SystemVisitor.html">00184</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>
+00185     {
+00186     <span class="keyword">public</span>:
+<a name="l00187"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a0">00187</a>         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a0">~SystemVisitor</a>() {}
+<a name="l00188"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a1">00188</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a1">visitSystemBefore</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *) {}
+<a name="l00189"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a2">00189</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a2">visitSystemAfter</a>(<a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a> *) {}
+<a name="l00190"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a3">00190</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a3">visitVariable</a>(<a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> &amp;) {}
+<a name="l00191"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a4">00191</a>         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a4">visitTemplateBefore</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;) { <span class="keywordflow">return</span> <span class="keyword">true</span>; }
+<a name="l00192"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a5">00192</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a5">visitTemplateAfter</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;) {}
+<a name="l00193"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a6">00193</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a6">visitState</a>(<a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;) {}
+<a name="l00194"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a7">00194</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a7">visitEdge</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;) {}
+<a name="l00195"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a8">00195</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a8">visitInstance</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;) {}
+<a name="l00196"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a9">00196</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a9">visitProcess</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;) {}
+<a name="l00197"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a10">00197</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a10">visitFunction</a>(<a class="code" href="structUTAP_1_1function__t.html">function_t</a> &amp;) {}
+<a name="l00198"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a11">00198</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a11">visitTypeDef</a>(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a>) {}
+<a name="l00199"></a><a class="code" href="classUTAP_1_1SystemVisitor.html#a12">00199</a>         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1SystemVisitor.html#a12">visitProgressMeasure</a>(<a class="code" href="structUTAP_1_1progress__t.html">progress_t</a> &amp;) {}
+00200     };
+00201 
+<a name="l00202"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">00202</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1TimedAutomataSystem.html">TimedAutomataSystem</a>
+00203     {
+00204     <span class="keyword">public</span>:
+00205         <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a0">TimedAutomataSystem</a>();
+00206         <span class="keyword">virtual</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a1">~TimedAutomataSystem</a>();
+00207 
+00209         <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a2">getGlobals</a>();
+00210 
+00212         std::list&lt;template_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a3">getTemplates</a>();
+00213 
+00215         std::list&lt;instance_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a4">getProcesses</a>();
 00216 
-00217         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a15">setBeforeUpdate</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00218         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a16">getBeforeUpdate</a>();
-00219         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a17">setAfterUpdate</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
-00220         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a18">getAfterUpdate</a>();
-00221 
-00222 <span class="preprocessor">#ifdef ENABLE_PRIORITY</span>
-00223 <span class="preprocessor"></span>
-00224         <span class="comment">/* Set priorities for channels and processes. */</span>
-00225         <span class="keywordtype">void</span> setChanPriority(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid, int32_t prio);
-00226         <span class="keywordtype">void</span> setProcPriority(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid, int32_t prio);
+00217         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a5">addPosition</a>(
+00218             uint32_t position, uint32_t offset, uint32_t line, std::string path);
+00219         <span class="keyword">const</span> <a class="code" href="structUTAP_1_1Positions_1_1line__t.html">Positions::line_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a6">findPosition</a>(uint32_t position) <span class="keyword">const</span>;
+00220 
+00221         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a7">addVariableToFunction</a>(
+00222             <a class="code" href="structUTAP_1_1function__t.html">function_t</a> *, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a>, <a class="code" href="classUTAP_1_1type__t.html">type_t</a>, std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> initital);
+00223         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a8">addVariable</a>(
+00224             <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> initial);
+00225         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a9">addProgressMeasure</a>(
+00226             <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> *, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> guard, <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> measure);
 00227 
-00228         <span class="comment">/* Get priorities for channels and processes. */</span>
-00229         int32_t getChanPriority(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid);
-00230         int32_t getProcPriority(<a class="code" href="classUTAP_1_1symbol__t.html">symbol_t</a> uid);
-00231 
-00232         <span class="comment">/* Returns true if system has some priority declaration. */</span>
-00233         <span class="keywordtype">bool</span> hasPriorityDeclaration() <span class="keyword">const</span>;
+00228         <a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a10">addTemplate</a>(std::string, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> params);
+00229         <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a11">addInstance</a>(
+00230             std::string name, <a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;instance, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> params, 
+00231             <span class="keyword">const</span> std::vector&lt;expression_t&gt; &amp;arguments);
+00232         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a12">addProcess</a>(<a class="code" href="structUTAP_1_1instance__t.html">instance_t</a> &amp;instance);
+00233         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a13">accept</a>(<a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a> &amp;);
 00234 
-00235     <span class="keyword">protected</span>:
-00236         <span class="keywordtype">bool</span> hasPriority;
-00237         std::map&lt;symbol_t, int32_t&gt; chanPriority;
-00238         std::map&lt;symbol_t, int32_t&gt; procPriority;
+00235         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a14">setBeforeUpdate</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00236         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a15">getBeforeUpdate</a>();
+00237         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a16">setAfterUpdate</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>);
+00238         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a17">getAfterUpdate</a>();
 00239 
-00240 <span class="preprocessor">#endif </span><span class="comment">/* ENABLE_PRIORITY */</span>
-00241         
-00242     <span class="keyword">protected</span>:
-00243         <span class="comment">// The list of templates.</span>
-<a name="l00244"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p0">00244</a>         std::list&lt;template_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p0">templates</a>;
-00245 
-00246         <span class="comment">// The list of template instances.</span>
-<a name="l00247"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p1">00247</a>         std::list&lt;instance_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p1">instances</a>;
-00248         
-00249         <span class="comment">// List of processes used in the system line</span>
-<a name="l00250"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p2">00250</a>         std::list&lt;process_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p2">processes</a>;
-00251 
-00252         <span class="comment">// The set of all constants</span>
-<a name="l00253"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p3">00253</a>         std::set&lt;symbol_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p3">constants</a>;   
-00254 
-00255         <span class="comment">// Maps constans to their values</span>
-<a name="l00256"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p4">00256</a>         std::map&lt;symbol_t, expression_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p4">constantValuation</a>;
-00257         
-00258         <span class="comment">// Global declarations</span>
-<a name="l00259"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p5">00259</a>         <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p5">global</a>;
-00260 
-<a name="l00261"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p6">00261</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p6">beforeUpdate</a>;
-<a name="l00262"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p7">00262</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p7">afterUpdate</a>;
-00263 
-00264         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a6">addVariable</a>(
-00265             std::list&lt;variable_t&gt; &amp;<a class="code" href="tracer_8cpp.html#a5">variables</a>, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> frame, 
-00266             <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string);
-00267     };
+00240         <span class="comment">/* The default priority for channels is also used for</span>
+00241 <span class="comment">         * 'tau transitions' (i.e. non-synchronizing transitions).</span>
+00242 <span class="comment">         */</span>
+00243         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a18">setChanPriority</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> chan, <span class="keywordtype">int</span> priority);
+00244         <span class="keyword">const</span> std::list&lt;chan_priority_t&gt;&amp; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a19">getChanPriorities</a>() <span class="keyword">const</span>;
+00245         std::list&lt;chan_priority_t&gt;&amp; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a20">getMutableChanPriorities</a>();
+00246         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a21">setDefaultChanPriority</a>(<span class="keywordtype">int</span> priority);
+00247         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a22">getTauPriority</a>() <span class="keyword">const</span>;
+00248 
+00249         <span class="comment">/* Process priorities. */</span>
+00250         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a23">setProcPriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name, <span class="keywordtype">int</span> priority);
+00251         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a24">getProcPriority</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* name) <span class="keyword">const</span>;
+00252 
+00253         <span class="comment">/* Returns true if system has some priority declaration. */</span>
+00254         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a25">hasPriorityDeclaration</a>() <span class="keyword">const</span>;
+00255 
+00256     <span class="keyword">protected</span>:
+<a name="l00257"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p0">00257</a>         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p0">hasPriorities</a>;
+<a name="l00258"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p1">00258</a>         <span class="keywordtype">int</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p1">defaultChanPriority</a>;
+<a name="l00259"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p2">00259</a>         std::list&lt;chan_priority_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p2">chanPriorities</a>;
+<a name="l00260"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p3">00260</a>         std::map&lt;std::string,int&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p3">procPriority</a>;
+00261 
+00262     <span class="keyword">protected</span>:
+00263         <span class="comment">// The list of templates.</span>
+<a name="l00264"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p4">00264</a>         std::list&lt;template_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p4">templates</a>;
+00265 
+00266         <span class="comment">// The list of template instances.</span>
+<a name="l00267"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p5">00267</a>         std::list&lt;instance_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p5">instances</a>;
 00268 
-<a name="l00273"></a><a class="code" href="classUTAP_1_1ContextVisitor.html">00273</a>     <span class="keyword">class </span><a class="code" href="classUTAP_1_1ContextVisitor.html">ContextVisitor</a> : <span class="keyword">public</span> <a class="code" href="classUTAP_1_1SystemVisitor.html">SystemVisitor</a>, <span class="keyword">private</span> <a class="code" href="classUTAP_1_1XPath.html">XPath</a>
-00274     {
-00275     <span class="keyword">private</span>:
-00276         <span class="keywordtype">int</span> currentTemplate;
-00277         std::string path;
-00278         <a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *errorHandler;
-00279         <span class="keyword">virtual</span> std::string get() <span class="keyword">const</span>;
-00280     <span class="keyword">protected</span>:
-00281         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b0">setContextNone</a>();
-00282         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b1">setContextDeclaration</a>();
-00283         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b2">setContextParameters</a>();
-00284         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b3">setContextInvariant</a>(<a class="code" href="structUTAP_1_1state__t.html">state_t</a> &amp;);
-00285         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b4">setContextSelect</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
-00286         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b5">setContextGuard</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
-00287         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b6">setContextSync</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
-00288         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b7">setContextAssignment</a>(<a class="code" href="structUTAP_1_1edge__t.html">edge_t</a> &amp;);
-00289         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b8">setContextInstantiation</a>();
-00290         
-00291         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b9">handleError</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, std::string);
-00292         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#b10">handleWarning</a>(<a class="code" href="classUTAP_1_1expression__t.html">expression_t</a>, std::string);
-00293     <span class="keyword">public</span>:
-00294         <a class="code" href="classUTAP_1_1ContextVisitor.html#a0">ContextVisitor</a>(<a class="code" href="classUTAP_1_1ErrorHandler.html">ErrorHandler</a> *);
-00295         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#a1">visitTemplateBefore</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;);
-00296         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1ContextVisitor.html#a2">visitTemplateAfter</a>(<a class="code" href="structUTAP_1_1template__t.html">template_t</a> &amp;);
-00297     };
+00269         <span class="comment">// List of processes.</span>
+<a name="l00270"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p6">00270</a>         std::list&lt;instance_t&gt; <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p6">processes</a>;
+00271 
+00272         <span class="comment">// Global declarations</span>
+<a name="l00273"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p7">00273</a>         <a class="code" href="structUTAP_1_1declarations__t.html">declarations_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p7">global</a>;
+00274 
+<a name="l00275"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p8">00275</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p8">beforeUpdate</a>;
+<a name="l00276"></a><a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p9">00276</a>         <a class="code" href="classUTAP_1_1expression__t.html">expression_t</a> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#p9">afterUpdate</a>;
+00277 
+00278         <a class="code" href="structUTAP_1_1variable__t.html">variable_t</a> *<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a8">addVariable</a>(
+00279             std::list&lt;variable_t&gt; &amp;<a class="code" href="tracer_8cpp.html#a9">variables</a>, <a class="code" href="classUTAP_1_1frame__t.html">frame_t</a> frame,
+00280             <a class="code" href="classUTAP_1_1type__t.html">type_t</a> type, std::string);
+00281 
+00282     <span class="keyword">public</span>:
+00283         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a26">addError</a>(<a class="code" href="structUTAP_1_1position__t.html">position_t</a>, std::string);
+00284         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a27">addWarning</a>(<a class="code" href="structUTAP_1_1position__t.html">position_t</a>, std::string);
+00285         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a28">hasErrors</a>() <span class="keyword">const</span>;
+00286         <span class="keywordtype">bool</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a29">hasWarnings</a>() <span class="keyword">const</span>;
+00287         <span class="keyword">const</span> std::vector&lt;error_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a30">getErrors</a>() <span class="keyword">const</span>;
+00288         <span class="keyword">const</span> std::vector&lt;error_t&gt; &amp;<a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a31">getWarnings</a>() <span class="keyword">const</span>;
+00289         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a32">clearErrors</a>();
+00290         <span class="keywordtype">void</span> <a class="code" href="classUTAP_1_1TimedAutomataSystem.html#a33">clearWarnings</a>();
+00291 
+00292     <span class="keyword">private</span>:
+00293         std::vector&lt;error_t&gt; errors;
+00294         std::vector&lt;error_t&gt; warnings;
+00295         <a class="code" href="classUTAP_1_1Positions.html">Positions</a> positions;
+00296     };
+00297 }
 00298 
-00299 }
-00300 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Nov 10 13:16:12 2005 for libutap by&nbsp;
+00299 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Sat Apr 29 21:02:14 2006 for libutap by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

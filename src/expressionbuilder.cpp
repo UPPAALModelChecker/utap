@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cassert>
 #include <inttypes.h>
+#include <boost/format.hpp>
 
 #include "utap/expressionbuilder.h"
 
@@ -32,6 +33,8 @@ using namespace UTAP;
 using namespace Constants;
 
 using std::vector;
+using std::string;
+using std::map;
 
 #define defaultIntMin -0x7FFF
 #define defaultIntMax 0x7FFF
@@ -46,6 +49,23 @@ ExpressionBuilder::ExpressionBuilder(TimedAutomataSystem *system)
   : system(system)
 {
     pushFrame(system->getGlobals().frame);
+    scalar_count = 0;
+}
+
+void ExpressionBuilder::addPosition(
+    uint32_t position, uint32_t offset, uint32_t line, std::string path)
+{
+    system->addPosition(position, offset, line, path);
+}
+
+void ExpressionBuilder::handleError(string msg)
+{
+    system->addError(position, msg);
+}
+
+void ExpressionBuilder::handleWarning(string msg)
+{
+    system->addWarning(position, msg);
 }
 
 void ExpressionBuilder::pushFrame(frame_t frame)
@@ -76,7 +96,7 @@ bool ExpressionBuilder::isType(const char* name)
     {
 	return false;
     }
-    return uid.getType().getBase() == type_t::NTYPE;
+    return uid.getType().getKind() == TYPEDEF;
 }
 
 bool ExpressionBuilder::isLocation(const char *name)
@@ -86,114 +106,181 @@ bool ExpressionBuilder::isLocation(const char *name)
     {
 	return false;
     }
-    return uid.getType() == type_t::LOCATION;
+    return uid.getType().isLocation();
 }
 
 expression_t ExpressionBuilder::makeConstant(int value)
 {
-    return expression_t::createConstant(position, value);
+    return expression_t::createConstant(value, position);
 }
 
-type_t ExpressionBuilder::applyPrefix(int32_t prefix, type_t type)
+type_t ExpressionBuilder::applyPrefix(PREFIX prefix, type_t type)
 {    
-    type_t base = type.getBase();
-    if (base == type_t::VOID_TYPE || base == type_t::CLOCK || base == type_t::SCALAR || base == type_t::COST) 
+    switch (prefix) 
     {
-	if (prefix == PREFIX_NONE)
-	{
-	    return type;
-	}
-    } 
-    else if (base == type_t::INT || base == type_t::BOOL
-	     || base == type_t::ARRAY || base == type_t::RECORD)
+    case PREFIX_CONST:
+	return type.createPrefix(CONSTANT, position);
+    case PREFIX_META:
+	return type.createPrefix(META, position);
+    case PREFIX_URGENT:
+	return type.createPrefix(URGENT, position);
+    case PREFIX_BROADCAST:
+	return type.createPrefix(BROADCAST, position);
+    case PREFIX_URGENT_BROADCAST:
+	return type.createPrefix(URGENT, position).createPrefix(BROADCAST, position);
+    default:
+	return type;
+    }
+}
+
+void ExpressionBuilder::typeDuplicate()
+{
+    typeFragments.duplicate();
+}
+
+void ExpressionBuilder::typePop()
+{
+    typeFragments.pop();
+}
+
+void ExpressionBuilder::typeBool(PREFIX prefix) 
+{
+    type_t type = type_t::createPrimitive(Constants::BOOL, position);
+    typeFragments.push(applyPrefix(prefix, type));
+}
+
+void ExpressionBuilder::typeInt(PREFIX prefix)
+{
+    type_t type = type_t::createPrimitive(Constants::INT, position);
+    if (prefix != PREFIX_CONST)
     {
-	switch (prefix) 
-	{
-	case PREFIX_NONE:
-	    return type;
-	case PREFIX_CONST:
-	    return type.setPrefix(true, prefix::CONSTANT);
-	case PREFIX_META:
-	    return type.setPrefix(true, prefix::META);
-	}
-    } 
-    else if (base == type_t::CHANNEL) 
+	type = type_t::createRange(type,
+				   makeConstant(defaultIntMin),
+				   makeConstant(defaultIntMax), 
+				   position);
+    }
+    typeFragments.push(applyPrefix(prefix, type));
+}
+
+void ExpressionBuilder::typeBoundedInt(PREFIX prefix)
+{
+    type_t type = type_t::createPrimitive(Constants::INT, position);
+    type = type_t::createRange(type, fragments[1], fragments[0], position);
+    fragments.pop(2);
+    typeFragments.push(applyPrefix(prefix, type));
+}
+
+void ExpressionBuilder::typeChannel(PREFIX prefix)
+{
+    type_t type = type_t::createPrimitive(CHANNEL, position);
+    typeFragments.push(applyPrefix(prefix, type));
+}
+
+void ExpressionBuilder::typeClock()
+{
+    type_t type = type_t::createPrimitive(CLOCK, position);
+    typeFragments.push(type);
+}
+
+void ExpressionBuilder::typeVoid()
+{
+    type_t type = type_t::createPrimitive(VOID_TYPE, position);
+    typeFragments.push(type);
+}
+
+static void collectDependencies(
+    std::set<symbol_t> &dependencies, expression_t expr)
+{
+    std::set<symbol_t> symbols;
+    expr.collectPossibleReads(symbols);
+    while (!symbols.empty())
     {
-	switch (prefix) 
+	symbol_t s = *symbols.begin();
+	symbols.erase(s);
+	if (dependencies.find(s) == dependencies.end())
 	{
-	case PREFIX_NONE:
-	    return type;
-	case PREFIX_URGENT:
-	    return type.setPrefix(true, prefix::URGENT);
-	case PREFIX_BROADCAST:
-	    return type.setPrefix(true, prefix::BROADCAST);
-	case PREFIX_URGENT_BROADCAST:
-	    return type.setPrefix(true, prefix::URGENT).setPrefix(true, prefix::BROADCAST);
+	    dependencies.insert(s);
+	    if (s.getData())
+	    {
+		variable_t *v = static_cast<variable_t*>(s.getData());
+		v->expr.collectPossibleReads(symbols);
+	    }
 	}
     }
-    errorHandler->handleError("Invalid prefix");
-    return type;
 }
 
-/**
- * Push a new type onto the type stack. This type might subsequently
- * be used to declare e.g. variables. Range indicates the number range
- * or rate expressions (currently, it might be 0, 1 or 2). The
- * corresponding number of fragments will be popped from the
- * expression stack.
- */
-void ExpressionBuilder::typeName(int32_t prefix, const char* name, int range)
+void ExpressionBuilder::typeScalar(PREFIX prefix)
+{
+    expression_t lower, upper;
+
+    exprNat(1);
+    exprBinary(MINUS);
+    upper = fragments[0];
+    lower = makeConstant(0);
+    fragments.pop();
+
+    type_t type = type_t::createPrimitive(SCALAR, position);
+    type = type_t::createRange(type, lower, upper, position);
+    type = applyPrefix(prefix, type);
+
+    string count = (boost::format("%1%") % scalar_count++).str();
+
+    type = type.createLabel(string("#scalarset") + count, position);
+
+    if (currentTemplate)
+    {
+	/* Local scalar definitions are local to a particular process
+	 * - not to the template. Therefore we prefix it with the
+	 * template name and rename the template name to the process
+	 * name whenever evaluating a P.symbol expression (where P is
+	 * a processs). See exprDot().
+	 */
+	type = type.createLabel(currentTemplate->uid.getName() + "::", position);
+
+	/* There are restrictions on how the size of a scalar set is
+	 * given (may not depend on free process parameters).
+	 * Therefore mark all symbols in upper and those that they
+	 * depend on as restricted.
+	 */	
+	collectDependencies(currentTemplate->restricted, upper);
+    }
+    typeFragments.push(type);
+}
+
+void ExpressionBuilder::typeName(PREFIX prefix, const char* name)
 {
     symbol_t uid;
     assert(resolve(name, uid));
 
-    if (!resolve(name, uid) || uid.getType().getBase() != type_t::NTYPE)
+    if (!resolve(name, uid) || uid.getType().getKind() != TYPEDEF)
     {
-	typeFragments.push(type_t::VOID_TYPE);
+	typeFragments.push(type_t::createPrimitive(VOID_TYPE));
 	throw TypeException("Identifier is undeclared or not a type name");
     }
 
-    type_t type = uid.getType().getSub();
-    if (type == type_t::SCALAR)
-    {
-	if (range == 1)
-	{
-	    type = type_t::createScalarSet(
-		makeConstant(0), 
-		expression_t::createBinary(fragments[0].getPosition(),
-					   MINUS, fragments[0], makeConstant(1)));
-	}
-	else
-	{
-	    errorHandler->handleError("Scalarset must have a size");
-	}
-    }
-    else if (type == type_t::INT && range == 2)
-    {
-	type = type_t::createInteger(fragments[1], fragments[0]);
-    }
-    else if (range)
-    {
-	errorHandler->handleError("Invalid number of arguments for this type");
-    }
-    else if (type == type_t::INT && prefix != PREFIX_CONST)
-    {
-	type = type_t::createInteger(makeConstant(defaultIntMin),
-				     makeConstant(defaultIntMax));
-    }
+    type_t type = uid.getType()[0];
 
-    fragments.pop(range);
+    /* We create a label here such that we can track the
+     * position. This is not needed for type checking (we only use
+     * name equivalence for scalarset, and they have a name embedded
+     * in the type, see typeScalar()).
+     */
+    type = type.createLabel(uid.getName(), position);
     typeFragments.push(applyPrefix(prefix, type));
 }
 
 void ExpressionBuilder::exprTrue() 
 {
-    fragments.push(makeConstant(1));
+    expression_t expr = makeConstant(1);
+    expr.setType(type_t::createPrimitive(Constants::BOOL));
+    fragments.push(expr);
 }
 
 void ExpressionBuilder::exprFalse() 
 {
-    fragments.push(makeConstant(0));
+    expression_t expr = makeConstant(0);
+    expr.setType(type_t::createPrimitive(Constants::BOOL));
+    fragments.push(expr);
 }
     
 void ExpressionBuilder::exprId(const char *name) 
@@ -203,27 +290,10 @@ void ExpressionBuilder::exprId(const char *name)
     if (!resolve(name, uid)) 
     {
 	exprFalse();
-	throw TypeException("Unknown identifier: %s", name);
+	throw TypeException(boost::format("Unknown identifier: %1%") % name);
     }
 
-    fragments.push(expression_t::createIdentifier(position, uid));
-
-    type_t base = uid.getType().getBase();
-
-    if (base != type_t::INT
-	&& base != type_t::BOOL
-	&& base != type_t::ARRAY
-	&& base != type_t::CLOCK
-	&& base != type_t::CHANNEL
-	&& base != type_t::RECORD
-	&& base != type_t::PROCESS
-	&& base != type_t::COST
-	&& base != type_t::VOID_TYPE
-	&& base != type_t::FUNCTION
-	&& base != type_t::SCALAR)
-    {
-	throw TypeException("Identifier of this type cannot be referenced in an expression");
-    }    
+    fragments.push(expression_t::createIdentifier(uid, position));
 }
 
 void ExpressionBuilder::exprDeadlock()
@@ -243,29 +313,17 @@ void ExpressionBuilder::exprCallBegin()
 // expects n argument expressions on the stack
 void ExpressionBuilder::exprCallEnd(uint32_t n) 
 {
-    /* exprCallBegin() pushes symbol_t() if and only if the identifier
-     * is undeclared: In that case we pop the fragments and push a
-     * dummy expression to recover from the error.
-     */
-    symbol_t id = fragments[n].getSymbol();
-    if (id == symbol_t())
-    {
-	fragments.pop(n + 1);
-	exprFalse();
-	return;
-    }
+    expression_t e;
+    type_t type;
+    instance_t *instance;
 
-    /* If id is a function call, then retrieve the type.
+    /* n+1'th element from the top is the identifier. 
      */
-    type_t result = type_t::VOID_TYPE;
-    if (id.getType().getBase() == type_t::FUNCTION)
-    {
-	result = id.getType().getSub();
-    }
+    expression_t id = fragments[n];
 
     /* Create vector of sub expressions: The first expression
-     * evaluates to the function. The remaining expressions are the
-     * arguments.
+     * evaluates to the function or processset. The remaining
+     * expressions are the arguments.
      */
     vector<expression_t> expr;
     for (int i = n; i >= 0; i--)
@@ -274,15 +332,55 @@ void ExpressionBuilder::exprCallEnd(uint32_t n)
     }
     fragments.pop(n + 1);
 
-    /* Create the function call expression.
+    /* The expression we create depends on whether id is a
+     * function or a processset.
      */
-    fragments.push(expression_t::createNary(position, FUNCALL, expr, result));
-}
+    switch (id.getType().getKind())
+    {
+    case FUNCTION:
+	if (expr.size() != id.getType().size())
+	{
+	    handleError("Wrong number of arguments");
+	}
+	e = expression_t::createNary(FUNCALL, expr, position, id.getType()[0]);
+	break;
+	
+    case PROCESSSET:
+	if (expr.size() - 1!= id.getType().size())
+	{
+	    handleError("Wrong number of arguments");
+	}
+	instance = static_cast<instance_t*>(id.getSymbol().getData());
 
-// expects 1 expression on the stack
-void ExpressionBuilder::exprArg(uint32_t n) 
-{
+	/* Process set lookups are represented as expressions indexing
+	 * into an array. To satisfy the type checker, we create a
+	 * type matching this structure.
+	 */
+	type = type_t::createProcess(instance->templ->frame);
+	for (size_t i = 0; i < instance->unbound; i++)
+	{
+	    type = type_t::createArray(type, instance->parameters[instance->unbound - i - 1].getType());
+	}
 
+	/* Now create the expression. Each argument to the proces set
+	 * lookup is represented as an ARRAY expression.
+	 */
+	e = id;
+	e.setType(type);
+	for (size_t i = 1; i < expr.size(); i++)
+	{
+	    type = type.getSub();
+	    e = expression_t::createBinary(ARRAY, e, expr[i], position, type);
+	}
+	break;
+	
+    default:
+	handleError("Function expected");
+	e = makeConstant(0);
+	break;
+    }
+
+    fragments.push(e);
 }
 
 // 2 expr     // array[index]
@@ -295,42 +393,42 @@ void ExpressionBuilder::exprArray()
 
     type_t element;
     type_t type = var.getType();
-    if (type.getBase() == type_t::ARRAY) 
+    if (type.isArray()) 
     {
 	element = type.getSub();
     }
     else 
     {
-	element = type_t::UNKNOWN;
+	element = type_t();
     }
 
     fragments.push(expression_t::createBinary(
-	position, ARRAY, var, index, element));
+		       ARRAY, var, index, position, element));
 }
 
 // 1 expr
 void ExpressionBuilder::exprPostIncrement() 
 {
     fragments[0] = expression_t::createUnary(
-	position, POSTINCREMENT, fragments[0], fragments[0].getType());
+	POSTINCREMENT, fragments[0], position);
 }
     
 void ExpressionBuilder::exprPreIncrement() 
 {
     fragments[0] = expression_t::createUnary(
-	position, PREINCREMENT, fragments[0], fragments[0].getType());
+	PREINCREMENT, fragments[0], position, fragments[0].getType());
 }
     
 void ExpressionBuilder::exprPostDecrement() // 1 expr
 {
     fragments[0] = expression_t::createUnary(
-	position, POSTDECREMENT, fragments[0], fragments[0].getType());
+	POSTDECREMENT, fragments[0], position);
 }
     
 void ExpressionBuilder::exprPreDecrement() 
 {
     fragments[0] = expression_t::createUnary(
-	position, PREDECREMENT, fragments[0], fragments[0].getType());
+	PREDECREMENT, fragments[0], position, fragments[0].getType());
 }
     
 void ExpressionBuilder::exprAssignment(kind_t op) // 2 expr
@@ -339,7 +437,7 @@ void ExpressionBuilder::exprAssignment(kind_t op) // 2 expr
     expression_t rvalue = fragments[0];
     fragments.pop(2);
     fragments.push(expression_t::createBinary(
-	position, op, lvalue, rvalue, lvalue.getType()));
+		       op, lvalue, rvalue, position, lvalue.getType()));
 }
 
 void ExpressionBuilder::exprUnary(kind_t unaryop) // 1 expr
@@ -353,7 +451,7 @@ void ExpressionBuilder::exprUnary(kind_t unaryop) // 1 expr
 	unaryop = UNARY_MINUS;
 	/* Fall through! */
     default:
-	fragments[0] = expression_t::createUnary(position, unaryop, fragments[0]);
+	fragments[0] = expression_t::createUnary(unaryop, fragments[0], position);
     }
 }
     
@@ -363,7 +461,7 @@ void ExpressionBuilder::exprBinary(kind_t binaryop) // 2 expr
     expression_t right = fragments[0];
     fragments.pop(2);
     fragments.push(expression_t::createBinary(
-	position, binaryop, left, right));
+		       binaryop, left, right, position));
 }
 
 void ExpressionBuilder::exprInlineIf()
@@ -373,7 +471,7 @@ void ExpressionBuilder::exprInlineIf()
     expression_t e = fragments[0];
     fragments.pop(3);
     fragments.push(expression_t::createTernary(
-	position, INLINEIF, c, t, e, t.getType()));    
+		       INLINEIF, c, t, e, position, t.getType()));    
 }
 
 void ExpressionBuilder::exprComma()
@@ -382,53 +480,79 @@ void ExpressionBuilder::exprComma()
     expression_t e2 = fragments[0];
     fragments.pop(2);
     fragments.push(expression_t::createBinary(
-	position, COMMA, e1, e2, e2.getType()));
+		       COMMA, e1, e2, position, e2.getType()));
 }
 
 void ExpressionBuilder::exprDot(const char *id)
 {
     expression_t expr = fragments[0];
     type_t type = expr.getType();
-    if (type.getBase() == type_t::RECORD || type.getBase() == type_t::PROCESS)
+    if (type.isRecord())
     {
-	frame_t fields = type.getFrame();
-	int i = fields.getIndexOf(id);
+	int32_t i  = type.findIndexOf(id);
 	if (i == -1) 
 	{
 	    std::string s = expr.toString(true);
-	    errorHandler->handleError("%s has no member named %s",
-				      s.c_str(), id);
-	    expr = expression_t::createDot(position, expr);
+	    ParserBuilder::handleError("%s has no member named %s", 
+				       s.c_str(), id);
 	} 
-	else if (fields[i].getType().getBase() == type_t::LOCATION) 
+	else 
 	{
-	    expr = expression_t::createDot(position, expr, i, type_t::INT);
+	    expr = expression_t::createDot(expr, i, position, type.getSub(i));
+	}
+    } 
+    else if (type.isProcess())
+    {
+	symbol_t name = expr.getSymbol();
+	instance_t *process = (instance_t *)name.getData();
+	int32_t i = type.findIndexOf(id);
+	if (i == -1) 
+	{
+	    std::string s = expr.toString(true);
+	    ParserBuilder::handleError("%s has no member named %s", 
+				       s.c_str(), id);
+	} 
+	else if (type.getSub(i).isLocation())
+	{
+	    expr = expression_t::createDot(expr, i, position, 
+					   type_t::createPrimitive(Constants::BOOL));
 	}
 	else 
 	{
-	    expr = expression_t::createDot(position, expr,
-					   i, fields[i].getType());
+	    type = type.getSub(i).rename(process->templ->uid.getName() + "::",
+					 name.getName() + "::");
+	    map<symbol_t, expression_t>::const_iterator arg;
+	    for (arg = process->mapping.begin(); arg != process->mapping.end(); arg++)
+	    {
+		type = type.subst(arg->first, arg->second);
+	    }
+	    expr = expression_t::createDot(expr, i, position, type);
 	}
     } 
     else 
     {
-	expr = expression_t::createDot(position, expr);
-	errorHandler->handleError("This is not a structure");
+	std::string s = expr.toString(true);
+	ParserBuilder::handleError("%s is not a structure", s.c_str());
     }
     fragments[0] = expr;
 }
 
 void ExpressionBuilder::exprForAllBegin(const char *name)
 {
-    type_t type = typeFragments[0].first;
+    type_t type = typeFragments[0];
     typeFragments.pop();
+
+    if (!type.is(CONSTANT))
+    {
+	type = type.createPrefix(CONSTANT);
+    }
     
     pushFrame(frame_t::createFrame(frames.top()));
     symbol_t symbol = frames.top().addSymbol(name, type);
 
-    if (type.getBase() != type_t::INT && type.getBase() != type_t::SCALAR)
+    if (!type.isInteger() && !type.isScalar())
     {
-	errorHandler->handleError("Quantifier must range over scalar type");
+	handleError("Quantifier must range over integer or scalar set");
     }
 }
 
@@ -440,7 +564,40 @@ void ExpressionBuilder::exprForAllEnd(const char *name)
      * symbol so it will not be deallocated.
      */
     fragments[0] = expression_t::createBinary(
-	position, FORALL, 
-	expression_t::createIdentifier(position, frames.top()[0]), fragments[0]);
+	FORALL, 
+	expression_t::createIdentifier(frames.top()[0], position), 
+	fragments[0], position);
+    popFrame();
+}
+
+void ExpressionBuilder::exprExistsBegin(const char *name)
+{
+    type_t type = typeFragments[0];
+    typeFragments.pop();
+
+    if (!type.is(CONSTANT))
+    {
+	type = type.createPrefix(CONSTANT);
+    }
+    
+    pushFrame(frame_t::createFrame(frames.top()));
+    symbol_t symbol = frames.top().addSymbol(name, type);
+
+    if (!type.isInteger() && !type.isScalar())
+    {
+	handleError("Quantifier must range over integer or scalar set");
+    }
+}
+
+void ExpressionBuilder::exprExistsEnd(const char *name)
+{
+    /* Create the exist expression. The symbol is added as an identifier
+     * expression as the first child. Notice that the frame is discarded
+     * but the identifier expression will maintain a reference to the
+     * symbol so it will not be deallocated.
+     */
+    fragments[0] = expression_t::createBinary(
+	EXISTS, expression_t::createIdentifier(
+	    frames.top()[0], position), fragments[0], position);
     popFrame();
 }

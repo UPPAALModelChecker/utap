@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2004 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -52,7 +52,7 @@ namespace UTAP
 	TAG_INSTANTIATION, TAG_SYSTEM, TAG_NAME, TAG_PARAMETER, 
 	TAG_LOCATION, TAG_INIT, TAG_TRANSITION, TAG_URGENT, 
 	TAG_COMMITTED, TAG_WINNING, TAG_LOSING, TAG_SOURCE,
-        TAG_TARGET, TAG_LABEL, TAG_NAIL
+        TAG_TARGET, TAG_LABEL, TAG_NAIL, TAG_NONE
     };
 
 #include "tags.cc"
@@ -144,7 +144,7 @@ namespace UTAP
      *
      * @see get()
      */
-    class Path : public XPath
+    class Path 
     {
 
     private:
@@ -153,7 +153,7 @@ namespace UTAP
 	Path();
 	void push(tag_t);
 	tag_t pop();
-	virtual string get() const;
+	string get(tag_t tag = TAG_NONE) const;
     };
 
     Path::Path()
@@ -174,7 +174,7 @@ namespace UTAP
     }
     
     /** Returns the XPath encoding of the current path. */
-    string Path::get() const
+    string Path::get(tag_t tag) const
     {
 	ostringstream str;
 	list<vector<tag_t> >::const_iterator i;
@@ -248,6 +248,10 @@ namespace UTAP
 		/* Strange tag on stack */
 		throw std::logic_error("XPath is corrupted");
 	    }
+	    if (i->back() == tag)
+	    {
+		break;
+	    }
 	}
 	return str.str();
     }
@@ -264,7 +268,6 @@ namespace UTAP
 	xmlTextReaderPtr reader;         /**< The underlying xmlTextReader */
 	locationmap_t locations;         /**< Map from location id's to location names. */
 	ParserBuilder *parser;           /**< The parser builder to which to push the model. */
-	ErrorHandler *errorHandler;      /**< The error handler. */
 	bool newxta;                     /**< True if we should use new syntax. */
 	Path path;                       /**< Path to the current node. */
 
@@ -279,6 +282,7 @@ namespace UTAP
 
 	bool declaration();
 	bool label();
+	bool invariant();
 	bool committed();
 	bool urgent();
 	bool winning();
@@ -295,19 +299,15 @@ namespace UTAP
 	void system();
     public:
 	XMLReader(
-	    xmlTextReaderPtr reader, ParserBuilder *parser, 
-	    ErrorHandler *errorHandler, bool newxta);
+	    xmlTextReaderPtr reader, ParserBuilder *parser, bool newxta);
 	virtual ~XMLReader();
 	void nta();
     };
 
     XMLReader::XMLReader(
-	xmlTextReaderPtr reader, ParserBuilder *parser, 
-	ErrorHandler *errorHandler, bool newxta)
-	: reader(reader), parser(parser), 
-	  errorHandler(errorHandler), newxta(newxta)
+	xmlTextReaderPtr reader, ParserBuilder *parser, bool newxta)
+	: reader(reader), parser(parser), newxta(newxta)
     {
-	errorHandler->setCurrentPath(&path);
 	read();
     }
 
@@ -420,7 +420,7 @@ namespace UTAP
     /** Invokes the bison generated parser to parse the given string. */
     int XMLReader::parse(const xmlChar *text, xta_part_t syntax)
     {
-	return parseXTA((const char*)text, parser, errorHandler, newxta, syntax);
+	return parseXTA((const char*)text, parser, newxta, syntax, path.get());
     }
 
     /** Parse optional declaration. */
@@ -481,6 +481,35 @@ namespace UTAP
 	return false;
     }
 
+    bool XMLReader::invariant()
+    {
+	bool result = false;
+	xmlChar *kind;
+
+	if (begin(TAG_LABEL))
+	{
+	    /* Get kind attribute. */
+	    kind = xmlTextReaderGetAttribute(reader, (const xmlChar *)"kind");
+	    read();
+	
+	    /* Read the text and push it to the parser. */
+	    if (getNodeType() == XML_READER_TYPE_TEXT)
+	    {
+		const xmlChar *text = xmlTextReaderConstValue(reader);
+	    
+		if (strcmp((char*)kind, "invariant") == 0)
+		{
+		    if (parse(text, S_INVARIANT) == 0)
+		    {
+			result = true;
+		    }
+		}
+	    }	    
+	    xmlFree(kind);    
+	}
+	return result;
+    }
+
     /** Parse optional name tag. */
     string XMLReader::name()
     {
@@ -490,6 +519,8 @@ namespace UTAP
 	    if (getNodeType() == XML_READER_TYPE_TEXT)
 	    {
 		xmlChar *name = xmlTextReaderValue(reader);
+		PositionTracker::setPath(parser, path.get());
+		PositionTracker::increment(parser, strlen((char*)name));
 		try 
 		{
 		    string id = symbol((char*)name);
@@ -498,11 +529,11 @@ namespace UTAP
 			xmlFree(name);
 			return id;
 		    }
-		    errorHandler->handleError("Keywords are not allowed here");
+		    parser->handleError("Keywords are not allowed here");
 		}
 		catch (const char *str)
 		{
-		    errorHandler->handleError(str);
+		    parser->handleError(str);
 		}
 		xmlFree(name);
 	    }
@@ -577,12 +608,9 @@ namespace UTAP
 		 */
 		l_name = name();
 		
-		/* Read the labels.
+		/* Read the invariant.
 		 */
-		while (label())
-		{
-		    l_invariant = true;
-		}
+		l_invariant = invariant();
 		
 		/* Is the location urgent or committed?
 		 */
@@ -607,6 +635,14 @@ namespace UTAP
 		/* Remember the mapping from id to name
 		 */
 		locations[l_id] = l_name;
+		
+		/* Any error messages generated by any of the
+		 * procStateXXX calls must be attributed to the state
+		 * element. To do this, we add a dummy position of
+		 * length 1.
+		 */
+		PositionTracker::setPath(parser, path.get(TAG_LOCATION));
+		PositionTracker::increment(parser, 1);
 	    
 		/* Push location to parser builder.
 		 */
@@ -630,40 +666,41 @@ namespace UTAP
 	    }
 	    catch (TypeException &e)
 	    {
-		errorHandler->handleError(e.what());
+		parser->handleError(e.what());
 	    }
 	    return true;
 	}
 	return false;
     }
 
-    /** Parse optional init tag. */
+    /** Parse optional init tag. The caller must define a position to
+     * which any error messages are attached.
+     */
     bool XMLReader::init()
     {
 	if (begin(TAG_INIT, false))
 	{
 	    /* Get reference attribute. 
 	     */
-	    xmlChar *ref = xmlTextReaderGetAttribute(reader, (const xmlChar*)"ref");
+	    xmlChar *ref = xmlTextReaderGetAttribute(reader, (const xmlChar*)"ref");	    
 
 	    /* Find location name for the reference. 
 	     */
 	    if (ref)
 	    {
 		string name = getLocation(ref);
-
 		try 
 		{
 		    parser->procStateInit(name.c_str());
 		}
 		catch (TypeException te) 
 		{
-		    errorHandler->handleError(te.what());
+		    parser->handleError(te.what());
 		}
 	    }
 	    else
 	    {
-		errorHandler->handleError("Missing initial state");
+		parser->handleError("Missing initial state");
 	    }
 	    xmlFree(ref);
 	    read();
@@ -671,7 +708,7 @@ namespace UTAP
 	} 
 	else
 	{
-	    errorHandler->handleError("Missing initial state");
+	    parser->handleError("Missing initial state");
 	}
 	return false;
     }
@@ -715,6 +752,8 @@ namespace UTAP
 	    string to;
 	    bool control = true;
 
+	    /* Add dummy position mapping to the transition element.
+	     */
 	    try
 	    {
 #ifdef ENABLE_GAMES
@@ -727,7 +766,6 @@ namespace UTAP
 		from = source();
 		to = target();
 
-
 		parser->procEdgeBegin(from.c_str(), to.c_str(), control);
 		while (label());
 		while (begin(TAG_NAIL)) 
@@ -738,7 +776,7 @@ namespace UTAP
 	    }
 	    catch (TypeException &e)
 	    {
-		errorHandler->handleError(e.what());
+		parser->handleError(e.what());
 	    }
 
 	    return true;
@@ -768,40 +806,44 @@ namespace UTAP
     bool XMLReader::templ()
     {
 	string t_name;
-	int p_count;
 
 	if (begin(TAG_TEMPLATE))
 	{
+	    string t_path = path.get(TAG_TEMPLATE);
 	    read();
 	    try 
 	    {
 		/* Get the name and the parameters of the template.
 		 */
 		t_name = name();
-		p_count = parameter();
-	    
-		/* Push template beginning to parser builder. This might
+		parameter();
+
+		/* Push template start to parser builder. This might
 		 * throw a TypeException.
 		 */
-		parser->procBegin(t_name.c_str(), 0, p_count);
+		PositionTracker::setPath(parser, t_path);
+		PositionTracker::increment(parser, 1);
+		parser->procBegin(t_name.c_str());
 	    
 		/* Parse declarations, locations, the init tag and the 
 		 * transitions of the template.
 		 */
 		declaration();
 		while (location());
+		PositionTracker::setPath(parser, t_path);
+		PositionTracker::increment(parser, 1);
 		init();
 		while (transition());
 	    
-		/* Push template end to parser builder.  FIXME: In case of
-		 * errors thrown in procEnd, the path no longer points to
-		 * the template.
+		/* Push template end to parser builder.
 		 */
+		PositionTracker::setPath(parser, t_path);
+		PositionTracker::increment(parser, 1);
 		parser->procEnd();
 	    }
 	    catch (TypeException &e) 
 	    {
-		errorHandler->handleError(e.what());
+		parser->handleError(e.what());
 	    }
 	
 	    return true;
@@ -841,7 +883,9 @@ namespace UTAP
 	}
 	else
 	{
-	    errorHandler->handleError("Missing system tag");
+	    PositionTracker::setPath(parser, path.get(TAG_NTA));
+	    PositionTracker::increment(parser, 1);
+	    parser->handleError("Missing system tag");
 	}
     }
 
@@ -864,8 +908,7 @@ namespace UTAP
 
 using namespace UTAP;
 
-int32_t parseXMLFile(const char *filename, ParserBuilder *pb,
-		     ErrorHandler *errHandler, bool newxta) 
+int32_t parseXMLFile(const char *filename, ParserBuilder *pb, bool newxta) 
 {
     xmlTextReaderPtr reader = xmlReaderForFile(
 	filename, "", XML_PARSE_NOCDATA | XML_PARSE_NOBLANKS);
@@ -873,12 +916,11 @@ int32_t parseXMLFile(const char *filename, ParserBuilder *pb,
     {
 	return -1;
     }
-    XMLReader(reader, pb, errHandler, newxta).nta();
+    XMLReader(reader, pb, newxta).nta();
     return 0;
 }
 
-int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb,
-		       ErrorHandler *errHandler, bool newxta)
+int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb, bool newxta)
 {
     size_t length = strlen(buffer);
     xmlTextReaderPtr reader = xmlReaderForMemory(
@@ -887,6 +929,6 @@ int32_t parseXMLBuffer(const char *buffer, ParserBuilder *pb,
     {
 	return -1;
     }
-    XMLReader(reader, pb, errHandler, newxta).nta();
+    XMLReader(reader, pb, newxta).nta();
     return 0;
 }

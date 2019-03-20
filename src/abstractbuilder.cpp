@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2002-2003 Uppsala University and Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
    
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -19,6 +19,7 @@
    USA
 */
 
+#include <cstdarg>
 #include <vector>
 #include <climits>
 #include <cmath>
@@ -30,18 +31,36 @@
 
 using namespace UTAP;
 
+void ParserBuilder::handleWarning(const char *msg, ...)
+{
+    char str[256];
+    va_list ap;
+    va_start(ap, msg);
+    vsnprintf(str, 256, msg, ap);
+    va_end(ap);
+
+    handleWarning(std::string(str));
+}
+
+void ParserBuilder::handleError(const char *msg, ...)
+{
+    char str[256];
+    va_list ap;
+    va_start(ap, msg);
+    vsnprintf(str, 256, msg, ap);
+    va_end(ap);
+
+    handleError(std::string(str));
+}
+
 AbstractBuilder::AbstractBuilder()
 {
 }
 
-void AbstractBuilder::setErrorHandler(ErrorHandler *value)
+void AbstractBuilder::setPosition(uint32_t start, uint32_t end)
 {
-    errorHandler = value;
-}
-
-void AbstractBuilder::setPosition(const position_t &pos)
-{
-    position = pos;
+    position.start = start;
+    position.end = end;
 }
 
 bool AbstractBuilder::isType(const char*)
@@ -54,44 +73,84 @@ bool AbstractBuilder::isLocation(const char*)
     return false;
 }
 
-void AbstractBuilder::typeName(int32_t prefix, const char* name, int range)
+void AbstractBuilder::typeDuplicate()
+{
+    throw NotSupportedException("typeDuplicate is not supported");
+}
+
+void AbstractBuilder::typePop()
+{
+    throw NotSupportedException("typePop is not supported");
+}
+
+void AbstractBuilder::typeBool(PREFIX) 
+{
+    throw NotSupportedException("typeBool is not supported");
+}
+
+void AbstractBuilder::typeInt(PREFIX)
+{
+    throw NotSupportedException("typeInt is not supported");
+}
+
+void AbstractBuilder::typeBoundedInt(PREFIX)
+{
+    throw NotSupportedException("typeBoundedInt is not supported");
+}
+
+void AbstractBuilder::typeChannel(PREFIX)
+{
+    throw NotSupportedException("typeChannel is not supported");
+}
+
+void AbstractBuilder::typeClock()
+{
+    throw NotSupportedException("typeClock is not supported");
+}
+
+void AbstractBuilder::typeVoid()
+{
+    throw NotSupportedException("typeVoid is not supported");
+}
+
+void AbstractBuilder::typeScalar(PREFIX)
+{
+    throw NotSupportedException("typeScalar is not supported");
+}
+
+void AbstractBuilder::typeName(PREFIX, const char* name)
 {
     throw NotSupportedException("typeName is not supported");
 }
 
-void AbstractBuilder::typeStruct(int32_t prefix, uint32_t fields)
+void AbstractBuilder::typeStruct(PREFIX, uint32_t fields)
 {
     throw NotSupportedException("typeStruct is not supported");
 }
 
-void AbstractBuilder::structField(const char* name, uint32_t dim)
+void AbstractBuilder::typeArrayOfSize(size_t)
+{
+    throw NotSupportedException("typeArrayOfSize is not supported");
+}
+
+void AbstractBuilder::typeArrayOfType(size_t)
+{
+    throw NotSupportedException("typeArrayOfType is not supported");
+}
+
+void AbstractBuilder::structField(const char* name)
 {
     throw NotSupportedException("structField is not supported");
 }
 
-void AbstractBuilder::structFieldEnd()
-{
-    throw NotSupportedException("structFieldEnd is not supported");
-}
-
-void AbstractBuilder::declTypeDef(const char* name, uint32_t dim)
+void AbstractBuilder::declTypeDef(const char* name)
 {
     throw NotSupportedException("declTypeDef is not supported");
 }
 
-void AbstractBuilder::declTypeDefEnd()
-{
-    throw NotSupportedException("declTypeDefEnd is not supported");
-}
-
-void AbstractBuilder::declVar(const char* name, uint32_t dim, bool init)
+void AbstractBuilder::declVar(const char* name, bool init)
 {
     throw NotSupportedException("declVar is not supported");
-}
-
-void AbstractBuilder::declVarEnd()
-{
-    throw NotSupportedException("declVarEnd is not supported");
 }
 
 void AbstractBuilder::declInitialiserList(uint32_t num)
@@ -109,17 +168,12 @@ void AbstractBuilder::declProgress(bool)
     throw NotSupportedException("declProgress is not supported");
 }
 
-void AbstractBuilder::declParameter(const char* name, bool reference, uint32_t dim)
+void AbstractBuilder::declParameter(const char* name, bool)
 {
     throw NotSupportedException("declParameter is not supported");
 }
-
-void AbstractBuilder::declParameterEnd()
-{
-    throw NotSupportedException("declParameterEnd is not supported");
-}
     
-void AbstractBuilder::declFuncBegin(const char* name, uint32_t n)
+void AbstractBuilder::declFuncBegin(const char* name)
 {
     throw NotSupportedException("declFuncBegin is not supported");
 }
@@ -129,12 +183,7 @@ void AbstractBuilder::declFuncEnd()
     throw NotSupportedException("declFuncEnd is not supported");
 }
 
-void AbstractBuilder::procTemplateSet(const char* name)
-{
-    throw NotSupportedException("procTemplateSet is not supported");
-}
-
-void AbstractBuilder::procBegin(const char* name, uint32_t n, uint32_t m)
+void AbstractBuilder::procBegin(const char* name)
 {
     throw NotSupportedException("procBegin is not supported");
 }
@@ -356,11 +405,6 @@ void AbstractBuilder::exprCallEnd(uint32_t n)
     throw NotSupportedException("exprCallEnd is not supported");
 }
 
-void AbstractBuilder::exprArg(uint32_t n)
-{
-    throw NotSupportedException("exprArg is not supported");
-}
-
 void AbstractBuilder::exprArray()
 {
     throw NotSupportedException("exprArray is not supported");
@@ -430,13 +474,23 @@ void AbstractBuilder::exprForAllEnd(const char *name)
 {
     throw NotSupportedException("exprForAllEnd is not supported");
 }
-    
-void AbstractBuilder::instantiationBegin(const char*, const char*)
+
+void AbstractBuilder::exprExistsBegin(const char *name)
+{
+    throw NotSupportedException("exprExistsBegin is not supported");
+}
+
+void AbstractBuilder::exprExistsEnd(const char *name)
+{
+    throw NotSupportedException("exprExistsEnd is not supported");
+}
+
+void AbstractBuilder::instantiationBegin(const char*, size_t, const char*)
 {
     throw NotSupportedException("instantiationBegin is not supported");
 }
 
-void AbstractBuilder::instantiationEnd(const char *, const char *, uint32_t n)
+void AbstractBuilder::instantiationEnd(const char *, size_t, const char *, size_t)
 {
     throw NotSupportedException("instantiationEnd is not supported");
 }
@@ -450,7 +504,7 @@ void AbstractBuilder::done()
 {
 }
 
-void AbstractBuilder::property(Constants::kind_t, int line)
+void AbstractBuilder::property(Constants::kind_t)
 {
     throw NotSupportedException("property");
 }
@@ -465,17 +519,27 @@ void AbstractBuilder::afterUpdate()
     throw NotSupportedException("afterUpdate");
 }
 
-void AbstractBuilder::lowPriority(const char*)
+void AbstractBuilder::incChanPriority()
 {
-    throw NotSupportedException("afterUpdate");
+    throw NotSupportedException("incChanPriority");
 }
 
-void AbstractBuilder::samePriority(const char*)
+void AbstractBuilder::incProcPriority()
 {
-    throw NotSupportedException("afterUpdate");
+    throw NotSupportedException("incProcPriority");
 }
 
-void AbstractBuilder::higherPriority(const char*)
+void AbstractBuilder::defaultChanPriority()
 {
-    throw NotSupportedException("afterUpdate");
+    throw NotSupportedException("defaultChanPriority");
+}
+
+void AbstractBuilder::procPriority(const char*)
+{
+    throw NotSupportedException("procPriority");
+}
+
+void AbstractBuilder::chanPriority()
+{
+    throw NotSupportedException("chanPriority");
 }
