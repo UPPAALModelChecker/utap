@@ -35,7 +35,7 @@ AC_ISC_POSIX
 
 dnl Switch to C++
 AC_LANG(C++)
-
+AX_CXX_COMPILE_STDCXX_17(noext, mandatory)
 AM_MISSING_PROG([GPERF], [gperf])
 
 OPT_FLAGS=""
