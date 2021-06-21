@@ -131,7 +131,7 @@ The BNF implemented by the bison generated parser is split into
 several sections and to some extend duplicated for the old and new
 syntax. It can read `.ta` and `.xta` files directly. `XML` files are read
 using the `libxml2` library. Each text-block in the `XML` file is then
-parser wrt. the BNF for that block (see [xmlreader.cpp](src/xmlreader)). For this, the
+parser wrt. the BNF for that block (see [xmlreader.cpp](src/xmlreader.cpp)). For this, the
 `bison` generated parser is reused.
 
 The parser calls methods in the abstract `ParserBuilder` class. The
