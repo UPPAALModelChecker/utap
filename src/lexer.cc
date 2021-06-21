@@ -1,6 +1,6 @@
-#line 2 "lexer.cc"
+#line 1 "lexer.cc"
 
-#line 4 "lexer.cc"
+#line 3 "lexer.cc"
 
 #define  YY_INT_ALIGNED short int
 
@@ -848,9 +848,9 @@ namespace UTAP
 
 //#define YY_FATAL_ERROR(msg) { throw TypeException(msg); } // unused
 
-#line 852 "lexer.cc"
+#line 851 "lexer.cc"
 
-#line 854 "lexer.cc"
+#line 853 "lexer.cc"
 
 #define INITIAL 0
 #define comment 1
@@ -1069,7 +1069,7 @@ YY_DECL
 #line 80 "lexer.ll"
 
 
-#line 1073 "lexer.cc"
+#line 1072 "lexer.cc"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1667,7 +1667,7 @@ YY_RULE_SETUP
 #line 294 "lexer.ll"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1671 "lexer.cc"
+#line 1670 "lexer.cc"
 
 	case YY_END_OF_BUFFER:
 		{
