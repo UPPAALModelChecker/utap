@@ -1,8 +1,8 @@
-libutap, version 0.94
-Mini HOWTO
+# libutap, version 0.94
+
+# Mini HOWTO
 Gerd Behrmann
 Marius Mikucionis
-
 
 1. What is libutap
 2. Compiling
@@ -10,9 +10,7 @@ Marius Mikucionis
 4. Architecture
 5. Contact
 
-
-
-1. What is libutap
+## 1. What is libutap
 
 libutap is the Uppaal Timed Automata Parser. Uppaal is an integrated
 tool environment for designing, simulating and verifying real time
@@ -25,26 +23,30 @@ of the three file formats supported by Uppaal.
 libutap is licensed under the LGPL.
 
 
-2. Compiling
+## 2. Compiling
 
 libutap uses automake and autoconf to make compilation on various
 platforms easy. You will need gcc 3.3 or newer, GNU make,
-libxml2 from https://www.xmlsoft.org (at least version 2.6.10),
-libsbml from https://www.sbml.org,
-boost from https://www.boost.org (headers are enough, no compilation required).
-If the libraries are custom built (not from distribution) then pass CPPFLAGS and LDFLAGS to configure script to specify the their locations.
+libxml2 from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10),
+libsbml from [SBML](https://www.sbml.org),
+boost from [Boost](https://www.boost.org) (headers are enough, no compilation required).
+If the libraries are custom built (not from distribution) then pass `CPPFLAGS` and `LDFLAGS` to `configure` script to specify the their locations.
+
 Run the following to compile libutap and use it in the build:
 
+```sh
 mkdir build
 cd build
 ../configure
 make
+```
 
 Run the following to install libutap:
-
+```
 make install
+```
 
-Read the INSTALL file in the distribution for more information on
+Read the [INSTALL](INSTALL) file in the distribution for more information on
 how to compile.
 
 NOTE: if you want to regenerate automatically created files like the
@@ -53,12 +55,13 @@ autoconf directly, it will mess up your Makefile. You need autoconf
 version 2.53 or newer and automake.
 
 
-3. Simple use
+## 3. Simple use
 
 There are two ways one can use the library. In its simplest form, one
 calls one of the top level parsing functions defined in utap/utap.h,
 e.g. example.cpp:
 
+```cpp
 #include <stdio.h>
 #include "utap/utap.h"
 
@@ -67,6 +70,7 @@ int main()
   UTAP::TimedAutomataSystem system;
   parseXMLFile("myfile.xml", &system, true);
 }
+```
 
 The first argument is the file to read. The second is the output of
 the parser and the third is a flag indicating whether we want to use
@@ -81,19 +85,23 @@ See also doxygen API documentation in doc/api/index.html.
 
 Use the following command to compile the example:
 
+```sh
 g++ example.cpp -o example -lutap -lxml2
+```
 
 If UTAP was configured with --prefix=$MYPATH to install in custom location
 then use the following to compile:
 
+```sh
 g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
+```
 
-
-4. Architecture
+## 4. Architecture
 
 The following ASCII figure shows the initial information flow through
 the library.
 
+<pre>
  +----\
  |    |\
  |    +-\
@@ -117,7 +125,7 @@ the library.
  |      | <--- | SystemBuilder |<--[ParserBuilder]--/
  |      |      +---------------+
  +------+
-
+</pre>
 
 The BNF implemented by the bison generated parser is split into
 several sections and to some extend duplicated for the old and new
@@ -151,7 +159,7 @@ All expressions are represented using a tree structure where the
 leaves represent values or variables and the inner nodes represent
 operations. Each node is referenced using an expression_t object.
 
-5. Contact
+## 5. Contact
 
 If you have questions or comments to libutap, you can contact me on
 the following email address: marius@cs.aau.dk. For a list of known
