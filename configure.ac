@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 # USA
 
-AC_INIT([libutap], [0.94], [marius@cs.aau.dk], [libutap], [http://people.cs.aau.dk/~marius/utap/])
+AC_INIT([libutap], [0.94], [marius@cs.aau.dk], [libutap], [https://github.com/UPPAALModelChecker/utap])
 
 AC_PREREQ(2.50)
 
@@ -35,7 +35,7 @@ AC_ISC_POSIX
 
 dnl Switch to C++
 AC_LANG(C++)
-AX_CXX_COMPILE_STDCXX_17(noext, mandatory)
+
 AM_MISSING_PROG([GPERF], [gperf])
 
 OPT_FLAGS=""
@@ -153,7 +153,7 @@ case "$target_alias" in
 esac
 
 CFLAGS="$OPT_FLAGS"
-CPPFLAGS="$OPT_FLAGS"
+CPPFLAGS="-std=c++17 $OPT_FLAGS"
 
 AC_CONFIG_FILES([Makefile src/Makefile doc/Makefile doc/api/Makefile])
 AC_OUTPUT

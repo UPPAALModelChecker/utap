@@ -22,7 +22,7 @@
 SUBDIRS=src doc
 
 docdir = $(datadir)/doc/@PACKAGE@
-doc_DATA = README
+doc_DATA = README.md
 
 install-data-hook:
 	cp -R doc/api $(docdir)/
