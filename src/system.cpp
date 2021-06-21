@@ -48,8 +48,10 @@ using std::string;
 using std::ostream;
 using std::deque;
 
+[[maybe_unused]]
 static const char *const unsupported
 = "Internal error: Feature not supported in this mode.";
+[[maybe_unused]]
 static const char *const invalid_type = "$Invalid_type";
 
 string state_t::toString() const
@@ -677,12 +679,8 @@ void instanceLine_t::addParameters(instance_t &inst, frame_t params,
 vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& simregions)
 {
     vector<simregion_t> i_simregions;
-    vector<simregion_t>::const_iterator itr;
-    vector<simregion_t>::iterator itr1;
-    vector<instanceLine_t*>::const_iterator it;
-    instanceLine_t* instance;
     //get the simregions anchored to this instance
-    for (itr = simregions.begin(); itr != simregions.end(); ++itr) {
+    for (auto itr = simregions.begin(); itr != simregions.end(); ++itr) {
         message_t* m = itr->message;
         if (m->nr != -1 && (m->src->instanceNr == this->instanceNr
                 || m->dst->instanceNr == this->instanceNr) ) {
@@ -698,8 +696,8 @@ vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& sim
 
         condition_t* c = itr->condition;
         if (c->nr != -1) {
-            for (it = c->anchors.begin(); it !=c->anchors.end(); ++it) {
-                instance = *it;
+            for (auto it = c->anchors.begin(); it !=c->anchors.end(); ++it) {
+                auto instance = *it;
                 if (instance->instanceNr == this->instanceNr) {
                     i_simregions.push_back(*itr);
                     break;
@@ -832,9 +830,7 @@ bool cut_t::contains(simregion_t s) {
  * and the mainchart)
  */
 bool cut_t::isInPrechart(const simregion_t& fSimregion) const {
-    std::vector<simregion_t>::const_iterator sim;
-    std::vector<simregion_t>::const_iterator fsim;
-    for (sim = simregions.begin(); sim != simregions.end(); ++sim)
+    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim)
     {
         if (! sim->isInPrechart())
         {
@@ -850,8 +846,7 @@ bool cut_t::isInPrechart(const simregion_t& fSimregion) const {
 
 bool cut_t::isInPrechart() const
 {
-    std::vector<simregion_t>::const_iterator sim;
-    for (sim = simregions.begin(); sim != simregions.end(); ++sim)
+    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim)
     {
         if (! sim->isInPrechart())
         {

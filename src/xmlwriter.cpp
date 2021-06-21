@@ -150,11 +150,11 @@ void XMLWriter::label(const char* kind, string data, int x, int y) {
 }
 
 void XMLWriter::name(const state_t& state, int x, int y) {
-    const char* name = state.uid.getName().c_str();
+    const auto name = state.uid.getName();
     startElement("name");
     writeAttribute("x", concat("", x).c_str());
     writeAttribute("y", concat("", y).c_str());
-    writeString(name);
+    writeString(name.c_str());
     endElement();
 }
 
@@ -179,8 +179,8 @@ void XMLWriter::location(const state_t& state) {
     name(state, x + 8, y + 8);
     // invariant
     if (!state.invariant.empty()) {
-        const char* invariant = state.invariant.toString().c_str();
-        label("invariant", invariant, x + 8, y + 24);
+        const auto invariant = state.invariant.toString();
+        label("invariant", invariant.c_str(), x + 8, y + 24);
     }
     // "committed" or "urgent" element
     if (state.uid.getType().is(COMMITTED)) {
@@ -204,9 +204,9 @@ void XMLWriter::init(const template_t& templ) {
 /* writes the source of the given edge */
 int XMLWriter::source(const edge_t& edge) {
     int loc = edge.src->locNr;
-    const char* id = concat("id", loc).c_str();
+    const auto id = concat("id", loc);
     startElement("source");
-    writeAttribute("ref", id);
+    writeAttribute("ref", id.c_str());
     endElement();
     return loc;
 }
@@ -214,9 +214,9 @@ int XMLWriter::source(const edge_t& edge) {
 /* writes the target of the given edge */
 int XMLWriter::target(const edge_t& edge) {
     int loc = edge.dst->locNr;
-    const char* id = concat("id", loc).c_str();
+    const auto id = concat("id", loc);
     startElement("target");
-    writeAttribute("ref", id);
+    writeAttribute("ref", id.c_str());
     endElement();
     return loc;
 }
