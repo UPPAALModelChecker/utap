@@ -29,11 +29,15 @@ libutap is licensed under the LGPL.
 
 libutap uses automake and autoconf to make compilation on various
 platforms easy. You will need gcc 3.3 or newer, GNU make,
-libxml2 from http://www.xmlsoft.org (at least version 2.6.10),
-libsbml from http://www.sbml.org.
-Simply run to compile libutap and use it:
+libxml2 from https://www.xmlsoft.org (at least version 2.6.10),
+libsbml from https://www.sbml.org,
+boost from https://www.boost.org (headers are enough, no compilation required).
+If the libraries are custom built (not from distribution) then pass CPPFLAGS and LDFLAGS to configure script to specify the their locations.
+Run the following to compile libutap and use it in the build:
 
-./configure
+mkdir build
+cd build
+../configure
 make
 
 Run the following to install libutap:
