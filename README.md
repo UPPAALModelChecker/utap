@@ -8,8 +8,9 @@ Marius Mikučionis
 1. What is libutap
 2. Compiling
 3. Simple use
-4. Architecture
-5. Issues
+4. Parsing trace files
+5. Architecture
+6. Issues
 
 ## 1. What is libutap
 
@@ -96,7 +97,22 @@ then use the following to compile:
 g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
 ```
 
-## 4. Architecture
+## 4. Parsing Uppaal Trace Files
+
+`verifyta` utility from Uppaal distribution (`bin-*` folder) is able to print traces in human readable format (see `verifyta -h` and in particular keys `-t` and `-f`, also `-X` can produce `xml`).
+
+If a custom format or some kind of transformation is needed, UTAP includes `tracer` utility which can parse and print trace files in human readable form. The source is included, thus the format can be modified.
+
+First, `tracer` needs an `.if` file -- an intermediate format representation of the same model that was used to produce the trace. The `.if` file is produced by `verifyta` utility from Uppaal distribution:
+```sh
+UPPAAL_COMPILE_ONLY=1 verifyta model.xml > model.if
+```
+Then `tracer can be applied as follows:
+```sh
+tracer model.if trace.xtr
+```
+
+## 5. Architecture
 
 The following ASCII figure shows the initial information flow through
 the library.
@@ -158,6 +174,6 @@ All expressions are represented using a tree structure where the
 leaves represent values or variables and the inner nodes represent
 operations. Each node is referenced using an `expression_t` object.
 
-## 5. Issues
+## 6. Issues
 
 Please use the `Issues` tab at the top to report problems.
