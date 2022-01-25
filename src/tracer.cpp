@@ -20,9 +20,6 @@
    USA
 */
 
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <limits>
@@ -30,6 +27,10 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
 /* This utility takes an UPPAAL model in the UPPAAL intermediate
  * format and a UPPAAL XTR trace file and prints trace to stdout in a
@@ -174,19 +175,29 @@ bool read(istream& file, string& str)
     return true;
 }
 
+bool is_blank(const std::string& text)
+{
+    for (auto& c: text)
+        if (!std::isspace(c))
+            return false;
+    return true;
+}
+
 /* Reads one line and asserts that it contains a (terminating) dot
  */
 istream& readdot(istream& is)
 {
     string str;
-    getline(is, str);
-    if (str.empty())
-    {
-        getline(is, str);
-    }
+    while (getline(is, str) && is_blank(str))
+        ;
+
     if (str != ".")
     {
-        cerr << "Expecting a line with '.' but got '" << str << "'" << endl;
+        cerr << "Expecting a line with '.' but got ";
+        if (!is)
+            cerr << " end of file" << endl;
+        else
+            cerr << "'" << str << "'" << endl;
         assert(false);
         exit(EXIT_FAILURE);
     }
