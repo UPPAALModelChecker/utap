@@ -34,7 +34,7 @@ platforms easy. You will need `gcc-9` or newer, GNU make,
 If the libraries are custom built (not from distribution) then pass `CPPFLAGS` and `LDFLAGS` to `configure` script to specify the their locations.
 
 Run the following to compile libutap and use it in the build:
-
+ 
 ```sh
 mkdir build
 cd build
