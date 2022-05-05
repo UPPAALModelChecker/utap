@@ -1,8 +1,9 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020 Aalborg University.
    Copyright (C) 2002 Uppsala University and Aalborg University.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
    as published by the Free Software Foundation; either version 2.1 of
@@ -22,49 +23,50 @@
 #ifndef UTAP_LIBPARSER_HH
 #define UTAP_LIBPARSER_HH
 
-#include <functional>
-    
 #include "utap/builder.h"
 
 // The maximum length is 4000 (see error message) + 1 for the
 // terminating \0.
+constexpr auto MAXLEN = 4001u;
+constexpr auto ID_TOO_LONG = "$Identifier_is_too_long._Limit_length_is_4000.";
 
-#define MAXLEN 4001
-
-// Here is the (constant) error message.
-// There is a problem with macros with the mingwin g++ compiler
-// so whenever the constant is changed we need to change the
-// string manually too.
-
-#define ID_TOO_LONG "$Identifier_is_too_long._Limit_length_is_4000."
-
-enum syntax_t { SYNTAX_OLD      = (1 << 0),
-                SYNTAX_NEW      = (1 << 1),
-                SYNTAX_PROPERTY = (1 << 2),
-                SYNTAX_GUIDING  = (1 << 3),
-                SYNTAX_TIGA     = (1 << 4),
-                SYNTAX_PROB     = (1 << 5)
+enum class syntax_t : unsigned int {
+    NONE = 0u,
+    OLD = (1u << 0),
+    NEW = (1u << 1),
+    PROPERTY = (1u << 2),
+    GUIDING = (1u << 3),
+    TIGA = (1u << 4),
+    PROB = (1u << 5),
+    OLD_NEW = OLD | NEW,
+    NEW_PROPERTY = NEW | PROPERTY,
+    OLD_PROPERTY = OLD | PROPERTY,
+    OLD_NEW_PROPERTY = OLD | NEW_PROPERTY,
+    PROPERTY_TIGA = PROPERTY | TIGA,
+    PROPERTY_PROB = PROPERTY | PROB,
+    NEW_GUIDING = NEW | GUIDING,
+    OLD_GUIDING = OLD | GUIDING
 };
 
-// Defined in keywords.cc
-extern bool isKeyword(const char *id, uint32_t syntax);
+constexpr std::underlying_type_t<syntax_t> operator&(const syntax_t& s1, const syntax_t& s2)
+{
+    using T = std::underlying_type_t<syntax_t>;
+    return (static_cast<T>(s1) & static_cast<T>(s2));
+}
 
 namespace UTAP
 {
     /**
      * Help class used by the lexer, parser and xmlreader to keep
-     * track of the current position. 
+     * track of the current position.
      */
     class PositionTracker
     {
     public:
-        static uint32_t line;
-        static uint32_t offset;
-        static uint32_t position;
-        static std::string path;
-
-        /** Resets position tracker to position 0. */
-        static void reset();
+        uint32_t line;
+        uint32_t offset;
+        uint32_t position;
+        std::string path;
 
         /**
          * Sets the current path to \a s, offset to 0 and line to 1.
@@ -74,20 +76,57 @@ namespace UTAP
          * content). Adds position to \a builder and increments it by
          * 1.
          */
-        static void setPath(ParserBuilder *builder, std::string s);
+        void setPath(UTAP::ParserBuilder* parser, const std::string& s)
+        {
+            // Incrementing the position by one avoids the problem where the
+            // end-position happens to bleed into a path. E.g. the range 5-10
+            // contains 5 character (at positions 5, 6, 7, 8 and 9), thus
+            // position 10 could have a new path). An alternative would be to
+            // subtract 1 before calling Positions::find().
+            line = 1;
+            offset = 0;
+            path = s;
+            ++position;
+            parser->addPosition(position, offset, line, path);
+        }
 
         /**
          * Sets the position of \a builder to [position, position + n)
          * and increments position and offset by \a n.
          */
-        static int  increment(ParserBuilder *builder, int n);
+        int increment(UTAP::ParserBuilder* parser, uint32_t n)
+        {
+            parser->setPosition(position, position + n);
+            position += n;
+            offset += n;
+            return position - n;
+        }
 
         /**
          * Increments line by \a n and adds the position to \a
          * builder.
          */
-        static void newline(ParserBuilder *builder, int n);
+        void newline(UTAP::ParserBuilder* parser, uint32_t n)
+        {
+            line += n;
+            parser->addPosition(position, offset, line, path);
+        }
     };
-}
 
-#endif
+    extern PositionTracker tracker;
+
+    /** Errors from underlying XML reading operations (most likely OS issues) */
+    class XMLReaderError : public std::runtime_error
+    {
+    public:
+        using std::runtime_error::runtime_error;
+    };
+    /** Errors due to wrong XML document structure */
+    class XMLDocError : public std::logic_error
+    {
+    public:
+        using std::logic_error::logic_error;
+    };
+}  // namespace UTAP
+
+#endif /* UTAP_LIBPARSER_HH */
