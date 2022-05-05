@@ -17,6 +17,7 @@ set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${CMAKE_CURRENT_SOURCE_DIR}/libs")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.0.4 REQUIRED)
+find_package(LibXml2 2.9.11 REQUIRED)
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
 
@@ -35,10 +36,14 @@ add_custom_command(OUTPUT "${parser_source}" "${CMAKE_CURRENT_BINARY_DIR}/includ
 add_custom_target(parser_generate DEPENDS "${parser_source}")
 
 
-FILE(GLOB utap_source "*.c" "*.cpp" "*.h")
+FILE(GLOB utap_source "src/*.c" "src/*.cpp" "src/*.h")
 add_library(UTAP ${utap_source} ${parser_source})
-target_link_libraries(UTAP PRIVATE ${UTAP_SYSTEM_LIBRARIES} ${LIBXML2_LIBRARIES})
 
+if (UNIX)
+    target_link_libraries(UTAP PRIVATE dl ${LIBXML2_LIBRARIES})
+else()
+    target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES})
+endif()
 
 if (ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
@@ -65,6 +70,7 @@ target_include_directories(UTAP
         # where the library itself will look for its internal headers
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/include
+        ${LIBXML2_INCLUDE_DIR}
     PUBLIC
         # where top-level project will look for the library's public headers
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -74,10 +80,10 @@ target_include_directories(UTAP
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
-#if(TESTING)
-#enable_testing()
-#add_subdirectory("test")
-#endif(TESTING)
+if(TESTING)
+    enable_testing()
+    add_subdirectory("test")
+endif(TESTING)
 
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake VERSION ${PACKAGE_VERSION} COMPATIBILITY SameMajorVersion)
 

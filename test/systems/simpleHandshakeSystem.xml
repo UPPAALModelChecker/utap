@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
+<nta>
+	<declaration>chan c;
+clock x;</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="221" y="-93">
+		</location>
+		<location id="id1" x="0" y="0">
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="18" y="-63">c!</label>
+		</transition>
+	</template>
+	<template>
+		<name>Template0</name>
+		<location id="id2" x="178" y="-119">
+		</location>
+		<location id="id3" x="0" y="0">
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="18" y="-76">c?</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here
+Process = Template();
+Process2 = Template0();
+system Process, Process2;
+    </system>
+	<queries>
+		<query>
+			<formula>simulate 1 [&lt;=1] { x }</formula>
+			<comment/>
+		</query>
+	</queries>
+</nta>

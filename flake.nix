@@ -20,6 +20,7 @@
         version = "1.0.0";
         src = ./.;
         buildInputs = with pkgs; [ cmake boost174 libxml2 flex bison ];
+        cmakeFlags = [ "-DTESTING=ON" ];
     });
   };
 }

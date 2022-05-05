@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/researoh/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>clock c;</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="42" y="-246">
+			<name x="32" y="-280">L3</name>
+			<label kind="exponentialrate" x="68" y="-221">1</label>
+		</location>
+		<location id="id1" x="-93" y="-144">
+			<name x="-103" y="-178">L2</name>
+			<label kind="exponentialrate" x="-127" y="-144">1</label>
+		</location>
+		<location id="id2" x="0" y="0">
+			<name x="17" y="-8">First</name>
+			<label kind="invariant" x="-51" y="8">c &lt; 2</label>
+			<label kind="exponentialrate" x="-10" y="34">1</label>
+		</location>
+		<init ref="id2"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id2"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-102" y="-76">c &gt; 1</label>
+		</transition>
+	</template>
+	<system>// Place template instantiations here
+Process = Template();
+Process2 = Template();
+system Process, Process2;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
