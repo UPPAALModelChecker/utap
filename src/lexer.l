@@ -178,12 +178,6 @@ idchr        [a-zA-Z0-9_$#]
 	if (keyword_ptr) {
         const auto& keyword = *keyword_ptr;
 		auto s = keyword.syntax;
-#ifndef ENABLE_TIGA
-		// Remove all TIGA keywords if tiga is not enabled.
-		if (s & syntax_t::TIGA) {
-		    s = syntax_t::NONE;
-		}
-#endif
 #ifndef ENABLE_PROB
         // Remove all PROB keywords if pro is not enabled.
 		if (s & syntax_t::PROB) {
