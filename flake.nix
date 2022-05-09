@@ -16,7 +16,7 @@
         crossSystem = (nixpkgsFor.${system}).lib.systems.examples.mingwW64;
         overlays = [
           (self: super: {
-            # Waiting on https://github.com/NixOS/nixpkgs/pull/172144 to get merged
+            # Waiting for https://github.com/NixOS/nixpkgs/pull/172144 to get merged
             rhash = super.rhash.overrideAttrs (oldAttrs: rec {
               configureFlags = oldAttrs.configureFlags ++ [ "--target=${super.stdenv.hostPlatform.config}" ];
             });
@@ -37,6 +37,8 @@
           nativeBuildInputs = with pkgs; [ cmake flex bison ];
           buildInputs = with pkgs; [ boost174 staticLibxml ];
           cmakeFlags = [ "-DTESTING=ON" ];
+
+          doCheck = true;
         });
 
 

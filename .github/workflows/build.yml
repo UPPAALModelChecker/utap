@@ -31,50 +31,26 @@ jobs:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Build and test
       run: nix build .\#utapWindows.x86_64-linux
-  build-linux-win:
+  build-linux:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: Add mingw target
-        target: [ubuntu]
         asan: [ON, OFF]
         ubsan: [ON, OFF]
         exclude:
-          - target: mingw
-            asan: ON
-          - target: mingw
+          - asan: ON
             ubsan: ON
-          - ubsan: ON
-            asan: ON
     runs-on: ubuntu-latest
     container: ubuntu:22.04
     steps:
     - uses: actions/checkout@v2
     - name: Set default environment variables
       run: echo "STATIC=OFF" >> "$GITHUB_ENV"
-    - name: Set mingw environment variables
-      if: matrix.target == 'mingw'
-      run: |
-          echo "CMAKE_TOOLCHAIN_FILE=$(pwd)/toolchains/mingw.cmake" >> "$GITHUB_ENV"
-          echo "STATIC=ON" >> "$GITHUB_ENV"
     - name: Get universal dependencies
       run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get -q -y update
-          apt-get -q -y install liblzma-dev libboost-all-dev bison curl wget unzip cmake flex libc6-dev libxml2-dev
-    - name: Get ubuntu dependencies
-      if: matrix.target == 'ubuntu'
-      run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get -q -y install gcc clang
-    - name: Get mingw dependencies
-      if: matrix.target == 'mingw'
-      run: |
-          export DEBIAN_FRONTEND=noninteractive
-          apt-get update
-          apt-get -q -y install cmake make g++-mingw-w64-x86-64 mingw-w64-x86-64-dev mingw-w64-tools wine wine-binfmt libboost-all-dev
-          update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
-          update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+          apt-get -q -y install bison curl wget unzip cmake flex libc6-dev gcc clang libxml2-dev libboost-all-dev
     - name: Build and test
       run: |
           export CTEST_OUTPUT_ON_FAILURE=1
