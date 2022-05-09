@@ -8,6 +8,10 @@ option(STATIC OFF)
 option(UBSAN OFF)
 option(ASAN OFF)
 
+
+# Symbol names are weird if we do not set LIBXML_STATIC
+add_definitions("-DLIBXML_STATIC -DSYSTEMS_DIR=\"\\\"${CMAKE_CURRENT_SOURCE_DIR}/test/systems\\\"\"")
+
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 set(CMAKE_CXX_STANDARD 17)
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
@@ -47,11 +51,8 @@ add_custom_target(parser_generate DEPENDS "${parser_source}")
 FILE(GLOB utap_source "src/*.c" "src/*.cpp" "src/*.h")
 add_library(UTAP ${utap_source} ${parser_source})
 
-if (UNIX)
-    target_link_libraries(UTAP PRIVATE dl ${LIBXML2_LIBRARIES})
-else()
-    target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES})
-endif()
+message(STATUS "Found LibXML2 ${LIBXML2_LIBRARIES}")
+target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES})
 
 if (ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
@@ -65,8 +66,7 @@ if (UBSAN)
 endif()
 
 if(STATIC)
-	set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -lwsock32 -lws2_32 ${CMAKE_CXX_STANDARD_LIBRARIES}")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
+    set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ -lwsock32 -lws2_32 -lz -liphlpapi ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif(STATIC)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -87,7 +87,7 @@ target_include_directories(UTAP
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+#include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(TESTING)
     enable_testing()
@@ -100,3 +100,5 @@ install(DIRECTORY include DESTINATION .)
 install(TARGETS UTAP EXPORT UTAPConfig LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 install(EXPORT UTAPConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP )
+
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static -lwsock32 -lws2_32 -lz -lmcfgthread ${CMAKE_CXX_STANDARD_LIBRARIES}")

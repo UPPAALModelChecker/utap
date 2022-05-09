@@ -1,20 +1,18 @@
 SET(test_module "utap")
 
-add_definitions("-DSYSTEMS_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/systems\"")
-
 SET(extra_headers)
 
 add_executable(pretty pretty.cpp)
-target_link_libraries(pretty UTAP)
+target_link_libraries(pretty PRIVATE UTAP)
 
 add_executable(syntaxcheck syntaxcheck.cpp)
-target_link_libraries(syntaxcheck UTAP)
+target_link_libraries(syntaxcheck PRIVATE UTAP)
 
 add_executable(taflow taflow.cpp)
-target_link_libraries(taflow UTAP)
+target_link_libraries(taflow PRIVATE UTAP)
 
 add_executable(featurecheck featurechecker.cpp)
-target_link_libraries(featurecheck UTAP)
+target_link_libraries(featurecheck PRIVATE UTAP)
 
 if (TESTING)
     find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework REQUIRED)
