@@ -52,7 +52,7 @@ FILE(GLOB utap_source "src/*.c" "src/*.cpp" "src/*.h")
 add_library(UTAP ${utap_source} ${parser_source})
 
 message(STATUS "Found LibXML2 ${LIBXML2_LIBRARIES}")
-target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES})
+target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES} ${CMAKE_DL_LIBS})
 
 if (ASAN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
@@ -67,7 +67,7 @@ endif()
 
 if(STATIC)
     set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ -lwsock32 -lws2_32 -lz -liphlpapi ${CMAKE_CXX_STANDARD_LIBRARIES}")
-endif(STATIC)
+endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Werror=vla)
@@ -86,8 +86,6 @@ target_include_directories(UTAP
         # where external projects will look for the library's public headers
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-#include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 if(TESTING)
     enable_testing()
