@@ -35,7 +35,7 @@
           version = "1.0.0";
           src = ./.;
           nativeBuildInputs = with pkgs; [ cmake flex bison ];
-          buildInputs = with pkgs; [ boost174 staticLibxml ];
+          buildInputs = with pkgs; [ boost174 staticLibxml doctest ];
           cmakeFlags = [ "-DTESTING=ON" ];
 
           doCheck = true;
@@ -56,7 +56,7 @@
           version = "1.0.0";
           src = ./.;
           nativeBuildInputs = with nativePkgs; [ cmake flex bison ];
-          buildInputs = with pkgs; [ staticBoost staticLibxml zlib.static ];
+          buildInputs = with pkgs; [ staticBoost staticLibxml zlib.static doctest ];
           cmakeFlags = [ "-DTESTING=ON" "-DSTATIC=ON" "-DCMAKE_TOOLCHAIN_FILE=toolchains/mingw.cmake" ];
           WINEPATH = "${pkgs.windows.mcfgthreads}/bin;${nativePkgs.wine64Packages.stableFull}/lib/wine/x86_64-windows/";
           CROSSCOMPILING_EMULATOR = "${nativePkgs.wine64Packages.stableFull}/bin/wine64";
