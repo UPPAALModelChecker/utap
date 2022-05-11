@@ -25,9 +25,9 @@
 #include "utap/common.h"
 
 #include <iomanip>  // std::quoted
-#include <sstream>
 #include <iostream>
 #include <iterator>  // ostream_iterator
+#include <sstream>
 #include <string>
 #include <cassert>
 
