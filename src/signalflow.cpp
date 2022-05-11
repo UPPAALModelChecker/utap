@@ -27,6 +27,7 @@
 #include <iomanip>  // std::quoted
 #include <iostream>
 #include <iterator>  // ostream_iterator
+#include <sstream>
 #include <string>
 #include <cassert>
 

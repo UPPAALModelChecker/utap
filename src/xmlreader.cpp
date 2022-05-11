@@ -38,6 +38,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 #include <cassert>
 #include <charconv>

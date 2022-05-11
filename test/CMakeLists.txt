@@ -14,6 +14,8 @@ target_link_libraries(taflow PRIVATE UTAP)
 add_executable(featurecheck featurechecker.cpp)
 target_link_libraries(featurecheck PRIVATE UTAP)
 
+install(TARGETS pretty syntaxcheck taflow featurecheck)
+
 if (TESTING)
     find_package(doctest REQUIRED)
     add_executable(test_parser test_parser.cpp)
