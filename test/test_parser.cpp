@@ -16,10 +16,10 @@
 
 #include "utap/utap.h"
 
-#define BOOST_TEST_MODULE utap parser
-#include <boost/test/included/unit_test.hpp>
-
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <fstream>
+
+#include <doctest/doctest.h>
 
 // Copied from SystemLoader.h. If we dependen on testutils, we would
 // also have to depend on the verifier, which seems impure.
@@ -32,13 +32,9 @@ inline std::string read_content(const std::string& dir_path, const std::string& 
     return content;
 }
 
-BOOST_AUTO_TEST_SUITE(BasicIOTests)
-
-BOOST_AUTO_TEST_CASE(DoubleSerializationTest)
+TEST_CASE("Double Serialization Test")
 {
     auto document = std::make_unique<UTAP::Document>();
     auto content = read_content(SYSTEMS_DIR, "ifstatement.xml");
     parseXMLBuffer(content.c_str(), document.get(), true);
 }
-
-BOOST_AUTO_TEST_SUITE_END()

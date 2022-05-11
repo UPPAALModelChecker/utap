@@ -28,11 +28,6 @@ find_package(BISON 3.6.0 REQUIRED)
 set(LibXml2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/libs/LibXml2")
 find_package(LibXml2 2.9.11 REQUIRED)
 
-set(Boost_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/libs/boost")
-find_package(Boost 1.71.0 REQUIRED)
-
-message(STATUS "Boost include: ${Boost_INCLUDE_DIRS}")
-
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
 
 set(lexer_source "${CMAKE_CURRENT_BINARY_DIR}/lexer.cc")
@@ -81,7 +76,6 @@ target_include_directories(UTAP
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/include
         ${LIBXML2_INCLUDE_DIR}
-        ${Boost_INCLUDE_DIRS}
     PUBLIC
         # where top-level project will look for the library's public headers
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
