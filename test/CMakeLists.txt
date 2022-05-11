@@ -15,8 +15,17 @@ add_executable(featurecheck featurechecker.cpp)
 target_link_libraries(featurecheck PRIVATE UTAP)
 
 if (TESTING)
-    find_package(Boost 1.71.0 REQUIRED COMPONENTS unit_test_framework REQUIRED)
-    add_executable(test_parser test_parser.cpp test_featurechecker.cpp test_range.cpp)
-    target_link_libraries(test_parser PRIVATE Boost::unit_test_framework UTAP)
+    find_package(doctest REQUIRED)
+    add_executable(test_parser test_parser.cpp)
+    target_link_libraries(test_parser PRIVATE doctest::doctest UTAP)
     add_test(NAME test_parser COMMAND test_parser)
+
+    add_executable(test_featurechecker test_featurechecker.cpp)
+    target_link_libraries(test_featurechecker PRIVATE doctest::doctest UTAP)
+    add_test(NAME test_featurechecker COMMAND test_featurechecker)
+
+    add_executable(test_range test_range.cpp)
+    target_link_libraries(test_range PRIVATE doctest::doctest UTAP)
+    add_test(NAME test_range COMMAND test_range)
+
 endif (TESTING)

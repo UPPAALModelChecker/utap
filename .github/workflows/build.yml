@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Format
-      run: find src include -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
+      run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
   build-nix:
     runs-on: ubuntu-latest
     steps:
@@ -50,7 +50,7 @@ jobs:
       run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get -q -y update
-          apt-get -q -y install bison curl wget unzip cmake flex libc6-dev gcc clang libxml2-dev libboost-all-dev
+          apt-get -q -y install bison curl wget unzip cmake flex libc6-dev gcc clang libxml2-dev doctest-dev
     - name: Build and test
       run: |
           export CTEST_OUTPUT_ON_FAILURE=1

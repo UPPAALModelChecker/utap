@@ -28,8 +28,7 @@ libutap is licensed under the LGPL.
 
 libutap uses `cmake` to make compilation on various
 platforms easy. You will need `gcc-9` or newer, GNU make,
-`libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10),
-and `boost` from [Boost](https://www.boost.org).
+and `libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10).
 
 Run the following to compile libutap and use it in the build:
 

@@ -21,73 +21,53 @@
 
 #include "utap/builder.h"
 
-#include <boost/format.hpp>
-
 namespace UTAP
 {
     TypeException UnknownIdentifierError(const std::string& name)
     {
-        return TypeException{(boost::format("$Unknown_identifier: %1%") % name).str()};
+        return TypeException{"$Unknown_identifier: %1%" + name};
     }
 
-    TypeException HasNoMemberError(const std::string& name)
-    {
-        return TypeException{(boost::format("$has_no_member_named %1%") % name).str()};
-    }
+    TypeException HasNoMemberError(const std::string& name) { return TypeException{"$has_no_member_named %1%" + name}; }
 
-    TypeException IsNotAStructError(const std::string& name)
-    {
-        return TypeException{(boost::format("%1% $is_not_a_structure") % name).str()};
-    }
+    TypeException IsNotAStructError(const std::string& name) { return TypeException{"%1% $is_not_a_structure" + name}; }
 
     TypeException DuplicateDefinitionError(const std::string& name)
     {
-        return TypeException{(boost::format("$Duplicate_definition_of %1%") % name).str()};
+        return TypeException{"$Duplicate_definition_of %1%" + name};
     }
 
-    TypeException InvalidTypeError(const std::string& name)
-    {
-        return TypeException{(boost::format("$Invalid_type %1%") % name).str()};
-    }
+    TypeException InvalidTypeError(const std::string& name) { return TypeException{"$Invalid_type %1%" + name}; }
 
-    TypeException NoSuchProcessError(const std::string& name)
-    {
-        return TypeException{(boost::format("$No_such_process: %1%") % name).str()};
-    }
+    TypeException NoSuchProcessError(const std::string& name) { return TypeException{"$No_such_process: %1%" + name}; }
 
-    TypeException NotATemplateError(const std::string& name)
-    {
-        return TypeException{(boost::format("$Not_a_template: %1%") % name).str()};
-    }
+    TypeException NotATemplateError(const std::string& name) { return TypeException{"$Not_a_template: %1%" + name}; }
 
-    TypeException NotAProcessError(const std::string& name)
-    {
-        return TypeException{(boost::format("%1% $is_not_a_process") % name).str()};
-    }
+    TypeException NotAProcessError(const std::string& name) { return TypeException{"%1% $is_not_a_process" + name}; }
 
     TypeException StrategyNotDeclaredError(const std::string& name)
     {
-        return TypeException{(boost::format("$strategy_not_declared: %1%") % name).str()};
+        return TypeException{"$strategy_not_declared: %1%" + name};
     }
 
     TypeException UnknownDynamicTemplateError(const std::string& name)
     {
-        return TypeException{(boost::format("Unknown dynamic template %1%") % name).str()};
+        return TypeException{"Unknown dynamic template %1%" + name};
     }
 
     TypeException ShadowsAVariableWarning(const std::string& name)
     {
-        return TypeException{(boost::format("%1% $shadows_a_variable") % name).str()};
+        return TypeException{"%1% $shadows_a_variable" + name};
     }
 
     TypeException CouldNotLoadLibraryError(const std::string& name)
     {
-        return TypeException{(boost::format("$Could_not_load_library_named %1%") % name).str()};
+        return TypeException{"$Could_not_load_library_named %1%" + name};
     }
 
     TypeException CouldNotLoadFunctionError(const std::string& name)
     {
-        return TypeException{(boost::format("$Could_not_load_function_named %1%") % name).str()};
+        return TypeException{"$Could_not_load_function_named %1%" + name};
     }
 
 }  // namespace UTAP

@@ -23,7 +23,7 @@
 
 #include "utap/expression.h"
 
-#include <boost/format.hpp>
+#include <cassert>
 
 using std::string;
 using std::vector;
@@ -539,7 +539,7 @@ string type_t::toString() const
     case UPDATE: kind = "update"; break;
     case LSCINSTANCE: kind = "LSC instance"; break;
     case PROCESSVAR: kind = "PROCESSVAR"; break;
-    default: kind = (boost::format("type(%1%)") % getKind()).str(); break;
+    default: kind = "type(" + std::to_string(getKind()) + ")"; break;
     }
 
     auto str = std::string("(");
@@ -644,7 +644,7 @@ string type_t::toDeclarationString() const
 
     case Constants::FUNCTION: kind = "function"; break;
 
-    default: kind = (boost::format("type(%1%)") % getKind()).str(); break;
+    default: kind = "type(" + std::to_string(getKind()) + ")"; break;
     }
 
     auto str = std::string();
