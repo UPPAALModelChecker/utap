@@ -16,8 +16,8 @@
 
 #include "utap/utap.h"
 
-#define BOOST_TEST_MODULE example
-#include <boost/test/unit_test.hpp>
+#define BOOST_TEST_MODULE utap parser
+#include <boost/test/included/unit_test.hpp>
 
 #include <fstream>
 
