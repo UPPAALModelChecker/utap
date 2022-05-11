@@ -22,6 +22,15 @@ jobs:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Build and test
       run: nix build
+  build-nix-mac:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v15
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - name: Build and test
+      run: nix build
   build-nix-cross:
     runs-on: ubuntu-latest
     steps:
