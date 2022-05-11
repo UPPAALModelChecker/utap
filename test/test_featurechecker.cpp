@@ -1,0 +1,148 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
+
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2021 Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
+#include "utap/featurechecker.h"
+#include "utap/utap.h"
+
+#include <boost/test/unit_test.hpp>
+
+#include <filesystem>
+#include <fstream>
+
+inline std::string read_content(const std::string& dir_path, const std::string& file_name)
+{
+    const auto file_path = std::filesystem::path{dir_path} / file_name;
+    auto ifs = std::ifstream{file_path};
+    auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
+    return content;
+}
+
+BOOST_AUTO_TEST_SUITE(FeatureCheckerTests)
+
+BOOST_AUTO_TEST_CASE(CheckSimpleSystem)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "simpleSystem.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckSimpleSMCSystem)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "simpleSMCSystem.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(!checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckSimpleHandshakeSystem)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "simpleHandshakeSystem.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(!checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckDynamicSystem)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "dynamic.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(!checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckClockRate)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "clockrate2.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(!checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckExpressionClockRate)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "rateExpression.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckExpressionClockRateHybrid)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "rateExpressionHybrid.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(CheckExpressionClockRateZeroOne)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "legalSymbolicRates.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(IntInvariant)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "int_invariant.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(UpdateHybridClock)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "updateHybridClock.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(UpdateHybridAndNormalClock)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "updateHybridAndNormalClock.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(!checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_CASE(DoubleCompare)
+{
+    auto document = std::make_unique<UTAP::Document>();
+    parseXMLBuffer(read_content(SYSTEMS_DIR, "double_compare.xml").c_str(), document.get(), true);
+    UTAP::FeatureChecker checker(*document);
+    BOOST_CHECK(!checker.getSupportedMethods().symbolic);
+    BOOST_CHECK(checker.getSupportedMethods().stochastic);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

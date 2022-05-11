@@ -26,19 +26,18 @@ libutap is licensed under the LGPL.
 
 ## 2. Compiling
 
-libutap uses `automake` and `autoconf` to make compilation on various
+libutap uses `cmake` to make compilation on various
 platforms easy. You will need `gcc-9` or newer, GNU make,
 `libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10),
-`libsbml` from [SBML](https://www.sbml.org),
-`boost` from [Boost](https://www.boost.org) (headers are enough, no compilation required).
-If the libraries are custom built (not from distribution) then pass `CPPFLAGS` and `LDFLAGS` to `configure` script to specify the their locations.
+and `boost` from [Boost](https://www.boost.org).
 
 Run the following to compile libutap and use it in the build:
 
 ```sh
+sudo apt-get install libboost-all-dev bison cmake flex libxml2-dev gcc
 mkdir build
 cd build
-../configure
+cmake ../
 make
 ```
 
@@ -46,15 +45,6 @@ Run the following to install libutap:
 ```
 make install
 ```
-
-Read the [INSTALL](INSTALL) file in the distribution for more information on
-how to compile.
-
-NOTE: if you want to regenerate automatically created files like the
-`configure` script and `Makefile`, use `autoreconf -i`. Do *not* run
-`autoconf` directly, it will mess up your `Makefile`. You need `autoconf`
-version 2.53 or newer and `automake`.
-
 
 ## 3. Simple use
 
@@ -176,4 +166,4 @@ operations. Each node is referenced using an `expression_t` object.
 
 ## 6. Issues
 
-Please use the `Issues` tab at the top to report problems.
+Please use the [Issues](https://github.com/UPPAALModelChecker/utap/issues) tab at the top to report problems.
