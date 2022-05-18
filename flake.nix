@@ -14,15 +14,6 @@
       crossNixpkgsFor = forAllSystems (system: import nixpkgs {
         inherit system;
         crossSystem = (nixpkgsFor.${system}).lib.systems.examples.mingwW64;
-        overlays = [
-          (self: super: {
-            # Waiting for https://github.com/NixOS/nixpkgs/pull/172144 to get merged
-            rhash = super.rhash.overrideAttrs (oldAttrs: rec {
-              configureFlags = oldAttrs.configureFlags ++ [ "--target=${super.stdenv.hostPlatform.config}" ];
-            });
-          })
-        ];
-
       });
     in
     {
