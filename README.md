@@ -34,15 +34,13 @@ Run the following to compile libutap and use it in the build:
 
 ```sh
 sudo apt-get install libboost-all-dev bison cmake flex libxml2-dev gcc
-mkdir build
-cd build
-cmake ../
-make
+cmake . -B build # -DCMAKE_INSTALL_PREFIX=$MYPATH # to install to $MYPATH
+cmake --build build
 ```
 
 Run the following to install libutap:
 ```
-make install
+cmake --install build
 ```
 
 ## 3. Simple use
@@ -79,7 +77,7 @@ Use the following command to compile the example:
 g++ example.cpp -o example -lutap -lxml2
 ```
 
-If UTAP was configured with `--prefix=$MYPATH` to install in custom location
+If UTAP was configured with `-DCMAKE_INSTALL_PREFIX=$MYPATH` to install in custom location
 then use the following to compile:
 
 ```sh
@@ -120,7 +118,7 @@ the library.
  |    +-\                                         v
  | .ta  |                            +--------------------------+
  | .xta |   -----------------------> | bison parser (parser.yy) |
- |      |	                     +--------------------------+
+ |      |                            +--------------------------+
  +------+                                           |
                                                     |
  +------+                                           |
