@@ -18,7 +18,8 @@
     in
     {
       defaultPackage = forAllSystems (system:
-      let pkgs = nixpkgsFor.${system};
+        let
+          pkgs = nixpkgsFor.${system};
           staticLibxml = pkgs.libxml2.override { enableStatic = true; };
         in
         pkgs.stdenv.mkDerivation {
@@ -31,6 +32,16 @@
 
           doCheck = true;
         });
+
+      devShell = forAllSystems (system:
+        let
+          pkgs = nixpkgsFor.${system};
+        in
+        pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [ cmake flex bison ];
+          buildInputs = with pkgs; [ libxml2 doctest ];
+        });
+
 
 
       # To build this, use `nix build .\#utapWindows.x86_64-linux`
