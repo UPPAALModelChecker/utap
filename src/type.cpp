@@ -287,7 +287,7 @@ bool type_t::isInvariant() const { return is(INVARIANT) || isIntegral(); }
 
 bool type_t::isGuard() const { return is(GUARD) || isInvariant(); }
 
-bool type_t::isProbability() const { return is(PROBABILITY) || isInteger() || isDouble(); }
+bool type_t::isProbability() const { return is(PROBABILITY) || isInteger() || isDouble() || isClock(); }
 
 bool type_t::isConstraint() const { return is(CONSTRAINT) || isGuard(); }
 
