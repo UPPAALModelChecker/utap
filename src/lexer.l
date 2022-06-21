@@ -119,6 +119,7 @@ idchr        [a-zA-Z0-9_$#]
 "*"        	{ return T_MULT; }
 "/"        	{ return T_DIV; }
 "%"         { return T_MOD; }
+"**"        { return T_POWOP; }
 "|"         { return T_OR; }
 "&"         { return '&'; }
 "^"         { return T_XOR; }

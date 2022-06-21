@@ -18,6 +18,11 @@ install(TARGETS pretty syntaxcheck taflow featurecheck)
 
 if (TESTING)
     find_package(doctest REQUIRED)
+
+    add_executable(test_expression test_expression.cpp)
+    target_link_libraries(test_expression PRIVATE doctest::doctest UTAP)
+    add_test(NAME test_expression COMMAND test_expression)
+
     add_executable(test_parser test_parser.cpp)
     target_link_libraries(test_parser PRIVATE doctest::doctest UTAP)
     add_test(NAME test_parser COMMAND test_parser)

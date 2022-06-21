@@ -41,6 +41,7 @@ namespace UTAP
             AND,
             OR,
             XOR,
+            POW,
             MIN,
             MAX,
             RATE,

@@ -181,8 +181,9 @@ const char* utap_msg(const char *msg)
 %token T_INCREMENT T_DECREMENT
 
 /* Binary operations: */
-%token T_PLUS T_MINUS T_MULT T_DIV
-%token T_MOD T_OR T_XOR T_LSHIFT T_RSHIFT
+%token T_POWOP T_MULT T_DIV T_MOD
+%token T_PLUS T_MINUS
+%token T_OR T_XOR T_LSHIFT T_RSHIFT
 %token T_BOOL_AND T_BOOL_OR
 %token T_KW_AND T_KW_OR T_KW_XOR T_KW_IMPLY T_KW_NOT
 
@@ -312,7 +313,7 @@ const char* utap_msg(const char *msg)
 %left T_MIN T_MAX
 %left T_LSHIFT T_RSHIFT
 %left T_MINUS T_PLUS
-%left T_MULT T_DIV T_MOD
+%left T_MULT T_DIV T_MOD T_POWOP
 %right T_EXCLAM T_KW_NOT T_INCREMENT T_DECREMENT UOPERATOR
 %left '(' ')' '[' ']' '.' '\''
 
@@ -1253,6 +1254,9 @@ Expression:
         }
         | Expression T_MOD Expression {
           CALL(@1, @3, exprBinary(MOD));
+        }
+        | Expression T_POWOP Expression {
+          CALL(@1, @3, exprBinary(POW));
         }
         | Expression '&' Expression {
           CALL(@1, @3, exprBinary(BIT_AND));
