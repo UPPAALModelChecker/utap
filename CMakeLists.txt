@@ -10,7 +10,7 @@ option(ASAN OFF)
 
 
 # Symbol names are weird if we do not set LIBXML_STATIC
-add_definitions("-DLIBXML_STATIC -DSYSTEMS_DIR=\"\\\"${CMAKE_CURRENT_SOURCE_DIR}/test/systems\\\"\"")
+add_definitions("-DLIBXML_STATIC -DMODELS_DIR=\"\\\"${CMAKE_CURRENT_SOURCE_DIR}/test/models\\\"\"")
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

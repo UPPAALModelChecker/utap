@@ -485,7 +485,7 @@ namespace UTAP
     class SystemVisitor
     {
     public:
-        virtual ~SystemVisitor() = default;
+        virtual ~SystemVisitor() noexcept = default;
         virtual void visitSystemBefore(Document*) {}
         virtual void visitSystemAfter(Document*) {}
         virtual void visitVariable(variable_t&) {}

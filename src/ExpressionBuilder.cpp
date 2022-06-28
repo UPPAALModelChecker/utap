@@ -775,9 +775,6 @@ void ExpressionBuilder::exprProbaExpected(const char* aggregatingOp)
     auto& runs = fragments[1];
     auto& expression = fragments[0];
 
-    if (runs.getKind() == CONSTANT && runs.getType().isInteger() && runs.getValue() < 0)
-        runs = makeConstant(2);
-
     int aggOpId;
     if (strcmp("min", aggregatingOp) == 0)
         aggOpId = 0;
