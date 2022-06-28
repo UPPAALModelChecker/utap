@@ -7,8 +7,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
- * File:   parsertests.cpp
+/**
+ * File:   test_parser.cpp
  * Author: Rasmus R. Kjær
  *
  * Created on 20 August 2021, 09:47
@@ -36,5 +36,12 @@ TEST_CASE("Double Serialization Test")
 {
     auto document = std::make_unique<UTAP::Document>();
     auto content = read_content(SYSTEMS_DIR, "ifstatement.xml");
+    parseXMLBuffer(content.c_str(), document.get(), true);
+}
+
+TEST_CASE("Power expressions")
+{
+    auto document = std::make_unique<UTAP::Document>();
+    auto content = read_content(SYSTEMS_DIR, "powers.xml");
     parseXMLBuffer(content.c_str(), document.get(), true);
 }

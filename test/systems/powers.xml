@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>const int IPOWER = 5;
+const int IBASE = 2;
+const int ISIZE = IBASE ** IPOWER;
+
+typedef int[0,ISIZE-1] range_t;
+range_t ii = 3 ** 3;
+
+const double DBASE = 3.0;
+const double DPOWER = 0.5;
+const double di = DBASE ** IPOWER;
+const double dd = DBASE ** DPOWER;
+const double id = IBASE ** DPOWER;
+</declaration>
+	<template>
+		<name x="5" y="5">P</name>
+		<location id="id0" x="0" y="0">
+		</location>
+		<init ref="id0"/>
+	</template>
+	<system>system P;
+    </system>
+	<queries>
+		<query>
+			<formula></formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>

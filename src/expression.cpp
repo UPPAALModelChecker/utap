@@ -330,6 +330,7 @@ size_t expression_t::getSize() const
     case AND:
     case OR:
     case XOR:
+    case POW:
     case LT:
     case LE:
     case EQ:
@@ -742,6 +743,8 @@ int expression_t::getPrecedence(kind_t kind)
     case DIV:
     case MOD: return 80;
 
+    case POW: return 85;  // greater than MULT and less than NOT
+
     case BIT_AND: return 37;
 
     case BIT_OR: return 30;
@@ -774,10 +777,12 @@ int expression_t::getPrecedence(kind_t kind)
     case FUNCALL:
     case EFUNCALL: return 110;
 
+    case ARRAY: return 105;
     case DOT:
-    case ARRAY:
     case RATE: return 100;
 
+    case PREINCREMENT:
+    case PREDECREMENT:
     case UNARY_MINUS:
     case NOT: return 90;
 
@@ -836,9 +841,7 @@ int expression_t::getPrecedence(kind_t kind)
 
     case SYNC: return 0;
 
-    case PREDECREMENT:
     case POSTDECREMENT:
-    case PREINCREMENT:
     case POSTINCREMENT:
     case ABS_F:
     case FABS_F:
@@ -900,7 +903,7 @@ int expression_t::getPrecedence(kind_t kind)
     case RANDOM_NORMAL_F:
     case RANDOM_POISSON_F:
     case RANDOM_WEIBULL_F:
-    case RANDOM_TRI_F: return 100;
+    case RANDOM_TRI_F: return 110;
 
     case MITLFORMULA:
     case MITLUNTIL:
