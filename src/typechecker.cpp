@@ -1588,7 +1588,7 @@ bool TypeChecker::areEquivalent(type_t a, type_t b) const
 bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init) const
 {
     if (init ? ((lvalue.isClock() && (rvalue.isDouble() || rvalue.isIntegral())) ||
-                (lvalue.isDouble() && rvalue.isIntegral()))
+                (lvalue.isDouble() && (rvalue.isIntegral() || rvalue.isDouble())))
              : ((lvalue.isClock() || lvalue.isDouble()) &&
                 (rvalue.isIntegral() || rvalue.isDouble() || rvalue.isClock()))) {
         return true;
