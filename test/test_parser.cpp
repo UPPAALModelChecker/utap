@@ -54,7 +54,7 @@ TEST_CASE("Power expressions")
     REQUIRE(doc);
     for (auto& err : doc->getErrors())
         std::cerr << err << std::endl;
-    //CHECK(doc->getErrors().size() == 0); // TODO: fix this
+    // CHECK(doc->getErrors().size() == 0); // TODO: fix this
     CHECK(doc->getWarnings().size() == 0);
 }
 
