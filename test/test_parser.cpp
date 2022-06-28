@@ -14,8 +14,8 @@
  * Created on 20 August 2021, 09:47
  */
 
-#include "utap/utap.h"
 #include "utap/StatementBuilder.hpp"
+#include "utap/utap.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -57,18 +57,23 @@ TEST_CASE("Power expressions")
 class QueryBuilder : public UTAP::StatementBuilder
 {
     UTAP::expression_t query;
+
 public:
     QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc} {}
-    void property() override {
+    void property() override
+    {
         REQUIRE(fragments.size() > 0);
         query = fragments[0];
         fragments.pop();
     }
     UTAP::expression_t getQuery() const { return query; }
-    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init, UTAP::position_t pos) override {
+    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
+                                  UTAP::position_t pos) override
+    {
         throw UTAP::NotSupportedException("addVariable is not supported");
     }
-    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override {
+    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override
+    {
         throw UTAP::NotSupportedException("addFunction is not supported");
     }
 };
@@ -82,27 +87,27 @@ TEST_CASE("SMC bounds in queries")
         auto res = parseProperty("Pr[<=1;7](<> true)", builder.get());
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
-        CHECK(expr.get(0).getValue() == 7); // number of runs
+        CHECK(expr.get(0).getValue() == 7);  // number of runs
     }
-    SUBCASE("Probbility estimation query without runs")
+    SUBCASE("Probability estimation query without runs")
     {
         auto res = parseProperty("Pr[<=1](<> true)", builder.get());
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
-        CHECK(expr.get(0).getValue() == -1); // number of runs
+        CHECK(expr.get(0).getValue() == -1);  // number of runs
     }
     SUBCASE("Value estimation query with 7 runs")
     {
         auto res = parseProperty("E[<=1;7](max: 1)", builder.get());
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
-        CHECK(expr.get(0).getValue() == 7); // number of runs
+        CHECK(expr.get(0).getValue() == 7);  // number of runs
     }
     SUBCASE("Value estimation query without runs")
     {
         auto res = parseProperty("E[<=1](max: 1)", builder.get());
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
-        CHECK(expr.get(0).getValue() == -1); // number of runs
+        CHECK(expr.get(0).getValue() == -1);  // number of runs
     }
 }

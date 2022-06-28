@@ -154,6 +154,9 @@ IncludeCategories:
  - Regex: '^<boost/'
    Priority: 3
    SortPriority: 29
+ - Regex: '^<doctest/'
+   Priority: 3
+   SortPriority: 30
  - Regex: '^<[a-bd-z0-9][a-z0-9_]*(\.[a-z]*)?>$'
    Priority: 4
    SortPriority: 30
