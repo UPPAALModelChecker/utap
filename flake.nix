@@ -14,7 +14,8 @@
       crossNixpkgsFor = forAllSystems (system: import nixpkgs {
         inherit system;
         crossSystem = (nixpkgsFor.${system}).lib.systems.examples.mingwW64;
-      });
+    });
+      version = "1.1.0";
     in
     {
       defaultPackage = forAllSystems (system:
@@ -24,7 +25,7 @@
         in
         pkgs.stdenv.mkDerivation {
           pname = "UTAP";
-          version = "1.0.0";
+          inherit version;
           src = ./.;
           nativeBuildInputs = with pkgs; [ cmake flex bison ];
           buildInputs = with pkgs; [ staticLibxml doctest ];
@@ -54,7 +55,7 @@
         in
         pkgs.stdenv.mkDerivation {
           pname = "UTAP";
-          version = "1.0.0";
+          inherit version;
           src = ./.;
           nativeBuildInputs = with nativePkgs; [ cmake flex bison ];
           buildInputs = with pkgs; [ staticLibxml zlib.static doctest ];
