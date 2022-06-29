@@ -52,13 +52,13 @@ int main(int argc, char* argv[])
         UTAP::PrettyPrinter pretty(cout);
 
         if (path.extension() == ".xml") {
-            parseXMLFile(path.c_str(), &pretty, newSyntax);
+            parseXMLFile(path.string().c_str(), &pretty, newSyntax);
         } else {
-            FILE* file = fopen(path.c_str(), "r");
+            FILE* file = fopen(path.string().c_str(), "r");
             if (file == nullptr) {
                 char msg[256];
-                snprintf(msg, 255, "Error opening %s", path.c_str());
-                perror(msg);
+                std::snprintf(msg, 255, "Error opening %s", path.c_str());
+                std::perror(msg);
                 return 1;
             }
             parseXTA(file, &pretty, newSyntax);

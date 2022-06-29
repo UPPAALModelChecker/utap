@@ -21,10 +21,13 @@
 
 #include "utap/prettyprinter.h"
 
+#include <array>
+#include <iostream>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
 #include <cassert>
+#include <charconv>
 #include <cstring>
 
 using namespace UTAP;
@@ -676,11 +679,16 @@ void PrettyPrinter::exprFalse() { st.push_back("false"); }
 
 void PrettyPrinter::exprDouble(double d)
 {
-    char s[60];
-    if (60 <= snprintf(s, 60, "%.52g", d)) {
-        fprintf(stderr, "Error: the floating point number was truncated\n");
-    }
-    st.emplace_back(s);
+    auto s = std::array<char, 60>{};
+#if (not defined(__GLIBCXX__) || (__GLIBCXX__ >= 20220519)) && not defined(_LIBCPP_VERSION)
+    // std=c++17, works with g++-11, but not with g++-10, which does not have to_chars for floats
+    if (auto [_, ec] = std::to_chars(s.begin(), s.end(), d, std::chars_format::general, 52); ec != std::errc{})
+        throw std::runtime_error{std::make_error_code(ec).message()};
+#else
+    if (60 <= std::snprintf(s.data(), 60, "%.52g", d))
+        std::cerr << "Floating point number was truncated\n";
+#endif
+    st.emplace_back(s.data());
 }
 
 void PrettyPrinter::exprString(const char* val) { st.emplace_back(val); }
