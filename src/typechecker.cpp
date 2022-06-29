@@ -1879,6 +1879,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case MULT:
     case DIV:
+    case POW:
     case MIN:
     case MAX:
         if (isIntegral(expr[0]) && isIntegral(expr[1])) {

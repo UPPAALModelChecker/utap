@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>const int IPOWER = 5;
+  <declaration>const int A = 1;
+const int B = 2;
+const int C = A + B;
+const int IPOWER = 5;
 const int IBASE = 2;
 const int ISIZE = IBASE ** IPOWER;
+const int PREC1 = A + B ** C;
+const int PREC2 = A * B ** C;
 
 typedef int[0,ISIZE-1] range_t;
 range_t ii = 3 ** 3;
@@ -24,8 +29,8 @@ const double id = IBASE ** DPOWER;
     </system>
 	<queries>
 		<query>
-			<formula></formula>
-			<comment></comment>
+			<formula>A[] not deadlock</formula>
+			<comment>Simple query</comment>
 		</query>
 	</queries>
 </nta>

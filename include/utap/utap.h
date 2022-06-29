@@ -31,7 +31,6 @@
 
 #include <filesystem>
 #include <vector>
-#include <cstdio>
 
 bool parseXTA(FILE*, UTAP::Document*, bool newxta);
 bool parseXTA(const char* buffer, UTAP::Document*, bool newxta);

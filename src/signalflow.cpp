@@ -319,6 +319,7 @@ void SignalFlow::visitExpression(const expression_t& e)
     case MULT:
     case DIV:
     case MOD:
+    case POW:
     case BIT_AND:
     case BIT_OR:
     case BIT_XOR:

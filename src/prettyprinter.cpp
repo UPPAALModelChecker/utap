@@ -21,10 +21,13 @@
 
 #include "utap/prettyprinter.h"
 
+#include <array>
+#include <iostream>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
 #include <cassert>
+#include <charconv>
 #include <cstring>
 
 using namespace UTAP;
@@ -670,21 +673,25 @@ void PrettyPrinter::exprNat(int32_t n)
     st.push_back(s);
 }
 
-/*
-void PrettyPrinter::exprDouble(double d)
-{
-    char s[60];
-    if (60 <= snprintf(s, 60, "%.52g", d))
-    {
-        fprintf(stderr, "Error: the floating point number was truncated\n");
-    }
-    st.push_back(s);
-}
-*/
-
 void PrettyPrinter::exprTrue() { st.push_back("true"); }
 
 void PrettyPrinter::exprFalse() { st.push_back("false"); }
+
+void PrettyPrinter::exprDouble(double d)
+{
+    auto s = std::array<char, 60>{};
+#if (not defined(__GLIBCXX__) || (__GLIBCXX__ >= 20220519)) && not defined(_LIBCPP_VERSION)
+    // std=c++17, works with g++-11, but not with g++-10, which does not have to_chars for floats
+    if (auto [_, ec] = std::to_chars(s.begin(), s.end(), d, std::chars_format::general, 52); ec != std::errc{})
+        throw std::runtime_error{std::make_error_code(ec).message()};
+#else
+    if (60 <= std::snprintf(s.data(), 60, "%.52g", d))
+        std::cerr << "Floating point number was truncated\n";
+#endif
+    st.emplace_back(s.data());
+}
+
+void PrettyPrinter::exprString(const char* val) { st.emplace_back(val); }
 
 void PrettyPrinter::exprCallBegin() { st.back() += "("; }
 
@@ -786,20 +793,6 @@ static const char* getBuiltinFunName(kind_t kind)
     return funNames[kind - ABS_F];
 }
 
-/*
-abs ifabs fabs fmod fma fmax fmin fdim
-exp exp2 expm1 ln log log10 log2 log1p
-pow sqrt cbrt hypot
-sin cos tan asin acos atan atan2
-sinh cosh tanh asinh acosh atanh
-erf erfc tgamma lgamma
-ceil floor trunc round
-iceil ifloor itrunc iround
-ldexp ilogb logb nextafter copysign
-fpclassify isfinite isinf isnan isnormal signbit isunordered
-random
-*/
-
 void PrettyPrinter::exprBuiltinFunction1(kind_t kind)
 {
     st.back() = string(getBuiltinFunName(kind)) + '(' + st.back() + ')';
@@ -879,6 +872,7 @@ void PrettyPrinter::exprBinary(kind_t op)
     case MULT: st.back() = '(' + exp1 + " * " + exp2 + ')'; break;
     case DIV: st.back() = '(' + exp1 + " / " + exp2 + ')'; break;
     case MOD: st.back() = '(' + exp1 + " % " + exp2 + ')'; break;
+    case POW: st.back() = '(' + exp1 + " ** " + exp2 + ')'; break;
     case FRACTION: st.back() = '(' + exp1 + " : " + exp2 + ')'; break;
     case MIN: st.back() = '(' + exp1 + " <? " + exp2 + ')'; break;
     case MAX: st.back() = '(' + exp1 + " >? " + exp2 + ')'; break;
@@ -1156,15 +1150,15 @@ void PrettyPrinter::exprSimulate(int nbExpr, bool hasReach, int nbOfAcceptingRun
 }
 
 /** Built-in verification queries if any */
-void PrettyPrinter::queryBegin() { *o.top() << "\n/* Query begin: */" << endl; }
+void PrettyPrinter::queryBegin() { *o.top() << "\n/** Query begin: */" << endl; }
 void PrettyPrinter::queryFormula(const char* formula, const char* location)
 {
     if (formula)
-        *o.top() << "/* Formula: " << formula << "*/" << endl;
+        *o.top() << "/* Formula: " << formula << " */" << endl;
 }
 void PrettyPrinter::queryComment(const char* comment)
 {
     if (comment)
-        *o.top() << "/* Comment: " << comment << "*/" << endl;
+        *o.top() << "/* Comment: " << comment << " */" << endl;
 }
-void PrettyPrinter::queryEnd() { *o.top() << "/* Query end. */" << endl; }
+void PrettyPrinter::queryEnd() { *o.top() << "/** Query end. */" << endl; }

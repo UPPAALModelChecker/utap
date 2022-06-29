@@ -21,6 +21,7 @@
 
 #include "utap/prettyprinter.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <cstdio>
@@ -37,33 +38,36 @@ static bool newSyntax = (getenv("UPPAAL_OLD_SYNTAX") == nullptr);
 int main(int argc, char* argv[])
 {
     try {
-        std::string filename;
-
         if (argc != 2) {
             std::cerr << "Usage: " << argv[0] << " MODEL\n\n";
             std::cerr << "where MODEL is a UPPAAL .xml, xta, or .ta file\n";
             return 1;
         }
-
-        filename = argv[1];
+        auto path = std::filesystem::path{argv[1]};
+        if (!std::filesystem::exists(path))
+            throw std::runtime_error("File does not exist: " + path.string());
+        if (!std::filesystem::is_regular_file(path))
+            throw std::runtime_error("Path is not a regular file: " + path.string());
 
         UTAP::PrettyPrinter pretty(cout);
 
-        if (filename.substr(filename.length() - 4) == ".xml") {
-            parseXMLFile(filename.c_str(), &pretty, newSyntax);
+        if (path.extension() == ".xml") {
+            parseXMLFile(path.string().c_str(), &pretty, newSyntax);
         } else {
-            FILE* file = fopen(filename.c_str(), "r");
+            FILE* file = fopen(path.string().c_str(), "r");
             if (file == nullptr) {
                 char msg[256];
-                snprintf(msg, 255, "Error opening %s", filename.c_str());
-                perror(msg);
+                std::snprintf(msg, 255, "Error opening %s", path.c_str());
+                std::perror(msg);
                 return 1;
             }
             parseXTA(file, &pretty, newSyntax);
         }
     } catch (std::exception& e) {
-        std::cerr << "Caught exception: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return 1;
+    } catch (...) {
+        std::cerr << "Caught unknown exception." << std::endl;
     }
     return 0;
 }
