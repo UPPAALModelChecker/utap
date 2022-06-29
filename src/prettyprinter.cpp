@@ -670,21 +670,20 @@ void PrettyPrinter::exprNat(int32_t n)
     st.push_back(s);
 }
 
-/*
-void PrettyPrinter::exprDouble(double d)
-{
-    char s[60];
-    if (60 <= snprintf(s, 60, "%.52g", d))
-    {
-        fprintf(stderr, "Error: the floating point number was truncated\n");
-    }
-    st.push_back(s);
-}
-*/
-
 void PrettyPrinter::exprTrue() { st.push_back("true"); }
 
 void PrettyPrinter::exprFalse() { st.push_back("false"); }
+
+void PrettyPrinter::exprDouble(double d)
+{
+    char s[60];
+    if (60 <= snprintf(s, 60, "%.52g", d)) {
+        fprintf(stderr, "Error: the floating point number was truncated\n");
+    }
+    st.emplace_back(s);
+}
+
+void PrettyPrinter::exprString(const char* val) { st.emplace_back(val); }
 
 void PrettyPrinter::exprCallBegin() { st.back() += "("; }
 
@@ -785,20 +784,6 @@ static const char* getBuiltinFunName(kind_t kind)
     assert(ABS_F <= kind && kind <= RANDOM_WEIBULL_F);
     return funNames[kind - ABS_F];
 }
-
-/*
-abs ifabs fabs fmod fma fmax fmin fdim
-exp exp2 expm1 ln log log10 log2 log1p
-pow sqrt cbrt hypot
-sin cos tan asin acos atan atan2
-sinh cosh tanh asinh acosh atanh
-erf erfc tgamma lgamma
-ceil floor trunc round
-iceil ifloor itrunc iround
-ldexp ilogb logb nextafter copysign
-fpclassify isfinite isinf isnan isnormal signbit isunordered
-random
-*/
 
 void PrettyPrinter::exprBuiltinFunction1(kind_t kind)
 {
@@ -1157,15 +1142,15 @@ void PrettyPrinter::exprSimulate(int nbExpr, bool hasReach, int nbOfAcceptingRun
 }
 
 /** Built-in verification queries if any */
-void PrettyPrinter::queryBegin() { *o.top() << "\n/* Query begin: */" << endl; }
+void PrettyPrinter::queryBegin() { *o.top() << "\n/** Query begin: */" << endl; }
 void PrettyPrinter::queryFormula(const char* formula, const char* location)
 {
     if (formula)
-        *o.top() << "/* Formula: " << formula << "*/" << endl;
+        *o.top() << "/* Formula: " << formula << " */" << endl;
 }
 void PrettyPrinter::queryComment(const char* comment)
 {
     if (comment)
-        *o.top() << "/* Comment: " << comment << "*/" << endl;
+        *o.top() << "/* Comment: " << comment << " */" << endl;
 }
-void PrettyPrinter::queryEnd() { *o.top() << "/* Query end. */" << endl; }
+void PrettyPrinter::queryEnd() { *o.top() << "/** Query end. */" << endl; }

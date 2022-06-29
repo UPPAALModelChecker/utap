@@ -29,8 +29,8 @@ const double id = IBASE ** DPOWER;
     </system>
 	<queries>
 		<query>
-			<formula></formula>
-			<comment></comment>
+			<formula>A[] not deadlock</formula>
+			<comment>Simple query</comment>
 		</query>
 	</queries>
 </nta>

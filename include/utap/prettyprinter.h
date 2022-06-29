@@ -126,6 +126,8 @@ namespace UTAP
         void exprNat(int32_t n) override;
         void exprTrue() override;
         void exprFalse() override;
+        void exprDouble(double) override;
+        void exprString(const char*) override;
         void exprCallBegin() override;
         void exprCallEnd(uint32_t n) override;
         void exprArray() override;
