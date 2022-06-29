@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
-	<declaration>const int IPOWER = 5;
+  <declaration>const int A = 1;
+const int B = 2;
+const int C = A + B;
+const int IPOWER = 5;
 const int IBASE = 2;
 const int ISIZE = IBASE ** IPOWER;
 

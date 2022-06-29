@@ -52,9 +52,7 @@ TEST_CASE("Power expressions")
 {
     auto doc = read_document("powers.xml");
     REQUIRE(doc);
-    for (auto& err : doc->getErrors())
-        std::cerr << err << std::endl;
-    // CHECK(doc->getErrors().size() == 0); // TODO: fix this
+    CHECK(doc->getErrors().size() == 0);
     CHECK(doc->getWarnings().size() == 0);
 }
 

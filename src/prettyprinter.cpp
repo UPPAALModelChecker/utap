@@ -879,6 +879,7 @@ void PrettyPrinter::exprBinary(kind_t op)
     case MULT: st.back() = '(' + exp1 + " * " + exp2 + ')'; break;
     case DIV: st.back() = '(' + exp1 + " / " + exp2 + ')'; break;
     case MOD: st.back() = '(' + exp1 + " % " + exp2 + ')'; break;
+    case POW: st.back() = '(' + exp1 + " ** " + exp2 + ')'; break;
     case FRACTION: st.back() = '(' + exp1 + " : " + exp2 + ')'; break;
     case MIN: st.back() = '(' + exp1 + " <? " + exp2 + ')'; break;
     case MAX: st.back() = '(' + exp1 + " >? " + exp2 + ')'; break;

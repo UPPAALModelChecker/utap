@@ -322,6 +322,7 @@ size_t expression_t::getSize() const
     case MULT:
     case DIV:
     case MOD:
+    case POW:
     case BIT_AND:
     case BIT_OR:
     case BIT_XOR:
@@ -330,7 +331,6 @@ size_t expression_t::getSize() const
     case AND:
     case OR:
     case XOR:
-    case POW:
     case LT:
     case LE:
     case EQ:
@@ -1114,6 +1114,7 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case MULT:
     case DIV:
     case MOD:
+    case POW:
     case BIT_AND:
     case BIT_OR:
     case BIT_XOR:
@@ -1157,6 +1158,7 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         case MULT: append(str, end, size, " * "); break;
         case DIV: append(str, end, size, " / "); break;
         case MOD: append(str, end, size, " % "); break;
+        case POW: append(str, end, size, " ** "); break;
         case BIT_AND: append(str, end, size, " & "); break;
         case BIT_OR: append(str, end, size, " | "); break;
         case BIT_XOR: append(str, end, size, " ^ "); break;
