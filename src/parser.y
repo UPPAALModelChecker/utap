@@ -313,9 +313,12 @@ const char* utap_msg(const char *msg)
 %left T_MIN T_MAX
 %left T_LSHIFT T_RSHIFT
 %left T_MINUS T_PLUS
-%left T_MULT T_DIV T_MOD T_POWOP
-%right T_EXCLAM T_KW_NOT T_INCREMENT T_DECREMENT UOPERATOR
+%left T_MULT T_DIV T_MOD
+%left T_POWOP
+%right T_EXCLAM T_KW_NOT UOPERATOR
 %left '(' ')' '[' ']' '.' '\''
+%right T_INCREMENT T_DECREMENT
+
 
 %union {
     bool flag;
