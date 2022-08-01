@@ -680,7 +680,7 @@ void PrettyPrinter::exprFalse() { st.push_back("false"); }
 void PrettyPrinter::exprDouble(double d)
 {
     auto s = std::array<char, 60>{};
-#if defined(__GNUC__) && (__GNUC__ < 110000L)
+#if defined(__GNUC__) && (__GNUC__ < 11)
     // g++-10 does not have std::to_char(It,It,float/double), hence temporary workaround:
     if (60 <= std::snprintf(s.data(), 60, "%.52g", d))
         std::cerr << "Floating point number was truncated\n";
