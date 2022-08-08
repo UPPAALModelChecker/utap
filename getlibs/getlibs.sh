@@ -27,16 +27,10 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
         case "$target" in
             win64)
-                p=$(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll)
-                p=$(dirname "$p") # strip the library file
-                p=$(readlink -f "$p") # canonical form
-                export WINEPATH="$p;$WINEPATH"
+                cp $(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/"
                 ;;
             win32)
-                p=$(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll)
-                p=$(dirname "$p") # strip the library file
-                p=$(readlink -f "$p") # canonical form
-                export WINEPATH="$p;$WINEPATH"
+                cp $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/"
                 ;;
         esac
         (cd "$BUILD" ; ctest --output-on-failure)
