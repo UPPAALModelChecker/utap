@@ -20,7 +20,7 @@ add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
-find_package(libxml2 2.9.14 REQUIRED)
+find_package(LibXml2 2.9.14 REQUIRED)
 #message(STATUS "Found LibXML2 ${LIBXML2_LIBRARIES}")
 #message(STATUS "Using LIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}")
 #message(STATUS "Using LIBXML2_INCLUDE_DIRS=${LIBXML2_INCLUDE_DIRS}")
