@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(UTAP VERSION 1.1.0 LANGUAGES CXX C)
+project(UTAP VERSION 1.1.2 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
@@ -8,25 +8,28 @@ option(STATIC OFF)
 option(UBSAN OFF)
 option(ASAN OFF)
 
-
-# Symbol names are weird if we do not set LIBXML_STATIC
-add_definitions("-DLIBXML_STATIC -DMODELS_DIR=\"\\\"${CMAKE_CURRENT_SOURCE_DIR}/test/models\\\"\"")
-
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
-
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${CMAKE_CURRENT_SOURCE_DIR}/libs")
+
+add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
 
-
-set(LibXml2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/libs/LibXml2")
-find_package(LibXml2 2.9.11 REQUIRED)
+find_package(libxml2 2.9.14 REQUIRED)
+message(STATUS "Using LIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}")
+message(STATUS "Using LIBXML2_INCLUDE_DIRS=${LIBXML2_INCLUDE_DIRS}")
+message(STATUS "Using LIBXML2_LIBRARY=${LIBXML2_LIBRARY}")
+message(STATUS "Using LIBXML2_LIBRARIES=${LIBXML2_LIBRARIES}")
+message(STATUS "Using LIBXML2_DEFINITIONS=${LIBXML2_DEFINITIONS}")
+add_compile_definitions(${LIBXML2_DEFINITIONS})
+#set(LibXml2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/libs/LibXml2")
+#find_package(LibXml2 2.9.14 REQUIRED)
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
 
@@ -95,4 +98,4 @@ install(TARGETS UTAP EXPORT UTAPConfig LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDI
 install(EXPORT UTAPConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP )
 
-set(CMAKE_CXX_STANDARD_LIBRARIES "-static -lwsock32 -lws2_32 -lz -lmcfgthread ${CMAKE_CXX_STANDARD_LIBRARIES}")
+# set(CMAKE_CXX_STANDARD_LIBRARIES "-static -lwsock32 -lws2_32 -lz -lmcfgthread ${CMAKE_CXX_STANDARD_LIBRARIES}")
