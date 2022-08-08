@@ -22,8 +22,8 @@ for target in "$@" ; do
         cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
         cmake --build "$BUILD"
-        echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
-        ctest --test-dir="$BUILD" --output-on-failure
+#        echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
+#        (cd "$BUILD" ; ctest --output-on-failure)
         echo -e "${BW}${target}: Installing ${LIBXML2}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
@@ -40,7 +40,7 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
 #        echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
-#        ctest --test-dir="$BUILD" --output-on-failure
+#        (cd "$BUILD" ; ctest --output-on-failure)
         echo -e "${BW}${target}: Installing ${DOCTEST}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"

@@ -17,10 +17,18 @@ for target in "$@" ; do
     LIBS="${LOCAL}/${target}"
     "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
-    cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON -DSTATIC=ON
+    case $target in
+	darwin*)
+	    CMAKE_EXTRA=-DSTATIC=OFF
+	    ;;
+	*)
+	    CMAKE_EXTRA=-DSTATIC=ON
+	    ;;
+    esac
+    cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD"
     echo -e "${BW}${target}: Testing UTAP${NC}"
-    ctest --test-dir="$BUILD" --output-on-failure
+    (cd "$BUILD" ; ctest --output-on-failure)
     echo -e "${BW}Success!${NC}"
 done
