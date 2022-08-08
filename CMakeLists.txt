@@ -20,18 +20,19 @@ add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
-
 find_package(libxml2 2.9.14 REQUIRED)
+message(STATUS "Found LibXML2 ${LIBXML2_LIBRARIES}")
 message(STATUS "Using LIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}")
 message(STATUS "Using LIBXML2_INCLUDE_DIRS=${LIBXML2_INCLUDE_DIRS}")
 message(STATUS "Using LIBXML2_LIBRARY=${LIBXML2_LIBRARY}")
 message(STATUS "Using LIBXML2_LIBRARIES=${LIBXML2_LIBRARIES}")
 message(STATUS "Using LIBXML2_DEFINITIONS=${LIBXML2_DEFINITIONS}")
-add_compile_definitions(${LIBXML2_DEFINITIONS})
-#set(LibXml2_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/libs/LibXml2")
-#find_package(LibXml2 2.9.14 REQUIRED)
+add_definitions(${LIBXML2_DEFINITIONS})
+if (TESTING)
+    find_package(doctest 2.4.9 REQUIRED)
+endif(TESTING)
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
+#file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
 
 set(lexer_source "${CMAKE_CURRENT_BINARY_DIR}/lexer.cc")
 add_custom_command(OUTPUT "${lexer_source}"
@@ -50,23 +51,23 @@ add_custom_target(parser_generate DEPENDS "${parser_source}")
 
 FILE(GLOB utap_source "src/*.c" "src/*.cpp" "src/*.h")
 add_library(UTAP ${utap_source} ${parser_source})
-
-message(STATUS "Found LibXML2 ${LIBXML2_LIBRARIES}")
 target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES} ${CMAKE_DL_LIBS})
 
+if (ASAN OR UBSAN)
+    add_compile_options(-fno-omit-frame-pointer)
+    add_link_options(-fno-omit-frame-pointer)
+endif()
 if (ASAN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
 endif()
 if (UBSAN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined")
-    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fno-omit-frame-pointer -fsanitize=undefined")
+    add_compile_options(-fsanitize=undefined)
+    add_link_options(-fsanitize=undefined)
 endif()
 
 if(STATIC)
-    set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ -lwsock32 -lws2_32 -lz -liphlpapi ${CMAKE_CXX_STANDARD_LIBRARIES}")
+    set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -78,7 +79,7 @@ target_include_directories(UTAP
         # where the library itself will look for its internal headers
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/include
-        ${LIBXML2_INCLUDE_DIR}
+        ${LIBXML2_INCLUDE_DIRS}
     PUBLIC
         # where top-level project will look for the library's public headers
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
