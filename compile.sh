@@ -18,12 +18,26 @@ for target in "$@" ; do
     "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
     case $target in
-	darwin*)
-	    CMAKE_EXTRA=-DSTATIC=OFF
-	    ;;
-	*)
-	    CMAKE_EXTRA=-DSTATIC=ON
-	    ;;
+	      darwin*)
+	          CMAKE_EXTRA=-DSTATIC=OFF
+	          ;;
+        win64)
+	          CMAKE_EXTRA=-DSTATIC=ON
+            p=$(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll)
+            p=$(dirname "$p") # strip the library file
+            p=$(readlink -f "$p") # canonical form
+            export WINEPATH="$p;$WINEPATH"
+            ;;
+        win32)
+	          CMAKE_EXTRA=-DSTATIC=ON
+            p=$(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll)
+            p=$(dirname "$p") # strip the library file
+            p=$(readlink -f "$p") # canonical form
+            export WINEPATH="$p;$WINEPATH"
+            ;;
+	      *)
+	          CMAKE_EXTRA=-DSTATIC=ON
+	          ;;
     esac
     cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
     echo -e "${BW}${target}: Building UTAP${NC}"
