@@ -59,7 +59,7 @@ jobs:
       run: |
           export DEBIAN_FRONTEND=noninteractive
           apt-get -q -y update
-          apt-get -q -y install bison curl wget unzip cmake ninja-build flex libc6-dev g++-10
+          apt-get -q -y install bison curl wget unzip xz-utils cmake ninja-build flex libc6-dev g++-10
           ./getlibs/getlibs.sh linux64
     - name: Build and test
       run: |
