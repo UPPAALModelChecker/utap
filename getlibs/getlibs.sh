@@ -46,6 +46,6 @@ for target in "$@" ; do
         rm -Rf "$BUILD"
         echo -e "${BW}${target}: Success ${DOCTEST}${NC}"
     else
-        echo -e "${BW}${target}: doctest is already installed.${NC}"
+        echo -e "${BW}${target}: ${DOCTEST} is already installed.${NC}"
     fi
 done
