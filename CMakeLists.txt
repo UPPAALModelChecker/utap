@@ -32,7 +32,8 @@ if (TESTING)
     find_package(doctest 2.4.9 REQUIRED)
 endif(TESTING)
 
-#file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
+# Create directory for the generated header files:
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
 
 set(lexer_source "${CMAKE_CURRENT_BINARY_DIR}/lexer.cc")
 add_custom_command(OUTPUT "${lexer_source}"
