@@ -21,6 +21,6 @@ for target in "$@" ; do
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD"
     echo -e "${BW}${target}: Testing UTAP${NC}"
-    (cd "$BUILD" ; ctest --output-on-failure)
+    ctest --test-dir="$BUILD" --output-on-failure
     echo -e "${BW}Success!${NC}"
 done

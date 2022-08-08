@@ -23,7 +23,7 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
         cmake --build "$BUILD"
         echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
-        (cd "$BUILD" ; ctest --output-on-failure)
+        ctest --test-dir="$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${LIBXML2}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
@@ -40,7 +40,7 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
 #        echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
-#        (cd "$BUILD" ; ctest --output-on-failure)
+#        ctest --test-dir="$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${DOCTEST}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
