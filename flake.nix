@@ -15,7 +15,7 @@
         inherit system;
         crossSystem = (nixpkgsFor.${system}).lib.systems.examples.mingwW64;
     });
-      version = "1.1.0";
+      version = "1.1.2";
     in
     {
       defaultPackage = forAllSystems (system:
