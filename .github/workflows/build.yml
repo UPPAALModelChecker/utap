@@ -21,7 +21,9 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Build and test
-      run: nix build
+      run: |
+          ./getlibs/getlibs.sh linux64 
+          nix build
   build-nix-mac:
     runs-on: macos-latest
     steps:
@@ -39,7 +41,9 @@ jobs:
       with:
         nix_path: nixpkgs=channel:nixos-unstable
     - name: Build and test
-      run: nix build .\#utapWindows.x86_64-linux
+      run: |
+          ./getlibs/getlibs.sh win64
+          nix build .\#utapWindows.x86_64-linux
   build-linux:
     strategy:
       fail-fast: false
@@ -66,4 +70,4 @@ jobs:
           export CTEST_OUTPUT_ON_FAILURE=1
           cmake -DCMAKE_TOOLCHAIN_FILE=$PWD/toolchain/linux64.cmake -DCMAKE_PREFIX_PATH=$PWD/local/linux64 -DCMAKE_BUILD_TYPE=Release -DSTATIC=$STATIC -DASAN=${{ matrix.asan }} -DUBSAN=${{ matrix.ubsan }} -DTESTING=ON -B build -S . -G Ninja
           cmake --build build
-          ctest --test-dir build
+          (cd build ; ctest)
