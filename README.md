@@ -26,14 +26,14 @@ libutap is licensed under the LGPL.
 
 ## 2. Compiling
 
-libutap uses `cmake` to make compilation on various
-platforms easy. You will need `gcc-9` or newer, GNU make,
+Use `cmake` to compile `libutap` easily for various platforms. 
+You will need GCC version 10 or newer, Ninja or GNU make,
 and `libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10).
 
 Run the following to compile libutap and use it in the build:
 
 ```sh
-sudo apt-get install libboost-all-dev bison cmake flex libxml2-dev gcc
+sudo apt-get install bison cmake ninja-build flex libxml2-dev g++
 cmake . -B build # -DCMAKE_INSTALL_PREFIX=$MYPATH # to install to $MYPATH
 cmake --build build
 ```
@@ -42,6 +42,23 @@ Run the following to install libutap:
 ```
 cmake --install build
 ```
+
+Test:
+```sh
+ctest --test-dir build
+```
+
+For other platforms please see [compile.sh](compile.sh) script:
+```sh
+./compile.sh [linux64] [win64] [linux32] [win32] [darwin] 
+```
+`win64` requires `x86_64-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
+
+`win32` requires `i686-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
+
+`linux32` requires `g++-multilib`. 
+
+`darwin` requires [gcc-10](https://formulae.brew.sh/formula/gcc@10) with [XCode](https://developer.apple.com/xcode/) installed.
 
 ## 3. Simple use
 

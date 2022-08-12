@@ -15,7 +15,7 @@
         inherit system;
         crossSystem = (nixpkgsFor.${system}).lib.systems.examples.mingwW64;
     });
-      version = "1.1.0";
+      version = "1.1.2";
     in
     {
       defaultPackage = forAllSystems (system:
@@ -59,7 +59,7 @@
           src = ./.;
           nativeBuildInputs = with nativePkgs; [ cmake flex bison ];
           buildInputs = with pkgs; [ staticLibxml zlib.static doctest ];
-          cmakeFlags = [ "-DTESTING=ON" "-DSTATIC=ON" "-DCMAKE_TOOLCHAIN_FILE=toolchains/mingw.cmake" ];
+          cmakeFlags = [ "-DTESTING=ON" "-DSTATIC=ON" "-DCMAKE_TOOLCHAIN_FILE=toolchain/win64.cmake" ];
           WINEPATH = "${pkgs.windows.mcfgthreads}/bin;${nativePkgs.wine64Packages.stableFull}/lib/wine/x86_64-windows/";
           CROSSCOMPILING_EMULATOR = "${nativePkgs.wine64Packages.stableFull}/bin/wine64";
 
