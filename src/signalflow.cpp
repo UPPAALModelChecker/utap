@@ -980,7 +980,7 @@ inline void set_remove(SignalFlow::strset_t& from, const SignalFlow::strset_t& w
         from.erase(b);
 }
 
-struct surround : public std::unary_function<const char*, void>
+struct surround
 {
     std::ostream& out;
     std::string_view pre;

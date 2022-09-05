@@ -166,7 +166,7 @@ namespace UTAP
      * similar to ostream_iterator except it does not print last delimiter.
      */
     template <class T>
-    struct print : public std::unary_function<T, void>
+    struct print
     {
         std::ostream& os;
         const std::string& infix;
