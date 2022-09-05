@@ -37,8 +37,9 @@ namespace UTAP
         /** Start and end absolute offsets in the original source file.
          * Both INT_MAX indicate an unknown location, or outside the source file
          * (e.g. built-in, engine utility, or introduced by LSC translation) */
-        uint32_t start{std::numeric_limits<int32_t>::max()}, end{std::numeric_limits<int32_t>::max()};
+        static constexpr auto unknown_pos = std::numeric_limits<int32_t>::max();
         // Java Integer cannot parse UINT_MAX, thus use INT_MAX.
+        uint32_t start{unknown_pos}, end{unknown_pos};
         position_t() = default;
         position_t(uint32_t start, uint32_t end): start{start}, end{end} {}
     };

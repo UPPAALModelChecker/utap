@@ -630,6 +630,16 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
     }
 }
 
+bool isDefaultInt(type_t type)
+{
+    if (type.isIntegral()) {
+        auto range = type.getRange();
+        return (isConstantInteger(range.first) && isConstantInteger(range.second)) &&
+               range.first.getValue() == defaultIntMin && range.second.getValue() == defaultIntMax;
+    }
+    return false;
+}
+
 void TypeChecker::visitProcess(instance_t& process)
 {
     for (size_t i = 0; i < process.unbound; i++) {
@@ -638,7 +648,7 @@ void TypeChecker::visitProcess(instance_t& process)
          */
         symbol_t parameter = process.parameters[i];
         type_t type = parameter.getType();
-        if (!(type.isScalar() || type.isRange()) || type.is(REF)) {
+        if (!(type.isScalar() || type.isRange()) || type.is(REF) || isDefaultInt(type)) {
             handleError(type, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
         }
 
