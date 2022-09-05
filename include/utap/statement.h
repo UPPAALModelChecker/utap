@@ -241,7 +241,7 @@ namespace UTAP
     class StatementVisitor
     {
     public:
-        virtual ~StatementVisitor() = default;
+        virtual ~StatementVisitor() noexcept = default;
         virtual int32_t visitEmptyStatement(EmptyStatement* stat) = 0;
         virtual int32_t visitExprStatement(ExprStatement* stat) = 0;
         virtual int32_t visitAssertStatement(AssertStatement* stat) = 0;
