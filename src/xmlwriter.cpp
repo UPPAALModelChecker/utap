@@ -185,10 +185,18 @@ void XMLWriter::location(const state_t& state)
         writeAttribute("color", ERR_STATE_COLOR);
     }
     // name (element)
-    name(state, x + 8, y + 8);
+    x += 8;
+    y += 8;
+    name(state, x, y);
     // invariant
     if (!state.invariant.empty()) {
-        label("invariant", state.invariant.toString(), x + 8, y + 24);
+        y += 16;
+        label("invariant", state.invariant.toString(), x, y);
+    }
+    // exponential rate
+    if (!state.exponentialRate.empty()) {
+        y += 16;
+        label("exponentialrate", state.exponentialRate.toString(), x, y);
     }
     // "committed" or "urgent" element
     if (state.uid.getType().is(COMMITTED)) {
