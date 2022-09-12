@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -e
 
-if [ "$#" -lt 1 ]; then
-    echo "Expecting a list of target platforms as arguments."
-    echo "For example: ${BW}$0 linux64 win32${$NC}"
-    echo "See ${BW}toolchain/*.cmake${NC} for the list of supported platforms."
-fi
-
 GETLIBS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR=$(dirname "$GETLIBS_DIR")
 source "$GETLIBS_DIR/sources.sh"
+
+if [ "$#" -lt 1 ]; then
+    echo "Expecting a list of target platforms as arguments."
+    echo -e "For example: ${BW}$0 darwin linux64 win32${NC}"
+    echo -e "See ${BW}toolchain/*.cmake${NC} for the list of supported platforms."
+fi
 
 for target in "$@" ; do
     LIBS="$LOCAL/$target"
