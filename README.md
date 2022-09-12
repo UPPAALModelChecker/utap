@@ -50,15 +50,17 @@ ctest --test-dir build
 
 For other platforms please see [compile.sh](compile.sh) script:
 ```sh
-./compile.sh [linux64] [win64] [linux32] [win32] [darwin] 
+./compile.sh [linux64] [win64] [linux32] [win32] [darwin]
 ```
 `win64` requires `x86_64-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
 
 `win32` requires `i686-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
 
-`linux32` requires `g++-multilib`. 
+`linux32` requires `g++-multilib`.
 
-`darwin` requires [gcc-10](https://formulae.brew.sh/formula/gcc@10) with [XCode](https://developer.apple.com/xcode/) installed.
+`darwin` requires:
+- [gcc-10](https://formulae.brew.sh/formula/gcc@10) with [XCode](https://developer.apple.com/xcode/)
+- `getlibs` script requires `sha256sum` from [coreutils](https://formulae.brew.sh/formula/coreutils), then add `/usr/local/opt/coreutils/libexec/gnubin` to `PATH`.
 
 ## 3. Simple use
 
