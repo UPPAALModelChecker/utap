@@ -14,9 +14,14 @@ LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
 LIBXML2_SHA256=60d74a257d1ccec0475e749cba2f21559e48139efba6ff28224357c7c798dfee
 
 DOCTEST=doctest-2.4.9
-DOCTEST_Z=${DOCTEST}.tar.gz
+DOCTEST_Z="${DOCTEST}.tar.gz"
 DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doctest-}.tar.gz"
 DOCTEST_SHA256=19b2df757f2f3703a5e63cee553d85596875f06d91a3333acd80a969ef210856
+
+BISON=bison-3.8.2
+BISON_Z="${BISON}.tar.gz"
+BISON_URL="https://ftp.gnu.org/gnu/bison/${BISON_Z}"
+BISON_SHA256=06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb
 
 function download_unpack {
     local LIB="${1}"
@@ -41,7 +46,8 @@ function download_unpack {
                 tar xf "${!LIB_Z}"
                 ;;
             *)
-                echo "Don't know how to extract $${!LIB_Z}"
+                echo "Don't know how to extract ${!LIB_Z}"
+                exit 1
         esac
     fi
     popd
@@ -53,4 +59,8 @@ function prepare_libxml2 {
 
 function prepare_doctest {
     download_unpack DOCTEST
+}
+
+function prepare_bison {
+    download_unpack BISON
 }
