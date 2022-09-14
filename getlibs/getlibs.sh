@@ -59,4 +59,22 @@ for target in "$@" ; do
     else
         echo -e "${BW}${target}: ${DOCTEST} is already installed.${NC}"
     fi
+    if [ ! -r "$LIBS/bin/bison" ] ; then
+        echo -e "${BW}Preparing source of ${BISON}${NC}"
+        prepare_bison
+        BUILD="$LIBS/build-${BISON}"
+        echo -e "${BW}${target}: Configuring ${BISON}${NC}"
+        mkdir -p "$BUILD"
+        pushd "$BUILD"
+        "$SOURCE/$BISON/configure" --prefix="$LIBS"
+        echo -e "${BW}${target}: Building ${BISON}${NC}"
+        make -j$(nproc)
+        echo -e "${BW}${target}: Installing ${BISON}${NC}"
+        make install
+        popd
+        rm -Rf "$BUILD"
+        echo -e "${BW}${target}: Success ${BISON}${NC}"
+    else
+        echo -e "${BW}${target}: ${BISON} is already installed.${NC}"
+    fi
 done
