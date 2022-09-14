@@ -46,7 +46,8 @@ function download_unpack {
                 tar xf "${!LIB_Z}"
                 ;;
             *)
-                echo "Don't know how to extract $${!LIB_Z}"
+                echo "Don't know how to extract ${!LIB_Z}"
+                exit 1
         esac
     fi
     popd
