@@ -131,7 +131,7 @@ TEST_CASE("Hybrid and normal clock update")
     auto document = std::make_unique<UTAP::Document>();
     parseXMLBuffer(read_content("updateHybridAndNormalClock.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
+    CHECK(checker.getSupportedMethods().symbolic);
     CHECK(checker.getSupportedMethods().stochastic);
 }
 

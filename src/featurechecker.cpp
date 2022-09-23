@@ -61,7 +61,7 @@ void FeatureChecker::visitAssignment(expression_t& ass)
 {
     switch (ass.getKind()) {
     case Constants::ASSIGN:
-        if (ass.usesFP() && !ass.usesHybrid())
+        if (ass.usesFP() && !ass.usesHybrid() && !ass.get(0).getType().isClock())
             supportedMethods.symbolic = false;
         break;
     case Constants::COMMA:
