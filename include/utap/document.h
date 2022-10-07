@@ -104,7 +104,7 @@ namespace UTAP
         expression_t sync;   /**< The synchronisation */
         expression_t prob;   /**< Probability for probabilistic edges. */
         std::string toString() const;
-        std::list<int32_t> selectValues; /**<The select values, if any */
+        std::vector<int32_t> selectValues; /**<The select values, if any */
     };
 
     class BlockStatement;  // Forward declaration
