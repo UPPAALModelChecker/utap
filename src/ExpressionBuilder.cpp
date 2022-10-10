@@ -544,7 +544,7 @@ void ExpressionBuilder::exprLocation()
         expr = expression_t::createDot(expr, std::numeric_limits<int32_t>::max(), position,
                                        type_t::createPrimitive(Constants::LOCATION_EXPR));
     } else {
-        handleError(NotAProcessError(expr.toString(true)));
+        handleError(NotAProcessError(expr.str(true)));
     }
     fragments[0] = expr;
 }
@@ -595,7 +595,7 @@ void ExpressionBuilder::exprDot(const char* id)
                 ? type_t::createPrimitive(Constants::BOOL, position)
                 : identifier.getType()));  // type_t::createPrimitive (Constants::BOOL,position)));
     } else {
-        handleError(IsNotAStructError(expr.toString(true)));
+        handleError(IsNotAStructError(expr.str(true)));
     }
     fragments[0] = expr;
 }

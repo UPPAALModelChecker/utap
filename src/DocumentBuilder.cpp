@@ -537,7 +537,7 @@ void DocumentBuilder::instanceNameEnd(const char* name, size_t arguments)
                 if (itr != exprs.begin() && exprs.size() > 1) {
                     i_name += ',';
                 }
-                i_name += itr->toString();
+                i_name += itr->str();
             }
             i_name += ')';
             instanceName(i_name.c_str());  // std::cout << "instance line name: " << i_name << std::endl;

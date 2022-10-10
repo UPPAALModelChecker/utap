@@ -295,9 +295,9 @@ void SignalFlow::visitProcess(instance_t& p)
     procs.insert(cTA = new proc_t(p.uid.getName().c_str()));
     processes.insert(p.uid.getName().c_str());
 
-    for (const auto& s : p.templ->states) {
+    for (const auto& loc : p.templ->locations) {
         cChan = noChan;  // invariants should not use shared
-        visitExpression(s.invariant);
+        visitExpression(loc.invariant);
     }
     for (const auto& t : p.templ->edges) {
         cChan = noChan;  // guards should not use shared

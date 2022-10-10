@@ -59,10 +59,10 @@ namespace UTAP
         void xmlwriteString(const xmlChar* content);
 
         void taTempl(const template_t& templ);
-        void location(const state_t& state);
+        void location(const location_t& loc);
         void init(const template_t& templ);
-        void name(const state_t& state, int x, int y);
-        void writeStateAttributes(const state_t& state, int x, int y);
+        void name(const location_t& state, int x, int y);
+        void writeStateAttributes(const location_t& state, int x, int y);
         void transition(const edge_t& edge);
         void nail(int x, int y);
 

@@ -976,7 +976,7 @@ void expression_t::appendBoundType(char*& str, char*& end, int& size, expression
             append(str, end, size, "#");
         }
     } else {
-        e.toString(false, str, end, size);
+        e.str(false, str, end, size);
     }
     append(str, end, size, "<=");
 }
@@ -1051,7 +1051,7 @@ static const char* getBuiltinFunName(kind_t kind)
     return funNames[kind - ABS_F];
 }
 
-void expression_t::toString(bool old, char*& str, char*& end, int& size) const
+void expression_t::str(bool old, char*& str, char*& end, int& size) const
 {
     char s[64];
     int precedence = getPrecedence();
@@ -1063,9 +1063,9 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case PROBAMINDIAMOND:
         append(str, end, size, "Pr[");
         appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, flag ? "]([] " : "](<> ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ") >= ");
         snprintf(s, sizeof(s), "%f", get(3).getDoubleValue());
         append(str, end, size, s);
@@ -1075,36 +1075,36 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case PROBADIAMOND:
         append(str, end, size, "Pr[");
         appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, flag ? "]([] " : "](<> ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ") ?");
         break;
 
     case PROBAEXP:
         append(str, end, size, "E[");
         appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, "; ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, "] (");
         append(str, end, size, get(4).getValue() ? "max: " : "min: ");
-        get(3).toString(old, str, end, size);
+        get(3).str(old, str, end, size);
         append(str, end, size, ")");
         break;
 
     case SIMULATE:
         append(str, end, size, "simulate[");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "x ");
         appendBoundType(str, end, size, get(1));
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, "]{");
         nb = getValue() - 3;
         for (int i = 0; i < nb; ++i) {
             if (i > 0)
                 append(str, end, size, ", ");
-            get(3 + i).toString(old, str, end, size);
+            get(3 + i).str(old, str, end, size);
         }
         append(str, end, size, "}");
         break;
@@ -1146,7 +1146,7 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
         }
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, ')');
         }
@@ -1197,7 +1197,7 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         if (precedence >= get(1).getPrecedence()) {
             append(str, end, size, '(');
         }
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         if (precedence >= get(1).getPrecedence()) {
             append(str, end, size, ')');
         }
@@ -1223,13 +1223,13 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case ARRAY:
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
         append(str, end, size, '[');
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ']');
         break;
 
@@ -1237,10 +1237,10 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         append(str, end, size, '-');
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
         break;
 
@@ -1248,10 +1248,10 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case POSTINCREMENT:
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
         append(str, end, size, getKind() == POSTDECREMENT ? "--" : "++");
         break;
@@ -1302,7 +1302,7 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case RANDOM_POISSON_F:
         append(str, end, size, getBuiltinFunName(data->kind));
         append(str, end, size, "(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ')');
         break;
 
@@ -1323,9 +1323,9 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case RANDOM_WEIBULL_F:
         append(str, end, size, getBuiltinFunName(data->kind));
         append(str, end, size, "(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ',');
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ')');
         break;
 
@@ -1333,19 +1333,19 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case RANDOM_TRI_F:
         append(str, end, size, getBuiltinFunName(data->kind));
         append(str, end, size, "(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ',');
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ',');
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ')');
         break;
 
     case XOR:
         append(str, end, size, '(');
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ") xor (");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ')');
         break;
 
@@ -1354,10 +1354,10 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         append(str, end, size, getKind() == PREDECREMENT ? "--" : "++");
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
         break;
 
@@ -1365,10 +1365,10 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         append(str, end, size, '!');
         if (precedence > get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
         break;
 
@@ -1377,10 +1377,10 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         if (type.isProcess() || type.isRecord()) {
             if (precedence > get(0).getPrecedence()) {
                 append(str, end, size, '(');
-                get(0).toString(old, str, end, size);
+                get(0).str(old, str, end, size);
                 append(str, end, size, ')');
             } else {
-                get(0).toString(old, str, end, size);
+                get(0).str(old, str, end, size);
             }
             append(str, end, size, '.');
             append(str, end, size, type.getRecordLabel(data->value).c_str());
@@ -1393,42 +1393,42 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case INLINEIF:
         if (precedence >= get(0).getPrecedence()) {
             append(str, end, size, '(');
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(0).toString(old, str, end, size);
+            get(0).str(old, str, end, size);
         }
 
         append(str, end, size, " ? ");
 
         if (precedence >= get(1).getPrecedence()) {
             append(str, end, size, '(');
-            get(1).toString(old, str, end, size);
+            get(1).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(1).toString(old, str, end, size);
+            get(1).str(old, str, end, size);
         }
 
         append(str, end, size, " : ");
 
         if (precedence >= get(2).getPrecedence()) {
             append(str, end, size, '(');
-            get(2).toString(old, str, end, size);
+            get(2).str(old, str, end, size);
             append(str, end, size, ')');
         } else {
-            get(2).toString(old, str, end, size);
+            get(2).str(old, str, end, size);
         }
 
         break;
 
     case COMMA:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ", ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case SYNC:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         switch (data->sync) {
         case SYNC_QUE: append(str, end, size, '?'); break;
         case SYNC_BANG: append(str, end, size, '!'); break;
@@ -1441,79 +1441,79 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case DEADLOCK: append(str, end, size, "deadlock"); break;
 
     case LIST:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         for (uint32_t i = 1; i < getSize(); i++) {
             append(str, end, size, ", ");
-            get(i).toString(old, str, end, size);
+            get(i).str(old, str, end, size);
         }
         break;
 
     case FUNCALL:
     case EFUNCALL:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, '(');
         if (getSize() > 1) {
-            get(1).toString(old, str, end, size);
+            get(1).str(old, str, end, size);
             for (uint32_t i = 2; i < getSize(); i++) {
                 append(str, end, size, ", ");
-                get(i).toString(old, str, end, size);
+                get(i).str(old, str, end, size);
             }
         }
         append(str, end, size, ')');
         break;
 
     case RATE:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "'");
         break;
 
     case EF:
         append(str, end, size, "E<> ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case EG:
         append(str, end, size, "E[] ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case AF:
         append(str, end, size, "A<> ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case AG:
         append(str, end, size, "A[] ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case LEADSTO:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " --> ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case A_UNTIL:
         append(str, end, size, "A[");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " U ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, "] ");
         break;
 
     case A_WEAKUNTIL:
         append(str, end, size, "A[");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " W ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, "] ");
         break;
 
     case A_BUCHI:
         append(str, end, size, "A[] ((");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ") and A<> ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ") ");
         break;
 
@@ -1521,115 +1521,115 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
         append(str, end, size, "forall (");
         append(str, end, size, get(0).getSymbol().getName().c_str());
         append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+        append(str, end, size, get(0).getSymbol().getType().str().c_str());
         append(str, end, size, ") ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case EXISTS:
         append(str, end, size, "exists (");
         append(str, end, size, get(0).getSymbol().getName().c_str());
         append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+        append(str, end, size, get(0).getSymbol().getType().str().c_str());
         append(str, end, size, ") ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case SUM:
         append(str, end, size, "sum (");
         append(str, end, size, get(0).getSymbol().getName().c_str());
         append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().toString().c_str());
+        append(str, end, size, get(0).getSymbol().getType().str().c_str());
         append(str, end, size, ") ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case SMC_CONTROL:
         assert(false);
         append(str, end, size, "control[");
         appendBoundType(str, end, size, get(0));
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, "]: ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         break;
 
     case PO_CONTROL:
         append(str, end, size, "{ ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "} control: ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case EF_CONTROL: append(str, end, size, "E<> "); [[fallthrough]];
     case CONTROL:
         append(str, end, size, "control: ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case CONTROL_TOPT:
         append(str, end, size, "control_t*(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ",");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, "): ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         break;
 
     case CONTROL_TOPT_DEF1:
         append(str, end, size, "control_t*(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "): ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case CONTROL_TOPT_DEF2:
         append(str, end, size, "control_t*: ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
 
     case SUP_VAR:
         append(str, end, size, "sup{");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "}: ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case INF_VAR:
         append(str, end, size, "inf{");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "}: ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
 
     case MITLFORMULA:
         append(str, end, size, "MITL: ");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
     case MITLRELEASE:
     case MITLUNTIL:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "U[");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ";");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, "]");
-        get(3).toString(old, str, end, size);
+        get(3).str(old, str, end, size);
         break;
 
     case MITLDISJ:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "\\/");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
     case MITLCONJ:
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, "/\\");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         break;
-    case MITLATOM: get(0).toString(old, str, end, size); break;
+    case MITLATOM: get(0).str(old, str, end, size); break;
     case MITLNEXT:
         append(str, end, size, "X(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case SPAWN: append(str, end, size, "SPAWN"); break;
@@ -1637,61 +1637,61 @@ void expression_t::toString(bool old, char*& str, char*& end, int& size) const
     case NUMOF:
 
         append(str, end, size, "numof(");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case FORALLDYNAMIC:
         append(str, end, size, "forall (");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " : ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, " )( ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case SUMDYNAMIC:
         append(str, end, size, "sum (");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " : ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, " )( ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case FOREACHDYNAMIC:
         append(str, end, size, "foreach (");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " : ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, " )( ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case DYNAMICEVAL:
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, ".");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         break;
-    case PROCESSVAR: get(0).toString(old, str, end, size); break;
+    case PROCESSVAR: get(0).str(old, str, end, size); break;
     case MITLEXISTS:
     case EXISTSDYNAMIC:
         append(str, end, size, "exists (");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         append(str, end, size, " : ");
-        get(1).toString(old, str, end, size);
+        get(1).str(old, str, end, size);
         append(str, end, size, " )( ");
-        get(2).toString(old, str, end, size);
+        get(2).str(old, str, end, size);
         append(str, end, size, ")");
         break;
     case SAVE_STRAT: append(str, end, size, "saveStrategy (...)"); break;
     case LOAD_STRAT:
         append(str, end, size, "loadStrategy (");
-        get(0).toString(old, str, end, size);
+        get(0).str(old, str, end, size);
         if (!get(1).isTrue() && !get(2).isTrue()) {
             append(str, end, size, ", {");
-            get(2).toString(old, str, end, size);
+            get(2).str(old, str, end, size);
             append(str, end, size, "} -> {");
-            get(3).toString(old, str, end, size);
+            get(3).str(old, str, end, size);
             append(str, end, size, "}");
         }
         append(str, end, size, ")");
@@ -1710,7 +1710,7 @@ bool expression_t::operator==(const expression_t e) const { return data == e.dat
 /** Returns a string representation of the expression. The string
     returned must be deallocated with delete[]. Returns NULL is the
     expression is empty. */
-std::string expression_t::toString(bool old) const
+std::string expression_t::str(bool old) const
 {
     if (empty()) {
         return std::string();
@@ -1719,7 +1719,7 @@ std::string expression_t::toString(bool old) const
         char *s, *end;
         s = end = new char[size];
         *s = 0;
-        toString(old, s, end, size);
+        str(old, s, end, size);
         std::string result(s);
         delete[] s;
         return result;
