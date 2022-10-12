@@ -511,20 +511,20 @@ namespace UTAP
     {
     public:
         Document();
-        Document(const Document&);
-        virtual ~Document() noexcept;
+        Document(const Document&) = delete;
+        Document& operator=(const Document&) = delete;
 
         /** Returns the global declarations of the document. */
-        declarations_t& getGlobals();
+        declarations_t& getGlobals() { return global; }
 
         /** Returns the templates of the document. */
-        std::list<template_t>& getTemplates();
+        std::list<template_t>& getTemplates() { return templates; }
         const template_t* findTemplate(const std::string& name) const;
         std::vector<template_t*>& getDynamicTemplates();
         template_t* getDynamicTemplate(const std::string& name);
 
         /** Returns the processes of the document. */
-        std::list<instance_t>& getProcesses();
+        std::list<instance_t>& getProcesses() { return processes; }
 
         options_t& getOptions();
         void setOptions(const options_t& options);
@@ -626,16 +626,16 @@ namespace UTAP
         }
 
     protected:
-        bool hasUrgentTrans;
-        bool hasPriorities;
-        bool hasStrictInv;
-        bool stopsClock;
-        bool hasStrictLowControlledGuards;
-        bool hasGuardOnRecvBroadcast;
-        int defaultChanPriority;
+        bool hasUrgentTrans{false};
+        bool hasPriorities{false};
+        bool hasStrictInv{false};
+        bool stopsClock{false};
+        bool hasStrictLowControlledGuards{false};
+        bool hasGuardOnRecvBroadcast{false};
+        int defaultChanPriority{0};
         std::list<chan_priority_t> chanPriorities;
         std::map<std::string, int> procPriority;
-        int syncUsed;  // see typechecker
+        int syncUsed{0};  // see typechecker
 
         // The list of templates.
         std::list<template_t> templates;
@@ -647,7 +647,7 @@ namespace UTAP
         std::list<instance_t> instances;
 
         std::list<instance_t> lscInstances;
-        bool modified;
+        bool modified{false};
 
         // List of processes.
         std::list<instance_t> processes;
@@ -670,20 +670,20 @@ namespace UTAP
 
     public:
         void add(library_t&& lib);
-        library_t& last_library();
+        library_t& last_library() { return libraries.back(); }
         void addError(position_t, std::string msg, std::string ctx = "");
         void addWarning(position_t, const std::string& msg, const std::string& ctx = "");
         bool hasErrors() const { return !errors.empty(); }
         bool hasWarnings() const { return !warnings.empty(); }
         const std::vector<error_t>& getErrors() const { return errors; }
         const std::vector<error_t>& getWarnings() const { return warnings; }
-        void clearErrors() const;
-        void clearWarnings() const;
-        bool isModified() const;
-        void setModified(bool mod);
+        void clearErrors() const { errors.clear(); }
+        void clearWarnings() const { warnings.clear(); }
+        bool isModified() const { return modified; }
+        void setModified(bool mod) { modified = mod; }
         iodecl_t* addIODecl();
         void setSupportedMethods(const SupportedMethods& supportedMethods);
-        const SupportedMethods& getSupportedMethods() const;
+        const SupportedMethods& getSupportedMethods() const { return supportedMethods; }
 
     private:
         // TODO: move errors & warnings to ParserBuilder to get rid of mutable

@@ -766,45 +766,16 @@ string chan_priority_t::toString() const
     return stream.str();
 }
 
-Document::Document(): syncUsed(0)
+Document::Document()
 {
     global.frame = frame_t::createFrame();
 #ifdef ENABLE_CORA
     addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t());
 #endif
-
-    hasUrgentTrans = false;
-    hasPriorities = false;
-    hasStrictInv = false;
-    stopsClock = false;
-    hasStrictLowControlledGuards = false;
-    hasGuardOnRecvBroadcast = false;
-    defaultChanPriority = 0;
-    modified = false;
 }
-
-Document::Document(const Document& ta)
-
-{
-    // TODO
-    // clone ref (functions)
-    // redirect pointers (edges)
-    // clone frame_t - can be problematic
-
-    throw TypeException("TODO");
-}
-
-Document::~Document() noexcept = default;
-
-list<template_t>& Document::getTemplates() { return templates; }
-
-list<instance_t>& Document::getProcesses() { return processes; }
-
-declarations_t& Document::getGlobals() { return global; }
 
 void Document::add(library_t&& lib) { libraries.push_back(std::move(lib)); }
 
-library_t& Document::last_library() { return libraries.back(); }
 /** Creates and returns a new template. The template is created with
  *  the given name and parameters and added to the global frame. The
  *  method does not check for duplicate declarations. An instance with
@@ -1158,14 +1129,6 @@ void Document::addWarning(position_t position, const std::string& msg, const std
     warnings.emplace_back(positions.find(position.start), positions.find(position.end), position, msg, context);
 }
 
-void Document::clearErrors() const { errors.clear(); }
-
-void Document::clearWarnings() const { warnings.clear(); }
-
-bool Document::isModified() const { return modified; }
-
-void Document::setModified(bool mod) { modified = mod; }
-
 iodecl_t* Document::addIODecl()
 {
     global.iodecl.emplace_back();
@@ -1176,5 +1139,3 @@ void Document::setSupportedMethods(const SupportedMethods& supportedMethods)
 {
     this->supportedMethods = supportedMethods;
 }
-
-const SupportedMethods& Document::getSupportedMethods() const { return supportedMethods; }

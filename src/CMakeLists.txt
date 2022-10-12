@@ -17,4 +17,5 @@ add_custom_target(parser_generate DEPENDS "${parser_source}")
 
 FILE(GLOB utap_source "*.c" "*.cpp" "*.h")
 add_library(UTAP ${utap_source} ${parser_source})
+target_include_directories(UTAP PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES} ${CMAKE_DL_LIBS})
