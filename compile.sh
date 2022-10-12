@@ -30,7 +30,7 @@ for target in "$@" ; do
             #cp $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/test/"
             ;;
 	*)
-            CMAKE_EXTRA=-DSTATIC=ON
+            CMAKE_EXTRA=-DSTATIC=OFF
             ;;
     esac
     cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}

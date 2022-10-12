@@ -455,8 +455,6 @@ namespace UTAP
     TypeException StrategyNotDeclaredError(const std::string& name);
     TypeException UnknownDynamicTemplateError(const std::string& name);
     TypeException ShadowsAVariableWarning(const std::string& name);
-    TypeException CouldNotLoadLibraryError(const std::string& name);
-    TypeException CouldNotLoadFunctionError(const std::string& name);
 
 }  // namespace UTAP
 

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
+<nta>
+	<declaration>import "libexternal_fn" {
+    int square(int a);
+    int multiply(int a, int b);
+    double square_root(double c);
+    double power(double c, int a);
+    double calc_sum(int n, const double d[3]);
+    int length(const string&amp; s);
+};
+
+import "libbad" {
+    int absent(int a);
+};
+
+const int a = 3, b = 7;
+const double c = 11;
+const double d[3] = { 3, 5, 7 };
+
+int a_a = square(a);
+int a_b = multiply(a, b);
+double c_r = square_root(c);
+const double c_r2 = square_root(square_root(c));
+double c2 = power(c_r2, 4);
+double d_s = calc_sum(3, d);
+int l = length("123");
+</declaration>
+	<template>
+		<name x="5" y="5">P</name>
+		<location id="id0" x="0" y="0">
+		</location>
+		<init ref="id0"/>
+	</template>
+	<system>system P;
+</system>
+	<queries>
+		<query>
+			<formula/>
+			<comment/>
+		</query>
+	</queries>
+</nta>

@@ -23,8 +23,11 @@ if (TESTING)
     target_link_libraries(test_expression PRIVATE doctest::doctest UTAP)
     add_test(NAME test_expression COMMAND test_expression)
 
+    add_library(external_fn SHARED external_fn.cpp)
+
     add_executable(test_parser test_parser.cpp)
     target_link_libraries(test_parser PRIVATE doctest::doctest UTAP)
+    add_dependencies(test_parser external_fn)
     add_test(NAME test_parser COMMAND test_parser)
 
     add_executable(test_featurechecker test_featurechecker.cpp)
@@ -34,5 +37,6 @@ if (TESTING)
     add_executable(test_range test_range.cpp)
     target_link_libraries(test_range PRIVATE doctest::doctest UTAP)
     add_test(NAME test_range COMMAND test_range)
+
 
 endif (TESTING)

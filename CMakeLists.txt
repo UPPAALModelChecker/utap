@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(UTAP VERSION 1.1.2 LANGUAGES CXX C)
+project(UTAP VERSION 1.1.5 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
@@ -12,6 +12,7 @@ cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${CMAKE_CURRENT_SOURCE_DIR}/libs")
@@ -34,29 +35,8 @@ message(STATUS "Using LIBXML2_LIBRARIES=${LIBXML2_LIBRARIES}")
 add_definitions(${LIBXML2_DEFINITIONS})
 if (TESTING)
     find_package(doctest 2.4.8 REQUIRED)
+    enable_testing()
 endif(TESTING)
-
-# Create directory for the generated header files:
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/include/utap")
-
-set(lexer_source "${CMAKE_CURRENT_BINARY_DIR}/lexer.cc")
-add_custom_command(OUTPUT "${lexer_source}"
-  COMMAND ${FLEX_EXECUTABLE} "--outfile=${lexer_source}" -Putap_ "${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.l"
-  DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.l"
-)
-add_custom_target(lexer_generate DEPENDS "${lexer_source}")
-
-set(parser_source "${CMAKE_CURRENT_BINARY_DIR}/parser.cpp")
-add_custom_command(OUTPUT "${parser_source}" "${CMAKE_CURRENT_BINARY_DIR}/include/parser.hpp"
-    COMMAND ${BISON_EXECUTABLE} -putap_ -bparser "${CMAKE_CURRENT_SOURCE_DIR}/src/parser.y" "--output=${parser_source}" "--defines=${CMAKE_CURRENT_BINARY_DIR}/include/parser.hpp"
-    DEPENDS lexer_generate "${CMAKE_CURRENT_SOURCE_DIR}/src/parser.y"
-)
-add_custom_target(parser_generate DEPENDS "${parser_source}")
-
-
-FILE(GLOB utap_source "src/*.c" "src/*.cpp" "src/*.h")
-add_library(UTAP ${utap_source} ${parser_source})
-target_link_libraries(UTAP PRIVATE ${LIBXML2_LIBRARIES} ${CMAKE_DL_LIBS})
 
 if (ASAN OR UBSAN)
     add_compile_options(-fno-omit-frame-pointer)
@@ -79,6 +59,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Werror=vla)
 endif()
 
+add_subdirectory(src)
+
+if(TESTING)
+    add_subdirectory("test")
+endif(TESTING)
+
 target_include_directories(UTAP
     PRIVATE
         # where the library itself will look for its internal headers
@@ -91,11 +77,6 @@ target_include_directories(UTAP
         # where external projects will look for the library's public headers
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-if(TESTING)
-    enable_testing()
-    add_subdirectory("test")
-endif(TESTING)
 
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake VERSION ${PACKAGE_VERSION} COMPATIBILITY SameMajorVersion)
 

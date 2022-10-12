@@ -56,6 +56,16 @@ TEST_CASE("Power expressions")
     CHECK(doc->getWarnings().size() == 0);
 }
 
+TEST_CASE("External functions")
+{
+    auto doc = read_document("external_fn.xml");
+    REQUIRE(doc);
+    auto& errs = doc->getErrors();
+    auto& warns = doc->getWarnings();
+    REQUIRE(errs.size() == 3);  // "libbad" not found (x2), "absent" undefined.
+    CHECK(warns.size() == 0);
+}
+
 class QueryBuilder : public UTAP::StatementBuilder
 {
     UTAP::expression_t query;
