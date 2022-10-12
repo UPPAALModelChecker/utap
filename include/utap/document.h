@@ -51,8 +51,8 @@ namespace UTAP
     */
     struct variable_t
     {
-        symbol_t uid;            /**< The symbol of the variables */
-        expression_t expr;       /**< The initialiser */
+        symbol_t uid;            /**< The symbol of the variable */
+        expression_t init;       /**< The initializer */
         std::string str() const; /**< computes a string representation */
     };
 
@@ -69,7 +69,7 @@ namespace UTAP
         expression_t invariant; /**< The invariant */
         expression_t exponentialRate;
         expression_t costRate; /**< Rate expression */
-        int32_t nr;            /**< Location number in template */
+        int32_t nr;            /**< Location number in a template */
         std::string str() const;
     };
 
@@ -207,8 +207,8 @@ namespace UTAP
     {
         int nr{-1}; /**< Placement in input file */
         int location{-1};
-        std::vector<instanceLine_t*> anchors{}; /**< Pointer to anchor instance lines */  // TODO
-        expression_t label;                                                               /**< The label */
+        std::vector<instanceLine_t*> anchors{}; /**< Pointer to anchor instance lines */
+        expression_t label;                     /**< The label */
         bool isInPrechart{false};
         bool isHot{false};
         int get_nr() const { return nr; }

@@ -178,7 +178,7 @@ static void collectDependencies(std::set<symbol_t>& dependencies, expression_t e
             dependencies.insert(s);
             if (auto* data = s.getData(); data) {
                 variable_t* v = static_cast<variable_t*>(data);
-                v->expr.collectPossibleReads(symbols);
+                v->init.collectPossibleReads(symbols);
             }
         }
     }
@@ -609,7 +609,7 @@ void ExpressionBuilder::exprForAllBegin(const char* name)
         type = type.createPrefix(CONSTANT);
     }
 
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     symbol_t symbol = frames.top().addSymbol(name, type, position);
 
     if (!type.isInteger() && !type.isScalar()) {
@@ -953,7 +953,7 @@ void ExpressionBuilder::exprNumOf()
 
 void ExpressionBuilder::exprForAllDynamicBegin(const char* name, const char* temp)
 {
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     frames.top().addSymbol(name, type_t::createPrimitive(PROCESSVAR, position), position);
     template_t* templ = document.getDynamicTemplate(temp);
     if (!templ)
@@ -986,7 +986,7 @@ void ExpressionBuilder::exprForAllDynamicEnd(const char* name)
 }
 void ExpressionBuilder::exprExistsDynamicBegin(const char* name, const char* temp)
 {
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     frames.top().addSymbol(name, type_t::createPrimitive(Constants::PROCESSVAR, position), position);
     template_t* templ = document.getDynamicTemplate(temp);
     if (!templ) {
@@ -1018,7 +1018,7 @@ void ExpressionBuilder::exprExistsDynamicEnd(const char* name)
 
 void ExpressionBuilder::exprSumDynamicBegin(const char* name, const char* temp)
 {
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     frames.top().addSymbol(name, type_t::createPrimitive(Constants::PROCESSVAR, position), position);
     template_t* templ = document.getDynamicTemplate(temp);
     if (!templ) {
@@ -1042,7 +1042,7 @@ void ExpressionBuilder::exprSumDynamicEnd(const char* name)
 
 void ExpressionBuilder::exprForeachDynamicBegin(const char* name, const char* temp)
 {
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     frames.top().addSymbol(name, type_t::createPrimitive(Constants::PROCESSVAR, position), position);
     if (!document.getDynamicTemplate(temp)) {
         throw UnknownDynamicTemplateError(temp);

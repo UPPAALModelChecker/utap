@@ -101,7 +101,7 @@ struct frame_t::frame_data : public std::enable_shared_from_this<frame_t::frame_
     vector<symbol_t> symbols;      // The symbols in the frame
     map<string, int32_t> mapping;  // Mapping from names to indices
     explicit frame_data(frame_data* p): parent{p} {}
-    bool hasParent() const { return parent != nullptr; }
+    bool has_parent() const { return parent != nullptr; }
 };
 
 frame_t::frame_t(frame_data* frame) { data = frame->shared_from_this(); }
@@ -221,7 +221,7 @@ bool frame_t::resolve(const string& name, symbol_t& symbol) const
 {
     int32_t idx = getIndexOf(name);
     if (idx == -1) {
-        return (data->hasParent() ? getParent().resolve(name, symbol) : false);
+        return (data->has_parent() ? getParent().resolve(name, symbol) : false);
     }
     symbol = data->symbols[idx];
     return true;
@@ -230,17 +230,17 @@ bool frame_t::resolve(const string& name, symbol_t& symbol) const
 /* Returns the parent frame */
 frame_t frame_t::getParent() const
 {
-    if (!data->hasParent()) {
+    if (!data->has_parent()) {
         throw NoParentException();
     }
     return frame_t(data->parent);
 }
 
 /* Returns true if this frame has a parent */
-bool frame_t::hasParent() const { return data->hasParent(); }
+bool frame_t::has_parent() const { return data->has_parent(); }
 
 /* Creates and returns a new frame without a parent */
-frame_t frame_t::createFrame()
+frame_t frame_t::create()
 {
     frame_t f;
     f.data = std::make_shared<frame_data>(nullptr);
@@ -248,7 +248,7 @@ frame_t frame_t::createFrame()
 }
 
 /* Creates and returns new frame with the given parent */
-frame_t frame_t::createFrame(const frame_t& parent)
+frame_t frame_t::create(const frame_t& parent)
 {
     frame_t f;
     f.data = std::make_shared<frame_data>(parent.data.get());

@@ -114,9 +114,8 @@ string variable_t::str() const
     } else {
         str += uid.getType().toDeclarationString() + " " + uid.getName();
     }
-    if (!expr.empty()) {
-        str += " = " + expr.str();
-    }
+    if (!init.empty())
+        str += " = " + init.str();
     return str;
 }
 
@@ -729,7 +728,7 @@ string chan_priority_t::str() const
 
 Document::Document()
 {
-    global.frame = frame_t::createFrame();
+    global.frame = frame_t::create();
 #ifdef ENABLE_CORA
     addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t());
 #endif
@@ -755,7 +754,7 @@ template_t& Document::addTemplate(const string& name, frame_t params, position_t
     type_t type = (isTA) ? type_t::createInstance(params) : type_t::createLscInstance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
-    templ.frame = frame_t::createFrame(global.frame);
+    templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.addSymbol(name, type, position, (instance_t*)&templ);
@@ -775,7 +774,7 @@ template_t& Document::addDynamicTemplate(const std::string& name, frame_t params
     dynamicTemplates.emplace_back();
     template_t& templ = dynamicTemplates.back();
     templ.parameters = params;
-    templ.frame = frame_t::createFrame(global.frame);
+    templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.addSymbol(name, type, pos, (instance_t*)&templ);
@@ -897,7 +896,7 @@ variable_t* Document::addVariable(declarations_t* context, type_t type, const st
                                   position_t pos)
 {
     variable_t* var = addVariable(context->variables, context->frame, type, name, pos);
-    var->expr = initial;
+    var->init = initial;
     return var;
 }
 
@@ -905,7 +904,7 @@ variable_t* Document::addVariableToFunction(function_t* function, frame_t frame,
                                             expression_t initial, position_t pos)
 {
     variable_t* var = addVariable(function->variables, frame, type, name, pos);
-    var->expr = initial;
+    var->init = initial;
     return var;
 }
 

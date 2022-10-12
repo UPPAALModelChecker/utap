@@ -670,15 +670,15 @@ void TypeChecker::visitVariable(variable_t& variable)
     SystemVisitor::visitVariable(variable);
 
     checkType(variable.uid.getType());
-    if (variable.expr.isDynamic() || variable.expr.hasDynamicSub()) {
-        handleError(variable.expr, "Dynamic constructions cannot be used as initialisers");
-    } else if (!variable.expr.empty() && checkExpression(variable.expr)) {
-        if (!isCompileTimeComputable(variable.expr)) {
-            handleError(variable.expr, "$Must_be_computable_at_compile_time");
-        } else if (variable.expr.changesAnyVariable()) {
-            handleError(variable.expr, "$Initialiser_must_be_side-effect_free");
+    if (variable.init.isDynamic() || variable.init.hasDynamicSub()) {
+        handleError(variable.init, "Dynamic constructions cannot be used as initialisers");
+    } else if (!variable.init.empty() && checkExpression(variable.init)) {
+        if (!isCompileTimeComputable(variable.init)) {
+            handleError(variable.init, "$Must_be_computable_at_compile_time");
+        } else if (variable.init.changesAnyVariable()) {
+            handleError(variable.init, "$Initialiser_must_be_side-effect_free");
         } else {
-            variable.expr = checkInitialiser(variable.uid.getType(), variable.expr);
+            variable.init = checkInitialiser(variable.uid.getType(), variable.init);
         }
     }
 }
@@ -1341,16 +1341,16 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
         checkType(symbol.getType());
         if (auto* d = symbol.getData(); d) {
             variable_t* var = static_cast<variable_t*>(d);
-            if (!var->expr.empty() && checkExpression(var->expr)) {
-                if (var->expr.changesAnyVariable()) {
+            if (!var->init.empty() && checkExpression(var->init)) {
+                if (var->init.changesAnyVariable()) {
                     /* This is stronger than C. However side-effects in
                      * initialisers are nasty: For records, the evaluation
                      * order may be different from the order in the input
                      * file.
                      */
-                    handleError(var->expr, "$Initialiser_must_be_side-effect_free");
+                    handleError(var->init, "$Initialiser_must_be_side-effect_free");
                 } else {
-                    var->expr = checkInitialiser(symbol.getType(), var->expr);
+                    var->init = checkInitialiser(symbol.getType(), var->init);
                 }
             }
         }

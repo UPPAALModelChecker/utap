@@ -298,7 +298,7 @@ int32_t ExpressionVisitor::visitBlockStatement(BlockStatement* stat)
     for (symbol_t& symbol : stat->getFrame()) {
         if (auto* data = symbol.getData(); data) {
             // REVISIT: This will only work if vars[i] is a variable!
-            visitExpression(static_cast<variable_t*>(data)->expr);
+            visitExpression(static_cast<variable_t*>(data)->init);
         }
     }
 

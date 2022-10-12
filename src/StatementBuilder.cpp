@@ -66,7 +66,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
                 if (auto t = s.getType(); !(t.isFunction() || t.isExternalFunction())) {
                     // assume is its variable, which is not always true
                     variable_t* v = static_cast<variable_t*>(d);
-                    v->expr.collectPossibleReads(symbols);
+                    v->init.collectPossibleReads(symbols);
                 } else {
                     // TODO; fixme.
                 }
@@ -377,7 +377,7 @@ void StatementBuilder::declFuncBegin(const char* name)
     /* We maintain a stack of frames. As the function has a local
      * scope, we push a new frame and move the parameters to it.
      */
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     params.moveTo(frames.top());  // params is emptied here
 
     /* Create function block.
@@ -473,7 +473,7 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
     if (!addFunction(type, alias, position_t())) {
         handleError(DuplicateDefinitionError(alias));
     }
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     params.moveTo(frames.top());  // params is emptied here
     currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.isVoid());
     blocks.push_back(currentFun->body.get());
@@ -485,7 +485,7 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
  */
 void StatementBuilder::blockBegin()
 {
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
     blocks.push_back(new BlockStatement(frames.top()));
 }
 
@@ -527,7 +527,7 @@ void StatementBuilder::iterationBegin(const char* name)
 
     /* The iteration statement has a local scope for the iterator.
      */
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
 
     /* Add variable.
      */

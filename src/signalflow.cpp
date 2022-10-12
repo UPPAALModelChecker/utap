@@ -400,7 +400,7 @@ void SignalFlow::visitExpression(const expression_t& e)
                 break;
             }
             symbol_t sym = e.getSymbol();
-            if (sym.getFrame().hasParent()) {  // local variable
+            if (sym.getFrame().has_parent()) {  // local variable
                 if (refparams.size() == 0)
                     break;  // local process variable
                 // else: local function variable
