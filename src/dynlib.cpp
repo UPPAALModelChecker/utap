@@ -7,51 +7,62 @@
 #include <iostream>
 #endif
 
-#if defined(__linux__) || defined(__APPLE__)
-#include <dlfcn.h>
-
 #if defined(__linux__)
+#include <dlfcn.h>
 static const auto dll_extension = std::string{".so"};
+using dll_handle = void*;
 #elif defined(__APPLE__)
-static auto dll_extension = std::string{".dylib"};
+#include <dlfcn.h>
+static const auto dll_extension = std::string{".dylib"};
+using dll_handle = void*;
+#elif defined(_WIN32) || defined(__MINGW32__)
+#include <sstream>
+#include <windows.h>
+static const auto dll_extension = std::string{".dll"};
+using dll_handle = HMODULE;
 #else
 #error "Unsupported target OS"
 #endif
 
 struct library_t::state_t
 {
-    void* handle{nullptr};
-
-    state_t(const char* name): handle{dlopen(name, RTLD_NOW | RTLD_LOCAL)}
-    {
-        if (handle == nullptr) {
-            auto path = std::filesystem::path{name};
-            if (path.extension().string() == dll_extension)
-                throw std::runtime_error(dlerror());
-            else {
-                path = name + dll_extension;
-                handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-                if (handle == nullptr)
-                    throw std::runtime_error(dlerror());
-            }
-        }
-    }
-    ~state_t() noexcept
-    {
-        if (handle) {
-            auto res [[maybe_unused]] = dlclose(handle);
-            handle = nullptr;
-#ifndef NDEBUG
-            if (res)
-                std::cerr << dlerror() << std::endl;
-#endif
-        }
-    }
+    dll_handle handle{};
+    explicit state_t(const char* name);
+    ~state_t() noexcept;
     state_t(const state_t&) = delete;
-    state_t(state_t&&) = delete;
+    state_t(state_t&&) noexcept = delete;
     state_t& operator=(const state_t&) = delete;
-    state_t& operator=(state_t&&) = delete;
+    state_t& operator=(state_t&&) noexcept = delete;
 };
+
+#if defined(__linux__) || defined(__APPLE__)
+
+inline library_t::state_t::state_t(const char* name): handle{dlopen(name, RTLD_NOW | RTLD_LOCAL)}
+{
+    if (handle == nullptr) {
+        auto path = std::filesystem::path{name};
+        if (path.extension().string() == dll_extension)
+            throw std::runtime_error(dlerror());
+        else {
+            path = name + dll_extension;
+            handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
+            if (handle == nullptr)
+                throw std::runtime_error(dlerror());
+        }
+    }
+}
+
+inline library_t::state_t::~state_t() noexcept
+{
+    if (handle) {
+        auto res [[maybe_unused]] = dlclose(handle);
+        handle = nullptr;
+#ifndef NDEBUG
+        if (res)
+            std::cerr << dlerror() << std::endl;
+#endif
+    }
+}
 
 void* library_t::get_symbol(const char* name)
 {
@@ -62,9 +73,6 @@ void* library_t::get_symbol(const char* name)
 }
 
 #elif defined(_WIN32) || defined(__MINGW32__)
-
-#include <sstream>
-#include <windows.h>
 
 static std::string get_error_message(const char* msg, DWORD err)
 {
@@ -81,42 +89,32 @@ static std::string get_error_message(const char* msg, DWORD err)
     return ss.str();
 }
 
-static const auto dll_extension = std::string{".dll"};
-
-struct library_t::state_t
+inline library_t::state_t::state_t(const char* name): handle{LoadLibrary(TEXT(name))}
 {
-    HMODULE handle;
-    explicit state_t(const char* name): handle{LoadLibrary(TEXT(name))}
-    {
-        if (handle == nullptr) {
-            auto err = GetLastError();
-            auto path = std::filesystem::path{name};
-            if (path.extension().string() == dll_extension)
-                throw std::runtime_error(get_error_message("Failed to open dynamic library", err));
-            else {
-                path = name + dll_extension;
-                handle = LoadLibrary(TEXT(path.string().c_str()));
-                if (handle == nullptr)
-                    throw std::runtime_error(get_error_message("Failed to open dynamic library", GetLastError()));
-            }
+    if (handle == nullptr) {
+        auto err = GetLastError();
+        auto path = std::filesystem::path{name};
+        if (path.extension().string() == dll_extension)
+            throw std::runtime_error(get_error_message("Failed to open dynamic library", err));
+        else {
+            path = name + dll_extension;
+            handle = LoadLibrary(TEXT(path.string().c_str()));
+            if (handle == nullptr)
+                throw std::runtime_error(get_error_message("Failed to open dynamic library", GetLastError()));
         }
     }
-    ~state_t() noexcept
-    {
-        if (handle) {
-            BOOL res [[maybe_unused]] = FreeLibrary(handle);
-#ifndef NDEBUG
-            if (!res)
-                std::cerr << get_error_message("Failed to close dynamic library", GetLastError()) << std::endl;
-#endif
-        }
-    }
+}
 
-    state_t(const state_t&) = delete;
-    state_t(state_t&&) = default;
-    state_t& operator=(const state_t&) = delete;
-    state_t& operator=(state_t&&) = default;
-};
+inline library_t::state_t::~state_t() noexcept
+{
+    if (handle) {
+        BOOL res [[maybe_unused]] = FreeLibrary(handle);
+#ifndef NDEBUG
+        if (!res)
+            std::cerr << get_error_message("Failed to close dynamic library", GetLastError()) << std::endl;
+#endif
+    }
+}
 
 void* library_t::get_symbol(const char* name)
 {

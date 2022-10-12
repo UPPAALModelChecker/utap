@@ -429,7 +429,7 @@ void StatementBuilder::dynamicLoadLib(const char* lib)
         return;
     }
     auto name = std::string(lib + 1, len - 2);  // strip the quote marks
-    auto errors = std::vector<std::string>{};
+    auto errors = std::vector<std::string>{};   // buffer the errors
     auto success = false;
     for (const auto& dir : libpaths) {
         auto path = dir / name;
@@ -442,7 +442,7 @@ void StatementBuilder::dynamicLoadLib(const char* lib)
             continue;
         }
     }
-    if (!success) {
+    if (!success) {  // reveal errors iff loading has failed
         for (auto& e : errors)
             handleError(TypeException{e});
     }
