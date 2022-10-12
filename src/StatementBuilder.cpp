@@ -43,7 +43,7 @@ using std::string;
 StatementBuilder::StatementBuilder(Document& system, std::vector<std::filesystem::path> libpaths):
     ExpressionBuilder{system}, libpaths{std::move(libpaths)}
 {
-    this->libpaths.emplace_back("");
+    this->libpaths.insert(this->libpaths.begin(), "");
 }
 
 StatementBuilder::~StatementBuilder() noexcept
@@ -427,55 +427,16 @@ void StatementBuilder::dynamicLoadLib(const char* lib)
         handleError(TypeException{"Cannot_load_empty_library_path"});
         return;
     }
-
-    std::string name(lib + 1);
-    name.erase(name.length() - 1);
-
-    void* loaded = nullptr;
-    // append ending if we are loading local file only.
-#ifdef __MINGW32__
-    auto path = std::filesystem::path(name + ".dll");
-#elif defined(__linux__) || defined(__APPLE__)
-    auto path = std::filesystem::path(name + ".so");
-#else
-    auto path = std::filesystem::path(name + ".so");
-#endif
-    if (std::filesystem::exists(path)) {
-#ifdef __MINGW32__
-        loaded = LoadLibrary(path.string().c_str());
-#elif defined(__linux__)
-        loaded = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
-#elif defined(__APPLE__)
-        loaded = dlopen(path.string().c_str(), RTLD_NOW | RTLD_LOCAL);
-#endif
-    } else {
-        for (const auto& prefix : libpaths) {
-            std::filesystem::path fullpath = prefix / name;
-            for (size_t i = 0; i < 2; ++i) {
-#ifdef __MINGW32__
-                if (i == 1)
-                    fullpath.concat(".dll");
-                loaded = LoadLibrary(fullpath.string().c_str());  // c_str() alone uses wchar_t(!)
-#elif defined(__linux__)
-                if (i == 1)
-                    fullpath.concat(".so");
-                loaded = dlopen(fullpath.c_str(), RTLD_NOW | RTLD_LOCAL);
-#elif defined(__APPLE__)
-                if (i == 1)
-                    fullpath.append(".so");
-                loaded = dlopen(fullpath.c_str(), RTLD_NOW | RTLD_LOCAL);
-#endif
-                if (loaded != nullptr)
-                    break;
-            }
-            if (loaded != nullptr)
-                break;
+    for (const auto& dir : libpaths) {
+        auto path = dir / lib;
+        try {
+            document.add(library_t(path.string().c_str()));
+            break;
+        } catch (const std::runtime_error& ex) {
+            handleError(CouldNotLoadLibraryError(lib + std::string{ex.what()}));
+            continue;
         }
     }
-    if (loaded == nullptr) {
-        handleError(CouldNotLoadLibraryError(name));
-    }
-    document.addLibrary(loaded);
 }
 
 void StatementBuilder::declExternalFunc(const char* name, const char* alias)
@@ -493,14 +454,10 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
     }
 
     void* fp = nullptr;
-#ifdef __MINGW32__
-    fp = (void*)GetProcAddress((HMODULE)document.lastLibrary(), name);
-#elif __linux__
-    fp = dlsym(document.lastLibrary(), name);
-#endif
-
-    if (fp == nullptr) {
-        handleError(CouldNotLoadFunctionError(name));
+    try {
+        fp = document.last_library().get_symbol(name);
+    } catch (const std::runtime_error& ex) {
+        handleError(CouldNotLoadFunctionError(name + std::string{ex.what()}));
     }
 
     type_t type = type_t::createExternalFunction(return_type, types, labels, position);

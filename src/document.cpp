@@ -794,16 +794,7 @@ Document::Document(const Document& ta)
     throw TypeException("TODO");
 }
 
-Document::~Document() noexcept
-{
-    for (auto lib : libraries) {
-#if defined(__MINGW32__)  // Microsoft compiler
-        FreeLibrary((HINSTANCE)lib);
-#elif defined(__linux__) || defined(__APPLE__)
-        dlclose(lib);
-#endif
-    }
-}
+Document::~Document() noexcept = default;
 
 list<template_t>& Document::getTemplates() { return templates; }
 
@@ -811,9 +802,9 @@ list<instance_t>& Document::getProcesses() { return processes; }
 
 declarations_t& Document::getGlobals() { return global; }
 
-void Document::addLibrary(void* lib) { libraries.push_back(lib); }
+void Document::add(library_t&& lib) { libraries.push_back(std::move(lib)); }
 
-void* Document::lastLibrary() { return libraries.back(); }
+library_t& Document::last_library() { return libraries.back(); }
 /** Creates and returns a new template. The template is created with
  *  the given name and parameters and added to the global frame. The
  *  method does not check for duplicate declarations. An instance with
