@@ -60,14 +60,4 @@ namespace UTAP
         return TypeException{name + " $shadows_a_variable"};
     }
 
-    TypeException CouldNotLoadLibraryError(const std::string& name)
-    {
-        return TypeException{"$Could_not_load_library_named " + name};
-    }
-
-    TypeException CouldNotLoadFunctionError(const std::string& error)
-    {
-        return TypeException{"$Could_not_load_function: " + error};
-    }
-
 }  // namespace UTAP

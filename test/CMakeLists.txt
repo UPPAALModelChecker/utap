@@ -11,7 +11,7 @@ target_link_libraries(syntaxcheck PRIVATE UTAP)
 add_executable(taflow taflow.cpp)
 target_link_libraries(taflow PRIVATE UTAP)
 
-add_executable(featurecheck featurechecker.cpp external_fn.cpp)
+add_executable(featurecheck featurechecker.cpp)
 target_link_libraries(featurecheck PRIVATE UTAP)
 
 install(TARGETS pretty syntaxcheck taflow featurecheck)
