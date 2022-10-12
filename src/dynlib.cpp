@@ -11,18 +11,16 @@
 #include <dlfcn.h>
 
 #if defined(__linux__)
-static const auto dll_extension = std::string{"so"};
+static const auto dll_extension = std::string{".so"};
 #elif defined(__APPLE__)
-static auto dll_extension = std::string{"dylib"};
+static auto dll_extension = std::string{".dylib"};
 #else
 #error "Unsupported target OS"
 #endif
 
-static const auto dll_dot_extension = "." + dll_extension;
-
 struct library_t::state_t
 {
-    void* handle;
+    void* handle{nullptr};
 
     state_t(const char* name): handle{dlopen(name, RTLD_NOW | RTLD_LOCAL)}
     {
@@ -31,8 +29,8 @@ struct library_t::state_t
             if (path.extension().string() == dll_extension)
                 throw std::runtime_error(dlerror());
             else {
-                path = name + dll_dot_extension;
-                handle = dlopen(name, RTLD_NOW | RTLD_LOCAL);
+                path = name + dll_extension;
+                handle = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
                 if (handle == nullptr)
                     throw std::runtime_error(dlerror());
             }
@@ -42,6 +40,7 @@ struct library_t::state_t
     {
         if (handle) {
             auto res [[maybe_unused]] = dlclose(handle);
+            handle = nullptr;
 #ifndef NDEBUG
             if (res)
                 std::cerr << dlerror() << std::endl;
@@ -49,9 +48,9 @@ struct library_t::state_t
         }
     }
     state_t(const state_t&) = delete;
-    state_t(state_t&&) = default;
+    state_t(state_t&&) = delete;
     state_t& operator=(const state_t&) = delete;
-    state_t& operator=(state_t&&) = default;
+    state_t& operator=(state_t&&) = delete;
 };
 
 void* library_t::get_symbol(const char* name)
@@ -82,8 +81,7 @@ static std::string get_error_message(const char* msg, DWORD err)
     return ss.str();
 }
 
-static const auto dll_extension = std::string{"dll"};
-static const auto dll_dot_extension = "." + dll_extension;
+static const auto dll_extension = std::string{".dll"};
 
 struct library_t::state_t
 {
@@ -96,7 +94,7 @@ struct library_t::state_t
             if (path.extension().string() == dll_extension)
                 throw std::runtime_error(get_error_message("Failed to open dynamic library", err));
             else {
-                path = name + dll_dot_extension;
+                path = name + dll_extension;
                 handle = LoadLibrary(TEXT(path.string().c_str()));
                 if (handle == nullptr)
                     throw std::runtime_error(get_error_message("Failed to open dynamic library", GetLastError()));
@@ -133,9 +131,4 @@ void* library_t::get_symbol(const char* name)
 #endif
 
 library_t::library_t(const char* name): pImpl{new state_t{name}} {}
-
-library_t::~library_t() noexcept
-{
-    if (pImpl)
-        delete pImpl;
-}
+library_t::~library_t() noexcept { delete pImpl; }

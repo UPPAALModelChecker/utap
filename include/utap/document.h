@@ -670,7 +670,8 @@ namespace UTAP
 
     public:
         void add(library_t&& lib);
-        library_t& last_library() { return libraries.back(); }
+        /** Returns the last successfully loaded library, or throws std::runtime_error. */
+        library_t& last_library();
         void addError(position_t, std::string msg, std::string ctx = "");
         void addWarning(position_t, const std::string& msg, const std::string& ctx = "");
         bool hasErrors() const { return !errors.empty(); }

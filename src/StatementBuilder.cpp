@@ -43,6 +43,7 @@ using std::string;
 StatementBuilder::StatementBuilder(Document& system, std::vector<std::filesystem::path> libpaths):
     ExpressionBuilder{system}, libpaths{std::move(libpaths)}
 {
+    this->libpaths.insert(this->libpaths.begin(), std::filesystem::current_path());
     this->libpaths.insert(this->libpaths.begin(), "");
 }
 
@@ -427,15 +428,23 @@ void StatementBuilder::dynamicLoadLib(const char* lib)
         handleError(TypeException{"Cannot_load_empty_library_path"});
         return;
     }
+    auto name = std::string(lib + 1, len - 2);  // strip the quote marks
+    auto errors = std::vector<std::string>{};
+    auto success = false;
     for (const auto& dir : libpaths) {
-        auto path = dir / lib;
+        auto path = dir / name;
         try {
-            document.add(library_t(path.string().c_str()));
+            document.add(library_t{path.string().c_str()});
+            success = true;
             break;
         } catch (const std::runtime_error& ex) {
-            handleError(CouldNotLoadLibraryError(lib + std::string{ex.what()}));
+            errors.push_back(ex.what());
             continue;
         }
+    }
+    if (!success) {
+        for (auto& e : errors)
+            handleError(TypeException{e});
     }
 }
 
@@ -457,7 +466,7 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
     try {
         fp = document.last_library().get_symbol(name);
     } catch (const std::runtime_error& ex) {
-        handleError(CouldNotLoadFunctionError(name + std::string{ex.what()}));
+        handleError(TypeException{ex.what()});
     }
 
     type_t type = type_t::createExternalFunction(return_type, types, labels, position);

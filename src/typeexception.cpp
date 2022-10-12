@@ -65,9 +65,9 @@ namespace UTAP
         return TypeException{"$Could_not_load_library_named " + name};
     }
 
-    TypeException CouldNotLoadFunctionError(const std::string& name)
+    TypeException CouldNotLoadFunctionError(const std::string& error)
     {
-        return TypeException{"$Could_not_load_function_named " + name};
+        return TypeException{"$Could_not_load_function: " + error};
     }
 
 }  // namespace UTAP
