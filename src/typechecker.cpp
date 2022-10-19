@@ -201,6 +201,8 @@ void CompileTimeComputableValues::visitInstance(instance_t& temp)
     }
 }
 
+void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(symbol); }
+
 bool CompileTimeComputableValues::contains(symbol_t symbol) const
 {
     return (variables.find(symbol) != variables.end());
@@ -2161,6 +2163,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case FORALL:
+        compileTimeComputableValues.add_symbol(expr[0].getSymbol());
         checkType(expr[0].getSymbol().getType());
 
         if (isIntegral(expr[1])) {
@@ -2183,6 +2186,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case EXISTS:
+        compileTimeComputableValues.add_symbol(expr[0].getSymbol());
         checkType(expr[0].getSymbol().getType());
 
         if (isIntegral(expr[1])) {
@@ -2199,6 +2203,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case SUM:
+        compileTimeComputableValues.add_symbol(expr[0].getSymbol());
         checkType(expr[0].getSymbol().getType());
 
         if (isIntegral(expr[1])) {

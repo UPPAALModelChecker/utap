@@ -38,5 +38,8 @@ if (TESTING)
     target_link_libraries(test_range PRIVATE doctest::doctest UTAP)
     add_test(NAME test_range COMMAND test_range)
 
+    add_executable(test_typechecker test_typechecker.cpp)
+    target_link_libraries(test_typechecker PRIVATE doctest::doctest UTAP)
+    add_test(NAME test_typechecker COMMAND test_typechecker)
 
 endif (TESTING)
