@@ -87,7 +87,7 @@ public:
     }
 };
 
-TEST_CASE("SUM expression")
+TEST_CASE("sum expression")
 {
     document_fixture f;
     f.set_system_decls("int x = sum (index : int[0, 5]) index;");
@@ -95,6 +95,26 @@ TEST_CASE("SUM expression")
 
     CHECK(document->getErrors().size() == 0);
     CHECK(document->getWarnings().size() == 0);
+}
+
+TEST_CASE("sum over array")
+{
+    document_fixture f;
+    f.set_system_decls("int a[3] = {1,4,9};\nint x = sum(i : int[0, 2]) a[i];");
+    auto document = f.parse();
+    CHECK(document->getWarnings().size() == 0);
+    const auto errors = document->getErrors();
+    REQUIRE(errors.size() == 1);
+    CHECK(errors[0].msg == "$Must_be_computable_at_compile_time");
+}
+
+TEST_CASE("sum over const array")
+{
+    document_fixture f;
+    f.set_system_decls("const int a[3] = {1,4,9};\nint x = sum(i : int[0, 2]) a[i];");
+    auto document = f.parse();
+    CHECK(document->getWarnings().size() == 0);
+    CHECK(document->getErrors().size() == 0);
 }
 
 TEST_CASE("forall expression")
