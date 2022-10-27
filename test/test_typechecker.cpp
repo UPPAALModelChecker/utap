@@ -1,3 +1,24 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
+
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2022 Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
 #include "utap/typechecker.h"
 #include "utap/utap.h"
 
@@ -8,7 +29,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-static constexpr const char* system_template = R""""(<?xml version="1.0" encoding="utf-8"?>
+static constexpr const char* system_template = R"XML(<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
 <nta>
 	<declaration>%s</declaration>
@@ -31,7 +52,7 @@ system Process;
 		</query>
 	</queries>
 </nta>
-)"""";
+)XML";
 
 class document_fixture
 {
@@ -40,24 +61,24 @@ class document_fixture
     std::string sys_decls{};
 
     template <typename... Args>
-    std::string string_format(const std::string& format, Args... args)
+    std::string string_format(const std::string& format, Args... args) const
     {
-        int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;  // Extra space for '\0'
-        if (size_s <= 0) {
-            throw std::runtime_error("Error during formatting.");
-        }
-        auto size = static_cast<size_t>(size_s);
-        std::unique_ptr<char[]> buf(new char[size]);
-        std::snprintf(buf.get(), size, format.c_str(), args...);
-        return std::string(buf.get(), buf.get() + size - 1);  // We don't want the '\0' inside
+        using namespace std::string_literals;
+        auto size = std::snprintf(nullptr, 0, format.c_str(), args...);
+        if (size <= 0)
+            throw std::logic_error("Failed to format: "s + std::strerror(errno));
+        auto res = std::string(size, ' ');
+        if (auto s = std::snprintf(&res[0], size + 1, format.c_str(), args...); s != size)
+            throw std::logic_error("Failed to format: "s + std::strerror(errno));
+        return res;
     }
 
 public:
-    void set_decls(std::string decls) { this->decls = std::move(decls); }
-    void set_template_decls(std::string template_decls) { this->template_decls = std::move(template_decls); }
-    void set_system_decls(std::string sys_decls) { this->sys_decls = std::move(sys_decls); }
+    void set_decls(std::string text) { decls = std::move(text); }
+    void set_template_decls(std::string text) { template_decls = std::move(text); }
+    void set_system_decls(std::string text) { sys_decls = std::move(text); }
 
-    std::shared_ptr<UTAP::Document> parse()
+    [[nodiscard]] std::unique_ptr<UTAP::Document> parse() const
     {
         std::string data = string_format(system_template, decls.c_str(), template_decls.c_str(), sys_decls.c_str());
         auto document = std::make_unique<UTAP::Document>();

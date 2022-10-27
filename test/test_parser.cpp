@@ -42,7 +42,7 @@ std::unique_ptr<UTAP::Document> read_document(const std::string& file_name)
 
 TEST_CASE("Double Serialization Test")
 {
-    auto doc = read_document("ifstatement.xml");
+    auto doc = read_document("if_statement.xml");
     REQUIRE(doc);
     CHECK(doc->getErrors().size() == 0);
     CHECK(doc->getWarnings().size() == 0);
@@ -71,14 +71,14 @@ class QueryBuilder : public UTAP::StatementBuilder
     UTAP::expression_t query;
 
 public:
-    QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc} {}
+    explicit QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc} {}
     void property() override
     {
         REQUIRE(fragments.size() > 0);
         query = fragments[0];
         fragments.pop();
     }
-    UTAP::expression_t getQuery() const { return query; }
+    [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
     UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
                                   UTAP::position_t pos) override
     {
@@ -97,6 +97,7 @@ TEST_CASE("SMC bounds in queries")
     SUBCASE("Probability estimation query with 7 runs")
     {
         auto res = parseProperty("Pr[<=1;7](<> true)", builder.get());
+        REQUIRE(res == 0);
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
         CHECK(expr.get(0).getValue() == 7);  // number of runs
@@ -104,6 +105,7 @@ TEST_CASE("SMC bounds in queries")
     SUBCASE("Probability estimation query without runs")
     {
         auto res = parseProperty("Pr[<=1](<> true)", builder.get());
+        REQUIRE(res == 0);
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
         CHECK(expr.get(0).getValue() == -1);  // number of runs
@@ -111,6 +113,7 @@ TEST_CASE("SMC bounds in queries")
     SUBCASE("Value estimation query with 7 runs")
     {
         auto res = parseProperty("E[<=1;7](max: 1)", builder.get());
+        REQUIRE(res == 0);
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
         CHECK(expr.get(0).getValue() == 7);  // number of runs
@@ -118,6 +121,7 @@ TEST_CASE("SMC bounds in queries")
     SUBCASE("Value estimation query without runs")
     {
         auto res = parseProperty("E[<=1](max: 1)", builder.get());
+        REQUIRE(res == 0);
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
         CHECK(expr.get(0).getValue() == -1);  // number of runs
