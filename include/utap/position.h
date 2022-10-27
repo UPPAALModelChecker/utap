@@ -107,7 +107,7 @@ namespace UTAP
         error_t(line_t start, line_t end, position_t pos, std::string msg, std::string ctx = {}):
             start{std::move(start)}, end{std::move(end)}, position{pos}, msg{std::move(msg)}, context{std::move(ctx)}
         {}
-        std::string toString() const;
+        std::string str() const;
     };
 }  // namespace UTAP
 

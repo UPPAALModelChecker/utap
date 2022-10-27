@@ -133,7 +133,7 @@ namespace UTAP
         Constants::synchronisation_t getSync() const;
 
         /** Returns a string representation of the expression. */
-        std::string toString(bool old = false) const;
+        std::string str(bool old = false) const;
 
         /** Returns the ith subexpression. */
         expression_t& operator[](uint32_t);
@@ -245,11 +245,11 @@ namespace UTAP
 
         // true if empty or equal to 1.
         bool isTrue() const;
-        friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.toString(); }
+        friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.str(); }
 
     private:
         int getPrecedence() const;
-        void toString(bool, char*& str, char*& end, int& size) const;
+        void str(bool, char*& str, char*& end, int& size) const;
         void appendBoundType(char*& str, char*& end, int& size, expression_t e) const;
     };
 

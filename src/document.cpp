@@ -58,23 +58,23 @@ using namespace std::placeholders;  // _1, _2, etc for std::bind
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
 
-string state_t::toString() const
+string location_t::str() const
 {
     std::string str = "LOCATION (";
-    str += uid.getName() + ", " + invariant.toString() + ")";
+    str += uid.getName() + ", " + invariant.str() + ")";
     return str;
 }
 
-string edge_t::toString() const
+string edge_t::str() const
 {
-    std::string str = "EDGE (" + src->toString() + " " + dst->toString() + ")\n";
-    str += "\t" + guard.toString() + ", " + sync.toString() + ", " + assign.toString();
+    std::string str = "EDGE (" + src->str() + " " + dst->str() + ")\n";
+    str += "\t" + guard.str() + ", " + sync.str() + ", " + assign.str();
     return str;
 }
 
-string function_t::toString() const
+string function_t::str() const
 {
-    string str = "";
+    auto str = std::string{};
     string type = uid.getType().get(0).toDeclarationString();  // return type
     str += type + " " + uid.getName();
     str += "(";
@@ -92,15 +92,15 @@ string function_t::toString() const
     str += ")\n{\n";
 
     for (auto& variable : variables) {
-        str += "    " + variable.toString();
+        str += "    " + variable.str();
         str += ";\n";
     }
-    str += body->toString(INDENT);
+    str += body->str(INDENT);
     str += "}";
     return str;
 }
 
-string variable_t::toString() const
+string variable_t::str() const
 {
     string str = "";
     string type = "";
@@ -114,9 +114,8 @@ string variable_t::toString() const
     } else {
         str += uid.getType().toDeclarationString() + " " + uid.getName();
     }
-    if (!expr.empty()) {
-        str += " = " + expr.toString();
-    }
+    if (!init.empty())
+        str += " = " + init.str();
     return str;
 }
 
@@ -128,7 +127,7 @@ bool declarations_t::addFunction(type_t type, string name, position_t pos, funct
     return !duplicate;
 }
 
-string declarations_t::toString(bool global) const
+string declarations_t::str(bool global) const
 {
     string str = "";
     str += getConstants();
@@ -152,7 +151,7 @@ string declarations_t::getConstants() const
                     str = "// constants\n";
                     first = false;
                 }
-                str += variable.toString();
+                str += variable.str();
                 str += ";\n";
             }
         }
@@ -179,21 +178,15 @@ string declarations_t::getTypeDefinitions() const
 
 string declarations_t::getVariables(bool global) const
 {
-    list<variable_t>::const_iterator v_itr = variables.begin();
-    string str = "";
-    int i = 0;
+    auto str = std::string{};
     // variables
     if (!variables.empty()) {
-        while (v_itr != variables.end()) {
-            if (i == 0) {
-                str += "// variables\n";
-                i++;
-            }
-            if (v_itr->uid.getType().getKind() != CONSTANT) {
-                str += v_itr->toString();
+        str += "// variables\n";
+        for (const auto& var : variables) {
+            if (var.uid.getType().getKind() != CONSTANT) {
+                str += var.str();
                 str += ";\n";
             }
-            ++v_itr;
         }
     }
     return str;
@@ -201,13 +194,12 @@ string declarations_t::getVariables(bool global) const
 
 string declarations_t::getFunctions() const
 {
-    list<function_t>::const_iterator f_itr;
-    string str = "";
+    auto str = std::string{};
     // functions
     if (!functions.empty()) {
         str += "// functions\n";
-        for (f_itr = functions.begin(); f_itr != functions.end(); ++f_itr) {
-            str += f_itr->toString();
+        for (const auto& fun : functions) {
+            str += fun.str();
             str += "\n\n";
         }
     }
@@ -216,17 +208,15 @@ string declarations_t::getFunctions() const
 
 std::string instance_t::writeMapping() const
 {
-    std::string str = "";
-    std::map<symbol_t, expression_t>::const_iterator itr;
-    for (itr = mapping.begin(); itr != mapping.end(); ++itr) {
-        str += itr->first.getName() + " = " + itr->second.toString() + "\n";
-    }
+    auto str = std::string{};
+    for (const auto& [symbol, expr] : mapping)
+        str += symbol.getName() + " = " + expr.str() + "\n";
     return str;
 }
 
 std::string instance_t::writeParameters() const
 {
-    std::string str = "";
+    auto str = std::string{};
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
         str += b->getType().toDeclarationString() + " " + b->getName();
@@ -238,33 +228,33 @@ std::string instance_t::writeParameters() const
 
 std::string instance_t::writeArguments() const
 {
-    std::string str = "";
+    auto str = std::string{};
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
         auto itr = mapping.find(*b);
         assert(itr != std::end(mapping));
-        str += itr->second.toString();
+        str += itr->second.str();
         while (++b != e) {
             itr = mapping.find(*b);
             assert(itr != std::end(mapping));
-            str += ", " + itr->second.toString();
+            str += ", " + itr->second.str();
         }
     }
     return str;
 }
 
-state_t& template_t::addLocation(const string& name, expression_t inv, expression_t er, position_t pos)
+location_t& template_t::addLocation(const string& name, expression_t inv, expression_t er, position_t pos)
 {
     bool duplicate = frame.getIndexOf(name) != -1;
-    state_t& state = states.emplace_back();
-    state.uid = frame.addSymbol(name, type_t::createPrimitive(LOCATION), pos, &state);
-    state.locNr = states.size() - 1;
-    state.invariant = inv;
-    state.exponentialRate = er;
+    auto& loc = locations.emplace_back();
+    loc.uid = frame.addSymbol(name, type_t::createPrimitive(LOCATION), pos, &loc);
+    loc.nr = locations.size() - 1;
+    loc.invariant = inv;
+    loc.exponentialRate = er;
     if (duplicate) {
         throw DuplicateDefinitionError(name);
     }
-    return state;
+    return loc;
 }
 
 // FIXME: like for unnamed locations, a name is autegenerated
@@ -286,14 +276,14 @@ edge_t& template_t::addEdge(symbol_t src, symbol_t dst, bool control, string act
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edges.push_back(edge_t());
     if (src.getType().isLocation()) {
-        edges.back().src = static_cast<state_t*>(src.getData());
+        edges.back().src = static_cast<location_t*>(src.getData());
         edges.back().srcb = 0;
     } else {
         edges.back().src = 0;
         edges.back().srcb = static_cast<branchpoint_t*>(src.getData());
     }
     if (dst.getType().isLocation()) {
-        edges.back().dst = static_cast<state_t*>(dst.getData());
+        edges.back().dst = static_cast<location_t*>(dst.getData());
         edges.back().dstb = 0;
     } else {
         edges.back().dst = 0;
@@ -441,9 +431,9 @@ const vector<simregion_t> template_t::getSimregions()
     /**
      * iterates over remaining conditions
      */
-    for (auto c_itr = c_nr.begin(); c_itr != c_nr.end(); ++c_itr) {
-        auto s = simregion_t();
-        s.setCondition(conditions, *c_itr);
+    for (auto& c_itr : c_nr) {
+        auto s = simregion_t{};
+        s.setCondition(conditions, c_itr);
 
         int y = s.condition->location;
         if (getUpdate(s.condition->anchors, y, s.update)) {
@@ -461,16 +451,16 @@ const vector<simregion_t> template_t::getSimregions()
     /**
      * iterates over remaining updates
      */
-    for (auto u_itr = u_nr.begin(); u_itr != u_nr.end(); ++u_itr) {
+    for (auto& u_itr : u_nr) {
         auto s = simregion_t();
-        s.setUpdate(updates, *u_itr);
+        s.setUpdate(updates, u_itr);
         s.nr = simregions.size();
         simregions.push_back(s);
     }
 
     /*// cout << "-----unordered simregions-----\n";
     for (unsigned int i = 0; i < simregions.size(); ++i){
-        // cout << simregions[i].toString() << " " << simregions[i].nr<< "\n";
+        // cout << simregions[i].str() << " " << simregions[i].nr<< "\n";
     } //test OK*/
 
     return simregions;
@@ -547,30 +537,25 @@ void instanceLine_t::addParameters(instance_t& inst, frame_t params, const vecto
 vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& simregions)
 {
     vector<simregion_t> i_simregions;
-    vector<simregion_t>::const_iterator itr;
-    vector<simregion_t>::iterator itr1;
-    vector<instanceLine_t*>::const_iterator it;
-    instanceLine_t* instance;
     // get the simregions anchored to this instance
-    for (itr = simregions.begin(); itr != simregions.end(); ++itr) {
-        message_t* m = itr->message;
-        if (m->nr != -1 && (m->src->instanceNr == this->instanceNr || m->dst->instanceNr == this->instanceNr)) {
-            i_simregions.push_back(*itr);
+    for (const auto& reg : simregions) {
+        const message_t* m = reg.message;
+        if (!m->empty() && (m->src->instanceNr == this->instanceNr || m->dst->instanceNr == this->instanceNr)) {
+            i_simregions.push_back(reg);
             continue;
         }
 
-        update_t* u = itr->update;
-        if (u->nr != -1 && u->anchor->instanceNr == this->instanceNr) {
-            i_simregions.push_back(*itr);
+        const update_t* u = reg.update;
+        if (!u->empty() && u->anchor->instanceNr == this->instanceNr) {
+            i_simregions.push_back(reg);
             continue;
         }
 
-        condition_t* c = itr->condition;
-        if (c->nr != -1) {
-            for (it = c->anchors.begin(); it != c->anchors.end(); ++it) {
-                instance = *it;
+        const condition_t* c = reg.condition;
+        if (!c->empty()) {
+            for (auto* instance : c->anchors) {
                 if (instance->instanceNr == this->instanceNr) {
-                    i_simregions.push_back(*itr);
+                    i_simregions.push_back(reg);
                     break;
                 }
             }
@@ -580,9 +565,8 @@ vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& sim
     sort(i_simregions.begin(), i_simregions.end(), compare_simregion());
 
     //    std::cout << "--------instance--------\n";
-    //    for (unsigned int i=0; i< i_simregions.size(); ++i) {
-    //        std::cout << i_simregions[i].toString() << " " << i_simregions[i].getLoc()
-    //        << " " << i_simregions[i].isInPrechart()<<"\n";
+    //    for (auto& reg : i_simregions) {
+    //        std::cout << reg.str() << " " << reg.getLoc() << " " << reg.isInPrechart()<<"\n";
     //    } //test OK
 
     return i_simregions;
@@ -590,29 +574,25 @@ vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& sim
 
 int simregion_t::getLoc() const
 {
-    if (this->message->nr != -1) {
-        return this->message->location;
-    }
-    if (this->condition->nr != -1) {
-        return this->condition->location;
-    }
-    if (this->update->nr != -1) {
-        return this->update->location;
-    }
+    if (has_message())
+        return message->location;
+    if (has_condition())
+        return condition->location;
+    if (has_update())
+        return update->location;
+    assert(false);
     return -1;  // should not happen
 }
 
 bool simregion_t::isInPrechart() const
 {
-    if (this->message && this->message->nr != -1) {
-        return this->message->isInPrechart;
-    }
-    if (this->condition && this->condition->nr != -1) {
-        return this->condition->isInPrechart;
-    }
-    if (this->update && this->update->nr != -1) {
-        return this->update->isInPrechart;
-    }
+    if (has_message())
+        return message->isInPrechart;
+    if (has_condition())
+        return condition->isInPrechart;
+    if (has_update())
+        return update->isInPrechart;
+    assert(false);
     return false;  // should not happen
 }
 
@@ -646,41 +626,38 @@ void simregion_t::setUpdate(std::deque<update_t>& updates, int nr)
     }
 }
 
-std::string simregion_t::toString() const
+std::string simregion_t::str() const
 {
-    std::string s = "s(";
-    if (message->nr != -1) {
-        s += ("m:" + message->label.toString() + " ");
+    auto s = std::string{"s("};
+    if (has_message()) {
+        s += "m:";
+        s += message->label.str();
+        s += " ";
     }
-    if (condition->nr != -1) {
+    if (has_condition()) {
         std::string b = (condition->isHot) ? " HOT " : "";
-        s += ("c:" + b + (condition->label.toString()) + " ");
+        s += ("c:" + b + (condition->label.str()) + " ");
     }
-    if (update->nr != -1) {
-        s += ("u:" + update->label.toString() + " ");
+    if (has_update()) {
+        s += ("u:" + update->label.str() + " ");
     }
     s = s.substr(0, s.size() - 1);
     s += ")";
     return s;
 }
 
+inline auto find_simregion_by_nr(int nr)
+{
+    return [nr](const simregion_t& reg) { return reg.nr == nr; };
+}
+
 void cut_t::erase(const simregion_t& s)
 {
-    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim) {
-        if (sim->nr == s.nr) {
-            simregions.erase(sim);
-            return;
-        }
-    }
+    simregions.erase(std::remove_if(simregions.begin(), simregions.end(), find_simregion_by_nr(nr)), simregions.end());
 }
 bool cut_t::contains(const simregion_t& s) const
 {
-    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim) {
-        if (sim->nr == s.nr) {
-            return true;
-        }
-    }
-    return false;
+    return std::find_if(simregions.begin(), simregions.end(), find_simregion_by_nr(nr)) != simregions.end();
 }
 
 /**
@@ -695,45 +672,29 @@ bool cut_t::contains(const simregion_t& s) const
  */
 bool cut_t::isInPrechart(const simregion_t& fSimregion) const
 {
-    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim) {
-        if (!sim->isInPrechart()) {
-            return false;
-        }
-    }
-    if (!fSimregion.isInPrechart()) {
+    if (!isInPrechart())
         return false;
-    }
+    if (!fSimregion.isInPrechart())
+        return false;
     return true;
 }
 
 bool cut_t::isInPrechart() const
 {
-    for (auto sim = simregions.begin(); sim != simregions.end(); ++sim) {
-        if (!sim->isInPrechart()) {
+    for (auto& sim : simregions)
+        if (!sim.isInPrechart())
             return false;
-        }
-    }
     return true;
 }
 
 bool cut_t::equals(const cut_t& y) const
 {
-    std::vector<simregion_t>::const_iterator s;
-    std::vector<simregion_t>::iterator sim;
-    int xsize = simregions.size();
-    int ysize = y.simregions.size();
-    if (xsize != ysize)
+    if (simregions.size() != y.simregions.size())
         return false;
-    std::vector<simregion_t> ycopy = std::vector<simregion_t>(y.simregions);
-    for (s = simregions.begin(); s != simregions.end(); ++s) {
-        for (sim = ycopy.begin(); sim != ycopy.end(); ++sim) {
-            if (sim->nr == s->nr) {
-                ycopy.erase(sim);
-                break;
-            }
-        }
-    }
-    return (ycopy.empty()) ? true : false;
+    auto ycopy = y.simregions;
+    for (const auto& s : simregions)
+        ycopy.erase(std::remove_if(ycopy.begin(), ycopy.end(), find_simregion_by_nr(s.nr)), ycopy.end());
+    return ycopy.empty();
 }
 
 /**
@@ -741,34 +702,33 @@ bool cut_t::equals(const cut_t& y) const
  */
 bool template_t::isInvariant()
 {
-    if (this->isTA) {
+    if (isTA)
         return false;
-    }
-    return (strcasecmp(this->mode.c_str(), "invariant") == 0);
+    return mode == "invariant";
 }
 
-string chan_priority_t::toString() const
+string chan_priority_t::str() const
 {
-    std::ostringstream stream;
-    stream << "chan priority ";
-    string head_s = head.toString();
+    auto str = std::string{};
+    str += "chan priority ";
+    auto head_s = head.str();
     if (head_s.size() == 0)
         head_s = "default";
 
-    stream << head_s;
-    std::list<entry>::const_iterator itr;
-    for (itr = tail.begin(); itr != tail.end(); ++itr) {
-        if (itr->first == '<')
-            stream << " ";
-        stream << itr->first << " ";
-        stream << itr->second.toString();
+    str += head_s;
+    for (const auto& [ch, expr] : tail) {
+        if (ch == '<')
+            str += " ";
+        str += ch;
+        str += " ";
+        str += expr.str();
     }
-    return stream.str();
+    return str;
 }
 
 Document::Document()
 {
-    global.frame = frame_t::createFrame();
+    global.frame = frame_t::create();
 #ifdef ENABLE_CORA
     addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t());
 #endif
@@ -794,7 +754,7 @@ template_t& Document::addTemplate(const string& name, frame_t params, position_t
     type_t type = (isTA) ? type_t::createInstance(params) : type_t::createLscInstance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
-    templ.frame = frame_t::createFrame(global.frame);
+    templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.addSymbol(name, type, position, (instance_t*)&templ);
@@ -814,7 +774,7 @@ template_t& Document::addDynamicTemplate(const std::string& name, frame_t params
     dynamicTemplates.emplace_back();
     template_t& templ = dynamicTemplates.back();
     templ.parameters = params;
-    templ.frame = frame_t::createFrame(global.frame);
+    templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.addSymbol(name, type, pos, (instance_t*)&templ);
@@ -838,7 +798,7 @@ std::vector<template_t*>& Document::getDynamicTemplates()
     return dynamicTemplatesVec;
 }
 
-auto equal_name(const std::string& name)
+inline auto equal_name(const std::string& name)
 {
     return [&name](const auto& e) { return (e.uid.getName() == name); };
 }
@@ -846,8 +806,8 @@ auto equal_name(const std::string& name)
 const template_t* Document::findTemplate(const std::string& name) const
 {
     auto has_name = equal_name(name);
-    auto it = std::find_if(std::begin(templates), std::end(templates), has_name);
-    if (it == std::end(templates)) {
+    auto it = std::find_if(templates.begin(), templates.end(), has_name);
+    if (it == templates.end()) {
         it = std::find_if(std::begin(dynamicTemplates), std::end(dynamicTemplates), has_name);
         if (it == std::end(dynamicTemplates))
             return nullptr;
@@ -936,7 +896,7 @@ variable_t* Document::addVariable(declarations_t* context, type_t type, const st
                                   position_t pos)
 {
     variable_t* var = addVariable(context->variables, context->frame, type, name, pos);
-    var->expr = initial;
+    var->init = initial;
     return var;
 }
 
@@ -944,7 +904,7 @@ variable_t* Document::addVariableToFunction(function_t* function, frame_t frame,
                                             expression_t initial, position_t pos)
 {
     variable_t* var = addVariable(function->variables, frame, type, name, pos);
-    var->expr = initial;
+    var->init = initial;
     return var;
 }
 
@@ -1000,9 +960,9 @@ static void visit(SystemVisitor& visitor, frame_t frame)
         {
             visitor.visitVariable(*static_cast<variable_t*>(data));
         } else if (type.is(LOCATION)) {
-            visitor.visitState(*static_cast<state_t*>(data));
+            visitor.visitLocation(*static_cast<location_t*>(data));
         } else if (type.is(LOCATION_EXPR)) {
-            visitor.visitState(*static_cast<state_t*>(data));
+            visitor.visitLocation(*static_cast<location_t*>(data));
         } else if (type.is(FUNCTION)) {
             visitor.visitFunction(*static_cast<function_t*>(data));
         } else if (type.is(EXTERNAL_FUNCTION)) {

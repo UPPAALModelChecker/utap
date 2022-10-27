@@ -454,7 +454,7 @@ type_t type_t::createLabel(string label, position_t pos) const
     return type;
 }
 
-string type_t::toString() const
+string type_t::str() const
 {
     auto kind = std::string{};
 
@@ -463,7 +463,7 @@ string type_t::toString() const
     }
 
     if (!data->expr.empty()) {
-        return string("\"") + data->expr.toString() + "\"";
+        return "\"" + data->expr.str() + "\"";
     }
 
     switch (getKind()) {
@@ -551,7 +551,7 @@ string type_t::toString() const
             str += getLabel(i);
             str += ":";
         }
-        str += get(i).toString();
+        str += get(i).str();
     }
     str += ")";
 
@@ -653,16 +653,16 @@ string type_t::toDeclarationString() const
         str += get(0).toDeclarationString();
         if (getRange().first.getValue() != -32768 || getRange().second.getValue() != 32767) {
             str += "[";
-            str += getRange().first.toString();
+            str += getRange().first.str();
             str += ",";
-            str += getRange().second.toString();
+            str += getRange().second.str();
             str += "]";
             str += get(1).toDeclarationString();
         }
     } else if (array) {
         str += get(0).toDeclarationString();
         str += "[";
-        str += getArraySize().getRange().second.get(0).toString();
+        str += getArraySize().getRange().second.get(0).str();
         str += "]";
     } else if (label) {
         str += getLabel(0);
@@ -686,4 +686,4 @@ string type_t::toDeclarationString() const
     return str;
 }
 
-std::ostream& operator<<(std::ostream& o, const type_t& t) { return o << t.toString(); }
+std::ostream& operator<<(std::ostream& o, const type_t& t) { return o << t.str(); }

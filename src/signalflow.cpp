@@ -295,9 +295,9 @@ void SignalFlow::visitProcess(instance_t& p)
     procs.insert(cTA = new proc_t(p.uid.getName().c_str()));
     processes.insert(p.uid.getName().c_str());
 
-    for (const auto& s : p.templ->states) {
+    for (const auto& loc : p.templ->locations) {
         cChan = noChan;  // invariants should not use shared
-        visitExpression(s.invariant);
+        visitExpression(loc.invariant);
     }
     for (const auto& t : p.templ->edges) {
         cChan = noChan;  // guards should not use shared
@@ -400,7 +400,7 @@ void SignalFlow::visitExpression(const expression_t& e)
                 break;
             }
             symbol_t sym = e.getSymbol();
-            if (sym.getFrame().hasParent()) {  // local variable
+            if (sym.getFrame().has_parent()) {  // local variable
                 if (refparams.size() == 0)
                     break;  // local process variable
                 // else: local function variable

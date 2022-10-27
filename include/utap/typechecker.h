@@ -92,7 +92,7 @@ namespace UTAP
         bool visitTemplateBefore(template_t&) override;
         void visitSystemAfter(Document*) override;
         void visitVariable(variable_t&) override;
-        void visitState(state_t&) override;
+        void visitLocation(location_t&) override;
         void visitEdge(edge_t&) override;
         void visitInstance(instance_t&) override;
         virtual void visitProperty(expression_t);  // FIXME: does not override?!

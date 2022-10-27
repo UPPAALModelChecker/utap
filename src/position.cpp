@@ -81,7 +81,7 @@ std::ostream& operator<<(std::ostream& out, const UTAP::error_t& e)
     return out;
 };
 
-std::string UTAP::error_t::toString() const
+std::string UTAP::error_t::str() const
 {
     if (position.start < start.position || position.end < end.position)
         return msg + " (Unknown position in document)";

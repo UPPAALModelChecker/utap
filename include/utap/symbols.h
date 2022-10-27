@@ -209,13 +209,13 @@ namespace UTAP
         frame_t getParent() const;
 
         /** Returns true if this frame has a parent */
-        bool hasParent() const;
+        bool has_parent() const;
 
         /** Creates and returns a new root-frame. */
-        static frame_t createFrame();
+        static frame_t create();
 
         /** Creates and returns a new sub-frame. */
-        static frame_t createFrame(const frame_t& parent);
+        static frame_t create(const frame_t& parent);
     };
 }  // namespace UTAP
 

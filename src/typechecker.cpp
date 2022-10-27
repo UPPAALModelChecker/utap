@@ -670,60 +670,61 @@ void TypeChecker::visitVariable(variable_t& variable)
     SystemVisitor::visitVariable(variable);
 
     checkType(variable.uid.getType());
-    if (variable.expr.isDynamic() || variable.expr.hasDynamicSub()) {
-        handleError(variable.expr, "Dynamic constructions cannot be used as initialisers");
-    } else if (!variable.expr.empty() && checkExpression(variable.expr)) {
-        if (!isCompileTimeComputable(variable.expr)) {
-            handleError(variable.expr, "$Must_be_computable_at_compile_time");
-        } else if (variable.expr.changesAnyVariable()) {
-            handleError(variable.expr, "$Initialiser_must_be_side-effect_free");
+    if (variable.init.isDynamic() || variable.init.hasDynamicSub()) {
+        handleError(variable.init, "Dynamic constructions cannot be used as initialisers");
+    } else if (!variable.init.empty() && checkExpression(variable.init)) {
+        if (!isCompileTimeComputable(variable.init)) {
+            handleError(variable.init, "$Must_be_computable_at_compile_time");
+        } else if (variable.init.changesAnyVariable()) {
+            handleError(variable.init, "$Initialiser_must_be_side-effect_free");
         } else {
-            variable.expr = checkInitialiser(variable.uid.getType(), variable.expr);
+            variable.init = checkInitialiser(variable.uid.getType(), variable.init);
         }
     }
 }
 
-void TypeChecker::visitState(state_t& state)
+void TypeChecker::visitLocation(location_t& loc)
 {
-    SystemVisitor::visitState(state);
+    SystemVisitor::visitLocation(loc);
 
-    if (!state.invariant.empty()) {
-        if (checkExpression(state.invariant)) {
-            if (!isInvariantWR(state.invariant)) {
+    if (!loc.invariant.empty()) {
+        auto& inv = loc.invariant;
+        if (checkExpression(inv)) {
+            if (!isInvariantWR(inv)) {
                 std::string s = "$Expression_of_type ";
-                s += state.invariant.getType().toString();
+                s += inv.getType().str();
                 s += " $cannot_be_used_as_an_invariant";
-                handleError(state.invariant, s);
-            } else if (state.invariant.changesAnyVariable()) {
-                handleError(state.invariant, "$Invariant_must_be_side-effect_free");
+                handleError(inv, s);
+            } else if (inv.changesAnyVariable()) {
+                handleError(inv, "$Invariant_must_be_side-effect_free");
             } else {
                 RateDecomposer decomposer;
-                decomposer.decompose(state.invariant);
-                state.invariant = decomposer.invariant;
-                state.costRate = decomposer.costRate;
+                decomposer.decompose(inv);
+                inv = decomposer.invariant;
+                loc.costRate = decomposer.costRate;
                 if (decomposer.countCostRates > 1) {
-                    handleError(state.invariant, "$Only_one_cost_rate_is_allowed");
+                    handleError(inv, "$Only_one_cost_rate_is_allowed");
                 }
                 if (decomposer.hasClockRates) {
                     doc.recordStopWatch();
                 }
                 if (decomposer.hasStrictInvariant) {
                     doc.recordStrictInvariant();
-                    handleWarning(state.invariant, "$Strict_invariant");
+                    handleWarning(inv, "$Strict_invariant");
                 }
             }
         }
     }
-    if (!state.exponentialRate.empty()) {
-        if (checkExpression(state.exponentialRate)) {
-            if (!isIntegral(state.exponentialRate) && state.exponentialRate.getKind() != FRACTION &&
-                !state.exponentialRate.getType().isDouble()) {
-                handleError(state.exponentialRate, "$Number_expected");
+    if (!loc.exponentialRate.empty()) {
+        const auto& expr = loc.exponentialRate;
+        if (checkExpression(expr)) {
+            if (!isIntegral(expr) && expr.getKind() != FRACTION && !expr.getType().isDouble()) {
+                handleError(expr, "$Number_expected");
             }
         }
     }
-    if (state.uid.getName() == "__RESET__") {
-        handleWarning(state.uid,
+    if (loc.uid.getName() == "__RESET__") {
+        handleWarning(loc.uid,
                       "Deprecated __RESET__ annotation: use \"{ integers } -> { floats }\" in learning query.");
     }
 }
@@ -744,7 +745,7 @@ void TypeChecker::visitEdge(edge_t& edge)
         if (checkExpression(edge.guard)) {
             if (!isGuard(edge.guard)) {
                 std::string s = "$Expression_of_type ";
-                s += edge.guard.getType().toString();
+                s += edge.guard.getType().str();
                 s += " $cannot_be_used_as_a_guard";
                 handleError(edge.guard, s);
             } else if (edge.guard.changesAnyVariable()) {
@@ -870,7 +871,7 @@ void TypeChecker::visitEdge(edge_t& edge)
         if (checkExpression(edge.prob)) {
             if (!isProbability(edge.prob)) {
                 std::string s = "$Expression_of_type ";
-                s += edge.prob.getType().toString();
+                s += edge.prob.getType().str();
                 s += " $cannot_be_used_as_a_probability";
                 handleError(edge.prob, s);
             } else if (edge.prob.changesAnyVariable()) {
@@ -904,7 +905,7 @@ void TypeChecker::visitCondition(condition_t& condition)
         if (checkExpression(condition.label)) {
             if (!isGuard(condition.label)) {
                 std::string s = "$Expression_of_type ";
-                s += condition.label.getType().toString();
+                s += condition.label.getType().str();
                 s += " $cannot_be_used_as_a_condition";
                 handleError(condition.label, s);
             } else if (condition.label.changesAnyVariable()) {
@@ -1340,16 +1341,16 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
         checkType(symbol.getType());
         if (auto* d = symbol.getData(); d) {
             variable_t* var = static_cast<variable_t*>(d);
-            if (!var->expr.empty() && checkExpression(var->expr)) {
-                if (var->expr.changesAnyVariable()) {
+            if (!var->init.empty() && checkExpression(var->init)) {
+                if (var->init.changesAnyVariable()) {
                     /* This is stronger than C. However side-effects in
                      * initialisers are nasty: For records, the evaluation
                      * order may be different from the order in the input
                      * file.
                      */
-                    handleError(var->expr, "$Initialiser_must_be_side-effect_free");
+                    handleError(var->init, "$Initialiser_must_be_side-effect_free");
                 } else {
-                    var->expr = checkInitialiser(symbol.getType(), var->expr);
+                    var->init = checkInitialiser(symbol.getType(), var->init);
                 }
             }
         }

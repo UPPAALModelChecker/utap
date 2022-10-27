@@ -31,19 +31,19 @@ int32_t EmptyStatement::accept(StatementVisitor* visitor) { return visitor->visi
 
 bool EmptyStatement::returns() { return false; }
 
-string EmptyStatement::toString(const string& prefix) const { return ""; }
+string EmptyStatement::str(const string& prefix) const { return ""; }
 
 int32_t ExprStatement::accept(StatementVisitor* visitor) { return visitor->visitExprStatement(this); }
 
 bool ExprStatement::returns() { return false; }
 
-string ExprStatement::toString(const string& prefix) const { return prefix + expr.toString() + ";"; }
+string ExprStatement::str(const string& prefix) const { return prefix + expr.str() + ";"; }
 
 int32_t AssertStatement::accept(StatementVisitor* visitor) { return visitor->visitAssertStatement(this); }
 
 bool AssertStatement::returns() { return false; }
 
-string AssertStatement::toString(const string& prefix) const { return prefix + "assert(" + expr.toString() + ");"; }
+string AssertStatement::str(const string& prefix) const { return prefix + "assert(" + expr.str() + ");"; }
 
 ForStatement::ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> stat):
     init{std::move(init)}, cond{std::move(cond)}, step{std::move(step)}, stat{std::move(stat)}
@@ -55,21 +55,21 @@ int32_t ForStatement::accept(StatementVisitor* visitor) { return visitor->visitF
 
 bool ForStatement::returns() { return false; }
 
-string ForStatement::toString(const string& prefix) const
+string ForStatement::str(const string& prefix) const
 {
-    return prefix + "for (" + init.toString() + "; " + cond.toString() + "; " + step.toString() + ")\n{\n" +
-           stat->toString(prefix + INDENT) + "}";
+    return prefix + "for (" + init.str() + "; " + cond.str() + "; " + step.str() + ")\n{\n" +
+           stat->str(prefix + INDENT) + "}";
 }
 
 int32_t IterationStatement::accept(StatementVisitor* visitor) { return visitor->visitIterationStatement(this); }
 
 bool IterationStatement::returns() { return false; }
 
-string IterationStatement::toString(const string& prefix) const
+string IterationStatement::str(const string& prefix) const
 {
     string type = symbol.getType()[0].getLabel(0);
     return prefix + "for (" + symbol.getName() + " : " + type  // TODO: to be tested
-           + ")\n{\n" + stat->toString(prefix + INDENT) + "}";
+           + ")\n{\n" + stat->str(prefix + INDENT) + "}";
 }
 
 WhileStatement::WhileStatement(expression_t cond, std::unique_ptr<Statement> stat):
@@ -82,10 +82,9 @@ int32_t WhileStatement::accept(StatementVisitor* visitor) { return visitor->visi
 
 bool WhileStatement::returns() { return false; }
 
-string WhileStatement::toString(const string& prefix) const
+string WhileStatement::str(const string& prefix) const
 {
-    return prefix + "while(" + cond.toString() + ")\n" + prefix + "{\n" + stat->toString(prefix + INDENT) + prefix +
-           "}";
+    return prefix + "while(" + cond.str() + ")\n" + prefix + "{\n" + stat->str(prefix + INDENT) + prefix + "}";
 }
 
 DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t cond):
@@ -98,9 +97,9 @@ int32_t DoWhileStatement::accept(StatementVisitor* visitor) { return visitor->vi
 
 bool DoWhileStatement::returns() { return stat->returns(); }
 
-string DoWhileStatement::toString(const string& prefix) const
+string DoWhileStatement::str(const string& prefix) const
 {
-    return prefix + "do {\n" + stat->toString(prefix + INDENT) + prefix + "}";
+    return prefix + "do {\n" + stat->str(prefix + INDENT) + prefix + "}";
 }
 
 void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
@@ -134,11 +133,11 @@ int32_t BlockStatement::accept(StatementVisitor* visitor) { return visitor->visi
 
 bool BlockStatement::returns() { return begin() != end() && back()->returns(); }
 
-std::string BlockStatement::toString(const std::string& prefix) const
+std::string BlockStatement::str(const std::string& prefix) const
 {
     std::string str{};
     for (const auto& st : stats) {
-        str += st->toString(prefix) + "\n";
+        str += st->str(prefix) + "\n";
     }
     return str;
 }
@@ -149,19 +148,19 @@ int32_t SwitchStatement::accept(StatementVisitor* visitor) { return visitor->vis
 
 bool SwitchStatement::returns() { return false; }
 
-string SwitchStatement::toString(const string& prefix) const
+string SwitchStatement::str(const string& prefix) const
 {
-    return prefix + "switch(" + cond.toString() + ")\n" + prefix + "{\n" + BlockStatement::toString(prefix + INDENT) +
-           prefix + "}";
+    return prefix + "switch(" + cond.str() + ")\n" + prefix + "{\n" + BlockStatement::str(prefix + INDENT) + prefix +
+           "}";
 }
 
 int32_t CaseStatement::accept(StatementVisitor* visitor) { return visitor->visitCaseStatement(this); }
 
 bool CaseStatement::returns() { return false; }
 
-string CaseStatement::toString(const string& prefix) const
+string CaseStatement::str(const string& prefix) const
 {
-    return prefix + "case " + cond.toString() + ":\n" + BlockStatement::toString(prefix + INDENT);
+    return prefix + "case " + cond.str() + ":\n" + BlockStatement::str(prefix + INDENT);
 }
 
 DefaultStatement::DefaultStatement(frame_t frame): BlockStatement{std::move(frame)} {}
@@ -187,12 +186,12 @@ bool IfStatement::returns()
     return trueCase->returns() && falseCase != nullptr && falseCase->returns();
 }
 
-string IfStatement::toString(const string& prefix) const
+string IfStatement::str(const string& prefix) const
 {
     std::string str =
-        prefix + "if (" + cond.toString() + ")\n" + prefix + "{\n" + trueCase->toString(prefix + INDENT) + prefix + "}";
+        prefix + "if (" + cond.str() + ")\n" + prefix + "{\n" + trueCase->str(prefix + INDENT) + prefix + "}";
     if (falseCase)
-        str += "else {\n" + falseCase->toString(prefix + INDENT) + prefix + "}";
+        str += "else {\n" + falseCase->str(prefix + INDENT) + prefix + "}";
     return str;
 }
 
@@ -200,19 +199,19 @@ int32_t BreakStatement::accept(StatementVisitor* visitor) { return visitor->visi
 
 bool BreakStatement::returns() { return false; }
 
-string BreakStatement::toString(const string& prefix) const { return prefix + "break;"; }
+string BreakStatement::str(const string& prefix) const { return prefix + "break;"; }
 
 int32_t ContinueStatement::accept(StatementVisitor* visitor) { return visitor->visitContinueStatement(this); }
 
 bool ContinueStatement::returns() { return false; }
 
-string ContinueStatement::toString(const string& prefix) const { return prefix + "continue;"; }
+string ContinueStatement::str(const string& prefix) const { return prefix + "continue;"; }
 
 int32_t ReturnStatement::accept(StatementVisitor* visitor) { return visitor->visitReturnStatement(this); }
 
 bool ReturnStatement::returns() { return true; }
 
-string ReturnStatement::toString(const string& prefix) const { return prefix + "return " + value.toString() + ";"; }
+string ReturnStatement::str(const string& prefix) const { return prefix + "return " + value.str() + ";"; }
 
 int32_t AbstractStatementVisitor::visitStatement(Statement* stat) { return 0; }
 
@@ -299,7 +298,7 @@ int32_t ExpressionVisitor::visitBlockStatement(BlockStatement* stat)
     for (symbol_t& symbol : stat->getFrame()) {
         if (auto* data = symbol.getData(); data) {
             // REVISIT: This will only work if vars[i] is a variable!
-            visitExpression(static_cast<variable_t*>(data)->expr);
+            visitExpression(static_cast<variable_t*>(data)->init);
         }
     }
 

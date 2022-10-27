@@ -91,7 +91,7 @@ void DocumentBuilder::addSelectSymbolToFrame(const std::string& id, frame_t& fra
 void DocumentBuilder::ganttDeclStart(const char* name)
 {
     currentGantt = std::make_unique<gantt_t>(name);
-    pushFrame(frame_t::createFrame(frames.top()));
+    pushFrame(frame_t::create(frames.top()));
 }
 
 void DocumentBuilder::ganttDeclSelect(const char* id) { addSelectSymbolToFrame(id, frames.top(), position); }
@@ -104,7 +104,7 @@ void DocumentBuilder::ganttDeclEnd()
     currentGantt.reset();
 }
 
-void DocumentBuilder::ganttEntryStart() { pushFrame(frame_t::createFrame(frames.top())); }
+void DocumentBuilder::ganttEntryStart() { pushFrame(frame_t::create(frames.top())); }
 
 void DocumentBuilder::ganttEntrySelect(const char* id) { addSelectSymbolToFrame(id, frames.top(), position); }
 
@@ -173,7 +173,7 @@ void DocumentBuilder::procBegin(const char* name, const bool isTA, const string&
     }
 
     pushFrame(currentTemplate->frame);
-    params = frame_t::createFrame();
+    params = frame_t::create();
 }
 
 void DocumentBuilder::procEnd()  // 1 ProcBody
@@ -244,17 +244,17 @@ void DocumentBuilder::procEdgeBegin(const char* from, const char* to, const bool
 
     if (!resolve(from, fid) || (!fid.getType().isLocation() && !fid.getType().isBranchpoint())) {
         handleError(TypeException{"$No_such_location_or_branchpoint_(source)"});
-        pushFrame(frame_t::createFrame(frames.top()));  // dummy frame for upcoming popFrame
+        pushFrame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
     } else if (!resolve(to, tid) || (!tid.getType().isLocation() && !tid.getType().isBranchpoint())) {
         handleError(TypeException{"$No_such_location_or_branchpoint_(destination)"});
-        pushFrame(frame_t::createFrame(frames.top()));  // dummy frame for upcoming popFrame
+        pushFrame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
     } else {
         currentEdge = &currentTemplate->addEdge(fid, tid, control, actname);
         currentEdge->guard = makeConstant(1);
         currentEdge->assign = makeConstant(1);
         // default "probability" weight is 1.
         currentEdge->prob = makeConstant(1);
-        pushFrame(currentEdge->select = frame_t::createFrame(frames.top()));
+        pushFrame(currentEdge->select = frame_t::create(frames.top()));
     }
 }
 
@@ -327,10 +327,10 @@ void DocumentBuilder::instantiationBegin(const char* name, size_t parameters, co
 
     /* Push parameters to frame stack.
      */
-    frame_t frame = frame_t::createFrame(frames.top());
+    frame_t frame = frame_t::create(frames.top());
     frame.add(params);
     pushFrame(frame);
-    params = frame_t::createFrame();
+    params = frame_t::create();
 }
 
 void DocumentBuilder::instantiationEnd(const char* name, size_t parameters, const char* templ_name, size_t arguments)
@@ -492,10 +492,10 @@ void DocumentBuilder::instanceNameBegin(const char* name)
 {
     /* Push parameters to frame stack.
      */
-    frame_t frame = frame_t::createFrame(frames.top());
+    frame_t frame = frame_t::create(frames.top());
     frame.add(params);
     pushFrame(frame);
-    params = frame_t::createFrame();
+    params = frame_t::create();
 }
 
 void DocumentBuilder::instanceNameEnd(const char* name, size_t arguments)
@@ -537,7 +537,7 @@ void DocumentBuilder::instanceNameEnd(const char* name, size_t arguments)
                 if (itr != exprs.begin() && exprs.size() > 1) {
                     i_name += ',';
                 }
-                i_name += itr->toString();
+                i_name += itr->str();
             }
             i_name += ')';
             instanceName(i_name.c_str());  // std::cout << "instance line name: " << i_name << std::endl;
@@ -661,7 +661,7 @@ void DocumentBuilder::declDynamicTemplate(const std::string& name)
 
     document.addDynamicTemplate(name, params, position);
 
-    params = frame_t::createFrame();  // reset params
+    params = frame_t::create();  // reset params
 }
 
 void DocumentBuilder::queryBegin() { currentQuery = std::make_unique<query_t>(); }

@@ -38,7 +38,7 @@ namespace UTAP
         virtual ~Statement() noexcept = default;
         virtual int32_t accept(StatementVisitor* visitor) = 0;
         virtual bool returns() = 0;
-        virtual std::string toString(const std::string& prefix) const = 0;
+        virtual std::string str(const std::string& prefix) const = 0;
 
     protected:
         Statement() = default;
@@ -50,7 +50,7 @@ namespace UTAP
         EmptyStatement() = default;
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class ExprStatement : public Statement
@@ -60,7 +60,7 @@ namespace UTAP
         explicit ExprStatement(expression_t expr): expr{std::move(expr)} {}
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class AssertStatement : public Statement
@@ -70,7 +70,7 @@ namespace UTAP
         explicit AssertStatement(expression_t expr): expr{std::move(expr)} {}
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class ForStatement : public Statement
@@ -83,7 +83,7 @@ namespace UTAP
         ForStatement(expression_t, expression_t, expression_t, std::unique_ptr<Statement>);
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     /**
@@ -103,7 +103,7 @@ namespace UTAP
         frame_t getFrame() { return frame; }
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class WhileStatement : public Statement
@@ -114,7 +114,7 @@ namespace UTAP
         WhileStatement(expression_t, std::unique_ptr<Statement>);
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class DoWhileStatement : public Statement
@@ -125,7 +125,7 @@ namespace UTAP
         DoWhileStatement(std::unique_ptr<Statement>, expression_t);
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class BlockStatement : public Statement, public declarations_t
@@ -152,7 +152,7 @@ namespace UTAP
         bool empty() const { return stats.empty(); }
         iterator begin();
         iterator end();
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class ExternalBlockStatement : public BlockStatement
@@ -176,7 +176,7 @@ namespace UTAP
         SwitchStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class CaseStatement : public BlockStatement
@@ -186,7 +186,7 @@ namespace UTAP
         CaseStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class DefaultStatement : public BlockStatement
@@ -206,7 +206,7 @@ namespace UTAP
         IfStatement(expression_t, std::unique_ptr<Statement>, std::unique_ptr<Statement> falseStat = nullptr);
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class BreakStatement : public Statement
@@ -215,7 +215,7 @@ namespace UTAP
         BreakStatement() = default;
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class ContinueStatement : public Statement
@@ -224,7 +224,7 @@ namespace UTAP
         ContinueStatement() = default;
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class ReturnStatement : public Statement
@@ -235,7 +235,7 @@ namespace UTAP
         explicit ReturnStatement(expression_t expr): value{std::move(expr)} {}
         int32_t accept(StatementVisitor* visitor) override;
         bool returns() override;
-        std::string toString(const std::string& prefix) const override;
+        std::string str(const std::string& prefix) const override;
     };
 
     class StatementVisitor

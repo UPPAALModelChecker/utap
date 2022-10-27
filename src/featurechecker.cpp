@@ -72,9 +72,9 @@ void FeatureChecker::visitAssignment(expression_t& ass)
     }
 }
 
-void FeatureChecker::visitState(state_t& state)
+void FeatureChecker::visitLocation(location_t& location)
 {
-    const auto& invariant = state.invariant;
+    const auto& invariant = location.invariant;
     if (invariant.empty())
         return;
     if (isRateDisallowedInSymbolic(invariant))

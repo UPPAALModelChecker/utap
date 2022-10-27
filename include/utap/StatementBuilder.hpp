@@ -42,7 +42,7 @@ namespace UTAP
          * The \a params frame is used temporarily during parameter
          * parsing.
          */
-        frame_t params{frame_t::createFrame()};
+        frame_t params{frame_t::create()};
 
         /** The function currently being parsed. */
         function_t* currentFun{nullptr};

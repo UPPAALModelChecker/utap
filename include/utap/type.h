@@ -182,7 +182,7 @@ namespace UTAP
         std::pair<expression_t, expression_t> getRange() const;
 
         /** Generates string representation of the type. */
-        std::string toString() const;
+        std::string str() const;
 
         std::string toDeclarationString() const;
 
