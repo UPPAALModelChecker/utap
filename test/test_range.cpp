@@ -1,3 +1,24 @@
+// -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
+
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2022 Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "utap/range.h"
 
@@ -13,7 +34,7 @@ TEST_CASE("Range Tests")
 
     constexpr auto f_eps = std::numeric_limits<float>::epsilon();
     constexpr auto f_inf = std::numeric_limits<float>::infinity();
-    constexpr auto f_ninf = -d_inf;
+    constexpr auto f_ninf = -f_inf;
     constexpr auto f_min = std::numeric_limits<float>::lowest();
 
     constexpr auto i_max = std::numeric_limits<int>::max();

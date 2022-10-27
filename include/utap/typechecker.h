@@ -45,6 +45,7 @@ namespace UTAP
     public:
         void visitVariable(variable_t&) override;
         void visitInstance(instance_t&) override;
+        void add_symbol(symbol_t);
         bool contains(symbol_t) const;
     };
 
