@@ -14,7 +14,13 @@ fi
 
 for target in "$@" ; do
     BUILD="build-${target}-release"
-    PREFIX="${LOCAL}/${target}"
+    if [ -d "${LOCAL}/${target}" ]; then
+      PREFIX="-DCMAKE_PREFIX_PATH=${LOCAL}/${target}"
+      INSTALL_PREFIX="-DCMAKE_INSTALL_PREFIX=${LOCAL}/${target}"
+    else
+      PREFIX=""
+      INSTALL_PREFIX=""
+    fi
     # "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
     case $target in
@@ -34,7 +40,7 @@ for target in "$@" ; do
             ;;
     esac
     cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
-      -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
+      "${PREFIX}" "${INSTALL_PREFIX}" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD"
     echo -e "${BW}${target}: Testing UTAP${NC}"
