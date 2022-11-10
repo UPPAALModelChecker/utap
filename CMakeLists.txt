@@ -18,18 +18,8 @@ add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
-if (APPLE)
-    find_package(LibXml2 2.9.14 REQUIRED) # otherwise cmake shows warnings
-else(APPLE)
-    find_package(libxml2 2.9.14 REQUIRED) # otherwise linking fails for win64
-endif(APPLE)
-#message(STATUS "Found LIBXML2 ${LIBXML2_LIBRARIES}")
-#message(STATUS "Using LIBXML2_INCLUDE_DIR=${LIBXML2_INCLUDE_DIR}")
-#message(STATUS "Using LIBXML2_INCLUDE_DIRS=${LIBXML2_INCLUDE_DIRS}")
-#message(STATUS "Using LIBXML2_LIBRARY=${LIBXML2_LIBRARY}")
-message(STATUS "Using LIBXML2_LIBRARIES=${LIBXML2_LIBRARIES}")
-#message(STATUS "Using LIBXML2_DEFINITIONS=${LIBXML2_DEFINITIONS}")
-add_definitions(${LIBXML2_DEFINITIONS})
+find_package(LibXml2 2.9.14 REQUIRED)
+
 if (TESTING)
     find_package(doctest 2.4.8 REQUIRED)
     enable_testing()
@@ -54,7 +44,6 @@ target_include_directories(UTAP
         # where the library itself will look for its internal headers
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/include
-        ${LIBXML2_INCLUDE_DIRS}
     PUBLIC
         # where top-level project will look for the library's public headers
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

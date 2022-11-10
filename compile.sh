@@ -15,7 +15,7 @@ fi
 for target in "$@" ; do
     BUILD="build-${target}-release"
     PREFIX="${LOCAL}/${target}"
-    "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
+    # "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
     case $target in
         darwin*)

@@ -30,52 +30,79 @@ Use `cmake` to compile `libutap` easily for various platforms.
 You will need GCC version 10 or newer, Ninja or GNU make,
 and `libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10).
 
-Run the following to compile libutap and use it in the build:
-
-```sh
-sudo apt-get install bison cmake ninja-build flex libxml2-dev g++
-cmake . -B build # -DCMAKE_INSTALL_PREFIX=$MYPATH # to install to $MYPATH
-cmake --build build
+Install the developer tools:
+```shell
+sudo apt-get install g++ ninja-build cmake
 ```
 
-Run the following to install libutap:
+Install the tools and libraries:
+```shell
+sudo apt-get install flex bison libxml2-dev doctest-dev
+```
+
+Configure UTAP:
+```shell
+cmake . -B build -DTESTING=ON -DCMAKE_INSTALL_PREFIX=$MYPATH -G Ninja # to install to $MYPATH, e.g. /usr/local
+```
+Compile UTAP:
+```shell
+cmake --build build
+```
+Run unit tests:
+```sh
+cd build
+ctest
+```
+
+Install UTAP to `$MYPATH`:
 ```
 cmake --install build
 ```
 
-Test:
-```sh
-ctest --test-dir build
+## Compile from scratch (almost)
+
+Alternatively compile the bison and libraries for your target platform (see `cmake/toolchain/*.cmake` for list), e.g.:
+```shell
+./getlibs/getlibs.bash linux64
+```
+
+Compile and test UTAP:
+```shell
+./compile.sh linux64
 ```
 
 For other platforms please see [compile.sh](compile.sh) script:
 ```sh
-./compile.sh [linux64] [win64] [linux32] [win32] [darwin]
+./compile.sh [linux64] [linux64-gcc10] [linux32] [win64] [win32] [darwin] [darwin-brew-gcc10]
 ```
-`win64` requires `x86_64-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
+Where
+- `win64` requires `x86_64-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
 
-`win32` requires `i686-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
+- `win32` requires `i686-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
 
-`linux32` requires `g++-multilib`.
+- `linux32` requires `g++-multilib`.
 
-`darwin` requires:
-- [gcc-10](https://formulae.brew.sh/formula/gcc@10) with [XCode](https://developer.apple.com/xcode/)
-- `getlibs` script requires `sha256sum` from [coreutils](https://formulae.brew.sh/formula/coreutils), then add `/usr/local/opt/coreutils/libexec/gnubin` to `PATH`.
+- `darwin` requires [XCode](https://developer.apple.com/xcode/) and its `Command Line Tools` installed.
 
-## 3. Simple use
+- `darwin-brew-gcc10` in addition to `XCode` requires [gcc-10](https://formulae.brew.sh/formula/gcc@10) with 
+
+- `getlibs` script requires `sha256sum` from [coreutils](https://formulae.brew.sh/formula/coreutils) (then add `/usr/local/opt/coreutils/libexec/gnubin` to `PATH`).
+
+## 3. Simple Use Case
 
 There are two ways one can use the library. In its simplest form, one
 calls one of the top level parsing functions defined in [utap/utap.h](src/utap/utap.h),
 e.g. `example.cpp`:
 
 ```cpp
-#include <stdio.h>
 #include "utap/utap.h"
+#include <iostream>
 
 int main()
 {
-  UTAP::TimedAutomataSystem system;
-  parseXMLFile("myfile.xml", &system, true);
+    UTAP::Document doc;
+    int res = parseXMLFile("myfile.xml", &doc, true);
+    std::cout << "Result: " << res << std::endl;
 }
 ```
 
@@ -101,6 +128,61 @@ then use the following to compile:
 
 ```sh
 g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
+```
+
+### Use Case with CMake
+Add `CMakeLists.txt` build script:
+```cmake
+cmake_minimum_required(VERSION 3.15)
+project(Example CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+find_package(UTAP 1.1.6 REQUIRED)
+
+if (utap_FOUND)
+  message(STATUS "Found UTAP.")
+else(utap_FOUND)
+  message(STATUS "Failed to find UTAP, will try fetching and compiling from source.")
+  include(FetchContent)
+  FetchContent_Declare(
+    UTAP
+    GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
+    GIT_TAG v1.1.6
+    GIT_SHALLOW TRUE # get only the last commit version
+    GIT_PROGRESS TRUE # show progress of download
+    FIND_PACKAGE_ARGS NAMES UTAP
+    USES_TERMINAL_DOWNLOAD TRUE # show progress in ninja generator
+    USES_TERMINAL_CONFIGURE ON
+    USES_TERMINAL_BUILD ON
+    USES_TERMINAL_INSTALL ON
+    LOG_DOWNLOAD ON
+    LOG_CONFIGURE ON
+    LOG_BUILD ON
+    LOG_INSTALL ON
+    LOG_OUTPUT_ON_FAILURE ON
+  )
+  FetchContent_MakeAvailable(UTAP)
+endif(utap_FOUND)
+
+add_executable(example example.cpp)
+target_link_libraries(example PRIVATE UTAP)
+```
+
+Configure:
+```shell
+cmake -B build -DCMAKE_PREFIX_PATH=$MYPATH -G Ninja .
+```
+Compile:
+```shell
+cmake --build build
+```
+Run:
+```shell
+./build/example
 ```
 
 ## 4. Parsing Uppaal Trace Files
