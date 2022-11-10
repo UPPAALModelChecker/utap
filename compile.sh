@@ -9,16 +9,16 @@ NC="\e[0m"    # no color
 if [ "$#" -lt 1 ]; then
     echo "Expecting a list of target platforms as arguments."
     echo -e "For example: ${BW}$0 darwin linux64 win32${NC}"
-    echo -e "See ${BW}toolchain/*.cmake${NC} for the list of supported platforms."
+    echo -e "See ${BW}cmake/toolchain/*.cmake${NC} for the list of supported platforms."
 fi
 
 for target in "$@" ; do
     BUILD="build-${target}-release"
-    LIBS="${LOCAL}/${target}"
+    PREFIX="${LOCAL}/${target}"
     "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
     case $target in
-	darwin*)
+        darwin*)
             CMAKE_EXTRA=-DSTATIC=OFF
             ;;
         win64)
@@ -29,11 +29,12 @@ for target in "$@" ; do
             CMAKE_EXTRA=-DSTATIC=ON
             #cp $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/test/"
             ;;
-	*)
+        *)
             CMAKE_EXTRA=-DSTATIC=OFF
             ;;
     esac
-    cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
+    cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
+      -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_INSTALL_PREFIX="$PREFIX" -DCMAKE_BUILD_TYPE=Release -DTESTING=ON ${CMAKE_EXTRA}
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD"
     echo -e "${BW}${target}: Testing UTAP${NC}"
