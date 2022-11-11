@@ -5,9 +5,11 @@ if(DEFINED ENV{CROSSCOMPILING_EMULATOR})
     set(CMAKE_CROSSCOMPILING_EMULATOR $ENV{CROSSCOMPILING_EMULATOR})
 endif()
 
+set(TARGET_PREFIX x86_64-w64-mingw32)
+
 # which compilers to use for C and C++
-set(CMAKE_C_COMPILER   x86_64-w64-mingw32-gcc)
-set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
+set(CMAKE_C_COMPILER   ${TARGET_PREFIX}-gcc)
+set(CMAKE_CXX_COMPILER ${TARGET_PREFIX}-g++)
 
 # where is the target environment located
 set(CMAKE_FIND_ROOT_PATH "${CMAKE_PREFIX_PATH}")

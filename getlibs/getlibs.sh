@@ -8,7 +8,7 @@ source "$GETLIBS_DIR/sources.sh"
 if [ "$#" -lt 1 ]; then
     echo "Expecting a list of target platforms as arguments."
     echo -e "For example: ${BW}$0 darwin linux64 win32${NC}"
-    echo -e "See ${BW}toolchain/*.cmake${NC} for the list of supported platforms."
+    echo -e "See ${BW}cmake/toolchain/*.cmake${NC} for the list of supported platforms."
 fi
 
 for target in "$@" ; do
@@ -19,7 +19,7 @@ for target in "$@" ; do
         prepare_libxml2
         BUILD="$LIBS/build-${LIBXML2}"
         echo -e "${BW}${target}: Configuring ${LIBXML2}${NC}"
-        cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" \
+        cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
           -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
@@ -46,8 +46,9 @@ for target in "$@" ; do
         prepare_doctest
         BUILD="$LIBS/build-${DOCTEST}"
         echo -e "${BW}${target}: Configuring ${DOCTEST}${NC}"
-        cmake -S "$SOURCE/$DOCTEST" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/toolchain/${target}.cmake" \
-          -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release
+        cmake -S "$SOURCE/$DOCTEST" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
+          -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
+          -DDOCTEST_WITH_TESTS=OFF
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
         #echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
