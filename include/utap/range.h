@@ -79,14 +79,14 @@ namespace UTAP
 
     public:
         using value_type = T;
-        range_t() = default;
-        range_t(const range_t&) = default;
-        static range_t make_empty() { return range_t(1, 0); }
-
+        constexpr range_t() = default;
+        constexpr range_t(const range_t&) = default;
         /** construct a range of [first,last] */
-        range_t(const T& first, const T& last): start{first}, finish{last} {}
+        constexpr range_t(const T& first, const T& last): start{first}, finish{last} {}
         /** construct a range of singleton {e} */
-        explicit range_t(const T& e): range_t{e, e} {}
+        constexpr explicit range_t(const T& e): range_t{e, e} {}
+
+        constexpr static range_t make_empty() { return range_t{1, 0}; }
 
         /** the range is strictly below the other */
         bool operator<(const range_t& o) const
