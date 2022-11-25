@@ -37,7 +37,7 @@ namespace UTAP
      * all constant non-reference template parameters. Variables with
      * mixed storage are not considered compile time computable.
      */
-    class CompileTimeComputableValues : public SystemVisitor
+    class CompileTimeComputableValues : public DocumentVisitor
     {
     private:
         std::set<symbol_t> variables;
@@ -55,10 +55,10 @@ namespace UTAP
      * type checker must not be constructed before the document has been
      * parsed.
      */
-    class TypeChecker : public SystemVisitor, public AbstractStatementVisitor
+    class TypeChecker : public DocumentVisitor, public AbstractStatementVisitor
     {
     private:
-        Document& doc;
+        Document& document;
         CompileTimeComputableValues compileTimeComputableValues;
         function_t* function; /**< Current function being type checked. */
         bool refinementWarnings;
@@ -90,7 +90,7 @@ namespace UTAP
         explicit TypeChecker(Document& doc, bool refinement = false);
         void visitTemplateAfter(template_t&) override;
         bool visitTemplateBefore(template_t&) override;
-        void visitSystemAfter(Document*) override;
+        void visitDocAfter(Document&) override;
         void visitVariable(variable_t&) override;
         void visitLocation(location_t&) override;
         void visitEdge(edge_t&) override;
@@ -102,7 +102,7 @@ namespace UTAP
         void visitIODecl(iodecl_t&) override;
         void visitGanttChart(gantt_t&) override;
         void visitProcess(instance_t&) override;
-        void visitInstanceLine(instanceLine_t&) override;
+        void visitInstanceLine(instance_line_t&) override;
         void visitMessage(message_t&) override;
         void visitCondition(condition_t&) override;
         void visitUpdate(update_t&) override;

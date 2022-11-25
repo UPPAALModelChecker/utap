@@ -465,9 +465,9 @@ namespace UTAP
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXTA(FILE*, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XTA(FILE*, UTAP::ParserBuilder*, bool newxta);
 
-int32_t parseXTA(const char*, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta);
 
 /**
  * Parse a buffer in the XTA format, reporting the document to the given
@@ -476,7 +476,7 @@ int32_t parseXTA(const char*, UTAP::ParserBuilder*, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_t part, std::string xpath);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_t part, std::string xpath);
 
 /**
  * Parse a buffer in the XML format, reporting the document to the given
@@ -485,7 +485,7 @@ int32_t parseXTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parseXMLBuffer(const char* buffer, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder*, bool newxta);
 
 /**
  * Parse the file with the given name assuming it is in the XML
@@ -495,9 +495,9 @@ int32_t parseXMLBuffer(const char* buffer, UTAP::ParserBuilder*, bool newxta);
  * otherwise the 3.x syntax is used. On success, this function returns
  * with a positive value.
  */
-int32_t parseXMLFile(const char* filename, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XML_file(const char* filename, UTAP::ParserBuilder*, bool newxta);
 
-int32_t parseXMLFd(int fd, UTAP::ParserBuilder* pb, bool newxta);
+int32_t parse_XML_fd(int fd, UTAP::ParserBuilder* pb, bool newxta);
 
 /**
  * Parse properties from a buffer. The properties are reported using

@@ -101,7 +101,7 @@ e.g. `example.cpp`:
 int main()
 {
     UTAP::Document doc;
-    int res = parseXMLFile("myfile.xml", &doc, true);
+    int res = parse_XML_file("myfile.xml", &doc, true);
     std::cout << "Result: " << res << std::endl;
 }
 ```

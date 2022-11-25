@@ -109,7 +109,7 @@ void XMLWriter::writeAttribute(const char* name, const char* value)
 /** Parses optional declaration. */
 void XMLWriter::declaration()
 {
-    string globalDeclarations = doc->getGlobals().str(true);
+    string globalDeclarations = doc->get_globals().str(true);
     globalDeclarations += "\n";
     globalDeclarations += getChanPriority();
     globalDeclarations += " ";
@@ -118,7 +118,7 @@ void XMLWriter::declaration()
 
 string XMLWriter::getChanPriority() const
 {
-    const auto& prs = doc->getChanPriorities();
+    const auto& prs = doc->get_chan_priorities();
     list<chan_priority_t>::const_iterator itr;
     auto str = std::string{};
     if (!prs.empty()) {
@@ -157,7 +157,7 @@ void XMLWriter::label(const char* kind, string data, int x, int y)
 
 void XMLWriter::name(const location_t& loc, int x, int y)
 {
-    const char* name = loc.uid.getName().c_str();
+    const char* name = loc.uid.get_name().c_str();
     startElement("name");
     writeAttribute("x", std::to_string(x).c_str());
     writeAttribute("y", std::to_string(y).c_str());
@@ -181,7 +181,7 @@ void XMLWriter::location(const location_t& loc)
     int y = STEP * loc.nr;
     // identifier, x, y (attributes)
     writeStateAttributes(loc, x, y);
-    if (loc.uid.getName() == "Err") {
+    if (loc.uid.get_name() == "Err") {
         writeAttribute("color", ERR_STATE_COLOR);
     }
     // name (element)
@@ -194,15 +194,15 @@ void XMLWriter::location(const location_t& loc)
         label("invariant", loc.invariant.str(), x, y);
     }
     // exponential rate
-    if (!loc.exponentialRate.empty()) {
+    if (!loc.exp_rate.empty()) {
         y += 16;
-        label("exponentialrate", loc.exponentialRate.str(), x, y);
+        label("exponentialrate", loc.exp_rate.str(), x, y);
     }
     // "committed" or "urgent" element
-    if (loc.uid.getType().is(COMMITTED)) {
+    if (loc.uid.get_type().is(COMMITTED)) {
         startElement("committed");
         endElement();
-    } else if (loc.uid.getType().is(URGENT)) {
+    } else if (loc.uid.get_type().is(URGENT)) {
         startElement("urgent");
         endElement();
     }
@@ -212,7 +212,7 @@ void XMLWriter::location(const location_t& loc)
 /* writes the init tag */
 void XMLWriter::init(const template_t& templ)
 {
-    int id = static_cast<const location_t*>(templ.init.getData())->nr;
+    int id = static_cast<const location_t*>(templ.init.get_data())->nr;
     startElement("init");
     writeAttribute("ref", concat("id", id).c_str());
     endElement();
@@ -275,7 +275,7 @@ void XMLWriter::transition(const edge_t& edge)
     auto src = source(edge);
     auto dst = target(edge);
     if (src == dst) {
-        float angle = (edge.src->uid.getName() != "lpmin") ? (3 * M_PI_2) : M_PI;
+        float angle = (edge.src->uid.get_name() != "lpmin") ? (3 * M_PI_2) : M_PI;
         selfLoop(src, angle, edge);
     } else {
         int x = STEP * src;
@@ -290,10 +290,10 @@ void XMLWriter::transition(const edge_t& edge)
 void XMLWriter::labels(int x, int y, const edge_t& edge)
 {
     string str;
-    if (edge.select.getSize() > 0) {
-        str = edge.select[0].getName() + " : ";
-        if (edge.select[0].getType().size() > 0 && edge.select[0].getType()[0].size() > 0) {
-            str += edge.select[0].getType()[0].getLabel(0);
+    if (edge.select.get_size() > 0) {
+        str = edge.select[0].get_name() + " : ";
+        if (edge.select[0].get_type().size() > 0 && edge.select[0].get_type()[0].size() > 0) {
+            str += edge.select[0].get_type()[0].get_label(0);
         }  // else ? should not happen
         label("select", str, x, y - 32);
     }
@@ -315,8 +315,8 @@ void XMLWriter::taTempl(const template_t& templ)
         return;
     }
     selfLoops.clear();
-    string name = templ.uid.getName();
-    string parameters = templ.writeParameters();
+    string name = templ.uid.get_name();
+    string parameters = templ.parameters_str();
     string declarations = templ.str(false);
 
     startElement("template");
@@ -341,15 +341,15 @@ void XMLWriter::taTempl(const template_t& templ)
 
 void XMLWriter::system_instantiation()
 {  // TODO proc priority
-    const std::list<instance_t>* instances = &(doc->getProcesses());
+    const std::list<instance_t>* instances = &(doc->get_processes());
     string str = "";
     string proc = "";
     std::list<instance_t>::const_iterator itr;
     for (itr = instances->begin(); itr != instances->end(); ++itr) {
-        if (itr->uid.getName() != itr->templ->uid.getName()) {
-            str += itr->uid.getName() + " = " + itr->templ->uid.getName() + "(" + itr->writeArguments() + ");\n";
+        if (itr->uid.get_name() != itr->templ->uid.get_name()) {
+            str += itr->uid.get_name() + " = " + itr->templ->uid.get_name() + "(" + itr->arguments_str() + ");\n";
         }
-        proc += itr->uid.getName() + ", ";
+        proc += itr->uid.get_name() + ", ";
     }
     proc = proc.substr(0, proc.size() - 2);
     str += "system " + proc + "; ";
@@ -363,7 +363,7 @@ void XMLWriter::project()
     startElement("nta");
     declaration();  // global declarations
 
-    for (const template_t& itr : doc->getTemplates()) {
+    for (const template_t& itr : doc->get_templates()) {
         taTempl(itr);
     }
     system_instantiation();

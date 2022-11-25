@@ -39,107 +39,107 @@ inline std::string read_content(const std::string& file_name)
 TEST_CASE("Simple system")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("simpleSystem.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("simpleSystem.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Simple SMC system")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("simpleSMCSystem.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("simpleSMCSystem.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(!checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Simple handshake system")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("simpleHandshakeSystem.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("simpleHandshakeSystem.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(!checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(!checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Simply dynamic system")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("dynamic.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("dynamic.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(!checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Clock rate")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("clock_rate2.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("clock_rate2.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(!checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Clock rate expression")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("rate_expression.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("rate_expression.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Hybrid clock rate")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("rate_expression_hybrid.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("rate_expression_hybrid.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Limited range clock rate")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("legal_symbolic_rates.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("legal_symbolic_rates.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Integer Invariant")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("int_invariant.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("int_invariant.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Hybrid clock update")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("update_hybrid_clock.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("update_hybrid_clock.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Hybrid and normal clock update")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("update_hybrid_and_normal_clock.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("update_hybrid_and_normal_clock.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(!checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }
 
 TEST_CASE("Double comparison")
 {
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(read_content("double_compare.xml").c_str(), document.get(), true);
+    parse_XML_buffer(read_content("double_compare.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    CHECK(!checker.getSupportedMethods().symbolic);
-    CHECK(checker.getSupportedMethods().stochastic);
+    CHECK(!checker.get_supported_methods().symbolic);
+    CHECK(checker.get_supported_methods().stochastic);
 }

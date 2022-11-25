@@ -25,10 +25,10 @@
 #include "utap/statement.h"
 
 #include <functional>  // std::bind
+#include <iostream>
 #include <sstream>
 #include <stack>
 #include <cassert>
-#include <cstring>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -58,199 +58,214 @@ using namespace std::placeholders;  // _1, _2, etc for std::bind
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
 
-string location_t::str() const
+template <typename Item>
+std::string stringify_t<Item>::str() const
 {
-    std::string str = "LOCATION (";
-    str += uid.getName() + ", " + invariant.str() + ")";
-    return str;
+    auto os = std::ostringstream{};
+    static_cast<const Item*>(this)->print(os);
+    return os.str();
 }
 
-string edge_t::str() const
+template <typename Item>
+std::string stringify_t<Item>::str(const std::string& indent) const
 {
-    std::string str = "EDGE (" + src->str() + " " + dst->str() + ")\n";
-    str += "\t" + guard.str() + ", " + sync.str() + ", " + assign.str();
-    return str;
+    auto os = std::ostringstream{};
+    static_cast<const Item*>(this)->print(os, indent);
+    return os.str();
 }
 
-string function_t::str() const
+std::ostream& location_t::print(std::ostream& os) const
 {
-    auto str = std::string{};
-    string type = uid.getType().get(0).toDeclarationString();  // return type
-    str += type + " " + uid.getName();
-    str += "(";
-    for (uint32_t i = 1; i < uid.getType().size(); ++i)  // parameters
-    {
-        if (!uid.getType().getLabel(i).empty()) {
-            str += uid.getType().get(i).toDeclarationString();
-            str += " ";
-            str += uid.getType().getLabel(i);
-            str += ", ";
-        }
+    os << "LOCATION (" << uid.get_name() << ", ";
+    invariant.print(os) << ", ";
+    exp_rate.print(os) << ')';
+    return os;
+}
+
+std::ostream& edge_t::print(std::ostream& os) const
+{
+    os << "EDGE (";
+    src->print(os) << ' ';
+    dst->print(os) << ")\n";
+    os << "\t";
+    guard.print(os) << ", ";
+    sync.print(os) << ", ";
+    assign.print(os);
+    return os;
+}
+
+std::ostream& function_t::print(std::ostream& os) const
+{
+    auto type = uid.get_type();                                         // the function type/signature
+    type.get(0).print(os) << ' '                                        // return type
+                          << uid.get_name() << '(';                     // function name
+    if (type.size() > 1) {                                              // has arguments
+        type.get(1).print_declaration(os) << ' ' << type.get_label(1);  // first parameter type and name
+        for (uint32_t i = 2; i < type.size(); ++i)                      // remaining parameters
+            type.get(i).print_declaration(os << ", ") << ' ' << type.get_label(i);
     }
-    if (uid.getType().size() > 1)
-        str = str.substr(0, str.size() - 2);
-    str += ")\n{\n";
-
-    for (auto& variable : variables) {
-        str += "    " + variable.str();
-        str += ";\n";
-    }
-    str += body->str(INDENT);
-    str += "}";
-    return str;
+    os << ")\n{\n";  // open function body
+    for (auto& variable : variables)
+        variable.print(os << "    ") << ";\n";
+    os << body->str(INDENT);
+    return os << "}";
 }
 
-string variable_t::str() const
+std::ostream& variable_t::print(std::ostream& os) const
 {
-    string str = "";
-    string type = "";
-    if (uid.getType().isArray()) {
-        type = uid.getType().toDeclarationString();
-        size_t i = type.find('[');
-        str += type.substr(0, (int)i);
-        str += " ";
-        str += uid.getName();
-        str += type.substr((int)i, type.size() - (int)i);
+    string type = uid.get_type().declaration();
+    if (uid.get_type().is_array()) {
+        auto i = type.find('[');
+        assert(i != std::string::npos);
+        os << type.substr(0, i) << ' ' << uid.get_name() << type.substr(i, type.length() - i);
     } else {
-        str += uid.getType().toDeclarationString() + " " + uid.getName();
+        os << type << " " << uid.get_name();
     }
     if (!init.empty())
-        str += " = " + init.str();
-    return str;
+        init.print(os << " = ");
+    return os;
 }
 
-bool declarations_t::addFunction(type_t type, string name, position_t pos, function_t*& fun)
+bool declarations_t::add_function(type_t type, string name, position_t pos, function_t*& fun)
 {
-    bool duplicate = frame.getIndexOf(name) != -1;
+    bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
-    fun->uid = frame.addSymbol(name, type, pos, fun);  // Add symbol
+    fun->uid = frame.add_symbol(name, type, pos, fun);  // Add symbol
     return !duplicate;
 }
 
-string declarations_t::str(bool global) const
+std::ostream& declarations_t::print(std::ostream& os, bool global) const
 {
-    string str = "";
-    str += getConstants();
-    str += "\n";
-    str += getTypeDefinitions();
-    str += "\n";
-    str += getVariables(global);
-    str += "\n";
-    str += getFunctions();
-    return str;
+    print_constants(os) << "\n";
+    print_typedefs(os) << "\n";
+    print_variables(os, global) << "\n";
+    print_functions(os);
+    return os;
 }
 
-string declarations_t::getConstants() const
+std::string declarations_t::str(bool global) const
 {
-    auto str = string{};
+    auto os = std::ostringstream{};
+    print(os, global);
+    return os.str();
+}
+
+std::ostream& declarations_t::print_constants(std::ostream& os) const
+{
     if (!variables.empty()) {
         bool first = true;
-        for (auto& variable : variables) {
-            if (variable.uid.getType().getKind() == CONSTANT) {
+        for (const auto& variable : variables) {
+            if (variable.uid.get_type().get_kind() == CONSTANT) {
                 if (first) {
-                    str = "// constants\n";
+                    os << "// constants\n";
                     first = false;
                 }
-                str += variable.str();
-                str += ";\n";
+                variable.print(os) << ";\n";
             }
         }
     }
-    return str;
+    return os;
 }
 
-string declarations_t::getTypeDefinitions() const
+std::ostream& declarations_t::print_typedefs(std::ostream& os) const
 {
-    string str = "";
-    // type definitions
     bool first = true;
     for (auto& symbol : frame) {
-        if (symbol.getType().getKind() == TYPEDEF) {
+        if (symbol.get_type().get_kind() == TYPEDEF) {
             if (first) {
-                str += "// type definitions\n";
+                os << "// type definitions\n";
                 first = false;
             }
-            str += symbol.getType().toDeclarationString() + ";\n";
+            symbol.get_type().print_declaration(os) << ";\n";
         }
     }
-    return str;
+    return os;
 }
 
-string declarations_t::getVariables(bool global) const
+std::ostream& declarations_t::print_variables(std::ostream& os, bool global) const
 {
-    auto str = std::string{};
-    // variables
     if (!variables.empty()) {
-        str += "// variables\n";
-        for (const auto& var : variables) {
-            if (var.uid.getType().getKind() != CONSTANT) {
-                str += var.str();
-                str += ";\n";
-            }
-        }
+        os << "// variables\n";
+        for (const auto& var : variables)
+            if (var.uid.get_type().get_kind() != CONSTANT)
+                var.print(os) << ";\n";
     }
-    return str;
+    return os;
 }
 
-string declarations_t::getFunctions() const
+std::ostream& declarations_t::print_functions(std::ostream& os) const
 {
-    auto str = std::string{};
-    // functions
     if (!functions.empty()) {
-        str += "// functions\n";
-        for (const auto& fun : functions) {
-            str += fun.str();
-            str += "\n\n";
-        }
+        os << "// functions\n";
+        for (const auto& fun : functions)
+            fun.print(os) << "\n\n";
     }
-    return str;
+    return os;
 }
 
-std::string instance_t::writeMapping() const
+std::ostream& instance_t::print_mapping(std::ostream& os) const
 {
-    auto str = std::string{};
     for (const auto& [symbol, expr] : mapping)
-        str += symbol.getName() + " = " + expr.str() + "\n";
-    return str;
+        os << symbol.get_name() << " = " << expr.str() << "\n";
+    return os;
 }
 
-std::string instance_t::writeParameters() const
+std::ostream& instance_t::print_parameters(std::ostream& os) const
 {
-    auto str = std::string{};
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
-        str += b->getType().toDeclarationString() + " " + b->getName();
+        b->get_type().print_declaration(os) << " " << b->get_name();
         while (++b != e)
-            str += ", " + b->getType().toDeclarationString() + " " + b->getName();
+            b->get_type().print_declaration(os << ", ") << " " << b->get_name();
     }
-    return str;
+    return os;
 }
 
-std::string instance_t::writeArguments() const
+std::ostream& instance_t::print_arguments(std::ostream& os) const
 {
-    auto str = std::string{};
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
         auto itr = mapping.find(*b);
         assert(itr != std::end(mapping));
-        str += itr->second.str();
+        itr->second.print(os);
         while (++b != e) {
             itr = mapping.find(*b);
             assert(itr != std::end(mapping));
-            str += ", " + itr->second.str();
+            itr->second.print(os << ", ");
         }
     }
-    return str;
+    return os;
 }
 
-location_t& template_t::addLocation(const string& name, expression_t inv, expression_t er, position_t pos)
+std::string instance_t::mapping_str() const
 {
-    bool duplicate = frame.getIndexOf(name) != -1;
+    auto os = std::ostringstream{};
+    print_mapping(os);
+    return os.str();
+}
+
+std::string instance_t::parameters_str() const
+{
+    auto os = std::ostringstream{};
+    print_parameters(os);
+    return os.str();
+}
+
+std::string instance_t::arguments_str() const
+{
+    auto os = std::ostringstream{};
+    print_arguments(os);
+    return os.str();
+}
+
+location_t& template_t::add_location(const string& name, expression_t inv, expression_t er, position_t pos)
+{
+    bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
-    loc.uid = frame.addSymbol(name, type_t::createPrimitive(LOCATION), pos, &loc);
+    loc.uid = frame.add_symbol(name, type_t::create_primitive(LOCATION), pos, &loc);
     loc.nr = locations.size() - 1;
     loc.invariant = inv;
-    loc.exponentialRate = er;
+    loc.exp_rate = er;
     if (duplicate) {
         throw DuplicateDefinitionError(name);
     }
@@ -259,11 +274,11 @@ location_t& template_t::addLocation(const string& name, expression_t inv, expres
 
 // FIXME: like for unnamed locations, a name is autegenerated
 // this name may conflict with user-defined names
-branchpoint_t& template_t::addBranchpoint(const string& name, position_t pos)
+branchpoint_t& template_t::add_branchpoint(const string& name, position_t pos)
 {
-    bool duplicate = frame.getIndexOf(name) != -1;
+    bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
-    branchpoint.uid = frame.addSymbol(name, type_t::createPrimitive(BRANCHPOINT), pos, &branchpoint);
+    branchpoint.uid = frame.add_symbol(name, type_t::create_primitive(BRANCHPOINT), pos, &branchpoint);
     branchpoint.bpNr = branchpoints.size() - 1;
     if (duplicate) {
         throw DuplicateDefinitionError(name);
@@ -271,23 +286,23 @@ branchpoint_t& template_t::addBranchpoint(const string& name, position_t pos)
     return branchpoint;
 }
 
-edge_t& template_t::addEdge(symbol_t src, symbol_t dst, bool control, string actname)
+edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, string actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edges.push_back(edge_t());
-    if (src.getType().isLocation()) {
-        edges.back().src = static_cast<location_t*>(src.getData());
+    if (src.get_type().is_location()) {
+        edges.back().src = static_cast<location_t*>(src.get_data());
         edges.back().srcb = 0;
     } else {
         edges.back().src = 0;
-        edges.back().srcb = static_cast<branchpoint_t*>(src.getData());
+        edges.back().srcb = static_cast<branchpoint_t*>(src.get_data());
     }
-    if (dst.getType().isLocation()) {
-        edges.back().dst = static_cast<location_t*>(dst.getData());
+    if (dst.get_type().is_location()) {
+        edges.back().dst = static_cast<location_t*>(dst.get_data());
         edges.back().dstb = 0;
     } else {
         edges.back().dst = 0;
-        edges.back().dstb = static_cast<branchpoint_t*>(dst.getData());
+        edges.back().dstb = static_cast<branchpoint_t*>(dst.get_data());
     }
 
     edges.back().control = control;
@@ -297,13 +312,13 @@ edge_t& template_t::addEdge(symbol_t src, symbol_t dst, bool control, string act
 }
 
 // LSC
-instanceLine_t& template_t::addInstanceLine()
+instance_line_t& template_t::add_instance_line()
 {
-    // bool duplicate = frame.getIndexOf(name) != -1;
+    // bool duplicate = frame.get_index_of(name) != -1;
 
-    instances.push_back(instanceLine_t());
-    instanceLine_t& instance = instances.back();
-    // instance.uid = frame.addSymbol(name, type_t::createPrimitive(INSTANCELINE), &instance);
+    instances.push_back(instance_line_t());
+    instance_line_t& instance = instances.back();
+    // instance.uid = frame.add_symbol(name, type_t::create_primitive(INSTANCELINE), &instance);
     instance.instanceNr = instances.size() - 1;
 
     //    if (duplicate)
@@ -314,36 +329,36 @@ instanceLine_t& template_t::addInstanceLine()
     return instance;
 }
 
-message_t& template_t::addMessage(symbol_t src, symbol_t dst, int loc, bool pch)
+message_t& template_t::add_message(symbol_t src, symbol_t dst, int loc, bool pch)
 {
     int32_t nr = messages.empty() ? 0 : messages.back().nr + 1;
     messages.push_back(message_t());
-    messages.back().src = static_cast<instanceLine_t*>(src.getData());
-    messages.back().dst = static_cast<instanceLine_t*>(dst.getData());
+    messages.back().src = static_cast<instance_line_t*>(src.get_data());
+    messages.back().dst = static_cast<instance_line_t*>(dst.get_data());
     messages.back().location = loc;
     messages.back().isInPrechart = pch;
     messages.back().nr = nr;
     return messages.back();
 }
 
-update_t& template_t::addUpdate(symbol_t anchor, int loc, bool pch)
+update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
 {
     int32_t nr = updates.empty() ? 0 : updates.back().nr + 1;
     updates.push_back(update_t());
-    updates.back().anchor = static_cast<instanceLine_t*>(anchor.getData());
+    updates.back().anchor = static_cast<instance_line_t*>(anchor.get_data());
     updates.back().location = loc;
     updates.back().isInPrechart = pch;
     updates.back().nr = nr;
     return updates.back();
 }
 
-condition_t& template_t::addCondition(vector<symbol_t> anchors, int loc, bool pch, bool isHot)
+condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool pch, bool isHot)
 {
     int32_t nr = conditions.empty() ? 0 : conditions.back().nr + 1;
     auto& condition = conditions.emplace_back();
 
     for (auto& anchor : anchors) {
-        condition.anchors.push_back(static_cast<instanceLine_t*>(anchor.getData()));  // TODO
+        condition.anchors.push_back(static_cast<instance_line_t*>(anchor.get_data()));  // TODO
     }
     condition.location = loc;
     condition.isInPrechart = pch;
@@ -369,9 +384,9 @@ deque<Res> collect(Fn&& fn, const deque<Element>& elements)
  * at the same location.
  * a message, update or condition must be in only one simregion.
  */
-const vector<simregion_t> template_t::getSimregions()
+const vector<simregion_t> template_t::get_simregions()
 {
-    // cout <<"=======LSC: getSimregions=======\n";
+    // cout <<"=======LSC: get_simregions=======\n";
     // Copy the numbers of messages, conditions and updates from the scenario
     deque<int> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
     deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
@@ -385,23 +400,23 @@ const vector<simregion_t> template_t::getSimregions()
      */
     for (auto& message_nr : m_nr) {
         simregion_t s = simregion_t();
-        s.setMessage(messages, message_nr);
+        s.set_message(messages, message_nr);
 
-        instanceLine_t* source = s.message->src;
-        instanceLine_t* target = s.message->dst;
+        instance_line_t* source = s.message->src;
+        instance_line_t* target = s.message->dst;
         int y = s.message->location;
         /**
          * we give priority to the condition on the target, if there is also one
          * in the source, it must be part of another simregion
          */
-        if (getCondition(*target, y, s.condition)) {
+        if (get_condition(*target, y, s.condition)) {
             for (auto c_itr = c_nr.begin(); c_itr != c_nr.end(); ++c_itr) {
                 if (*c_itr == s.condition->nr) {
                     c_nr.erase(c_itr);
                     break;
                 }
             }
-        } else if (getCondition(*source, y, s.condition)) {
+        } else if (get_condition(*source, y, s.condition)) {
             for (auto c_itr = c_nr.begin(); c_itr != c_nr.end(); ++c_itr) {
                 if (*c_itr == s.condition->nr) {
                     c_nr.erase(c_itr);
@@ -409,14 +424,14 @@ const vector<simregion_t> template_t::getSimregions()
                 }
             }
         }
-        if (getUpdate(*target, y, s.update)) {
+        if (get_update(*target, y, s.update)) {
             for (auto u_itr = u_nr.begin(); u_itr != u_nr.end(); ++u_itr) {
                 if (*u_itr == s.update->nr) {
                     u_nr.erase(u_itr);
                     break;
                 }
             }
-        } else if (getUpdate(*source, y, s.update)) {
+        } else if (get_update(*source, y, s.update)) {
             for (auto u_itr = u_nr.begin(); u_itr != u_nr.end(); ++u_itr) {
                 if (*u_itr == s.update->nr) {
                     u_nr.erase(u_itr);
@@ -433,10 +448,10 @@ const vector<simregion_t> template_t::getSimregions()
      */
     for (auto& c_itr : c_nr) {
         auto s = simregion_t{};
-        s.setCondition(conditions, c_itr);
+        s.set_condition(conditions, c_itr);
 
         int y = s.condition->location;
-        if (getUpdate(s.condition->anchors, y, s.update)) {
+        if (get_update(s.condition->anchors, y, s.update)) {
             for (auto u_itr = u_nr.begin(); u_itr != u_nr.end(); ++u_itr) {
                 if (*u_itr == s.update->nr) {
                     u_nr.erase(u_itr);
@@ -453,7 +468,7 @@ const vector<simregion_t> template_t::getSimregions()
      */
     for (auto& u_itr : u_nr) {
         auto s = simregion_t();
-        s.setUpdate(updates, u_itr);
+        s.set_update(updates, u_itr);
         s.nr = simregions.size();
         simregions.push_back(s);
     }
@@ -470,12 +485,12 @@ const vector<simregion_t> template_t::getSimregions()
  * gets the condition on the given instance, at y location,
  * returns false if there isn't any
  */
-bool template_t::getCondition(instanceLine_t& instance, int y, condition_t*& simCondition)
+bool template_t::get_condition(instance_line_t& instance, int y, condition_t*& simCondition)
 {
     for (auto& condition : conditions) {
         if (condition.location == y) {
             for (auto& anchor : condition.anchors) {
-                instanceLine_t* instancej = anchor;
+                instance_line_t* instancej = anchor;
                 if (instancej->instanceNr == instance.instanceNr) {
                     simCondition = &condition;
                     return true;
@@ -490,7 +505,7 @@ bool template_t::getCondition(instanceLine_t& instance, int y, condition_t*& sim
  * gets the update on the given instance at y location,
  * returns false if there isn't any
  */
-bool template_t::getUpdate(instanceLine_t& instance, int y, update_t*& simUpdate)
+bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpdate)
 {
     for (auto& update : updates) {
         if (update.location == y) {
@@ -507,19 +522,19 @@ bool template_t::getUpdate(instanceLine_t& instance, int y, update_t*& simUpdate
  * gets the first update on one of the given instances, at y location
  * (in simUpdate), returns false if there isn't any
  */
-bool template_t::getUpdate(vector<instanceLine_t*>& instances, int y, update_t*& simUpdate)
+bool template_t::get_update(vector<instance_line_t*>& instances, int y, update_t*& simUpdate)
 {
     update_t update;
     for (auto& instance : instances) {
-        if (getUpdate(*instance, y, simUpdate))
+        if (get_update(*instance, y, simUpdate))
             return true;
     }
     return false;
 }
 
-void instanceLine_t::addParameters(instance_t& inst, frame_t params, const vector<expression_t>& arguments1)
+void instance_line_t::add_parameters(instance_t& inst, frame_t params, const vector<expression_t>& arguments1)
 {
-    unbound = params.getSize();
+    unbound = params.get_size();
     parameters = params;
     parameters.add(inst.parameters);
     mapping = inst.mapping;
@@ -534,7 +549,7 @@ void instanceLine_t::addParameters(instance_t& inst, frame_t params, const vecto
  * return the simregions anchored to this instance,
  * ordered by location number
  */
-vector<simregion_t> instanceLine_t::getSimregions(const vector<simregion_t>& simregions)
+vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& simregions)
 {
     vector<simregion_t> i_simregions;
     // get the simregions anchored to this instance
@@ -596,7 +611,7 @@ bool simregion_t::isInPrechart() const
     return false;  // should not happen
 }
 
-void simregion_t::setMessage(std::deque<message_t>& messages, int nr)
+void simregion_t::set_message(std::deque<message_t>& messages, int nr)
 {
     for (auto& message : messages) {
         if (message.nr == nr) {
@@ -606,7 +621,7 @@ void simregion_t::setMessage(std::deque<message_t>& messages, int nr)
     }
 }
 
-void simregion_t::setCondition(std::deque<condition_t>& conditions, int nr)
+void simregion_t::set_condition(std::deque<condition_t>& conditions, int nr)
 {
     for (auto& condition : conditions) {
         if (condition.nr == nr) {
@@ -616,7 +631,7 @@ void simregion_t::setCondition(std::deque<condition_t>& conditions, int nr)
     }
 }
 
-void simregion_t::setUpdate(std::deque<update_t>& updates, int nr)
+void simregion_t::set_update(std::deque<update_t>& updates, int nr)
 {
     for (auto& update : updates) {
         if (update.nr == nr) {
@@ -626,24 +641,30 @@ void simregion_t::setUpdate(std::deque<update_t>& updates, int nr)
     }
 }
 
-std::string simregion_t::str() const
+std::ostream& simregion_t::print(std::ostream& os) const
 {
-    auto s = std::string{"s("};
+    os << "s(";
+    auto need_sep = false;
     if (has_message()) {
-        s += "m:";
-        s += message->label.str();
-        s += " ";
+        message->label.print(os << "m:");
+        need_sep = true;
     }
     if (has_condition()) {
-        std::string b = (condition->isHot) ? " HOT " : "";
-        s += ("c:" + b + (condition->label.str()) + " ");
+        if (need_sep)
+            os << " ";
+        else
+            need_sep = true;
+        os << "c:";
+        if (condition->isHot)
+            os << " HOT ";
+        condition->label.print(os);
     }
     if (has_update()) {
-        s += ("u:" + update->label.str() + " ");
+        if (need_sep)
+            os << " ";
+        update->label.print(os << "u:");
     }
-    s = s.substr(0, s.size() - 1);
-    s += ")";
-    return s;
+    return os << ")";
 }
 
 inline auto find_simregion_by_nr(int nr)
@@ -697,40 +718,49 @@ bool cut_t::equals(const cut_t& y) const
     return ycopy.empty();
 }
 
+std::ostream& cut_t::print(std::ostream& os) const
+{
+    os << "CUT(";
+    if (auto b = simregions.begin(), e = simregions.end(); b != e) {
+        b->print(os);
+        while (++b != e)
+            b->print(os << " ");
+    }
+    return os << ")";
+};
+
 /**
  * return true if the LSC is of invariant mode
  */
-bool template_t::isInvariant()
+bool template_t::is_invariant()
 {
     if (isTA)
         return false;
     return mode == "invariant";
 }
 
-string chan_priority_t::str() const
+std::ostream& chan_priority_t::print(std::ostream& os) const
 {
-    auto str = std::string{};
-    str += "chan priority ";
+    os << "chan priority ";
     auto head_s = head.str();
-    if (head_s.size() == 0)
+    if (head_s.empty())
         head_s = "default";
 
-    str += head_s;
+    os << head_s;
     for (const auto& [ch, expr] : tail) {
         if (ch == '<')
-            str += " ";
-        str += ch;
-        str += " ";
-        str += expr.str();
+            os << ' ';
+        os << ch << ' ';
+        expr.print(os);
     }
-    return str;
+    return os;
 }
 
 Document::Document()
 {
     global.frame = frame_t::create();
 #ifdef ENABLE_CORA
-    addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t());
+    addVariable(&global, type_t::create_primitive(COST), "cost", expression_t());
 #endif
 }
 
@@ -748,18 +778,18 @@ library_t& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::addTemplate(const string& name, frame_t params, position_t position, const bool isTA,
-                                  const string& typeLSC, const string& mode)
+template_t& Document::add_template(const string& name, frame_t params, position_t position, const bool isTA,
+                                   const string& typeLSC, const string& mode)
 {
-    type_t type = (isTA) ? type_t::createInstance(params) : type_t::createLscInstance(params);
+    type_t type = (isTA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
     templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
-    templ.uid = global.frame.addSymbol(name, type, position, (instance_t*)&templ);
+    templ.uid = global.frame.add_symbol(name, type, position, (instance_t*)&templ);
     templ.arguments = 0;
-    templ.unbound = params.getSize();
+    templ.unbound = params.get_size();
     templ.isTA = isTA;
     templ.dynamic = false;
     // LSC
@@ -768,68 +798,68 @@ template_t& Document::addTemplate(const string& name, frame_t params, position_t
     return templ;
 }
 
-template_t& Document::addDynamicTemplate(const std::string& name, frame_t params, position_t pos)
+template_t& Document::add_dynamic_template(const std::string& name, frame_t params, position_t pos)
 {
-    type_t type = type_t::createInstance(params);
-    dynamicTemplates.emplace_back();
-    template_t& templ = dynamicTemplates.back();
+    type_t type = type_t::create_instance(params);
+    dyn_templates.emplace_back();
+    template_t& templ = dyn_templates.back();
     templ.parameters = params;
     templ.frame = frame_t::create(global.frame);
     templ.frame.add(params);
     templ.templ = &templ;
-    templ.uid = global.frame.addSymbol(name, type, pos, (instance_t*)&templ);
+    templ.uid = global.frame.add_symbol(name, type, pos, (instance_t*)&templ);
     templ.arguments = 0;
-    templ.unbound = params.getSize();
+    templ.unbound = params.get_size();
     templ.isTA = true;
     templ.dynamic = true;
-    templ.dynindex = dynamicTemplates.size() - 1;
+    templ.dynindex = dyn_templates.size() - 1;
     templ.isDefined = false;
     return templ;
 }
 
-std::vector<template_t*>& Document::getDynamicTemplates()
+std::vector<template_t*>& Document::get_dynamic_templates()
 {
-    if (dynamicTemplatesVec.size() != dynamicTemplates.size()) {
-        dynamicTemplatesVec.clear();
-        dynamicTemplatesVec.reserve(dynamicTemplates.size());
-        for (auto&& t : dynamicTemplates)
-            dynamicTemplatesVec.push_back(&t);
+    if (dyn_templates_vec.size() != dyn_templates.size()) {
+        dyn_templates_vec.clear();
+        dyn_templates_vec.reserve(dyn_templates.size());
+        for (auto&& t : dyn_templates)
+            dyn_templates_vec.push_back(&t);
     }
-    return dynamicTemplatesVec;
+    return dyn_templates_vec;
 }
 
 inline auto equal_name(const std::string& name)
 {
-    return [&name](const auto& e) { return (e.uid.getName() == name); };
+    return [&name](const auto& e) { return (e.uid.get_name() == name); };
 }
 
-const template_t* Document::findTemplate(const std::string& name) const
+const template_t* Document::find_template(const std::string& name) const
 {
     auto has_name = equal_name(name);
     auto it = std::find_if(templates.begin(), templates.end(), has_name);
     if (it == templates.end()) {
-        it = std::find_if(std::begin(dynamicTemplates), std::end(dynamicTemplates), has_name);
-        if (it == std::end(dynamicTemplates))
+        it = std::find_if(std::begin(dyn_templates), std::end(dyn_templates), has_name);
+        if (it == std::end(dyn_templates))
             return nullptr;
     }
     return &(*it);
 }
 
-template_t* Document::getDynamicTemplate(const std::string& name)
+template_t* Document::find_dynamic_template(const std::string& name)
 {
-    auto it = std::find_if(std::begin(dynamicTemplates), std::end(dynamicTemplates), equal_name(name));
-    if (it == std::end(dynamicTemplates))
+    auto it = std::find_if(dyn_templates.begin(), dyn_templates.end(), equal_name(name));
+    if (it == std::end(dyn_templates))
         return nullptr;
     return &(*it);
 }
 
-instance_t& Document::addInstance(const string& name, instance_t& inst, frame_t params,
-                                  const vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_instance(const string& name, instance_t& inst, frame_t params,
+                                   const vector<expression_t>& arguments, position_t pos)
 {
-    type_t type = type_t::createInstance(params);
+    type_t type = type_t::create_instance(params);
     instance_t& instance = instances.emplace_back();
-    instance.uid = global.frame.addSymbol(name, type, pos, &instance);
-    instance.unbound = params.getSize();
+    instance.uid = global.frame.add_symbol(name, type, pos, &instance);
+    instance.unbound = params.get_size();
     instance.parameters = params;
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
@@ -840,13 +870,13 @@ instance_t& Document::addInstance(const string& name, instance_t& inst, frame_t 
     return instance;
 }
 
-instance_t& Document::addLscInstance(const string& name, instance_t& inst, frame_t params,
-                                     const vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_LSC_instance(const string& name, instance_t& inst, frame_t params,
+                                       const vector<expression_t>& arguments, position_t pos)
 {
-    type_t type = type_t::createLscInstance(params);
-    instance_t& instance = lscInstances.emplace_back();
-    instance.uid = global.frame.addSymbol(name, type, pos, &instance);
-    instance.unbound = params.getSize();
+    type_t type = type_t::create_LSC_instance(params);
+    instance_t& instance = lsc_instances.emplace_back();
+    instance.uid = global.frame.add_symbol(name, type, pos, &instance);
+    instance.unbound = params.get_size();
     instance.parameters = params;
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
@@ -857,9 +887,9 @@ instance_t& Document::addLscInstance(const string& name, instance_t& inst, frame
     return instance;
 }
 
-void Document::removeProcess(instance_t& instance)
+void Document::remove_process(instance_t& instance)
 {
-    getGlobals().frame.remove(instance.uid);
+    get_globals().frame.remove(instance.uid);
     for (auto itr = processes.cbegin(); itr != processes.cend(); ++itr) {
         if (itr->uid == instance.uid) {
             processes.erase(itr);
@@ -868,61 +898,59 @@ void Document::removeProcess(instance_t& instance)
     }
 }
 
-void Document::addProcess(instance_t& instance, position_t pos)
+void Document::add_process(instance_t& instance, position_t pos)
 {
     type_t type;
     instance_t& process = processes.emplace_back(instance);
     if (process.unbound == 0)
-        type = type_t::createProcess(process.templ->frame);
+        type = type_t::create_process(process.templ->frame);
     else
-        type = type_t::createProcessSet(instance.uid.getType());
-    process.uid = global.frame.addSymbol(instance.uid.getName(), type, pos, &process);
+        type = type_t::create_process_set(instance.uid.get_type());
+    process.uid = global.frame.add_symbol(instance.uid.get_name(), type, pos, &process);
 }
 
-void Document::addGantt(declarations_t* context, gantt_t g) { context->ganttChart.push_back(std::move(g)); }
+void Document::add_gantt(declarations_t* context, gantt_t g) { context->ganttChart.push_back(std::move(g)); }
 
-void Document::addQuery(query_t query) { queries.push_back(std::move(query)); }
+void Document::add_query(query_t query) { queries.push_back(std::move(query)); }
 
-bool Document::queriesEmpty() const { return queries.empty(); }
+options_t& Document::get_options() { return model_options; }
 
-options_t& Document::getOptions() { return modelOptions; }
+void Document::set_options(const options_t& options) { model_options = options; }
 
-void Document::setOptions(const options_t& options) { modelOptions = options; }
-
-queries_t& Document::getQueries() { return queries; }
+queries_t& Document::get_queries() { return queries; }
 
 // Add a regular variable
-variable_t* Document::addVariable(declarations_t* context, type_t type, const string& name, expression_t initial,
-                                  position_t pos)
+variable_t* Document::add_variable(declarations_t* context, type_t type, const string& name, expression_t initial,
+                                   position_t pos)
 {
-    variable_t* var = addVariable(context->variables, context->frame, type, name, pos);
+    variable_t* var = add_variable(context->variables, context->frame, type, name, pos);
     var->init = initial;
     return var;
 }
 
-variable_t* Document::addVariableToFunction(function_t* function, frame_t frame, type_t type, const string& name,
-                                            expression_t initial, position_t pos)
+variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type, const string& name,
+                                               expression_t initial, position_t pos)
 {
-    variable_t* var = addVariable(function->variables, frame, type, name, pos);
+    variable_t* var = add_variable(function->variables, frame, type, name, pos);
     var->init = initial;
     return var;
 }
 
 // Add a regular variable
-variable_t* Document::addVariable(list<variable_t>& variables, frame_t frame, type_t type, const string& name,
-                                  position_t pos)
+variable_t* Document::add_variable(list<variable_t>& variables, frame_t frame, type_t type, const string& name,
+                                   position_t pos)
 {
-    bool duplicate = frame.getIndexOf(name) != -1;
+    bool duplicate = frame.contains(name);
     // Add variable
     variable_t& var = variables.emplace_back();
     // Add symbol
-    var.uid = frame.addSymbol(name, type, pos, &var);
+    var.uid = frame.add_symbol(name, type, pos, &var);
     if (duplicate)
         throw DuplicateDefinitionError(name);
     return &var;
 }
 
-void Document::copyVariablesFromTo(const template_t* from, template_t* to) const
+void Document::copy_variables_from_to(const template_t* from, template_t* to) const
 {
     for (auto&& var : from->variables) {
         to->variables.push_back(var);
@@ -930,32 +958,32 @@ void Document::copyVariablesFromTo(const template_t* from, template_t* to) const
     }
 }
 
-void Document::copyFunctionsFromTo(const template_t* from, template_t* to) const
+void Document::copy_functions_from_to(const template_t* from, template_t* to) const
 {
     // TODO to be implemented and to be used in Translator::lscProcBegin (see Translator.cpp)
 }
 
-void Document::addProgressMeasure(declarations_t* context, expression_t guard, expression_t measure)
+void Document::add_progress_measure(declarations_t* context, expression_t guard, expression_t measure)
 {
     context->progress.emplace_back(guard, measure);
 }
 
-static void visit(SystemVisitor& visitor, frame_t frame)
+static void visit(DocumentVisitor& visitor, frame_t frame)
 {
-    for (size_t i = 0; i < frame.getSize(); ++i) {
-        type_t type = frame[i].getType();
+    for (size_t i = 0; i < frame.get_size(); ++i) {
+        type_t type = frame[i].get_type();
 
-        if (type.getKind() == TYPEDEF) {
+        if (type.get_kind() == TYPEDEF) {
             visitor.visitTypeDef(frame[i]);
             continue;
         }
 
-        void* data = frame[i].getData();
-        type = type.stripArray();
+        void* data = frame[i].get_data();
+        type = type.strip_array();
 
         if ((type.is(Constants::INT) || type.is(Constants::STRING) || type.is(Constants::DOUBLE) ||
              type.is(Constants::BOOL) || type.is(CLOCK) || type.is(CHANNEL) || type.is(SCALAR) ||
-             type.getKind() == RECORD) &&
+             type.get_kind() == RECORD) &&
             data != nullptr)  // <--- ignore parameters
         {
             visitor.visitVariable(*static_cast<variable_t*>(data));
@@ -965,49 +993,49 @@ static void visit(SystemVisitor& visitor, frame_t frame)
             visitor.visitLocation(*static_cast<location_t*>(data));
         } else if (type.is(FUNCTION)) {
             visitor.visitFunction(*static_cast<function_t*>(data));
-        } else if (type.is(EXTERNAL_FUNCTION)) {
+        } else if (type.is(FUNCTION_EXTERNAL)) {
             // we cannot look inside a external function, skip.
-        } else if (type.is(INSTANCELINE)) {
-            visitor.visitInstanceLine(*static_cast<instanceLine_t*>(data));
+        } else if (type.is(INSTANCE_LINE)) {
+            visitor.visitInstanceLine(*static_cast<instance_line_t*>(data));
         }
     }
 }
 
-void Document::accept(SystemVisitor& visitor)
+void Document::accept(DocumentVisitor& visitor)
 {
-    visitor.visitSystemBefore(this);
+    visitor.visitDocBefore(*this);
     visit(visitor, global.frame);
     for (auto t = templates.begin(); t != templates.end(); ++t) {
         if (visitor.visitTemplateBefore(*t)) {
             visit(visitor, t->frame);
-            for_each(t->edges.begin(), t->edges.end(), bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(), bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(), bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(), bind(&SystemVisitor::visitCondition, &visitor, _1));
+            for_each(t->edges.begin(), t->edges.end(), bind(&DocumentVisitor::visitEdge, &visitor, _1));
+            for_each(t->messages.begin(), t->messages.end(), bind(&DocumentVisitor::visitMessage, &visitor, _1));
+            for_each(t->updates.begin(), t->updates.end(), bind(&DocumentVisitor::visitUpdate, &visitor, _1));
+            for_each(t->conditions.begin(), t->conditions.end(), bind(&DocumentVisitor::visitCondition, &visitor, _1));
             visitor.visitTemplateAfter(*t);
         }
     }
 
-    for (auto t = dynamicTemplates.begin(); t != dynamicTemplates.end(); ++t) {
+    for (auto t = dyn_templates.begin(); t != dyn_templates.end(); ++t) {
         if (visitor.visitTemplateBefore(*t)) {
             visit(visitor, t->frame);
-            for_each(t->edges.begin(), t->edges.end(), bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(), bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(), bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(), bind(&SystemVisitor::visitCondition, &visitor, _1));
+            for_each(t->edges.begin(), t->edges.end(), bind(&DocumentVisitor::visitEdge, &visitor, _1));
+            for_each(t->messages.begin(), t->messages.end(), bind(&DocumentVisitor::visitMessage, &visitor, _1));
+            for_each(t->updates.begin(), t->updates.end(), bind(&DocumentVisitor::visitUpdate, &visitor, _1));
+            for_each(t->conditions.begin(), t->conditions.end(), bind(&DocumentVisitor::visitCondition, &visitor, _1));
             visitor.visitTemplateAfter(*t);
         }
     }
 
-    for (size_t i = 0; i < global.frame.getSize(); ++i) {
-        type_t type = global.frame[i].getType();
-        void* data = global.frame[i].getData();
-        type = type.stripArray();
-        if (type.is(PROCESS) || type.is(PROCESSSET)) {
+    for (size_t i = 0; i < global.frame.get_size(); ++i) {
+        type_t type = global.frame[i].get_type();
+        void* data = global.frame[i].get_data();
+        type = type.strip_array();
+        if (type.is(PROCESS) || type.is(PROCESS_SET)) {
             visitor.visitProcess(*static_cast<instance_t*>(data));
         } else if (type.is(INSTANCE)) {
             visitor.visitInstance(*static_cast<instance_t*>(data));
-        } else if (type.is(LSCINSTANCE)) {
+        } else if (type.is(LSC_INSTANCE)) {
             visitor.visitInstance(*static_cast<instance_t*>(data));
         }
     }
@@ -1022,87 +1050,70 @@ void Document::accept(SystemVisitor& visitor)
     for (auto&& gantt : global.ganttChart)
         visitor.visitGanttChart(gantt);
 
-    visitor.visitSystemAfter(this);
+    visitor.visitDocAfter(*this);
 }
 
-void Document::setBeforeUpdate(expression_t e) { beforeUpdate = e; }
+void Document::set_before_update(expression_t e) { before_update = e; }
 
-expression_t Document::getBeforeUpdate() { return beforeUpdate; }
+expression_t Document::get_before_update() { return before_update; }
 
-void Document::setAfterUpdate(expression_t e) { afterUpdate = e; }
+void Document::set_after_update(expression_t e) { after_update = e; }
 
-expression_t Document::getAfterUpdate() { return afterUpdate; }
+expression_t Document::get_after_update() { return after_update; }
 
-void Document::beginChanPriority(expression_t chan)
+void Document::begin_chan_priority(expression_t chan)
 {
     hasPriorities |= true;
     chan_priority_t priorities;
     priorities.head = chan;
-    chanPriorities.push_back(priorities);
+    chan_priorities.push_back(priorities);
 }
 
-void Document::addChanPriority(char separator, expression_t chan)
+void Document::add_chan_priority(char separator, expression_t chan)
 {
     assert(separator == ',' || separator == '<');
-    chan_priority_t::tail_t& tail = chanPriorities.back().tail;
+    chan_priority_t::tail_t& tail = chan_priorities.back().tail;
     tail.push_back(chan_priority_t::entry(separator, chan));
 }
 
-const std::list<chan_priority_t>& Document::getChanPriorities() const { return chanPriorities; }
-
-std::list<chan_priority_t>& Document::getMutableChanPriorities() { return chanPriorities; }
-
-void Document::setProcPriority(const string& name, int priority)
+void Document::set_proc_priority(const string& name, int priority)
 {
     hasPriorities |= (priority != 0);
-    procPriority[name] = priority;
+    proc_priority[name] = priority;
 }
 
-int Document::getProcPriority(const char* name) const
+int Document::get_proc_priority(const char* name) const
 {
-    assert(procPriority.find(name) != procPriority.end());
-    return procPriority.find(name)->second;
+    auto it = proc_priority.find(name);
+    assert(it != proc_priority.end());
+    return it->second;
 }
 
-bool Document::hasPriorityDeclaration() const { return hasPriorities; }
-
-void Document::recordStrictInvariant() { hasStrictInv = true; }
-
-bool Document::hasStrictInvariants() const { return hasStrictInv; }
-
-void Document::recordStopWatch() { stopsClock = true; }
-
-bool Document::hasStopWatch() const { return stopsClock; }
-
-bool Document::hasStrictLowerBoundOnControllableEdges() const { return hasStrictLowControlledGuards; }
-
-void Document::recordStrictLowerBoundOnControllableEdges() { hasStrictLowControlledGuards = true; }
-
-void Document::addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
+void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
 {
     positions.add(position, offset, line, path);
 }
 
-const Positions::line_t& Document::findPosition(uint32_t position) const { return positions.find(position); }
+const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
 
-void Document::addError(position_t position, std::string msg, std::string context)
+void Document::add_error(position_t position, std::string msg, std::string context)
 {
     errors.emplace_back(positions.find(position.start), positions.find(position.end), position, std::move(msg),
                         std::move(context));
 }
 
-void Document::addWarning(position_t position, const std::string& msg, const std::string& context)
+void Document::add_warning(position_t position, const std::string& msg, const std::string& context)
 {
     warnings.emplace_back(positions.find(position.start), positions.find(position.end), position, msg, context);
 }
 
-iodecl_t* Document::addIODecl()
+iodecl_t* Document::add_io_decl()
 {
     global.iodecl.emplace_back();
     return &global.iodecl.back();
 }
 
-void Document::setSupportedMethods(const SupportedMethods& supportedMethods)
+void Document::set_supported_methods(const SupportedMethods& supported_methods)
 {
-    this->supportedMethods = supportedMethods;
+    this->supported_methods = supported_methods;
 }

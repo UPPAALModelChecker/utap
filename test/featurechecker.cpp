@@ -42,9 +42,9 @@ int main(int argc, char** argv)
     std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
 
     auto document = std::make_unique<UTAP::Document>();
-    parseXMLBuffer(content.c_str(), document.get(), true);
+    parse_XML_buffer(content.c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
-    const auto& type = checker.getSupportedMethods();
+    const auto& type = checker.get_supported_methods();
 
     std::cout << "UTAP feature checker" << std::endl;
     std::cout << "Checking file: " << filename << std::endl;

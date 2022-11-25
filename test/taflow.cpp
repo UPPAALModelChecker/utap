@@ -112,9 +112,9 @@ int main(int argc, char* argv[])
             exit(EXIT_FAILURE);
         }
         if (strcasecmp(".xml", argv[optind] + strlen(argv[optind]) - 4) == 0) {
-            parseXMLFile(argv[optind], &document, !old);
+            parse_XML_file(argv[optind], &document, !old);
         } else {
-            parseXTA(argv[optind], &document, !old);
+            parse_XTA(argv[optind], &document, !old);
         }
     } catch (TypeException& e) {
         cerr << e.what() << endl;
@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
     TypeChecker tc(document);
     document.accept(tc);
 
-    for (const auto& error : document.getErrors()) {
+    for (const auto& error : document.get_errors()) {
         cerr << error << endl;
     }
-    for (const auto& warning : document.getWarnings()) {
+    for (const auto& warning : document.get_warnings()) {
         cerr << warning << endl;
     }
 

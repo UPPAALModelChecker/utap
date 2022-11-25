@@ -28,14 +28,14 @@
 
 namespace UTAP
 {
-    class FeatureChecker : public SystemVisitor, public AbstractStatementVisitor
+    class FeatureChecker : public DocumentVisitor, public AbstractStatementVisitor
     {
     private:
-        SupportedMethods supportedMethods{};
+        SupportedMethods supported_methods{};
 
     public:
         explicit FeatureChecker(Document& document);
-        SupportedMethods getSupportedMethods() { return supportedMethods; }
+        SupportedMethods get_supported_methods() { return supported_methods; }
 
         void visitEdge(edge_t& edge) override;
         void visitAssignment(expression_t& ass);

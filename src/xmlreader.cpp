@@ -225,7 +225,7 @@ namespace UTAP
             path.pop_back();
             return path.back().back();
         }
-        [[nodiscard]] std::string get(tag_t tag = tag_t::NONE) const;
+        [[nodiscard]] std::string str(tag_t tag = tag_t::NONE) const;
     };
 
     static inline size_t count(const std::vector<tag_t>& level, tag_t tag)
@@ -234,7 +234,7 @@ namespace UTAP
     }
 
     /** Returns the XPath encoding of the current path. */
-    [[nodiscard]] std::string Path::get(tag_t tag) const
+    [[nodiscard]] std::string Path::str(tag_t tag) const
     {
         std::ostringstream str;
         for (auto&& level : path) {
@@ -293,8 +293,6 @@ namespace UTAP
         return str.str();
     }
 
-    using xmlTextReader_ptr = std::unique_ptr<xmlTextReader, decltype(xmlFreeTextReader)&>;
-
     /**
      * Implements a recursive descent parser for UPPAAL XML documents.
      * Uses the xmlTextReader API from libxml2.
@@ -303,7 +301,7 @@ namespace UTAP
     {
     private:
         using elementmap_t = std::map<std::string, std::string>;
-
+        using xmlTextReader_ptr = std::unique_ptr<xmlTextReader, decltype(xmlFreeTextReader)&>;
         xmlTextReader_ptr reader; /**< The underlying xmlTextReader */
         elementmap_t names;       /**< Map from id to name */
         ParserBuilder* parser;    /**< The parser builder to which to push the model. */
@@ -355,7 +353,7 @@ namespace UTAP
                 ;
         }
         /** Returns the name of a location. */
-        const std::string& getName(const char* id) const;
+        const std::string& get_name(const char* id) const;
         /** Invokes the bison generated parser to parse the given string. */
         int parse(const xmlChar*, xta_part_t syntax);
         /** Parse optional declaration. */
@@ -540,7 +538,7 @@ namespace UTAP
         }
         if (xmlTextReaderRead(reader.get()) != 1) {
             /* Premature end of document. */
-            throw XMLReaderError("Unexpected end");
+            throw XMLReaderError(errno, std::system_category(), "$unexpected $end");
         }
 
         if (getNodeType() == XML_READER_TYPE_ELEMENT) {
@@ -548,7 +546,7 @@ namespace UTAP
         }
     }
 
-    const std::string& XMLReader::getName(const char* id) const
+    const std::string& XMLReader::get_name(const char* id) const
     {
         if (id) {
             if (auto l = names.find(id); l != names.end())
@@ -559,7 +557,7 @@ namespace UTAP
 
     int XMLReader::parse(const xmlChar* text, xta_part_t syntax)
     {
-        return parseXTA((const char*)text, parser, newxta, syntax, path.get());
+        return parse_XTA((const char*)text, parser, newxta, syntax, path.str());
     }
 
     bool XMLReader::declaration()
@@ -596,7 +594,7 @@ namespace UTAP
             xmlFree(kind);
             return true;
         } else if (required) {
-            tracker.setPath(parser, path.get());
+            tracker.setPath(parser, path.str());
             if (s_kind == "message")  // LSC
                 parser->handleError(TypeException{"$Message_label_is_required"});
             else if (s_kind == "update")  // LSC
@@ -626,7 +624,7 @@ namespace UTAP
                     if (parse(text, S_INVARIANT) == 0)
                         result = 0;
                 } else if (kind_sv == "exponentialrate") {
-                    if (parse(text, S_EXPONENTIALRATE) == 0)
+                    if (parse(text, S_EXPONENTIAL_RATE) == 0)
                         result = 1;
                 }
             }
@@ -649,7 +647,7 @@ namespace UTAP
             xmlChar* text = xmlTextReaderValue(reader.get());
             auto len = text ? std::strlen((const char*)text) : 0;
             auto text_sv = std::string_view{(const char*)text, len};
-            tracker.setPath(parser, path.get());
+            tracker.setPath(parser, path.str());
             tracker.increment(parser, text_sv.size());
             try {
                 std::string_view id = (instanceLine) ? text_sv : symbol(text_sv);
@@ -671,7 +669,7 @@ namespace UTAP
     {
         read();
         if (getNodeType() == XML_READER_TYPE_TEXT) {  // text content of a node
-            tracker.setPath(parser, path.get());
+            tracker.setPath(parser, path.str());
             xmlChar* text = xmlTextReaderValue(reader.get());
             const char* pc = (const char*)text;
             auto len = std::strlen(pc);
@@ -739,7 +737,7 @@ namespace UTAP
 
         if (begin(tag_t::LOCATION, false)) {
             try {
-                std::string l_path = path.get(tag_t::LOCATION);
+                std::string l_path = path.str(tag_t::LOCATION);
                 /* Extract ID attribute. */
                 auto l_id = getAttributeStr("id");
                 if (is_blank(l_id))
@@ -770,7 +768,7 @@ namespace UTAP
                  * length 1.
                  */
                 tracker.setPath(parser, l_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
 
                 /* Push location to parser builder. */
                 parser->procState(l_name.c_str(), l_invariant, l_exponentialRate);
@@ -791,7 +789,7 @@ namespace UTAP
     {
         if (begin(tag_t::INSTANCE, false)) {
             try {
-                std::string i_path = path.get(tag_t::INSTANCE);
+                std::string i_path = path.str(tag_t::INSTANCE);
                 /* Extract ID attribute. */
                 auto i_id = getAttributeStr("id");
                 read();
@@ -800,7 +798,7 @@ namespace UTAP
 
                 /* Get name of the instance. */
                 tracker.setPath(parser, i_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 std::string i_name = name(true);
 
                 /* Remember the mapping from id to name */
@@ -813,10 +811,10 @@ namespace UTAP
                  * position of length 1.
                  */
                 tracker.setPath(parser, i_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 /* Push instance to parser builder. */
                 parser->procInstanceLine();
-                parse((xmlChar*)i_name.c_str(), S_INSTANCELINE);
+                parse((xmlChar*)i_name.c_str(), S_INSTANCE_LINE);
             } catch (TypeException& e) {
                 parser->handleError(e);
             }
@@ -849,13 +847,13 @@ namespace UTAP
     {
         if (begin(tag_t::PRECHART, false)) {
             try {
-                std::string p_path = path.get(tag_t::PRECHART);
+                std::string p_path = path.str(tag_t::PRECHART);
                 /* Get the bottom location number */
                 read();
                 bottomPrechart = lscLocation();
                 if (strcasecmp(currentType.c_str(), "existential") == 0) {
                     tracker.setPath(parser, p_path);
-                    tracker.increment(parser, 1);
+                    tracker.increment(parser);
                     parser->handleError(TypeException{"$Existential_charts_must_not_have_prechart"});
                 }
                 parser->hasPrechart(true);
@@ -875,17 +873,17 @@ namespace UTAP
         if (begin(tag_t::MESSAGE)) {
             /* Add dummy position mapping to the message element. */
             try {
-                std::string m_path = path.get(tag_t::MESSAGE);
+                std::string m_path = path.str(tag_t::MESSAGE);
                 read();
                 std::string from = source();
                 std::string to = target();
                 int location = lscLocation();
                 bool pch = (location < bottomPrechart);
                 tracker.setPath(parser, m_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procMessage(from.c_str(), to.c_str(), location, pch);
                 tracker.setPath(parser, m_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 label(true, "message");
             } catch (TypeException& e) {
                 parser->handleError(e);
@@ -899,7 +897,7 @@ namespace UTAP
     {
         if (begin(tag_t::CONDITION)) {
             try {
-                std::string c_path = path.get(tag_t::CONDITION);
+                std::string c_path = path.str(tag_t::CONDITION);
                 read();
 
                 std::vector<std::string> instance_anchors = anchors();
@@ -907,7 +905,7 @@ namespace UTAP
                 bool pch = (location < bottomPrechart);
 
                 tracker.setPath(parser, c_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 std::string temp = temperature();
                 bool hot = (temp == "hot");
                 parser->procCondition(instance_anchors, location, pch, hot);
@@ -925,7 +923,7 @@ namespace UTAP
     {
         if (begin(tag_t::UPDATE)) {
             try {
-                std::string u_path = path.get(tag_t::UPDATE);
+                std::string u_path = path.str(tag_t::UPDATE);
                 // location = atoi((char*)xmlTextReaderGetAttribute(reader, (const xmlChar*)"y"));
                 // pch = (location < bottomPrechart);
                 read();
@@ -934,7 +932,7 @@ namespace UTAP
                 bool pch = (location < bottomPrechart);
 
                 tracker.setPath(parser, u_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procLscUpdate(instance_anchor.c_str(), location, pch);
                 label(true, "update");
             } catch (TypeException& e) {
@@ -949,7 +947,7 @@ namespace UTAP
     {
         if (begin(tag_t::BRANCHPOINT, false)) {
             try {
-                std::string b_path = path.get(tag_t::BRANCHPOINT);
+                std::string b_path = path.str(tag_t::BRANCHPOINT);
                 auto b_id = getAttributeStr("id");
                 if (is_blank(b_id)) {
                     throw TypeException{"Branchpoint must have a unique \"id\" attribute"};
@@ -966,7 +964,7 @@ namespace UTAP
                  * length 1.
                  */
                 tracker.setPath(parser, b_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 /* Push branchpoint to parser builder. */
                 parser->procBranchpoint(b_name.c_str());
             } catch (TypeException& e) {
@@ -985,7 +983,7 @@ namespace UTAP
             char* ref = getAttribute("ref");
             /* Find location name for the reference. */
             if (ref) {
-                std::string name = getName(ref);
+                std::string name = get_name(ref);
                 try {
                     parser->procStateInit(name.c_str());
                 } catch (TypeException& te) {
@@ -1006,7 +1004,7 @@ namespace UTAP
     std::string XMLReader::reference(const std::string& attributeName)
     {
         char* id = getAttribute(attributeName.c_str());
-        std::string name = getName(id);
+        std::string name = get_name(id);
         xmlFree(id);
         read();
         return name;
@@ -1090,7 +1088,7 @@ namespace UTAP
     bool XMLReader::templ()
     {
         if (begin(tag_t::TEMPLATE)) {
-            std::string t_path = path.get(tag_t::TEMPLATE);
+            std::string t_path = path.str(tag_t::TEMPLATE);
             read();
             try {
                 /* Get the name and the parameters of the template. */
@@ -1100,7 +1098,7 @@ namespace UTAP
                 /* Push template start to parser builder. This might
                  * throw a TypeException. */
                 tracker.setPath(parser, t_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procBegin(t_name.c_str());
 
                 /* Parse declarations, locations, branchpoints,
@@ -1111,14 +1109,14 @@ namespace UTAP
                 while (branchpoint())
                     ;
                 tracker.setPath(parser, t_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 init();
                 while (transition())
                     ;
 
                 /* Push template end to parser builder. */
                 tracker.setPath(parser, t_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procEnd();
             } catch (TypeException& e) {
                 parser->handleError(e);
@@ -1132,7 +1130,7 @@ namespace UTAP
     bool XMLReader::lscTempl()
     {
         if (begin(tag_t::LSC)) {
-            std::string t_path = path.get(tag_t::LSC);
+            std::string t_path = path.str(tag_t::LSC);
             read();
             try {
                 /* Get the name and the parameters of the template. */
@@ -1144,7 +1142,7 @@ namespace UTAP
                 /* Push template start to parser builder. This might
                  * throw a TypeException. */
                 tracker.setPath(parser, t_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procBegin(t_name.c_str(), false, currentType, currentMode);
 
                 /* Parse declarations, locations, instances, prechart
@@ -1164,7 +1162,7 @@ namespace UTAP
 
                 /* Push template end to parser builder. */
                 tracker.setPath(parser, t_path);
-                tracker.increment(parser, 1);
+                tracker.increment(parser);
                 parser->procEnd();
             } catch (TypeException& e) {
                 parser->handleError(e);
@@ -1199,8 +1197,8 @@ namespace UTAP
             // bison doesn't manage to properly set the position of errors,
             // leading to nonsense error placements.
             if (nodeType == XML_READER_TYPE_END_ELEMENT || is_blank(text)) {
-                tracker.setPath(parser, path.get(tag_t::SYSTEM));
-                tracker.increment(parser, 1);
+                tracker.setPath(parser, path.str(tag_t::SYSTEM));
+                tracker.increment(parser);
                 parser->handleError(TypeException{"$syntax_error: $unexpected $end"});
                 close(tag_t::SYSTEM);
                 return;
@@ -1208,9 +1206,9 @@ namespace UTAP
             parse(text, S_SYSTEM);
             close(tag_t::SYSTEM);
         } else {
-            std::string s = (nta) ? path.get(tag_t::NTA) : path.get(tag_t::PROJECT);
+            std::string s = (nta) ? path.str(tag_t::NTA) : path.str(tag_t::PROJECT);
             tracker.setPath(parser, s);
-            tracker.increment(parser, 1);
+            tracker.increment(parser);
             parser->handleError(TypeException{"$Missing_system_tag"});
         }
     }
@@ -1250,7 +1248,7 @@ namespace UTAP
         if (begin(tag_t::FORMULA, false)) {
             if (!isEmpty()) {
                 read();
-                std::string xpath = path.get(tag_t::FORMULA);
+                std::string xpath = path.str(tag_t::FORMULA);
                 parser->queryFormula((const char*)xmlTextReaderConstValue(reader.get()), xpath.c_str());
                 close(tag_t::FORMULA);
             } else
@@ -1326,24 +1324,22 @@ namespace UTAP
 
     void XMLReader::project()
     {
-        if (!begin(tag_t::NTA) && !begin(tag_t::PROJECT)) {
+        if (!begin(tag_t::NTA) && !begin(tag_t::PROJECT))
             throw TypeException{"$Missing_nta_or_project_tag"};
-        } else {
-            nta = begin(tag_t::NTA);  // "nta" or "project"?
-            if (newxta)
-                parse((const xmlChar*)utap_builtin_declarations(), S_DECLARATION);
-            read();
-            declaration();
-            while (templ())
-                ;
-            while (lscTempl())
-                ;
-            instantiation();
-            system();
-            if ((nta && !end(tag_t::NTA)) || (!nta && !end(tag_t::PROJECT)))
-                queries();
-            parser->done();
-        }
+        nta = begin(tag_t::NTA);  // "nta" or "project"?
+        if (newxta)
+            parse((const xmlChar*)utap_builtin_declarations(), S_DECLARATION);
+        read();
+        declaration();
+        while (templ())
+            ;
+        while (lscTempl())
+            ;
+        instantiation();
+        system();
+        if ((nta && !end(tag_t::NTA)) || (!nta && !end(tag_t::PROJECT)))
+            queries();
+        parser->done();
     }
 
     bool XMLReader::model_options()
@@ -1361,7 +1357,7 @@ namespace UTAP
 
 using namespace UTAP;
 
-int32_t parseXMLFd(int fd, ParserBuilder* pb, bool newxta)
+int32_t parse_XML_fd(int fd, ParserBuilder* pb, bool newxta)
 {
     xmlTextReaderPtr reader =
         xmlReaderForFd(fd, "", "", XML_PARSE_NOCDATA | XML_PARSE_NOBLANKS | XML_PARSE_HUGE | XML_PARSE_RECOVER);
@@ -1371,7 +1367,7 @@ int32_t parseXMLFd(int fd, ParserBuilder* pb, bool newxta)
     return 0;
 }
 
-int32_t parseXMLFile(const char* filename, ParserBuilder* pb, bool newxta)
+int32_t parse_XML_file(const char* filename, ParserBuilder* pb, bool newxta)
 {
     xmlTextReaderPtr reader =
         xmlReaderForFile(filename, "", XML_PARSE_NOCDATA | XML_PARSE_NOBLANKS | XML_PARSE_HUGE | XML_PARSE_RECOVER);
@@ -1381,7 +1377,7 @@ int32_t parseXMLFile(const char* filename, ParserBuilder* pb, bool newxta)
     return 0;
 }
 
-int32_t parseXMLBuffer(const char* buffer, ParserBuilder* pb, bool newxta)
+int32_t parse_XML_buffer(const char* buffer, ParserBuilder* pb, bool newxta)
 {
     size_t length = strlen(buffer);
     xmlTextReaderPtr reader =

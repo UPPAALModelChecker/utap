@@ -25,6 +25,8 @@
 
 #include "utap/builder.h"
 
+#include <system_error>
+
 // The maximum length is 4000 (see error message) + 1 for the
 // terminating \0.
 constexpr auto MAXLEN = 4001u;
@@ -62,12 +64,13 @@ namespace UTAP
      */
     class PositionTracker
     {
-    public:
-        uint32_t line;
-        uint32_t offset;
-        uint32_t position;
-        std::string path;
+        uint32_t line{};
+        uint32_t offset{};
+        uint32_t index{};
+        std::string path{};
 
+    public:
+        uint32_t get_index() const { return index; }
         /**
          * Sets the current path to \a s, offset to 0 and line to 1.
          * Sets the position of \a builder to [position, position + 1)
@@ -86,20 +89,21 @@ namespace UTAP
             line = 1;
             offset = 0;
             path = s;
-            ++position;
-            parser->addPosition(position, offset, line, path);
+            ++index;
+            parser->addPosition(index, offset, line, path);
         }
 
         /**
          * Sets the position of \a builder to [position, position + n)
          * and increments position and offset by \a n.
          */
-        int increment(UTAP::ParserBuilder* parser, uint32_t n)
+        int increment(UTAP::ParserBuilder* parser, uint32_t n = 1)
         {
-            parser->setPosition(position, position + n);
-            position += n;
+            auto last = index;
+            parser->setPosition(index, index + 1);
+            index += 1;
             offset += n;
-            return position - n;
+            return last;
         }
 
         /**
@@ -109,17 +113,17 @@ namespace UTAP
         void newline(UTAP::ParserBuilder* parser, uint32_t n)
         {
             line += n;
-            parser->addPosition(position, offset, line, path);
+            parser->addPosition(index, offset, line, path);
         }
     };
 
-    extern PositionTracker tracker;
+    extern PositionTracker tracker;  // defined in lexer.l
 
     /** Errors from underlying XML reading operations (most likely OS issues) */
-    class XMLReaderError : public std::runtime_error
+    class XMLReaderError : public std::system_error
     {
     public:
-        using std::runtime_error::runtime_error;
+        using std::system_error::system_error;
     };
     /** Errors due to wrong XML document structure */
     class XMLDocError : public std::logic_error

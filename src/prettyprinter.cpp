@@ -824,16 +824,16 @@ void PrettyPrinter::exprAssignment(kind_t op)
     st.push_back(string());
     switch (op) {
     case ASSIGN: st.back() = '(' + lhs + " = " + rhs + ')'; break;
-    case ASSPLUS: st.back() = '(' + lhs + " += " + rhs + ')'; break;
-    case ASSMINUS: st.back() = '(' + lhs + " -= " + rhs + ')'; break;
-    case ASSMULT: st.back() = '(' + lhs + " *= " + rhs + ')'; break;
-    case ASSDIV: st.back() = '(' + lhs + " /= " + rhs + ')'; break;
-    case ASSMOD: st.back() = '(' + lhs + " %= " + rhs + ')'; break;
-    case ASSOR: st.back() = '(' + lhs + " |= " + rhs + ')'; break;
-    case ASSAND: st.back() = '(' + lhs + " &= " + rhs + ')'; break;
-    case ASSXOR: st.back() = '(' + lhs + " ^= " + rhs + ')'; break;
-    case ASSLSHIFT: st.back() = '(' + lhs + " <<= " + rhs + ')'; break;
-    case ASSRSHIFT: st.back() = '(' + lhs + " >>= " + rhs + ')'; break;
+    case ASS_PLUS: st.back() = '(' + lhs + " += " + rhs + ')'; break;
+    case ASS_MINUS: st.back() = '(' + lhs + " -= " + rhs + ')'; break;
+    case ASS_MULT: st.back() = '(' + lhs + " *= " + rhs + ')'; break;
+    case ASS_DIV: st.back() = '(' + lhs + " /= " + rhs + ')'; break;
+    case ASS_MOD: st.back() = '(' + lhs + " %= " + rhs + ')'; break;
+    case ASS_OR: st.back() = '(' + lhs + " |= " + rhs + ')'; break;
+    case ASS_AND: st.back() = '(' + lhs + " &= " + rhs + ')'; break;
+    case ASS_XOR: st.back() = '(' + lhs + " ^= " + rhs + ')'; break;
+    case ASS_LSHIFT: st.back() = '(' + lhs + " <<= " + rhs + ')'; break;
+    case ASS_RSHIFT: st.back() = '(' + lhs + " >>= " + rhs + ')'; break;
     default: throw TypeException("Invalid assignment operator");
     }
 }

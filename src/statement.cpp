@@ -67,8 +67,8 @@ bool IterationStatement::returns() { return false; }
 
 string IterationStatement::str(const string& prefix) const
 {
-    string type = symbol.getType()[0].getLabel(0);
-    return prefix + "for (" + symbol.getName() + " : " + type  // TODO: to be tested
+    string type = symbol.get_type()[0].get_label(0);
+    return prefix + "for (" + symbol.get_name() + " : " + type  // TODO: to be tested
            + ")\n{\n" + stat->str(prefix + INDENT) + "}";
 }
 
@@ -295,8 +295,8 @@ int32_t ExpressionVisitor::visitDoWhileStatement(DoWhileStatement* stat)
 int32_t ExpressionVisitor::visitBlockStatement(BlockStatement* stat)
 {
     // Visit variable initialisers.
-    for (symbol_t& symbol : stat->getFrame()) {
-        if (auto* data = symbol.getData(); data) {
+    for (symbol_t& symbol : stat->get_frame()) {
+        if (auto* data = symbol.get_data(); data) {
             // REVISIT: This will only work if vars[i] is a variable!
             visitExpression(static_cast<variable_t*>(data)->init);
         }
@@ -339,14 +339,14 @@ int32_t ExpressionVisitor::visitReturnStatement(ReturnStatement* stat)
     return 0;
 }
 
-void CollectChangesVisitor::visitExpression(expression_t expr) { expr.collectPossibleWrites(changes); }
+void CollectChangesVisitor::visitExpression(expression_t expr) { expr.collect_possible_writes(changes); }
 
 CollectDependenciesVisitor::CollectDependenciesVisitor(std::set<symbol_t>& dependencies): dependencies(dependencies) {}
 
-void CollectDependenciesVisitor::visitExpression(expression_t expr) { expr.collectPossibleReads(dependencies); }
+void CollectDependenciesVisitor::visitExpression(expression_t expr) { expr.collect_possible_reads(dependencies); }
 
 void CollectDynamicExpressions::visitExpression(expression_t expr)
 {
-    if (expr.isDynamic() || expr.hasDynamicSub())
+    if (expr.is_dynamic() || expr.has_dynamic_sub())
         expressions.push_back(expr);
 }

@@ -27,6 +27,7 @@
 #include "utap/position.h"
 
 #include <memory>  // shared_ptr
+#include <optional>
 #include <string>
 #include <cstdint>
 
@@ -94,7 +95,6 @@ namespace UTAP
     class type_t
     {
     private:
-        struct child_t;
         struct type_data;
         std::shared_ptr<type_data> data;
 
@@ -112,13 +112,13 @@ namespace UTAP
         bool operator!=(const type_t&) const;
 
         /** Returns the kind of type object. */
-        Constants::kind_t getKind() const;
+        Constants::kind_t get_kind() const;
 
         /**
          * Returns the position of the type in the input file. This
          * exposes the fact that the type is actually part of the AST.
          */
-        position_t getPosition() const;
+        position_t get_position() const;
 
         /**
          * Returns the number of children.
@@ -129,162 +129,173 @@ namespace UTAP
         bool operator<(const type_t&) const;
 
         /** Returns the \a i'th child. */
-        const type_t operator[](uint32_t) const;
+        type_t operator[](uint32_t) const;
 
         /** Returns the \a i'th child. */
-        const type_t get(uint32_t) const;
+        type_t get(uint32_t) const;
 
         /** Returns the \a i'th label. */
-        const std::string& getLabel(uint32_t) const;
+        const std::string& get_label(uint32_t) const;
 
         /** Returns the expression associated with the type. */
-        expression_t getExpression() const;
+        expression_t get_expression() const;
 
         /**
          * Returns the size of an array (this is itself a type). @pre
-         * isArray().
+         * is_array().
          */
-        type_t getArraySize() const;
+        type_t get_array_size() const;
 
         /**
          * Returns the element type of an array. Preserves any
-         * prefixes. @pre isArray();
+         * prefixes. @pre is_array();
          */
-        type_t getSub() const;
+        type_t get_sub() const;
 
         /**
          * Returns the \i'th field of a record or process. Preserves
-         * any prefixes. @pre isRecord() or isProcess().
+         * any prefixes. @pre is_record() or is_process().
          */
-        type_t getSub(size_t) const;
+        type_t get_sub(uint32_t) const;
 
         /**
-         * Returns the number of fields of a record. @pre isRecord().
+         * Returns the number of fields of a record. @pre is_record().
          */
-        size_t getRecordSize() const;
+        uint32_t get_record_size() const;
 
         /**
          * Returns the label of the \i'th field of a record. @pre
-         * isRecord().
+         * is_record().
          */
-        std::string getRecordLabel(size_t i) const;
+        const std::string& get_record_label(size_t i) const;
 
         /**
          * Returns the index of the record or process field with the
          * given label. Returns -1 if such a field does not
-         * exist. @pre isRecord() or isProcess().
+         * exist. @pre is_record() or is_process().
          */
-        int32_t findIndexOf(const std::string&) const;
+        std::optional<uint32_t> find_index_of(const std::string&) const;
 
         /**
-         * Returns the range of a RANGE type. @pre isRange().
+         * Returns the range of a RANGE type. @pre is_range().
          */
-        std::pair<expression_t, expression_t> getRange() const;
+        std::pair<expression_t, expression_t> get_range() const;
+
+        /** Prints textual representation of the type. */
+        std::ostream& print(std::ostream&) const;
 
         /** Generates string representation of the type. */
         std::string str() const;
 
-        std::string toDeclarationString() const;
+        /** Pretty-prints the declaration. */
+        std::ostream& print_declaration(std::ostream& os) const;
+
+        /** Generates the declaration representation. */
+        std::string declaration() const;
 
         /** Shortcut for is(RANGE). */
-        bool isRange() const { return is(Constants::RANGE); }
+        bool is_range() const { return is(Constants::RANGE); }
 
         /** Shortcut for is(INT). */
-        bool isInteger() const { return is(Constants::INT); }
+        bool is_integer() const { return is(Constants::INT); }
 
         /** Shortcut for is(BOOL). */
         bool isBoolean() const { return is(Constants::BOOL); }
 
         /** Shortcut for is(FUNCTION). */
-        bool isFunction() const { return is(Constants::FUNCTION); }
+        bool is_function() const { return is(Constants::FUNCTION); }
 
-        bool isExternalFunction() const { return is(Constants::EXTERNAL_FUNCTION); }
+        bool is_function_external() const { return is(Constants::FUNCTION_EXTERNAL); }
 
         /** Shortcut for is(PROCESS). */
-        bool isProcess() const { return is(Constants::PROCESS); }
+        bool is_process() const { return is(Constants::PROCESS); }
 
         /** Shortcut for is(PROCESSSET). */
-        bool isProcessSet() const { return is(Constants::PROCESSSET); }
+        bool is_process_set() const { return is(Constants::PROCESS_SET); }
 
         /** Shortcut for is(LOCATION). */
-        bool isLocation() const { return is(Constants::LOCATION); }
+        bool is_location() const { return is(Constants::LOCATION); }
 
         /** Shortcut for is(LOCATION_EXPR). */
-        bool isLocationExpr() const { return is(Constants::LOCATION_EXPR); }
+        bool is_location_expr() const { return is(Constants::LOCATION_EXPR); }
 
         /** Shortcut for is(INSTANCELINE). */
-        bool isInstanceLine() const { return is(Constants::INSTANCELINE); }
+        bool is_instance_line() const { return is(Constants::INSTANCE_LINE); }
 
         /** Shortcut for is(BRANCHPOINT). */
-        bool isBranchpoint() const { return is(Constants::BRANCHPOINT); }
+        bool is_branchpoint() const { return is(Constants::BRANCHPOINT); }
 
         /** Shortcut for is(CHANNEL). */
-        bool isChannel() const { return is(Constants::CHANNEL); }
+        bool is_channel() const { return is(Constants::CHANNEL); }
 
         /** Shortcut for is(ARRAY). */
-        bool isArray() const { return is(Constants::ARRAY); }
+        bool is_array() const { return is(Constants::ARRAY); }
 
         /** Shortcut for is(SCALAR). */
-        bool isScalar() const { return is(Constants::SCALAR); }
+        bool is_scalar() const { return is(Constants::SCALAR); }
 
         /** Shortcut for is(CLOCK). */
-        bool isClock() const { return is(Constants::CLOCK); }
+        bool is_clock() const { return is(Constants::CLOCK); }
 
         /** Shortcut for is(RECORD). */
-        bool isRecord() const { return is(Constants::RECORD); }
+        bool is_record() const { return is(Constants::RECORD); }
 
         /** Shortcut for is(DIFF). */
-        bool isDiff() const { return is(Constants::DIFF); }
+        bool is_diff() const { return is(Constants::DIFF); }
 
         /** Shortcut for is(VOID_TYPE). */
-        bool isVoid() const { return is(Constants::VOID_TYPE); }
+        bool is_void() const { return is(Constants::VOID_TYPE); }
 
         /** Shortcut for is(COST). */
-        bool isCost() const { return is(Constants::COST); }
+        bool is_cost() const { return is(Constants::COST); }
 
         /** Shortcut for is(DOUBLE). */
-        bool isDouble() const { return is(Constants::DOUBLE); }
+        bool is_double() const { return is(Constants::DOUBLE); }
 
         /** Shortcut for is(STRING). */
-        bool isString() const { return is(Constants::STRING); }
+        bool is_string() const { return is(Constants::STRING); }
 
         /**
          * Returns true if this is a boolean or integer. Shortcut for
          * isInt() || isBoolean().
          */
-        bool isIntegral() const;
+        bool is_integral() const
+        {
+            using namespace Constants;
+            return is(INT) || is(BOOL) || is(PROCESS_VAR) || is(LOCATION) || is(LOCATION_EXPR);
+        }
 
         /**
          * Returns true if this is an invariant, boolean or
          * integer. Shortcut for isIntegral() || is(INVARIANT).
          */
-        bool isInvariant() const;
+        bool is_invariant() const { return is(Constants::INVARIANT) || is_integral(); }
 
         /**
          * Returns true if this is a guard, invariant, boolean or
-         * integer.  Shortcut for is(GUARD) || isInvariant().
+         * integer.  Shortcut for is(GUARD) || is_invariant().
          */
-        bool isGuard() const;
+        bool is_guard() const { return is(Constants::GUARD) || is_invariant(); }
 
         /**
          * Returns true if this is a probability or integer.  Shortcut
          * for is(PROBABILITY) || isInteger().
          */
-        bool isProbability() const;
+        bool is_probability() const { return is(Constants::PROBABILITY) || is_integer() || is_double() || is_clock(); }
 
         /**
          * Returns true if this is a constraint, guard, invariant,
          * boolean or integer. Shortcut for is(CONSTRAINT) ||
-         * isGuard().
+         * is_guard().
          */
-        bool isConstraint() const;
+        bool is_constraint() const { return is(Constants::CONSTRAINT) || is_guard(); }
 
         /**
          * Returns true if this is a formula, constraint, guard,
          * invariant, boolean or integer. Shortcut for is(FORMULA) ||
-         * isConstraint().
+         * is_constraint().
          */
-        bool isFormula() const;
+        bool is_formula() const { return is(Constants::FORMULA) || is_constraint(); }
 
         /**
          * Removes any leading prefixes, RANGE, REF and LABEL types
@@ -296,26 +307,20 @@ namespace UTAP
          * Removes any leading prefixes, RANGE, REF, LABEL and ARRAY
          * types and returns the result.
          */
-        type_t stripArray() const;
+        type_t strip_array() const;
 
         /**
          * Returns false for non-prefix types and true
          * otherwise. Non-prefix types are PRIMITIVE, ARRAY, RECORD,
          * PROCESS, TEMPLATE, FUNCTION, INSTANCE, LSCINSTANCE, RANGE, REF, TYPEDEF.
          */
-        bool isPrefix() const;
+        bool is_prefix() const;
 
-        /**
-         * Returns true if and only if all elements of the type are
-         * constant.
-         */
-        bool isConstant() const;
+        /** Returns true if and only if all elements of the type are constant. */
+        bool is_constant() const;
 
-        /**
-         * Returns true if and only if all elements of the type are
-         * not constant.
-         */
-        bool isNonConstant() const;
+        /** Returns true if and only if all elements of the type are mutable (not constant). */
+        bool is_mutable() const;
 
         /**
          * Returns true if the type has kind \a kind or if type is a
@@ -330,11 +335,11 @@ namespace UTAP
         bool unknown() const;
 
         /**
-         * Replaces any LABEL labeled \a from occuring in the type
+         * Replaces any LABEL labeled \a from occurring in the type
          * with a LABEL \a to. As always, a type is immutable, so a
          * copy of the type will be created.
          */
-        type_t rename(std::string from, std::string to) const;
+        type_t rename(const std::string& from, const std::string& to) const;
 
         /**
          * Substitutes any occurence of \a symbol in any expression in
@@ -347,45 +352,45 @@ namespace UTAP
          * could be anything and it is the responsibility of the
          * caller to make sure that the given kind is a valid prefix.
          */
-        type_t createPrefix(Constants::kind_t kind, position_t = position_t()) const;
+        type_t create_prefix(Constants::kind_t kind, position_t = position_t()) const;
 
         /** Creates a LABEL. */
-        type_t createLabel(std::string, position_t = position_t()) const;
+        type_t create_label(std::string, position_t = position_t()) const;
 
         /**
          */
-        static type_t createRange(type_t, expression_t, expression_t, position_t = position_t());
+        static type_t create_range(type_t, expression_t, expression_t, position_t = position_t());
 
         /** Create a primitive type. */
-        static type_t createPrimitive(Constants::kind_t, position_t = position_t());
+        static type_t create_primitive(Constants::kind_t, position_t = position_t());
 
         /** Creates an array type. */
-        static type_t createArray(type_t sub, type_t size, position_t = position_t());
+        static type_t create_array(type_t sub, type_t size, position_t = position_t());
 
         /** Creates a new type definition. */
-        static type_t createTypeDef(std::string, type_t, position_t = position_t());
+        static type_t create_typedef(std::string, type_t, position_t = position_t());
 
         /** Creates a new process type. */
-        static type_t createProcess(frame_t, position_t = position_t());
+        static type_t create_process(frame_t, position_t = position_t());
 
         /** Creates a new processset type. */
-        static type_t createProcessSet(type_t instance, position_t = position_t());
+        static type_t create_process_set(type_t instance, position_t = position_t());
 
         /** Creates a new record type */
-        static type_t createRecord(const std::vector<type_t>&, const std::vector<std::string>&,
-                                   position_t = position_t());
+        static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&,
+                                    position_t = position_t());
 
         /** Creates a new function type */
-        static type_t createFunction(type_t, const std::vector<type_t>&, const std::vector<std::string>&,
-                                     position_t = position_t());
+        static type_t create_function(type_t, const std::vector<type_t>&, const std::vector<std::string>&,
+                                      position_t = position_t());
 
-        static type_t createExternalFunction(type_t rt, const std::vector<type_t>&, const std::vector<std::string>&,
-                                             position_t = position_t());
+        static type_t create_external_function(type_t rt, const std::vector<type_t>&, const std::vector<std::string>&,
+                                               position_t = position_t());
 
         /** Creates a new instance type */
-        static type_t createInstance(frame_t, position_t = position_t());
+        static type_t create_instance(frame_t, position_t = position_t());
         /** Creates a new lsc instance type */
-        static type_t createLscInstance(frame_t, position_t = position_t());
+        static type_t create_LSC_instance(frame_t, position_t = position_t());
     };
 }  // namespace UTAP
 

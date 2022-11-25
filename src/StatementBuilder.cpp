@@ -56,17 +56,17 @@ StatementBuilder::~StatementBuilder() noexcept
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
 {
     std::set<symbol_t> symbols;
-    expr.collectPossibleReads(symbols);
+    expr.collect_possible_reads(symbols);
     while (!symbols.empty()) {
         symbol_t s = *symbols.begin();
         symbols.erase(s);
         if (dependencies.find(s) == dependencies.end()) {
             dependencies.insert(s);
-            if (auto d = s.getData(); d) {
-                if (auto t = s.getType(); !(t.isFunction() || t.isExternalFunction())) {
+            if (auto d = s.get_data(); d) {
+                if (auto t = s.get_type(); !(t.is_function() || t.is_function_external())) {
                     // assume is its variable, which is not always true
                     variable_t* v = static_cast<variable_t*>(d);
-                    v->init.collectPossibleReads(symbols);
+                    v->init.collect_possible_reads(symbols);
                 } else {
                     // TODO; fixme.
                 }
@@ -77,8 +77,8 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
 
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, type_t type)
 {
-    if (type.getKind() == RANGE) {
-        auto [lower, upper] = type.getRange();
+    if (type.get_kind() == RANGE) {
+        auto [lower, upper] = type.get_range();
         collectDependencies(dependencies, lower);
         collectDependencies(dependencies, upper);
         collectDependencies(dependencies, type[0]);
@@ -110,7 +110,7 @@ void StatementBuilder::typeArrayOfType(size_t n)
 {
     type_t size = typeFragments[0];
     typeFragments.pop();
-    typeFragments[n - 1] = type_t::createArray(typeFragments[n - 1], size, position);
+    typeFragments[n - 1] = type_t::create_array(typeFragments[n - 1], size, position);
 
     /* If template local declaration, then mark all symbols in 'size'
      * and those that they depend on as restricted. Otherwise we would
@@ -121,7 +121,7 @@ void StatementBuilder::typeArrayOfType(size_t n)
         collectDependencies(currentTemplate->restricted, size);
     }
 
-    if ((!size.isInteger() && !size.isScalar()) || !size.is(RANGE)) {
+    if ((!size.is_integer() && !size.is_scalar()) || !size.is(RANGE)) {
         handleError(TypeException{"$Array_must_be_defined_over_an_integer_range_or_a_scalar_set"});
     }
 }
@@ -139,7 +139,7 @@ void StatementBuilder::typeStruct(PREFIX prefix, uint32_t n)
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
 
-    typeFragments.push(applyPrefix(prefix, type_t::createRecord(f, l, position)));
+    typeFragments.push(applyPrefix(prefix, type_t::create_record(f, l, position)));
 }
 
 /**
@@ -164,8 +164,8 @@ void StatementBuilder::structField(const char* name)
      * types, hence we cannot place the error message if we wait until
      * the type check phase.
      */
-    type_t base = type.stripArray();
-    if (!base.isRecord() && !base.isScalar() && !base.isIntegral()) {
+    type_t base = type.strip_array();
+    if (!base.is_record() && !base.is_scalar() && !base.is_integral()) {
         handleError(TypeException{"$Invalid_type_in_structure"});
     }
 }
@@ -177,20 +177,20 @@ void StatementBuilder::structField(const char* name)
  */
 void StatementBuilder::declTypeDef(const char* name)
 {
-    bool duplicate = frames.top().getIndexOf(name) != -1;
-    type_t type = type_t::createTypeDef(name, typeFragments[0], position);
+    bool duplicate = frames.top().contains(name);
+    type_t type = type_t::create_typedef(name, typeFragments[0], position);
     typeFragments.pop();
     if (duplicate) {
         throw DuplicateDefinitionError(name);
     }
 
-    frames.top().addSymbol(name, type, position);
+    frames.top().add_symbol(name, type, position);
 }
 
 static bool initRec(type_t type, int thisTypeOnly)
 {
     type = type.strip();
-    switch (type.getKind()) {
+    switch (type.get_kind()) {
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
             if (!initRec(type[i], thisTypeOnly)) {
@@ -200,12 +200,12 @@ static bool initRec(type_t type, int thisTypeOnly)
         return true;
 
     case ARRAY:
-        if (type.getArraySize().isScalar()) {
+        if (type.get_array_size().is_scalar()) {
             return false;
         }
-        return initRec(type.getSub(), thisTypeOnly);
+        return initRec(type.get_sub(), thisTypeOnly);
     case STRING: return true;
-    default: return thisTypeOnly == 0 ? type.isIntegral() : (thisTypeOnly == 1 ? type.isClock() : type.isDouble());
+    default: return thisTypeOnly == 0 ? type.is_integral() : (thisTypeOnly == 1 ? type.is_clock() : type.is_double());
     }
 }
 
@@ -213,13 +213,14 @@ static bool initialisable(type_t type) { return initRec(type, 0) || initRec(type
 
 static bool mustInitialise(type_t type)
 {
-    assert(type.getKind() != FUNCTION);
-    assert(type.getKind() != EXTERNAL_FUNCTION);
-    assert(type.getKind() != PROCESS);
-    assert(type.getKind() != INSTANCE);
-    assert(type.getKind() != LSCINSTANCE);
+    const auto k = type.get_kind();
+    assert(k != FUNCTION);
+    assert(k != FUNCTION_EXTERNAL);
+    assert(k != PROCESS);
+    assert(k != INSTANCE);
+    assert(k != LSC_INSTANCE);
 
-    switch (type.getKind()) {
+    switch (k) {
     case CONSTANT: return true;
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
@@ -299,8 +300,8 @@ void StatementBuilder::declVar(const char* name, bool hasInit)
 
 void StatementBuilder::declFieldInit(const char* name)
 {
-    type_t type = fragments[0].getType().createLabel(name, position);
-    fragments[0].setType(type);
+    type_t type = fragments[0].get_type().create_label(name, position);
+    fragments[0].set_type(type);
 }
 
 void StatementBuilder::declInitialiserList(uint32_t num)
@@ -316,14 +317,14 @@ void StatementBuilder::declInitialiserList(uint32_t num)
     vector<type_t> types;
     vector<string> labels;
     for (uint32_t i = 0; i < num; i++) {
-        type_t type = fields[i].getType();
+        type_t type = fields[i].get_type();
         types.push_back(type[0]);
-        labels.push_back(type.getLabel(0));
-        fields[i].setType(type[0]);
+        labels.push_back(type.get_label(0));
+        fields[i].set_type(type[0]);
     }
 
     // Create list expression
-    fragments.push(expression_t::createNary(LIST, fields, position, type_t::createRecord(types, labels, position)));
+    fragments.push(expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
 }
 
 /********************************************************************
@@ -335,10 +336,10 @@ void StatementBuilder::declParameter(const char* name, bool ref)
     typeFragments.pop();
 
     if (ref) {
-        type = type.createPrefix(REF);
+        type = type.create_prefix(REF);
     }
 
-    params.addSymbol(name, type, position);
+    params.add_symbol(name, type, position);
 }
 
 void StatementBuilder::declFuncBegin(const char* name)
@@ -365,20 +366,20 @@ void StatementBuilder::declFuncBegin(const char* name)
 
     vector<type_t> types;
     vector<string> labels;
-    for (size_t i = 0; i < params.getSize(); i++) {
-        types.push_back(params[i].getType());
-        labels.push_back(params[i].getName());
+    for (size_t i = 0; i < params.get_size(); i++) {
+        types.push_back(params[i].get_type());
+        labels.push_back(params[i].get_name());
     }
-    type_t type = type_t::createFunction(return_type, types, labels, position);
-    if (!addFunction(type, name, position_t())) {
+    type_t type = type_t::create_function(return_type, types, labels, position);
+    if (!addFunction(type, name, {})) {
         handleError(DuplicateDefinitionError(name));
     }
 
     /* We maintain a stack of frames. As the function has a local
      * scope, we push a new frame and move the parameters to it.
      */
-    pushFrame(frame_t::create(frames.top()));
-    params.moveTo(frames.top());  // params is emptied here
+    push_frame(frame_t::create(frames.top()));
+    params.move_to(frames.top());  // params is emptied here
 
     /* Create function block.
      */
@@ -403,7 +404,7 @@ void StatementBuilder::declFuncEnd()
     /* If function has a non void return type, then check that last
      * statement is a return statement.
      */
-    if (!currentFun->uid.getType()[0].isVoid() && !currentFun->body->returns()) {
+    if (!currentFun->uid.get_type()[0].is_void() && !currentFun->body->returns()) {
         handleError(TypeException{"$Return_statement_expected"});
     }
 
@@ -457,9 +458,9 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
 
     vector<type_t> types;
     vector<string> labels;
-    for (size_t i = 0; i < params.getSize(); i++) {
-        types.push_back(params[i].getType());
-        labels.push_back(params[i].getName());
+    for (size_t i = 0; i < params.get_size(); i++) {
+        types.push_back(params[i].get_type());
+        labels.push_back(params[i].get_name());
     }
 
     void* fp = nullptr;
@@ -469,13 +470,13 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
         handleError(TypeException{ex.what()});
     }
 
-    type_t type = type_t::createExternalFunction(return_type, types, labels, position);
+    type_t type = type_t::create_external_function(return_type, types, labels, position);
     if (!addFunction(type, alias, position_t())) {
         handleError(DuplicateDefinitionError(alias));
     }
-    pushFrame(frame_t::create(frames.top()));
-    params.moveTo(frames.top());  // params is emptied here
-    currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.isVoid());
+    push_frame(frame_t::create(frames.top()));
+    params.move_to(frames.top());  // params is emptied here
+    currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());
     blocks.push_back(currentFun->body.get());
     declFuncEnd();
 }
@@ -485,7 +486,7 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
  */
 void StatementBuilder::blockBegin()
 {
-    pushFrame(frame_t::create(frames.top()));
+    push_frame(frame_t::create(frames.top()));
     blocks.push_back(new BlockStatement(frames.top()));
 }
 
@@ -522,12 +523,12 @@ void StatementBuilder::iterationBegin(const char* name)
     /* The iterator cannot be modified.
      */
     if (!type.is(CONSTANT)) {
-        type = type.createPrefix(CONSTANT);
+        type = type.create_prefix(CONSTANT);
     }
 
     /* The iteration statement has a local scope for the iterator.
      */
-    pushFrame(frame_t::create(frames.top()));
+    push_frame(frame_t::create(frames.top()));
 
     /* Add variable.
      */
@@ -600,10 +601,10 @@ void StatementBuilder::returnStatement(bool args)
         /* Only functions with non-void return type are allowed to have
          * arguments on return.
          */
-        type_t return_type = currentFun->uid.getType()[0];
-        if (return_type.isVoid() && args) {
+        type_t return_type = currentFun->uid.get_type()[0];
+        if (return_type.is_void() && args) {
             handleError(TypeException{"$return_with_a_value_in_function_returning_void"});
-        } else if (!return_type.isVoid() && !args) {
+        } else if (!return_type.is_void() && !args) {
             handleError(TypeException{"$return_with_no_value_in_function_returning_non-void"});
         }
 
@@ -635,7 +636,7 @@ void StatementBuilder::exprCallBegin()
     /* Check for recursive function calls. We could move this to
      * the type checker.
      */
-    if (currentFun != nullptr && currentFun->uid == fragments[0].getSymbol()) {
+    if (currentFun != nullptr && currentFun->uid == fragments[0].get_symbol()) {
         handleError(TypeException{"$Recursion_is_not_allowed"});
     }
 }

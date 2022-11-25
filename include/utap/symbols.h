@@ -28,6 +28,7 @@
 #include "utap/type.h"
 
 #include <exception>
+#include <optional>
 #include <cstdint>
 
 namespace UTAP
@@ -49,7 +50,7 @@ namespace UTAP
 
        Symbols are members of a frame (see also frame_t). It is
        possible to access the frame of a symbol via the symbol (see
-       getFrame()). However, a symbol does not contain a counted
+       get_frame()). However, a symbol does not contain a counted
        reference to its frame so you must maintain at least one
        reference to the frame to avoid to be deallocated.
 
@@ -88,28 +89,28 @@ namespace UTAP
         bool operator<(const symbol_t&) const;
 
         /** Get frame this symbol belongs to */
-        frame_t getFrame();  // TODO: consider removing this method (mostly unused)
+        frame_t get_frame();  // TODO: consider removing this method (mostly unused)
 
         /** Returns the type of this symbol. */
-        type_t getType() const;
+        type_t get_type() const;
 
         /** Alters the type of this symbol */
-        void setType(type_t);
+        void set_type(type_t);
 
         /** Returns the position of the symbol definition in the original source file */
-        position_t getPosition() const;
+        position_t get_position() const;
 
         /** Returns the user data of this symbol */
-        void* getData();
+        void* get_data();
 
         /** Return the user data of this symbol */
-        const void* getData() const;
+        const void* get_data() const;
 
         /** Returns the name (identifier) of this symbol */
-        const std::string& getName() const;
+        const std::string& get_name() const;
 
         /** Alters the name of this symbol */
-        void setName(const std::string&);
+        void set_name(std::string);
     };
 
     /**
@@ -163,22 +164,28 @@ namespace UTAP
         bool operator!=(const frame_t&) const;
 
         /** Returns the number of symbols in this frame */
-        uint32_t getSize() const;
+        uint32_t get_size() const;
 
         /** Returns the Nth symbol in this frame. */
-        symbol_t getSymbol(int32_t) const;
+        symbol_t get_symbol(uint32_t) const;
 
-        /** Returns the index of the symbol with the given name. */
-        int32_t getIndexOf(const std::string& name) const;
+        /** Checks whether the frame (already) contains the symbol with given name. */
+        bool contains(const std::string& name) const { return get_index_of(name).has_value(); }
 
-        /** Returns the index of a symbol or -1 if not present. */
-        int32_t getIndexOf(const symbol_t&) const;
+        /** Checks whether the frame (already) contains the symbol with given name. */
+        bool contains(const symbol_t& symbol) const { return get_index_of(symbol).has_value(); }
+
+        /** Returns the index of the symbol with the given name if it exists. */
+        std::optional<uint32_t> get_index_of(const std::string& name) const;
+
+        /** Returns the index of a symbol if it exists. */
+        std::optional<uint32_t> get_index_of(const symbol_t&) const;
 
         /** Returns the Nth symbol in this frame. */
-        symbol_t& operator[](int32_t);
+        symbol_t& operator[](uint32_t);
 
         /** Returns the Nth symbol in this frame. */
-        const symbol_t& operator[](int32_t) const;
+        const symbol_t& operator[](uint32_t) const;
 
         /** Iterates over the symbol declarations in the frame */
         const_iterator begin() const;
@@ -188,7 +195,7 @@ namespace UTAP
         bool empty() const;
 
         /** Adds a symbol of the given name and type to the frame */
-        symbol_t addSymbol(const std::string& name, type_t, position_t position, void* user = nullptr);
+        symbol_t add_symbol(const std::string& name, type_t, position_t position, void* user = nullptr);
 
         /** Add all symbols from the given frame */
         void add(symbol_t);
@@ -197,7 +204,7 @@ namespace UTAP
         void add(frame_t);
 
         /** Move all symbols from this to a given one (leaving this empty). */
-        void moveTo(frame_t);
+        void move_to(frame_t);
 
         /** removes the given symbol*/
         void remove(symbol_t s);
@@ -206,7 +213,7 @@ namespace UTAP
         bool resolve(const std::string& name, symbol_t& symbol) const;
 
         /** Returns the parent frame */
-        frame_t getParent() const;
+        frame_t get_parent() const;
 
         /** Returns true if this frame has a parent */
         bool has_parent() const;

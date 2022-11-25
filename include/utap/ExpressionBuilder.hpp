@@ -103,15 +103,15 @@ namespace UTAP
         int32_t scalar_count;
 
         /** Push a new frame. */
-        void pushFrame(frame_t);
+        void push_frame(frame_t);
 
         /** Pop the topmost frame. */
         void popFrame();
 
         bool resolve(const std::string&, symbol_t&) const;
 
-        expression_t makeConstant(int value) const;
-        expression_t makeConstant(double value) const;
+        expression_t make_constant(int value) const;
+        expression_t make_constant(double value) const;
 
         /**
          * Given a prefix and a type, this method creates a new type

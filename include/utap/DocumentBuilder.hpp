@@ -87,7 +87,7 @@ namespace UTAP
         message_t* currentMessage{nullptr};
 
         /** The instance line under construction. */
-        instanceLine_t* currentInstanceLine{nullptr};
+        instance_line_t* currentInstanceLine{nullptr};
 
         iodecl_t* currentIODecl{nullptr};
 

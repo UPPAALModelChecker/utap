@@ -235,7 +235,7 @@ void AbstractBuilder::procLscUpdate(const char* anchor, const int loc, const boo
     throw NotSupportedException("procLscUpdate is not supported");
 }
 void AbstractBuilder::procLscUpdate() { throw NotSupportedException("procLscUpdate is not supported"); }
-void AbstractBuilder::hasPrechart(const bool pch) { throw NotSupportedException("hasPrechart is not supported"); }
+void AbstractBuilder::hasPrechart(const bool pch) { throw NotSupportedException("has_prechart is not supported"); }
 // end LSC
 
 void AbstractBuilder::blockBegin() { throw NotSupportedException("lscProcBegin is not supported"); }
@@ -475,9 +475,9 @@ void AbstractBuilder::subjection(const char*) { throw NotSupportedException("sub
 
 void AbstractBuilder::imitation(const char*) { throw NotSupportedException("imitation is not supported"); }
 
-void AbstractBuilder::beforeUpdate() { throw NotSupportedException("beforeUpdate is not supported"); }
+void AbstractBuilder::beforeUpdate() { throw NotSupportedException("before_update is not supported"); }
 
-void AbstractBuilder::afterUpdate() { throw NotSupportedException("afterUpdate is not supported"); }
+void AbstractBuilder::afterUpdate() { throw NotSupportedException("after_update is not supported"); }
 
 void AbstractBuilder::beginChanPriority() { throw NotSupportedException("beginChanPriority is not supported"); }
 

@@ -270,13 +270,13 @@ const char* utap_msg(const char *msg)
 /* Syntax switch tokens */
 %token T_NEW T_NEW_DECLARATION T_NEW_LOCAL_DECL T_NEW_INST T_NEW_SYSTEM
 %token T_NEW_PARAMETERS T_NEW_INVARIANT T_NEW_GUARD T_NEW_SYNC T_NEW_ASSIGN
-%token T_NEW_SELECT T_EXPONENTIALRATE
+%token T_NEW_SELECT T_EXPONENTIAL_RATE
 %token T_OLD T_OLD_DECLARATION T_OLD_LOCAL_DECL T_OLD_INST
 %token T_OLD_PARAMETERS T_OLD_INVARIANT T_OLD_GUARD T_OLD_ASSIGN
 %token T_PROPERTY T_EXPRESSION T_EXPRESSION_LIST T_XTA_PROCESS
 
 /* LSC */
-%token T_INSTANCELINE T_MESSAGE T_UPDATE T_CONDITION
+%token T_INSTANCE_LINE T_MESSAGE T_UPDATE T_CONDITION
 
 /* SMC */
 %token T_MITL_AND T_MITL_OR T_MITL_NEXT
@@ -295,7 +295,7 @@ const char* utap_msg(const char *msg)
 %type <kind> CmpGLE
 %type <kind> BuiltinFunction1 BuiltinFunction2 BuiltinFunction3
 
-%left T_LEADSTO
+%left T_LEADS_TO
 %right T_AF T_AG T_EF T_EG 'A'  'M'
 %right T_AG_PLUS T_EF_PLUS T_AG_MULT T_EF_MULT
 %right T_PMAX T_SCENARIO
@@ -360,12 +360,12 @@ Uppaal:
         | T_EXPRESSION Expression {}
         | T_EXPRESSION_LIST ExprList {}
         | T_XTA_PROCESS ProcDecl {}
-        | T_EXPONENTIALRATE ExpRate {}
+        | T_EXPONENTIAL_RATE ExpRate {}
         /*LSC*/
         | T_MESSAGE MessExpr { }
         | T_UPDATE ExprList { CALL(@2, @2, procLscUpdate()); }
         | T_CONDITION Expression { CALL(@2, @2, procCondition()); }
-        | T_INSTANCELINE InstanceLineExpression { }
+        | T_INSTANCE_LINE InstanceLineExpression { }
         ;
 
 XTA:
@@ -1385,16 +1385,16 @@ Assignment:
 AssignOp:
         /* = += -= /= %= &= |= ^= <<= >>= */
           T_ASSIGNMENT { $$ = ASSIGN; }
-        | T_ASSPLUS   { $$ = ASSPLUS; }
-        | T_ASSMINUS  { $$ = ASSMINUS; }
-        | T_ASSDIV    { $$ = ASSDIV; }
-        | T_ASSMOD    { $$ = ASSMOD; }
-        | T_ASSMULT   { $$ = ASSMULT; }
-        | T_ASSAND    { $$ = ASSAND; }
-        | T_ASSOR     { $$ = ASSOR; }
-        | T_ASSXOR    { $$ = ASSXOR; }
-        | T_ASSLSHIFT { $$ = ASSLSHIFT; }
-        | T_ASSRSHIFT { $$ = ASSRSHIFT; }
+        | T_ASSPLUS   { $$ = ASS_PLUS; }
+        | T_ASSMINUS  { $$ = ASS_MINUS; }
+        | T_ASSDIV    { $$ = ASS_DIV; }
+        | T_ASSMOD    { $$ = ASS_MOD; }
+        | T_ASSMULT   { $$ = ASS_MULT; }
+        | T_ASSAND    { $$ = ASS_AND; }
+        | T_ASSOR     { $$ = ASS_OR; }
+        | T_ASSXOR    { $$ = ASS_XOR; }
+        | T_ASSLSHIFT { $$ = ASS_LSHIFT; }
+        | T_ASSRSHIFT { $$ = ASS_RSHIFT; }
         ;
 
 UnaryOp:
@@ -1441,13 +1441,13 @@ BuiltinFunction1:
         | T_FINT   { $$ = FINT_F; }
         | T_ILOGB  { $$ = ILOGB_F; }
         | T_LOGB   { $$ = LOGB_F; }
-        | T_FPCLASSIFY { $$ = FPCLASSIFY_F; }
-        | T_ISFINITE { $$ = ISFINITE_F; }
-        | T_ISINF  { $$ = ISINF_F; }
-        | T_ISNAN  { $$ = ISNAN_F; }
-        | T_ISNORMAL { $$ = ISNORMAL_F; }
+        | T_FPCLASSIFY { $$ = FP_CLASSIFY_F; }
+        | T_ISFINITE { $$ = IS_FINITE_F; }
+        | T_ISINF  { $$ = IS_INF_F; }
+        | T_ISNAN  { $$ = IS_NAN_F; }
+        | T_ISNORMAL { $$ = IS_NORMAL_F; }
         | T_SIGNBIT { $$ = SIGNBIT_F; }
-        | T_ISUNORDERED { $$ = ISUNORDERED_F; }
+        | T_ISUNORDERED { $$ = IS_UNORDERED_F; }
         | T_RANDOM { $$ = RANDOM_F; }
         | T_RANDOM_POISSON { $$ = RANDOM_POISSON_F; }
         ;
@@ -1461,8 +1461,8 @@ BuiltinFunction2:
         | T_HYPOT  { $$ = HYPOT_F; }
         | T_ATAN2  { $$ = ATAN2_F; }
         | T_LDEXP  { $$ = LDEXP_F; }
-        | T_NEXTAFTER { $$ = NEXTAFTER_F; }
-        | T_COPYSIGN { $$ = COPYSIGN_F; }
+        | T_NEXTAFTER { $$ = NEXT_AFTER_F; }
+        | T_COPYSIGN { $$ = COPY_SIGN_F; }
         | T_RANDOM_ARCSINE { $$ = RANDOM_ARCSINE_F; }
         | T_RANDOM_BETA    { $$ = RANDOM_BETA_F;    }
         | T_RANDOM_GAMMA   { $$ = RANDOM_GAMMA_F;   }
@@ -1750,14 +1750,14 @@ SubProperty:
 	| T_EG Expression {
 	    CALL(@1, @2, exprUnary(EG));
         }
-	| Expression T_LEADSTO Expression {
-	    CALL(@1, @3, exprBinary(LEADSTO));
+	| Expression T_LEADS_TO Expression {
+	    CALL(@1, @3, exprBinary(LEADS_TO));
         }
 	| 'A' '[' Expression 'U' Expression ']' {
 	    CALL(@1, @6, exprBinary(A_UNTIL));
         }
 	| 'A' '[' Expression 'W' Expression ']' {
-	    CALL(@1, @6, exprBinary(A_WEAKUNTIL));
+	    CALL(@1, @6, exprBinary(A_WEAK_UNTIL));
         }
 ;
 
@@ -2012,8 +2012,8 @@ static void setStartToken(xta_part_t part, bool newxta)
     case S_INVARIANT:
         syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
         break;
-    case S_EXPONENTIALRATE:
-	syntax_token = T_EXPONENTIALRATE;
+    case S_EXPONENTIAL_RATE:
+	syntax_token = T_EXPONENTIAL_RATE;
 	break;
     case S_SELECT:
         syntax_token = T_NEW_SELECT;
@@ -2043,8 +2043,8 @@ static void setStartToken(xta_part_t part, bool newxta)
         syntax_token = T_PROBABILITY;
         break;
     // LSC
-    case S_INSTANCELINE:
-        syntax_token = T_INSTANCELINE;
+    case S_INSTANCE_LINE:
+        syntax_token = T_INSTANCE_LINE;
         break;
     case S_MESSAGE:
         syntax_token = T_MESSAGE;
@@ -2058,7 +2058,7 @@ static void setStartToken(xta_part_t part, bool newxta)
     }
 }
 
-static int32_t parseXTA(ParserBuilder *aParserBuilder,
+static int32_t parse_XTA(ParserBuilder *aParserBuilder,
         		bool newxta, xta_part_t part, std::string xpath)
 {
     // Select syntax
@@ -2098,11 +2098,11 @@ static int32_t parseProperty(ParserBuilder *aParserBuilder, const std::string& x
     return utap_parse() ? -1 : 0;
 }
 
-int32_t parseXTA(const char *str, ParserBuilder *builder,
+int32_t parse_XTA(const char *str, ParserBuilder *builder,
         	 bool newxta, xta_part_t part, std::string xpath)
 {
     utap__scan_string(str);
-    int32_t res = parseXTA(builder, newxta, part, xpath);
+    int32_t res = parse_XTA(builder, newxta, part, xpath);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
@@ -2142,19 +2142,19 @@ return
 ;
 }
 
-int32_t parseXTA(const char *str, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(const char *str, ParserBuilder *builder, bool newxta)
 {
     if (newxta)
-        parseXTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
-    return parseXTA(str, builder, newxta, S_XTA, "");
+        parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+    return parse_XTA(str, builder, newxta, S_XTA, "");
 }
 
-int32_t parseXTA(FILE *file, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
 {
     if (newxta)
-        parseXTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int res = parseXTA(builder, newxta, S_XTA, "");
+    int res = parse_XTA(builder, newxta, S_XTA, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }

@@ -167,7 +167,7 @@
 
 2014-03-24  Alexandre David <adavid@cs.aau.dk>
 
-	* : Updated expression_t::isTrue().
+	* : Updated expression_t::is_true().
 
 2014-03-17  Wei Zhao <zhaow@cs.aau.dk>
 
@@ -496,7 +496,7 @@
 
 	* : Fixed bug 486.
 
-2010-03-18  Arild Martin Møller Haugstad <arild@cs.aau.dk>
+2010-03-18  Arild Martin Mï¿½ller Haugstad <arild@cs.aau.dk>
 
 	* : Experimental CMake-based alternative build-system for server
 
@@ -559,7 +559,7 @@
 	* : Added support for Gantt charts in the server.  Fixed simulation
 	game: * distinguish (un)controllable actions to duplicate * take into account forced actions
 
-2009-04-25  Arild Martin Møller Haugstad <arild@cs.aau.dk>
+2009-04-25  Arild Martin Mï¿½ller Haugstad <arild@cs.aau.dk>
 
 	* : prob: new query property; Pmax
 
@@ -618,7 +618,7 @@
 	x'==integer. It is a natural extension when considering that bool
 	and x' expressions have the same range.
 
-2008-10-03  Arild Martin Møller Haugstad <arild@cs.aau.dk>
+2008-10-03  Arild Martin Mï¿½ller Haugstad <arild@cs.aau.dk>
 
 	* : branching edges partially supported in server (with
 	ENABLE_BRANCHING) Combination with select will not currently work, support for
@@ -714,7 +714,7 @@
 	* : fixed signal flow for incompletely partitioned specifications
 	fixed some gcc-4.1.2 compiler warnings
 
-2007-03-01  John Håkansson <john@it.uu.se>
+2007-03-01  John Hï¿½kansson <john@it.uu.se>
 
 	* : Added syntax-switches for parsing expression-lists and XTA
 	processes
@@ -759,7 +759,7 @@
 
 	* : - Added option for no option in the setup.  - Added syntax extension to support inf & sup   parameter: formula.  - Fixed SystemClockAccessor to depend on the state   since clock mapping may change.  - Fixed an ugly leak (uh!) in the strategy and   also made the generation faster (no search in   the state set for states anymore).
 
-2006-11-17  John Håkansson <john@it.uu.se>
+2006-11-17  John Hï¿½kansson <john@it.uu.se>
 
 	* : introduced StatementBuilder (towards fixing enhancement/bug#120)
 	Also added a syntax switch, and optional  parameter to
@@ -952,16 +952,16 @@
 
 	* : Extended syntax for partial instantiation of templates.
 
-2006-03-02  John Håkansson <john@it.uu.se>
+2006-03-02  John Hï¿½kansson <john@it.uu.se>
 
 	* : Fixed bug in priorities: thanx Alexandre for finding this.
 
 2006-02-28  Gerd Behrmann <behrmann@cs.aau.dk>
 
-	* : Fixed bug in type_t::getSub() (TYPENAME was propagated).  Fixed structural equivalence check for == and != operators.  Added substitution of process arguments in type of dot expressions
+	* : Fixed bug in type_t::get_sub() (TYPENAME was propagated).  Fixed structural equivalence check for == and != operators.  Added substitution of process arguments in type of dot expressions
 	(needed for the structural equivalence check).
 
-2006-02-27  John Håkansson <john@it.uu.se>
+2006-02-27  John Hï¿½kansson <john@it.uu.se>
 
 	* : - Changed the syntax of ChanElement to be a ChanExpression or
 	T_DEFAULT.  - Expressions are type checked to make sure that they indeed resolve
@@ -976,7 +976,7 @@
 	* : Added type checking for template set specifications. Allowed
 	constant scalars in template set specifications. Fixes bug 264.
 
-2006-02-22  John Håkansson <john@it.uu.se>
+2006-02-22  John Hï¿½kansson <john@it.uu.se>
 
 	* : Changed priority syntax to "chan priority" for defining
 	priorities on channels (changed already in rev 1551)
@@ -991,7 +991,7 @@
 
 	* : Replaced use of C strings with STL strings.  Fixed a crash bug caused by syntax errors in records.
 
-2006-02-13  John Håkansson <john@it.uu.se>
+2006-02-13  John Hï¿½kansson <john@it.uu.se>
 
 	* : Changed keyword 'chan_priority' to 'priority' and removed #ifdef
 	ENABLE_PRIORITY
@@ -1000,7 +1000,7 @@
 
 	* : Made type_t::toString() constant.
 
-2006-02-08  John Håkansson <john@it.uu.se>
+2006-02-08  John Hï¿½kansson <john@it.uu.se>
 
 	* : Priority extension: removed redundant type check which broke
 	template sets.

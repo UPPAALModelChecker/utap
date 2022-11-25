@@ -46,7 +46,7 @@ SignalFlow::SignalFlow(const std::string& title, Document& doc): title{title}
      * FIXME: it does not take care of autocompleted parameters,
      *        unfolding is intricate and is done outside UTAP.
      */
-    for (auto& proc : doc.getProcesses())
+    for (auto& proc : doc.get_processes())
         visitProcess(proc);
 }
 
@@ -239,26 +239,25 @@ void SignalFlow::printForDot(std::ostream& os, bool ranked, bool erd, bool cEdge
 bool SignalFlow::checkParams(const symbol_t& s)
 {
     if (!paramsExpanded) {
-        if (0 <= cP->templ->parameters.getIndexOf(s.getName())) {
+        if (cP->templ->parameters.contains(s.get_name())) {
             // is it parameter? find the corresponding global symbol(s)
-            auto e = cP->mapping.find(s);
-            if (e != cP->mapping.end()) {
+            if (auto e = cP->mapping.find(s); e != cP->mapping.end()) {
                 paramsExpanded = true;
                 visitExpression(e->second);
                 paramsExpanded = false;
             } else {
-                cerr << "mapping param '" << s.getName() << "' failed" << endl;
+                cerr << "mapping param '" << s.get_name() << "' failed" << endl;
                 exit(EXIT_FAILURE);
             }
             return false;
-        } else if (0 <= cP->templ->frame.getIndexOf(s.getName())) {
+        } else if (cP->templ->frame.contains(s.get_name())) {
             // is it local symbol? discard, no observable I/O here
             return false;
         }
     }
     // it must be global/shared
-    /*    if(s.getFrame().hasParent()) {// should not have a parent
-            cerr << s.getName() <<" assumed to be global but it is not" << endl;
+    /*    if(s.get_frame().hasParent()) {// should not have a parent
+            cerr << s.get_name() <<" assumed to be global but it is not" << endl;
             exit(EXIT_FAILURE);
             }*/
     return true;
@@ -281,9 +280,9 @@ void SignalFlow::addChan(const std::string& s, strset_t& ids, str2procset_t& ind
 void SignalFlow::addVar(const symbol_t& s, str2strset_t& ids, str2procset_t& index)
 {
     if (checkParams(s)) {
-        ids[s.getName()].insert(cChan);
-        variables.insert(s.getName());
-        index[s.getName()].insert(cTA);
+        ids[s.get_name()].insert(cChan);
+        variables.insert(s.get_name());
+        index[s.get_name()].insert(cTA);
     }
 }
 
@@ -292,8 +291,8 @@ static const char* noChan = "-";
 void SignalFlow::visitProcess(instance_t& p)
 {
     cP = &p;
-    procs.insert(cTA = new proc_t(p.uid.getName().c_str()));
-    processes.insert(p.uid.getName().c_str());
+    procs.insert(cTA = new proc_t(p.uid.get_name().c_str()));
+    processes.insert(p.uid.get_name().c_str());
 
     for (const auto& loc : p.templ->locations) {
         cChan = noChan;  // invariants should not use shared
@@ -313,7 +312,7 @@ void SignalFlow::visitExpression(const expression_t& e)
         return;
     }
 
-    switch (e.getKind()) {
+    switch (e.get_kind()) {
     case PLUS:
     case MINUS:
     case MULT:
@@ -343,7 +342,7 @@ void SignalFlow::visitExpression(const expression_t& e)
          * Unary operators
          */
     case NOT:
-        for (uint32_t i = 0; i < e.getSize(); ++i) {
+        for (uint32_t i = 0; i < e.get_size(); ++i) {
             inp = true;
             out = false;
             visitExpression(e[i]);
@@ -354,7 +353,7 @@ void SignalFlow::visitExpression(const expression_t& e)
     case SUM:
         // the first expression is an inline (local) declaration (don't care)
         // the second is side-effect-free, hence read-only expression
-        assert(e.getSize() == 2);
+        assert(e.get_size() == 2);
         inp = true;
         out = false;
         visitExpression(e[1]);
@@ -364,20 +363,20 @@ void SignalFlow::visitExpression(const expression_t& e)
          * Assignment operators
          */
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT:
         inp = false;
         out = true;
         visitExpression(e[0]);
-        for (uint32_t i = 1; i < e.getSize(); ++i) {
+        for (uint32_t i = 1; i < e.get_size(); ++i) {
             inp = true;
             out = false;
             visitExpression(e[i]);
@@ -391,16 +390,16 @@ void SignalFlow::visitExpression(const expression_t& e)
          */
     case IDENTIFIER:
         if (sync) {  // channel synchronization
-            if (checkParams(e.getSymbol())) {
-                chanString.append(e.getSymbol().getName());
+            if (checkParams(e.get_symbol())) {
+                chanString.append(e.get_symbol().get_name());
             }
-        } else {                                      // variable access
-            if (e.getType().getKind() == CONSTANT) {  // constant
+        } else {                                        // variable access
+            if (e.get_type().get_kind() == CONSTANT) {  // constant
                 assert(!out);
                 break;
             }
-            symbol_t sym = e.getSymbol();
-            if (sym.getFrame().has_parent()) {  // local variable
+            symbol_t sym = e.get_symbol();
+            if (sym.get_frame().has_parent()) {  // local variable
                 if (refparams.size() == 0)
                     break;  // local process variable
                 // else: local function variable
@@ -431,7 +430,7 @@ void SignalFlow::visitExpression(const expression_t& e)
     case CONSTANT:
         if (sync) {
             std::ostringstream os;
-            os << e.getValue();
+            os << e.get_value();
             chanString.append(os.str());
         }
         break;
@@ -440,7 +439,7 @@ void SignalFlow::visitExpression(const expression_t& e)
         if (sync)
             chanString.append("[");
         pushIO();
-        for (uint32_t i = 1; i < e.getSize(); ++i) {
+        for (uint32_t i = 1; i < e.get_size(); ++i) {
             inp = true;
             out = false;
             visitExpression(e[i]);
@@ -451,10 +450,10 @@ void SignalFlow::visitExpression(const expression_t& e)
         }
         break;
     case RATE:
-    case POSTINCREMENT:
-    case PREINCREMENT:
-    case POSTDECREMENT:
-    case PREDECREMENT:
+    case POST_INCREMENT:
+    case PRE_INCREMENT:
+    case POST_DECREMENT:
+    case PRE_DECREMENT:
         inp = true;
         out = true;
         visitExpression(e[0]);
@@ -465,22 +464,22 @@ void SignalFlow::visitExpression(const expression_t& e)
         visitExpression(e[0]);
         break;
     case LIST:
-        for (uint32_t i = 0; i < e.getSize(); ++i) {
+        for (uint32_t i = 0; i < e.get_size(); ++i) {
             inp = true;
             out = false;
             visitExpression(e[i]);
         }
         break;
     case DOT:  // dot expression has only one subexpression?
-        for (uint32_t i = 0; i < e.getSize(); ++i)
+        for (uint32_t i = 0; i < e.get_size(); ++i)
             visitExpression(e[i]);
         break;
-    case INLINEIF:
+    case INLINE_IF:
         pushIO();
         inp = true;
         out = false;
         visitExpression(e[0]);
-        for (uint32_t i = 1; i < e.getSize(); ++i) {
+        for (uint32_t i = 1; i < e.get_size(); ++i) {
             popIO();
             pushIO();
             visitExpression(e[i]);
@@ -489,16 +488,16 @@ void SignalFlow::visitExpression(const expression_t& e)
         break;
     case COMMA:
         pushIO();
-        for (uint32_t i = 0; i < e.getSize() - 1; ++i) {
+        for (uint32_t i = 0; i < e.get_size() - 1; ++i) {
             inp = true;
             out = false;
             visitExpression(e[i]);
         }
         popIO();
-        visitExpression(e[e.getSize() - 1]);
+        visitExpression(e[e.get_size() - 1]);
         break;
     case SYNC:
-        switch (e.getSync()) {
+        switch (e.get_sync()) {
         case SYNC_QUE:
             inp = true;
             out = false;
@@ -525,31 +524,31 @@ void SignalFlow::visitExpression(const expression_t& e)
         }
         sync = false;
         break;
-    case EFUNCALL:
-    case FUNCALL: {                             // create a map of parameter symbol to argument expression
-        const symbol_t& fnsym = e.getSymbol();  // function symbol
-        assert(fnsym.getType().getKind() == FUNCTION || fnsym.getType().isExternalFunction());
-        const function_t* fn = static_cast<const function_t*>(fnsym.getData());
+    case FUN_CALL:
+    case FUN_CALL_EXT: {                         // create a map of parameter symbol to argument expression
+        const symbol_t& fnsym = e.get_symbol();  // function symbol
+        assert(fnsym.get_type().get_kind() == FUNCTION || fnsym.get_type().is_function_external());
+        const function_t* fn = static_cast<const function_t*>(fnsym.get_data());
         BlockStatement* body = fn->body.get();
-        const frame_t& frame = body->getFrame();
+        const frame_t& frame = body->get_frame();
         refparams.push(exprref_t());
         valparams.push(exprref_t());
-        for (size_t i = 0; i < e.getSize() - 1; ++i) {
+        for (size_t i = 0; i < e.get_size() - 1; ++i) {
             symbol_t param = frame[i];
-            const type_t& ptype = param.getType();
+            const type_t& ptype = param.get_type();
             if (ptype.is(REF))
                 refparams.top()[param] = e[i + 1];
             else
                 valparams.top()[param] = e[i + 1];
         }
-        if (e.getKind() != EFUNCALL)
+        if (e.get_kind() != FUN_CALL_EXT)
             body->accept(this);  // see which parameters are touched
         refparams.pop();
         valparams.pop();
     } break;
 
     default:
-        cerr << "unsupported kind (" << e.getKind() << ") of expression, please report it to developers." << endl;
+        cerr << "unsupported kind (" << e.get_kind() << ") of expression, please report it to developers." << endl;
         exit(1);
     }
 }
@@ -1372,8 +1371,8 @@ void DistanceCalculator::updateDistancesFromProcess(const std::string& name, con
 uint32_t DistanceCalculator::calcComplexity(const std::string& process)
 {
     uint32_t result = 0;
-    for (const auto& i : doc.getProcesses())
-        if (i.uid.getName() == process)
+    for (const auto& i : doc.get_processes())
+        if (i.uid.get_name() == process)
             result += i.templ->edges.size();
     return result;
 }
