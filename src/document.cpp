@@ -730,6 +730,7 @@ Document::Document()
 {
     global.frame = frame_t::create();
 #ifdef ENABLE_CORA
+    addVariable(&global, type_t::createPrimitive(REWARD), "reward", expression_t(), position_t());
     addVariable(&global, type_t::createPrimitive(COST), "cost", expression_t(), position_t());
 #endif
 }

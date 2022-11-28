@@ -114,6 +114,7 @@ bool type_t::isPrefix() const
     case Constants::BRANCHPOINT:
     case Constants::CHANNEL:
     case Constants::COST:
+    case Constants::REWARD:
     case Constants::INVARIANT:
     case Constants::INVARIANT_WR:
     case Constants::GUARD:
@@ -515,6 +516,8 @@ string type_t::str() const
 
     case Constants::COST: kind = "cost"; break;
 
+    case Constants::REWARD: kind = "reward"; break;
+
     case Constants::RATE: kind = "rate"; break;
 
     case Constants::TYPEDEF: kind = "def"; break;
@@ -626,6 +629,8 @@ string type_t::toDeclarationString() const
     case Constants::FORMULA: kind = "formula"; break;
 
     case Constants::COST: kind = "cost"; break;
+
+    case Constants::REWARD: kind = "reward"; break;
 
     case Constants::RATE: kind = "rate"; break;
 

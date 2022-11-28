@@ -14,6 +14,7 @@ fi
 for target in "$@" ; do
     LIBS="$LOCAL/$target"
     # libxml2
+    echo $LIBS
     if [ ! -r "$LIBS/lib/libxml2.a" ] ; then
         echo -e "${BW}Preparing source of ${LIBXML2}${NC}"
         prepare_libxml2

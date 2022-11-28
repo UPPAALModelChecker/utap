@@ -69,6 +69,7 @@ namespace UTAP
         expression_t invariant; /**< The invariant */
         expression_t exponentialRate;
         expression_t costRate; /**< Rate expression */
+        expression_t rewardRate; /**< Rate expression */
         int32_t nr;            /**< Location number in a template */
         std::string str() const;
     };

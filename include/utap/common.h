@@ -236,6 +236,7 @@ namespace UTAP
             LOCATION_EXPR,
             CHANNEL,
             COST,
+            REWARD,
             INVARIANT,
             INVARIANT_WR,
             GUARD,

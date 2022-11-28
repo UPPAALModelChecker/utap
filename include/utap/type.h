@@ -242,6 +242,9 @@ namespace UTAP
         /** Shortcut for is(COST). */
         bool isCost() const { return is(Constants::COST); }
 
+        /** Shortcut for is(REWARD). */
+        bool isReward() const { return is(Constants::REWARD); }
+
         /** Shortcut for is(DOUBLE). */
         bool isDouble() const { return is(Constants::DOUBLE); }
 

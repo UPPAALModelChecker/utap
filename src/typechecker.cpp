@@ -35,6 +35,8 @@ using namespace Constants;
  */
 static bool isCost(expression_t expr) { return expr.getType().is(COST); }
 
+static bool isReward(expression_t expr) {return expr.getType().is(REWARD); }
+
 static bool isVoid(expression_t expr) { return expr.getType().isVoid(); }
 
 static bool isDouble(expression_t expr) { return expr.getType().isDouble(); }
@@ -165,6 +167,7 @@ static bool isAssignable(type_t type)
     case Constants::STRING:
     case Constants::CLOCK:
     case Constants::COST:
+    case Constants::REWARD:
     case Constants::SCALAR: return true;
 
     case ARRAY: return isAssignable(type[0]);
@@ -215,9 +218,11 @@ class RateDecomposer
 public:
     RateDecomposer() {}
     expression_t costRate;
+    expression_t rewardRate;
     expression_t invariant{expression_t::createConstant(1)};
     bool hasStrictInvariant{false}, hasClockRates{false};
     size_t countCostRates{0};
+    size_t countRewardRates{0};
 
     void decompose(expression_t, bool inforall = false);
 };
@@ -254,7 +259,10 @@ void RateDecomposer::decompose(expression_t expr, bool inforall)
         if (isCost(left)) {
             costRate = right;
             countCostRates++;
-        } else {
+        }else if(isReward(left)) {
+            rewardRate = right;
+            countRewardRates++;
+        }else {
             hasClockRates = true;
             if (!inforall) {
                 invariant = invariant.empty() ? expr
@@ -702,8 +710,12 @@ void TypeChecker::visitLocation(location_t& loc)
                 decomposer.decompose(inv);
                 inv = decomposer.invariant;
                 loc.costRate = decomposer.costRate;
+                loc.rewardRate = decomposer.rewardRate;
                 if (decomposer.countCostRates > 1) {
                     handleError(inv, "$Only_one_cost_rate_is_allowed");
+                }
+                if (decomposer.countRewardRates > 1) {
+                    handleError(inv, "$Only_one_reward_rate_is_allowed");
                 }
                 if (decomposer.hasClockRates) {
                     doc.recordStopWatch();
@@ -1930,7 +1942,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case RATE:
-        if (isCost(expr[0]) || isClock(expr[0])) {
+        if (isCost(expr[0]) || isReward(expr[0]) || isClock(expr[0])) {
             type = type_t::createPrimitive(RATE);
         }
         break;
@@ -1947,7 +1959,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case ASSPLUS:
-        if ((!isInteger(expr[0]) && !isCost(expr[0])) || !isIntegral(expr[1])) {
+        if ((!isInteger(expr[0]) && !isCost(expr[0]) && !isReward(expr[0])) || !isIntegral(expr[1])) {
             handleError(expr, "$Increment_operator_can_only_be_used_for_integers_and_cost_variables");
         } else if (!isModifiableLValue(expr[0])) {
             handleError(expr[0], "$Left_hand_side_value_expected");
