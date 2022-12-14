@@ -356,8 +356,8 @@ namespace UTAP
         virtual void exprBuiltinFunction2(Constants::kind_t) = 0;
         virtual void exprBuiltinFunction3(Constants::kind_t) = 0;
 
-        enum PRICETYPE { TIMEPRICE, EXPRPRICE, PROBAPRICE };
-        virtual void exprMinMaxExp(Constants::kind_t, PRICETYPE, Constants::kind_t) = 0;
+        enum PRICETYPE { TIMEPRICE, EXPRPRICE };
+        virtual void exprMinMaxExp(Constants::kind_t, PRICETYPE) = 0;
         virtual void exprLoadStrategy() = 0;
         virtual void exprSaveStrategy() = 0;
 

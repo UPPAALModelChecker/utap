@@ -283,7 +283,7 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-%type <kind> ExpQuantifier ExpPrQuantifier
+%type <kind> ExpQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
 %type <number> ParameterList FieldInitList
@@ -1690,10 +1690,6 @@ OldGuardList:
 ExpQuantifier:
          T_MINEXP { $$ = MIN_EXP;} 
          | T_MAXEXP { $$ = MAX_EXP;};
-         
-ExpPrQuantifier:
-         T_MINPR { $$ = MIN_EXP;} 
-         | T_MAXPR { $$ = MAX_EXP;};
         
 SubjectionList: // do not allow multiple subjections for the time being
         /*Id ',' SubjectionList {
@@ -1792,19 +1788,15 @@ AssignablePropperty:
         CALL(@1, @4, exprBinary(PO_CONTROL));
 	CALL(@1, @4, property());
     }
-    | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
+    | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features  Subjection Imitation
     {
-        CALL(@1, @12, exprMinMaxExp($1,  ParserBuilder::EXPRPRICE, $10));
-	CALL(@1, @12, property());
-    }
-    | ExpQuantifier '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
-    {
-        CALL(@1, @8, exprMinMaxExp($1, ParserBuilder::TIMEPRICE, $7));
+        CALL(@1, @9, exprMinMaxExp($1,  ParserBuilder::EXPRPRICE));
 	CALL(@1, @9, property());
     }
-    | ExpPrQuantifier '[' BoundType ']' Features ':' PathType Expression Subjection Imitation {
-        CALL(@1, @8, exprMinMaxExp($1, ParserBuilder::PROBAPRICE, $7));
-	CALL(@1, @9, property());
+    | ExpQuantifier '[' BoundType ']' Features Subjection Imitation
+    {
+        CALL(@1, @6, exprMinMaxExp($1, ParserBuilder::TIMEPRICE));
+	CALL(@1, @6, property());
     }
     | T_LOAD_STRAT Features '(' Expression ')' {
         CALL(@1, @5, exprLoadStrategy());

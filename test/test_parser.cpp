@@ -16,6 +16,7 @@
 
 #include "utap/StatementBuilder.hpp"
 #include "utap/utap.h"
+#include "utap/typechecker.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -69,14 +70,18 @@ TEST_CASE("External functions")
 class QueryBuilder : public UTAP::StatementBuilder
 {
     UTAP::expression_t query;
+    UTAP::TypeChecker checker;
 
 public:
-    explicit QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc} {}
+    explicit QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc}, checker{doc} {}
     void property() override
     {
         REQUIRE(fragments.size() > 0);
         query = fragments[0];
         fragments.pop();
+    }
+    void typecheck(){
+        checker.checkExpression(query);
     }
     [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
     UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
@@ -125,5 +130,37 @@ TEST_CASE("SMC bounds in queries")
         auto expr = builder->getQuery();
         REQUIRE(expr.getSize() == 5);
         CHECK(expr.get(0).getValue() == -1);  // number of runs
+    }
+}
+
+TEST_CASE("Parsing implicit goals for learning queries")
+{
+    using UTAP::Constants::kind_t;
+    auto doc = read_document("simpleSystem.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+
+    SUBCASE("Implicit constraint goal")
+    {
+        auto res = parseProperty("minE[c<=25]", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->getErrors().size() == 0);
+    }
+
+    SUBCASE("Implicit time goal")
+    {
+        auto res = parseProperty("minE[<=20]", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->getErrors().size() == 0);
+    }
+
+    SUBCASE("Implicit step goal")
+    {
+        REQUIRE(doc->getErrors().size() == 0);
+        auto res = parseProperty("minE[#<=20]", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->getErrors().size() == 0);
     }
 }
