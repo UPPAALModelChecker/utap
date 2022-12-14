@@ -2357,7 +2357,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 return false;
             }
         }
-        
+
         type = type_t::createPrimitive(FORMULA);
         break;
     case SMC_CONTROL:

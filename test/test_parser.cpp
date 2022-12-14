@@ -15,8 +15,8 @@
  */
 
 #include "utap/StatementBuilder.hpp"
-#include "utap/utap.h"
 #include "utap/typechecker.h"
+#include "utap/utap.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
@@ -80,9 +80,7 @@ public:
         query = fragments[0];
         fragments.pop();
     }
-    void typecheck(){
-        checker.checkExpression(query);
-    }
+    void typecheck() { checker.checkExpression(query); }
     [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
     UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
                                   UTAP::position_t pos) override
