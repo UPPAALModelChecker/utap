@@ -1,12 +1,12 @@
 #ifndef INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 #define INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 
-#include "utap/utap.h"
-
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <cstring>
+
+#include <utap/utap.h>
 
 class document_fixture
 {

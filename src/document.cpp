@@ -24,7 +24,6 @@
 #include "utap/builder.h"
 #include "utap/statement.h"
 
-#include <functional>  // std::bind
 #include <sstream>
 #include <stack>
 #include <cassert>
@@ -39,7 +38,6 @@
 using namespace UTAP;
 using namespace Constants;
 
-using std::bind;
 using std::list;
 using std::stack;
 using std::vector;
@@ -52,8 +50,6 @@ using std::set;
 using std::string;
 using std::ostream;
 using std::deque;
-
-using namespace std::placeholders;  // _1, _2, etc for std::bind
 
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";

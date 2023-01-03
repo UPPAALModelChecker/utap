@@ -25,7 +25,6 @@
 #include "utap/common.h"
 #include "utap/document.h"
 
-#include <algorithm>
 #include <cassert>
 
 using namespace UTAP;
