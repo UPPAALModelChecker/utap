@@ -366,6 +366,7 @@ namespace UTAP
         std::deque<edge_t> edges;               /**< Edges */
         std::vector<expression_t> dynamicEvals;
         bool isTA;
+        bool isInstanced{false};
 
         int addDynamicEval(expression_t t)
         {

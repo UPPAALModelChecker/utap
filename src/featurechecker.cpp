@@ -38,6 +38,12 @@ FeatureChecker::FeatureChecker(Document& document)
         supportedMethods.symbolic = false;
 }
 
+bool FeatureChecker::visitTemplateBefore(template_t& templ)
+{
+    // Only check features if template is actually used in the system
+    return templ.isInstanced;
+}
+
 void FeatureChecker::visitVariable(variable_t& var)
 {
     if (var.uid.getType().isClock() && !var.init.empty() && var.init.usesFP())
