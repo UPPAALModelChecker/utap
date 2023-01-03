@@ -41,6 +41,7 @@ namespace UTAP
         void visitAssignment(expression_t& ass);
         void visitGuard(expression_t& guard);
         void visitLocation(location_t& state) override;
+        void visitVariable(variable_t&) override;
 
         void visitFrame(const frame_t& frame);
         bool isRateDisallowedInSymbolic(const expression_t& e);

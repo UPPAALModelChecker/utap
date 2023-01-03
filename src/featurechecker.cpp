@@ -25,6 +25,7 @@
 #include "utap/common.h"
 #include "utap/document.h"
 
+#include <algorithm>
 #include <cassert>
 
 using namespace UTAP;
@@ -34,6 +35,12 @@ FeatureChecker::FeatureChecker(Document& document)
     document.accept(*this);
     visitFrame(document.getGlobals().frame);
     if (document.hasDynamicTemplates())
+        supportedMethods.symbolic = false;
+}
+
+void FeatureChecker::visitVariable(variable_t& var)
+{
+    if (var.uid.getType().isClock() && !var.init.empty() && var.init.usesFP())
         supportedMethods.symbolic = false;
 }
 
