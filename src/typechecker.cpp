@@ -651,7 +651,7 @@ void TypeChecker::visitProcess(instance_t& process)
         symbol_t parameter = process.parameters[i];
         type_t type = parameter.getType();
         if (!(type.isScalar() || type.isRange()) || type.is(REF) || isDefaultInt(type)) {
-            handleError(type, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
+            handleError(process.uid, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
         }
 
         /* Unbound parameters must not be used either directly or
@@ -659,8 +659,8 @@ void TypeChecker::visitProcess(instance_t& process)
          * not be restricted.
          */
         if (process.restricted.find(parameter) != process.restricted.end()) {
-            handleError(type, "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
-                              "an_array_declaration_or_select_expression");
+            handleError(process.uid, "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
+                                     "an_array_declaration_or_select_expression");
         }
     }
 }
