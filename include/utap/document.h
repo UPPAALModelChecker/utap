@@ -135,6 +135,7 @@ struct function_t : stringify_t<function_t>
     std::unique_ptr<BlockStatement> body{nullptr}; /**< Pointer to the block. */
     function_t() = default;
     std::ostream& print(std::ostream& os) const; /**< textual representation, used to write the XML file */
+    position_t body_position;
 };
 
 struct progress_t

@@ -529,10 +529,10 @@ AfterUpdateDecl: T_AFTER '{' ExprList '}' { CALL(@3, @3, after_update()); };
 FunctionDecl:
         /* Notice that StatementList will catch all errors. Hence we
          * should be able to guarantee, that once declFuncBegin() has
-         * been called, we will also call declFuncEnd().
+         * been called, we will also call decl_func_end().
 	 * Correction: No it won't.
 	 * int f() { if (cond) { return 0; }
-	 * will generate an error, not call declFuncEnd, and the builder
+	 * will generate an error, not call decl_func_end, and the builder
 	 * will be left in an inconsistent state. EndBlock fixes that.
      *
      * Correction^2: It did not fix it. Discussion continued at
