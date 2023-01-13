@@ -118,7 +118,7 @@ namespace UTAP
          * by applying the prefix. TypeExceptions might be thrown if
          * the combination of the prefix and the type is illegal.
          */
-        type_t applyPrefix(PREFIX, type_t type);
+        type_t apply_prefix(PREFIX, type_t type);
 
         /**
          * If this method returns true, it is allowed to access the
@@ -135,91 +135,91 @@ namespace UTAP
         explicit ExpressionBuilder(Document& doc);
         ExpressionFragments& getExpressions();
 
-        void addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) override;
+        void add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) override;
 
-        void handleError(const TypeException&) override;
-        void handleWarning(const TypeException&) override;
-        void typeDuplicate() override;
-        void typePop() override;
-        void typeBool(PREFIX) override;
-        void typeInt(PREFIX) override;
-        void typeString(PREFIX prefix) override;
-        void typeDouble(PREFIX) override;
-        void typeBoundedInt(PREFIX) override;
-        void typeChannel(PREFIX) override;
-        void typeClock(PREFIX) override;
-        void typeVoid() override;
-        void typeScalar(PREFIX) override;
-        void typeName(PREFIX, const char* name) override;
-        bool isType(const char*) override;
-        void exprTrue() override;
-        void exprFalse() override;
-        void exprDouble(double) override;
-        void exprString(const char* name) override;
-        void exprId(const char* varName) override;
-        void exprLocation() override;
-        void exprNat(int32_t) override;
-        void exprCallBegin() override;
-        void exprCallEnd(uint32_t n) override;
-        void exprArray() override;
-        void exprPostIncrement() override;
-        void exprPreIncrement() override;
-        void exprPostDecrement() override;
-        void exprPreDecrement() override;
-        void exprAssignment(Constants::kind_t op) override;
-        void exprUnary(Constants::kind_t unaryop) override;
-        void exprBinary(Constants::kind_t binaryop) override;
-        void exprNary(Constants::kind_t op, uint32_t num) override;
-        void exprScenario(const char* name) override;
+        void handle_error(const TypeException&) override;
+        void handle_warning(const TypeException&) override;
+        void type_duplicate() override;
+        void type_pop() override;
+        void type_bool(PREFIX) override;
+        void type_int(PREFIX) override;
+        void type_string(PREFIX prefix) override;
+        void type_double(PREFIX) override;
+        void type_bounded_int(PREFIX) override;
+        void type_channel(PREFIX) override;
+        void type_clock(PREFIX) override;
+        void type_void() override;
+        void type_scalar(PREFIX) override;
+        void type_name(PREFIX, const char* name) override;
+        bool is_type(const char*) override;
+        void expr_true() override;
+        void expr_false() override;
+        void expr_double(double) override;
+        void expr_string(const char* name) override;
+        void expr_identifier(const char* varName) override;
+        void expr_location() override;
+        void expr_nat(int32_t) override;
+        void expr_call_begin() override;
+        void expr_call_end(uint32_t n) override;
+        void expr_array() override;
+        void expr_post_increment() override;
+        void expr_pre_increment() override;
+        void expr_post_decrement() override;
+        void expr_pre_decrement() override;
+        void expr_assignment(Constants::kind_t op) override;
+        void expr_unary(Constants::kind_t unaryop) override;
+        void expr_binary(Constants::kind_t binaryop) override;
+        void expr_nary(Constants::kind_t op, uint32_t num) override;
+        void expr_scenario(const char* name) override;
         expression_t exprScenario();
-        void exprTernary(Constants::kind_t ternaryop, bool firstMissing) override;
-        void exprInlineIf() override;
-        void exprComma() override;
-        void exprDot(const char*) override;
-        void exprDeadlock() override;
-        void exprForAllBegin(const char* name) override;
-        void exprForAllEnd(const char* name) override;
-        void exprExistsBegin(const char* name) override;
-        void exprExistsEnd(const char* name) override;
-        void exprSumBegin(const char* name) override;
-        void exprSumEnd(const char* name) override;
+        void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;
+        void expr_inline_if() override;
+        void expr_comma() override;
+        void expr_dot(const char*) override;
+        void expr_deadlock() override;
+        void expr_forall_begin(const char* name) override;
+        void expr_forall_end(const char* name) override;
+        void expr_exists_begin(const char* name) override;
+        void expr_exists_end(const char* name) override;
+        void expr_sum_begin(const char* name) override;
+        void expr_sum_end(const char* name) override;
 
-        void exprProbaQualitative(Constants::kind_t, Constants::kind_t, double) override;
-        void exprProbaQuantitative(Constants::kind_t) override;
-        void exprProbaCompare(Constants::kind_t, Constants::kind_t) override;
-        void exprProbaExpected(const char*) override;
-        void exprBuiltinFunction1(Constants::kind_t) override;
-        void exprBuiltinFunction2(Constants::kind_t) override;
-        void exprBuiltinFunction3(Constants::kind_t) override;
-        void exprMinMaxExp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
-        void exprSaveStrategy() override;
-        void exprLoadStrategy() override;
+        void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) override;
+        void expr_proba_quantitative(Constants::kind_t) override;
+        void expr_proba_compare(Constants::kind_t, Constants::kind_t) override;
+        void expr_proba_expected(const char*) override;
+        void expr_builtin_function1(Constants::kind_t) override;
+        void expr_builtin_function2(Constants::kind_t) override;
+        void expr_builtin_function3(Constants::kind_t) override;
+        void expr_min_max_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+        void expr_save_strategy() override;
+        void expr_load_strategy() override;
 
-        void exprSimulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) override;
-        void exprMitlFormula() override;
-        void exprMitlUntil(int, int) override;
-        void exprMitlRelease(int, int) override;
-        void exprMitlDisj() override;
-        void exprMitlConj() override;
-        void exprMitlNext() override;
-        void exprMitlAtom() override;
-        void exprMitlDiamond(int, int) override;
-        void exprMitlBox(int, int) override;
+        void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) override;
+        void expr_MITL_formula() override;
+        void expr_MITL_until(int, int) override;
+        void expr_MITL_release(int, int) override;
+        void expr_MITL_disj() override;
+        void expr_MITL_conj() override;
+        void expr_MITL_next() override;
+        void expr_MITL_atom() override;
+        void expr_MITL_diamond(int, int) override;
+        void expr_MITL_box(int, int) override;
 
         /* Dynamic process creation */
-        void exprSpawn(int params) override;
-        void exprExit() override;
-        void exprNumOf() override;
-        void exprForAllDynamicBegin(const char*, const char*) override;
-        void exprForAllDynamicEnd(const char* name) override;
-        void exprExistsDynamicBegin(const char*, const char*) override;
-        void exprExistsDynamicEnd(const char*) override;
-        void exprSumDynamicBegin(const char*, const char*) override;
-        void exprSumDynamicEnd(const char* name) override;
-        void exprForeachDynamicBegin(const char*, const char*) override;
-        void exprForeachDynamicEnd(const char* name) override;
-        void pushDynamicFrameOf(template_t* t, std::string name);  // no override
-        void popDynamicFrameOf(std::string name);
+        void expr_spawn(int params) override;
+        void expr_exit() override;
+        void expr_numof() override;
+        void expr_forall_dynamic_begin(const char*, const char*) override;
+        void expr_forall_dynamic_end(const char* name) override;
+        void expr_exists_dynamic_begin(const char*, const char*) override;
+        void expr_exists_dynamic_end(const char*) override;
+        void expr_sum_dynamic_begin(const char*, const char*) override;
+        void expr_sum_dynamic_end(const char* name) override;
+        void expr_foreach_dynamic_begin(const char*, const char*) override;
+        void expr_foreach_dynamic_end(const char* name) override;
+        void push_dynamic_frame_of(template_t* t, std::string name);  // no override
+        void pop_dynamic_frame_of(std::string name);
     };
 }  // namespace UTAP
 

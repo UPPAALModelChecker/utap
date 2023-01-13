@@ -764,7 +764,7 @@ void TypeChecker::visitEdge(edge_t& edge)
                     /*
                       This is now allowed, though it is expensive.
 
-                    handleError(edge.sync,
+                    handle_error(edge.sync,
                                 "$Clock_guards_are_not_allowed_on_broadcast_receivers");
                     */
                 }
@@ -1051,7 +1051,7 @@ void TypeChecker::visitProperty(expression_t expr)
                     {
                         if (!is_constraint(expr[i][j]))
                         {
-                            handleError(expr[i][j], "$Nesting_of_path_quantifiers_is_not_allowed");
+                            handle_error(expr[i][j], "$Nesting_of_path_quantifiers_is_not_allowed");
                         }
                     }
                 }
@@ -1085,8 +1085,8 @@ void TypeChecker::visitProperty(expression_t expr)
 
 /**
  * Checks that \a expr is a valid assignment expression. Errors or
- * warnings are issued via calls to handleError() and
- * handleWarning(). Returns true if no errors were issued, false
+ * warnings are issued via calls to handle_error() and
+ * handle_warning(). Returns true if no errors were issued, false
  * otherwise.
  *
  * An assignment expression is any:
@@ -1624,7 +1624,7 @@ bool TypeChecker::areEqCompatible(type_t t1, type_t t2) const
     called with the correct arguments, checks that operators are used
     with the correct operands and checks that operands to assignment
     operators are assignment compatible. Errors are reported by
-    calling handleError(). This function does not check/compute the
+    calling handle_error(). This function does not check/compute the
     range of integer expressions and thus does not produce
     out-of-range errors or warnings. Returns true if no type errors
     were found, false otherwise.
@@ -1668,7 +1668,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
         else
         {
-            handleError(expr, "$Invalid_type");
+            handle_error(expr, "$Invalid_type");
             return false;
         }
         */

@@ -973,7 +973,7 @@ std::ostream& expression_t::print_bound_type(std::ostream& os, expression_t e) c
     return os;
 }
 
-static const char* getBuiltinFunName(kind_t kind)
+static const char* get_builtin_fun_name(kind_t kind)
 {
     // the order must match declarations in include/utap/common.h
     static const char* funNames[] = {"abs",
@@ -1248,7 +1248,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case IS_UNORDERED_F:
     case RANDOM_F:
     case RANDOM_POISSON_F:
-        os << getBuiltinFunName(data->kind);
+        os << get_builtin_fun_name(data->kind);
         get(0).print(os << '(', old) << ')';
         break;
 
@@ -1267,14 +1267,14 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case RANDOM_GAMMA_F:
     case RANDOM_NORMAL_F:
     case RANDOM_WEIBULL_F:
-        os << getBuiltinFunName(data->kind) << '(';
+        os << get_builtin_fun_name(data->kind) << '(';
         get(0).print(os, old) << ',';
         get(1).print(os, old) << ')';
         break;
 
     case FMA_F:
     case RANDOM_TRI_F:
-        os << getBuiltinFunName(data->kind) << '(';
+        os << get_builtin_fun_name(data->kind) << '(';
         get(0).print(os, old) << ',';
         get(1).print(os, old) << ',';
         get(2).print(os, old) << ')';

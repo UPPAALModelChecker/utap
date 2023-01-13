@@ -110,67 +110,67 @@ namespace UTAP
     public:
         DocumentBuilder(Document&, std::vector<std::filesystem::path> paths = {});
 
-        void ganttDeclStart(const char* name) override;
-        void ganttDeclSelect(const char* id) override;
-        void ganttDeclEnd() override;
-        void ganttEntryStart() override;
-        void ganttEntrySelect(const char* id) override;
-        void ganttEntryEnd() override;
-        void declProgress(bool) override;
-        void procBegin(const char* name, const bool isTA = true, const std::string& type = "",
-                       const std::string& mode = "") override;
-        void procEnd() override;
-        void procState(const char* name, bool hasInvariant, bool hasER) override;
-        void procStateCommit(const char* name) override;
-        void procStateUrgent(const char* name) override;
-        void procStateInit(const char* name) override;
-        void procBranchpoint(const char* name) override;
-        void procEdgeBegin(const char* from, const char* to, const bool control, const char* actname) override;
-        void procEdgeEnd(const char* from = 0, const char* to = 0) override;
-        void procSelect(const char* id) override;
-        void procGuard() override;
-        void procSync(Constants::synchronisation_t type) override;
-        void procUpdate() override;
-        void procProb() override;
-        void instantiationBegin(const char*, size_t, const char*) override;
-        void instantiationEnd(const char*, size_t, const char*, size_t) override;
+        void gantt_decl_begin(const char* name) override;
+        void gantt_decl_select(const char* id) override;
+        void gantt_decl_end() override;
+        void gantt_entry_begin() override;
+        void gantt_entry_select(const char* id) override;
+        void gantt_entry_end() override;
+        void decl_progress(bool) override;
+        void proc_begin(const char* name, const bool isTA = true, const std::string& type = "",
+                        const std::string& mode = "") override;
+        void proc_end() override;
+        void proc_location(const char* name, bool hasInvariant, bool hasER) override;
+        void proc_location_commit(const char* name) override;
+        void proc_location_urgent(const char* name) override;
+        void proc_location_init(const char* name) override;
+        void proc_branchpoint(const char* name) override;
+        void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname) override;
+        void proc_edge_end(const char* from = 0, const char* to = 0) override;
+        void proc_select(const char* id) override;
+        void proc_guard() override;
+        void proc_sync(Constants::synchronisation_t type) override;
+        void proc_update() override;
+        void proc_prob() override;
+        void instantiation_begin(const char*, size_t, const char*) override;
+        void instantiation_end(const char*, size_t, const char*, size_t) override;
         void process(const char*) override;
-        void processListEnd() override;
+        void process_list_end() override;
         void done() override;
-        void beforeUpdate() override;
-        void afterUpdate() override;
-        void beginChanPriority() override;
-        void addChanPriority(char separator) override;
-        void defaultChanPriority() override;
-        void incProcPriority() override;
-        void procPriority(const std::string&) override;
-        void procInstanceLine() override;
-        void instanceName(const char* name, bool templ = true) override;
-        void instanceNameBegin(const char* name) override;
-        void instanceNameEnd(const char* name, size_t arguments) override;
-        void procMessage(const char* from, const char* to, const int loc, const bool pch) override;
-        void procMessage(Constants::synchronisation_t type) override;
-        void procCondition(const std::vector<std::string>& anchors, const int loc, const bool pch,
-                           const bool hot) override;
-        void procCondition() override;  // Label
-        void procLscUpdate(const char* anchor, const int loc, const bool pch) override;
-        void procLscUpdate() override;  // Label
-        void hasPrechart(const bool pch) override;
+        void before_update() override;
+        void after_update() override;
+        void chan_priority_begin() override;
+        void chan_priority_add(char separator) override;
+        void chan_priority_default() override;
+        void proc_priority_inc() override;
+        void proc_priority(const std::string&) override;
+        void proc_instance_line() override;
+        void instance_name(const char* name, bool templ = true) override;
+        void instance_name_begin(const char* name) override;
+        void instance_name_end(const char* name, size_t arguments) override;
+        void proc_message(const char* from, const char* to, const int loc, const bool pch) override;
+        void proc_message(Constants::synchronisation_t type) override;
+        void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
+                            const bool hot) override;
+        void proc_condition() override;  // Label
+        void proc_LSC_update(const char* anchor, const int loc, const bool pch) override;
+        void proc_LSC_update() override;  // Label
+        void prechart_set(const bool pch) override;
 
-        void declDynamicTemplate(const std::string& name) override;
+        void decl_dynamic_template(const std::string& name) override;
 
-        void modelOption(const char* key, const char* value) override;
-        void queryBegin() override;
-        void queryFormula(const char* formula, const char* location) override;
-        void queryComment(const char* comment) override;
-        void queryOptions(const char* key, const char* value) override;
-        void expectationBegin() override;
-        void expectationEnd() override;
-        void expectationValue(const char* res, const char* type, const char* value) override;
-        void expectResource(const char* type, const char* value, const char* unit) override;
-        void queryResultsBegin() override;
-        void queryResultsEnd() override;
-        void queryEnd() override;
+        void model_option(const char* key, const char* value) override;
+        void query_begin() override;
+        void query_formula(const char* formula, const char* location) override;
+        void query_comment(const char* comment) override;
+        void query_options(const char* key, const char* value) override;
+        void expectation_begin() override;
+        void expectation_end() override;
+        void expectation_value(const char* res, const char* type, const char* value) override;
+        void expect_resource(const char* type, const char* value, const char* unit) override;
+        void query_results_begin() override;
+        void query_results_end() override;
+        void query_end() override;
     };
 }  // namespace UTAP
 #endif

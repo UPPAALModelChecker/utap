@@ -40,8 +40,8 @@ using namespace Constants;
 using std::vector;
 using std::string;
 
-StatementBuilder::StatementBuilder(Document& system, std::vector<std::filesystem::path> libpaths):
-    ExpressionBuilder{system}, libpaths{std::move(libpaths)}
+StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::path> libpaths):
+    ExpressionBuilder{doc}, libpaths{std::move(libpaths)}
 {
     this->libpaths.insert(this->libpaths.begin(), std::filesystem::current_path());
     this->libpaths.insert(this->libpaths.begin(), "");
@@ -89,7 +89,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, typ
     }
 }
 
-void StatementBuilder::typeArrayOfSize(size_t n)
+void StatementBuilder::type_array_of_size(size_t n)
 {
     /* Pop array size of fragments stack.
      */
@@ -98,15 +98,15 @@ void StatementBuilder::typeArrayOfSize(size_t n)
 
     /* Create type.
      */
-    exprNat(0);
+    expr_nat(0);
     fragments.push(expr);
-    exprNat(1);
-    exprBinary(MINUS);
-    typeBoundedInt(PREFIX_NONE);
-    typeArrayOfType(n + 1);
+    expr_nat(1);
+    expr_binary(MINUS);
+    type_bounded_int(PREFIX_NONE);
+    type_array_of_type(n + 1);
 }
 
-void StatementBuilder::typeArrayOfType(size_t n)
+void StatementBuilder::type_array_of_type(size_t n)
 {
     type_t size = typeFragments[0];
     typeFragments.pop();
@@ -122,7 +122,7 @@ void StatementBuilder::typeArrayOfType(size_t n)
     }
 
     if ((!size.is_integer() && !size.is_scalar()) || !size.is(RANGE)) {
-        handleError(TypeException{"$Array_must_be_defined_over_an_integer_range_or_a_scalar_set"});
+        handle_error(TypeException{"$Array_must_be_defined_over_an_integer_range_or_a_scalar_set"});
     }
 }
 
@@ -131,7 +131,7 @@ void StatementBuilder::typeArrayOfType(size_t n)
  * type stack. The type is based on n fields, which are expected to be
  * on and will be popped off the type stack.
  */
-void StatementBuilder::typeStruct(PREFIX prefix, uint32_t n)
+void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
 {
     vector<type_t> f(fields.end() - n, fields.end());
     vector<string> l(labels.end() - n, labels.end());
@@ -139,21 +139,21 @@ void StatementBuilder::typeStruct(PREFIX prefix, uint32_t n)
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
 
-    typeFragments.push(applyPrefix(prefix, type_t::create_record(f, l, position)));
+    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, position)));
 }
 
 /**
  * Used to declare the fields of a structure. The type of the field is
  * expected to be on the type fragment stack.
  */
-void StatementBuilder::structField(const char* name)
+void StatementBuilder::struct_field(const char* name)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
 
     // Constant fields are not allowed
     if (type.is(CONSTANT)) {
-        handleError(TypeException{"$Constant_fields_not_allowed_in_struct"});
+        handle_error(TypeException{"$Constant_fields_not_allowed_in_struct"});
     }
 
     fields.push_back(type);
@@ -166,7 +166,7 @@ void StatementBuilder::structField(const char* name)
      */
     type_t base = type.strip_array();
     if (!base.is_record() && !base.is_scalar() && !base.is_integral()) {
-        handleError(TypeException{"$Invalid_type_in_structure"});
+        handle_error(TypeException{"$Invalid_type_in_structure"});
     }
 }
 
@@ -175,7 +175,7 @@ void StatementBuilder::structField(const char* name)
  * fragment stack. In case of array types, dim constant expressions
  * are expected on and popped from the expression stack.
  */
-void StatementBuilder::declTypeDef(const char* name)
+void StatementBuilder::decl_typedef(const char* name)
 {
     bool duplicate = frames.top().contains(name);
     type_t type = type_t::create_typedef(name, typeFragments[0], position);
@@ -240,7 +240,7 @@ static bool mustInitialise(type_t type)
  * top of the expression stack.  The expressions will be popped of the
  * stack (the type is left untouched).
  */
-void StatementBuilder::declVar(const char* name, bool hasInit)
+void StatementBuilder::decl_var(const char* name, bool hasInit)
 {
     // Pop initial value
     expression_t init;
@@ -255,15 +255,15 @@ void StatementBuilder::declVar(const char* name, bool hasInit)
 
     // Check whether initialiser is allowed/required
     if (hasInit && !initialisable(type)) {
-        handleError(TypeException{"$Cannot_have_initialiser"});
+        handle_error(TypeException{"$Cannot_have_initialiser"});
     }
 
     if (!hasInit && mustInitialise(type)) {
-        handleError(TypeException{"$Constants_must_have_an_initialiser"});
+        handle_error(TypeException{"$Constants_must_have_an_initialiser"});
     }
 
     if (currentFun && !initialisable(type)) {
-        handleError(TypeException{"$Type_is_not_allowed_in_functions"});
+        handle_error(TypeException{"$Type_is_not_allowed_in_functions"});
     }
 
     // Add variable to document
@@ -298,13 +298,13 @@ void StatementBuilder::declVar(const char* name, bool hasInit)
 // initialiser is used (i.e. a list of fields), then the type
 // requirements are much less strict.
 
-void StatementBuilder::declFieldInit(const char* name)
+void StatementBuilder::decl_field_init(const char* name)
 {
     type_t type = fragments[0].get_type().create_label(name, position);
     fragments[0].set_type(type);
 }
 
-void StatementBuilder::declInitialiserList(uint32_t num)
+void StatementBuilder::decl_init_list(uint32_t num)
 {
     // Pop fields
     vector<expression_t> fields(num);
@@ -313,7 +313,7 @@ void StatementBuilder::declInitialiserList(uint32_t num)
     }
     fragments.pop(num);
 
-    // Compute new type (each field has a label type, see declFieldInit())
+    // Compute new type (each field has a label type, see decl_field_init())
     vector<type_t> types;
     vector<string> labels;
     for (uint32_t i = 0; i < num; i++) {
@@ -330,7 +330,7 @@ void StatementBuilder::declInitialiserList(uint32_t num)
 /********************************************************************
  * Function declarations
  */
-void StatementBuilder::declParameter(const char* name, bool ref)
+void StatementBuilder::decl_parameter(const char* name, bool ref)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -342,14 +342,14 @@ void StatementBuilder::declParameter(const char* name, bool ref)
     params.add_symbol(name, type, position);
 }
 
-void StatementBuilder::declFuncBegin(const char* name)
+void StatementBuilder::decl_func_begin(const char* name)
 {
     // assert(currentFun == nullptr); // the parser should recover cleanly, but it does not
     if (currentFun != nullptr) {
         /* If currentFun != nullptr, we are in an error state. This error
          * state arises when a parsing error happens in the middle of a
          * function definition, such that we do not end up calling
-         * `declFuncEnd` after a `declFuncBegin`, and we have not exited
+         * `decl_func_end` after a `decl_func_begin`, and we have not exited
          * the scope of the function properly. Here, we just clean up the
          * scope dirtily so that we can continue parsing.
          * https://github.com/UPPAALModelChecker/uppaal/issues/402
@@ -372,7 +372,7 @@ void StatementBuilder::declFuncBegin(const char* name)
     }
     type_t type = type_t::create_function(return_type, types, labels, position);
     if (!addFunction(type, name, {})) {
-        handleError(DuplicateDefinitionError(name));
+        handle_error(DuplicateDefinitionError(name));
     }
 
     /* We maintain a stack of frames. As the function has a local
@@ -387,7 +387,7 @@ void StatementBuilder::declFuncBegin(const char* name)
     blocks.push_back(currentFun->body.get());
 }
 
-void StatementBuilder::declFuncEnd()
+void StatementBuilder::decl_func_end()
 {
     assert(!blocks.empty());
     assert(currentFun);
@@ -405,7 +405,7 @@ void StatementBuilder::declFuncEnd()
      * statement is a return statement.
      */
     if (!currentFun->uid.get_type()[0].is_void() && !currentFun->body->returns()) {
-        handleError(TypeException{"$Return_statement_expected"});
+        handle_error(TypeException{"$Return_statement_expected"});
     }
 
     /* Pop outer function block.
@@ -421,12 +421,12 @@ void StatementBuilder::declFuncEnd()
     currentFun = nullptr;
 }
 
-void StatementBuilder::dynamicLoadLib(const char* lib)
+void StatementBuilder::dynamic_load_lib(const char* lib)
 {
     // check that we have a library
     size_t len = strlen(lib);
     if (len <= 2) {
-        handleError(TypeException{"Cannot_load_empty_library_path"});
+        handle_error(TypeException{"Cannot_load_empty_library_path"});
         return;
     }
     auto name = std::string(lib + 1, len - 2);  // strip the quote marks
@@ -445,11 +445,11 @@ void StatementBuilder::dynamicLoadLib(const char* lib)
     }
     if (!success) {  // reveal errors iff loading has failed
         for (auto& e : errors)
-            handleError(TypeException{e});
+            handle_error(TypeException{e});
     }
 }
 
-void StatementBuilder::declExternalFunc(const char* name, const char* alias)
+void StatementBuilder::decl_external_func(const char* name, const char* alias)
 {
     assert(currentFun == nullptr);
 
@@ -467,30 +467,30 @@ void StatementBuilder::declExternalFunc(const char* name, const char* alias)
     try {
         fp = document.last_library().get_symbol(name);
     } catch (const std::runtime_error& ex) {
-        handleError(TypeException{ex.what()});
+        handle_error(TypeException{ex.what()});
     }
 
     type_t type = type_t::create_external_function(return_type, types, labels, position);
     if (!addFunction(type, alias, position_t())) {
-        handleError(DuplicateDefinitionError(alias));
+        handle_error(DuplicateDefinitionError(alias));
     }
     push_frame(frame_t::create(frames.top()));
     params.move_to(frames.top());  // params is emptied here
     currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());
     blocks.push_back(currentFun->body.get());
-    declFuncEnd();
+    decl_func_end();
 }
 
 /*********************************************************************
  * Statements
  */
-void StatementBuilder::blockBegin()
+void StatementBuilder::block_begin()
 {
     push_frame(frame_t::create(frames.top()));
     blocks.push_back(new BlockStatement(frames.top()));
 }
 
-void StatementBuilder::blockEnd()
+void StatementBuilder::block_end()
 {
     // Append the block which is being terminated as a statement to
     // the containing block.
@@ -502,11 +502,11 @@ void StatementBuilder::blockEnd()
     popFrame();
 }
 
-void StatementBuilder::emptyStatement() { blocks.back()->push_stat(std::make_unique<EmptyStatement>()); }
+void StatementBuilder::empty_statement() { blocks.back()->push_stat(std::make_unique<EmptyStatement>()); }
 
-void StatementBuilder::forBegin() {}
+void StatementBuilder::for_begin() {}
 
-void StatementBuilder::forEnd()
+void StatementBuilder::for_end()
 {  // 3 expr, 1 stat
     auto substat = blocks.back()->pop_stat();
     auto forstat = std::make_unique<ForStatement>(fragments[2], fragments[1], fragments[0], std::move(substat));
@@ -515,7 +515,7 @@ void StatementBuilder::forEnd()
     fragments.pop(3);
 }
 
-void StatementBuilder::iterationBegin(const char* name)
+void StatementBuilder::iteration_begin(const char* name)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -541,7 +541,7 @@ void StatementBuilder::iterationBegin(const char* name)
     blocks.back()->push_stat(std::make_unique<IterationStatement>(variable->uid, frames.top(), nullptr));
 }
 
-void StatementBuilder::iterationEnd(const char* name)
+void StatementBuilder::iteration_end(const char* name)
 {
     /* Retrieve the statement that we iterate over.
      */
@@ -558,25 +558,25 @@ void StatementBuilder::iterationEnd(const char* name)
     popFrame();
 }
 
-void StatementBuilder::whileBegin() {}
+void StatementBuilder::while_begin() {}
 
-void StatementBuilder::whileEnd()
+void StatementBuilder::while_end()
 {  // 1 expr, 1 stat
     auto whilestat = std::make_unique<WhileStatement>(fragments[0], blocks.back()->pop_stat());
     blocks.back()->push_stat(std::move(whilestat));
     fragments.pop();
 }
 
-void StatementBuilder::doWhileBegin() {}
+void StatementBuilder::do_while_begin() {}
 
-void StatementBuilder::doWhileEnd()
+void StatementBuilder::do_while_end()
 {  // 1 stat, 1 expr
     auto substat = blocks.back()->pop_stat();
     blocks.back()->push_stat(std::make_unique<DoWhileStatement>(std::move(substat), fragments[0]));
     fragments.pop();
 }
 
-void StatementBuilder::ifEnd(bool elsePart)
+void StatementBuilder::if_end(bool elsePart)
 {  // 1 expr, 1 or 2 statements
     std::unique_ptr<Statement> falseCase;
     if (elsePart)
@@ -587,25 +587,25 @@ void StatementBuilder::ifEnd(bool elsePart)
     fragments.pop();
 }
 
-void StatementBuilder::exprStatement()
+void StatementBuilder::expr_statement()
 {  // 1 expr
     blocks.back()->push_stat(std::make_unique<ExprStatement>(fragments[0]));
     fragments.pop();
 }
 
-void StatementBuilder::returnStatement(bool args)
+void StatementBuilder::return_statement(bool args)
 {  // 1 expr if argument is true
     if (!currentFun) {
-        handleError(TypeException{"$Cannot_return_outside_of_function_declaration"});
+        handle_error(TypeException{"$Cannot_return_outside_of_function_declaration"});
     } else {
         /* Only functions with non-void return type are allowed to have
          * arguments on return.
          */
         type_t return_type = currentFun->uid.get_type()[0];
         if (return_type.is_void() && args) {
-            handleError(TypeException{"$return_with_a_value_in_function_returning_void"});
+            handle_error(TypeException{"$return_with_a_value_in_function_returning_void"});
         } else if (!return_type.is_void() && !args) {
-            handleError(TypeException{"$return_with_no_value_in_function_returning_non-void"});
+            handle_error(TypeException{"$return_with_no_value_in_function_returning_non-void"});
         }
 
         std::unique_ptr<ReturnStatement> stat;
@@ -619,7 +619,7 @@ void StatementBuilder::returnStatement(bool args)
     }
 }
 
-void StatementBuilder::assertStatement()
+void StatementBuilder::assert_statement()
 {
     blocks.back()->push_stat(std::make_unique<AssertStatement>(fragments[0]));
     fragments.pop();
@@ -629,14 +629,14 @@ void StatementBuilder::assertStatement()
  * Expressions
  */
 
-void StatementBuilder::exprCallBegin()
+void StatementBuilder::expr_call_begin()
 {
-    ExpressionBuilder::exprCallBegin();
+    ExpressionBuilder::expr_call_begin();
 
     /* Check for recursive function calls. We could move this to
      * the type checker.
      */
     if (currentFun != nullptr && currentFun->uid == fragments[0].get_symbol()) {
-        handleError(TypeException{"$Recursion_is_not_allowed"});
+        handle_error(TypeException{"$Recursion_is_not_allowed"});
     }
 }

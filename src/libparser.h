@@ -90,7 +90,7 @@ namespace UTAP
             offset = 0;
             path = s;
             ++index;
-            parser->addPosition(index, offset, line, path);
+            parser->add_position(index, offset, line, path);
         }
 
         /**
@@ -100,7 +100,7 @@ namespace UTAP
         int increment(UTAP::ParserBuilder* parser, uint32_t n = 1)
         {
             auto last = index;
-            parser->setPosition(index, index + 1);
+            parser->set_position(index, index + 1);
             index += 1;
             offset += n;
             return last;
@@ -113,7 +113,7 @@ namespace UTAP
         void newline(UTAP::ParserBuilder* parser, uint32_t n)
         {
             line += n;
-            parser->addPosition(index, offset, line, path);
+            parser->add_position(index, offset, line, path);
         }
     };
 
