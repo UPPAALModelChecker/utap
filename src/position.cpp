@@ -38,7 +38,7 @@ void position_index_t::add(uint32_t position, uint32_t offset, uint32_t line, st
     lines.emplace_back(position, offset, line, std::move(path));
 }
 
-const position_index_t::line_t& position_index_t::find(uint32_t position, uint32_t first, uint32_t last) const
+int position_index_t::find_index(uint32_t position, uint32_t first, uint32_t last) const
 {
     while (first + 1 < last) {
         uint32_t i = (first + last) / 2;
@@ -48,14 +48,26 @@ const position_index_t::line_t& position_index_t::find(uint32_t position, uint32
             first = i;
         }
     }
-    return lines[first];
+    return first;
 }
 
 const position_index_t::line_t& position_index_t::find(uint32_t position) const
 {
     if (lines.empty())
         throw std::logic_error("No positions have been added");
-    return find(position, 0, lines.size());
+    return lines[find_index(position, 0, lines.size())];
+}
+
+const position_index_t::line_t& position_index_t::find_first_line(uint32_t position) const
+{
+    if (lines.size() == 0) {
+        throw std::logic_error("No positions have been added");
+    }
+    int index = find_index(position, 0, lines.size());
+    while (lines[index].line > 1)
+        index--;
+
+    return lines[index];
 }
 
 /** Dump table to stdout. */

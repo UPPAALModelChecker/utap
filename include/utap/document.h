@@ -541,6 +541,7 @@ public:
 
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
+    const position_index_t::line_t& find_first_position(uint32_t position) const;
 
     variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,
                                          position_t);

@@ -78,7 +78,7 @@ public:
 
 private:
     std::vector<line_t> lines;
-    const line_t& find(uint32_t position, uint32_t first, uint32_t last) const;
+    int find_index(uint32_t position, uint32_t first, uint32_t last) const;
 
 public:
     /** Add information about a line to the container. */
@@ -90,6 +90,12 @@ public:
      * extend to inifinity (until another line is added).
      */
     const line_t& find(uint32_t position) const;
+
+    /**
+     * Retrieves information about the first line in the document node
+     * that the position argument is pointing to
+     */
+    const position_index_t::line_t& find_first_line(uint32_t position) const;
 
     /** Dump table to stdout. */
     std::ostream& print(std::ostream&) const;
