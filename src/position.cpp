@@ -30,7 +30,7 @@ using std::vector;
 
 using namespace UTAP;
 
-void Positions::add(uint32_t position, uint32_t offset, uint32_t line, string path)
+void Positions::add(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<string> path)
 {
     if (!elements.empty() && position < elements.back().position) {
         throw std::logic_error("Positions must be monotonically increasing");
@@ -70,7 +70,7 @@ void Positions::dump()
 
 std::ostream& operator<<(std::ostream& out, const UTAP::error_t& e)
 {
-    if (e.start.path.empty()) {
+    if (e.start.xpath().empty()) {
         out << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position)
             << " to line " << e.end.line << " column " << (e.position.end - e.end.position);
     } else {
@@ -85,12 +85,12 @@ std::string UTAP::error_t::str() const
 {
     if (position.start < start.position || position.end < end.position)
         return msg + " (Unknown position in document)";
-    if (start.path.empty()) {
+    if (start.xpath().empty()) {
         return msg + " at line " + std::to_string(start.line) + " column " +
                std::to_string(position.start - start.position) + " to line " + std::to_string(end.line) + " column " +
                std::to_string(position.end - end.position);
     } else {
-        return msg + " in " + start.path + " at line " + std::to_string(start.line) + " column " +
+        return msg + " in " + start.xpath() + " at line " + std::to_string(start.line) + " column " +
                std::to_string(position.start - start.position) + " to line " + std::to_string(end.line) + " column " +
                std::to_string(position.end - end.position);
     }

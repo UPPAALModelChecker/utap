@@ -56,7 +56,8 @@ ExpressionBuilder::ExpressionBuilder(Document& doc): document{doc}
     scalar_count = 0;
 }
 
-void ExpressionBuilder::addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
+void ExpressionBuilder::addPosition(uint32_t position, uint32_t offset, uint32_t line,
+                                    std::shared_ptr<std::string> path)
 {
     document.addPosition(position, offset, line, path);
 }

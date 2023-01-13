@@ -25,6 +25,7 @@
 
 #include "utap/common.h"
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -99,7 +100,8 @@ namespace UTAP
          * Add mapping from an absolute position to a relative XML
          * element.
          */
-        virtual void addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) = 0;
+        virtual void addPosition(uint32_t position, uint32_t offset, uint32_t line,
+                                 std::shared_ptr<std::string> path) = 0;
 
         /**
          * Sets the current position. The current position indicates

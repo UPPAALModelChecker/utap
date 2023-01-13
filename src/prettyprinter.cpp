@@ -66,7 +66,7 @@ PrettyPrinter::PrettyPrinter(ostream& stream)
     select = guard = sync = update = probability = -1;
 }
 
-void PrettyPrinter::addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) {}
+void PrettyPrinter::addPosition(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path) {}
 
 void PrettyPrinter::handleError(const TypeException& msg) { throw msg; }
 
