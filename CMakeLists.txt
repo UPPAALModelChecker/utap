@@ -3,7 +3,7 @@ project(UTAP VERSION 1.1.6 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-option(UTAP_TESTS "UTAP Unit Tests" OFF)
+option(UTAP_WITH_TESTS "UTAP Unit Tests" PROJECT_IS_TOP_LEVEL)
 option(UTAP_STATIC "UTAP Static Linking" OFF)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
@@ -18,7 +18,7 @@ add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
-find_package(LibXml2 2.9.14 REQUIRED)
+include(cmake/libxml2.cmake)
 
 if(UTAP_STATIC)
     set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
@@ -30,10 +30,10 @@ endif()
 
 add_subdirectory(src)
 
-if (UTAP_TESTS)
+if (UTAP_WITH_TESTS)
     include(cmake/doctest.cmake)
     enable_testing()
-endif(UTAP_TESTS)
+endif(UTAP_WITH_TESTS)
 add_subdirectory(test)
 
 target_include_directories(UTAP

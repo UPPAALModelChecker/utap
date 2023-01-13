@@ -4,6 +4,7 @@ if(doctest_FOUND)
 else(doctest_FOUND)
   message(STATUS "Failed to find doctest, going to make it from scratch.")
   include(FetchContent)
+  set(DOCTEST_WITH_TESTS OFF CACHE BOOL "doctest tests")
   FetchContent_Declare(doctest
     GIT_REPOSITORY git@github.com:doctest/doctest.git
     GIT_TAG v2.4.9
@@ -14,8 +15,8 @@ else(doctest_FOUND)
     USES_TERMINAL_CONFIGURE ON
     USES_TERMINAL_BUILD ON
     USES_TERMINAL_INSTALL ON
-    CMAKE_ARGS -DDOCTEST_WITH_TESTS=OFF
     FIND_PACKAGE_ARGS NAMES doctest
   )
   FetchContent_MakeAvailable(doctest)
+  message(STATUS "Got doctest.")
 endif(doctest_FOUND)

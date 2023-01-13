@@ -16,7 +16,7 @@ target_link_libraries(featurecheck PRIVATE UTAP)
 
 install(TARGETS pretty syntaxcheck taflow featurecheck)
 
-if (UTAP_TESTS)
+if (UTAP_WITH_TESTS)
     find_package(doctest REQUIRED)
 
     add_executable(test_expression test_expression.cpp)
@@ -42,4 +42,4 @@ if (UTAP_TESTS)
     target_link_libraries(test_typechecker PRIVATE doctest::doctest UTAP)
     add_test(NAME test_typechecker COMMAND test_typechecker)
 
-endif(UTAP_TESTS)
+endif(UTAP_WITH_TESTS)
