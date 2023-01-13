@@ -3,7 +3,15 @@ project(UTAP VERSION 1.1.6 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
-option(UTAP_WITH_TESTS "UTAP Unit Tests" PROJECT_IS_TOP_LEVEL)
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  # top level project: most likely development, thus enable tests
+  set(UTAP_WITH_TESTS_DEFAULT ON)
+else()
+  # the library is included into another project, no need for tests
+  set(UTAP_WITH_TESTS_DEFAULT OFF)
+endif()
+
+option(UTAP_WITH_TESTS "UTAP Unit Tests" ${UTAP_WITH_TESTS_DEFAULT})
 option(UTAP_STATIC "UTAP Static Linking" OFF)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
