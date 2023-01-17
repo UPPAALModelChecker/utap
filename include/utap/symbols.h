@@ -31,199 +31,198 @@
 #include <optional>
 #include <cstdint>
 
-namespace UTAP
+namespace UTAP {
+class frame_t;
+class expression_t;
+
+class NoParentException : public std::exception
+{};
+
+/**
+   A reference to a symbol.
+
+   Symbols can only be accessed via instances of
+   symbol_t. Internally, symbols are reference counted and do not
+   need to be deallocated manually. Each symbol has a name (which
+   might be NULL) a type and an uninterpreted optional void
+   pointer.
+
+   Symbols are members of a frame (see also frame_t). It is
+   possible to access the frame of a symbol via the symbol (see
+   get_frame()). However, a symbol does not contain a counted
+   reference to its frame so you must maintain at least one
+   reference to the frame to avoid to be deallocated.
+
+   Notice that it is possible to add the same symbol to several
+   frames. In this case, the symbol will only "point back" to the
+   first frame it was added to.
+*/
+class symbol_t
 {
-    class frame_t;
-    class expression_t;
+private:
+    struct symbol_data;
+    std::shared_ptr<symbol_data> data{nullptr};  // pImpl pattern
 
-    class NoParentException : public std::exception
-    {};
+protected:
+    friend class frame_t;
+    symbol_t(frame_t* frame, type_t type, std::string name, position_t position, void* user);
 
-    /**
-       A reference to a symbol.
+public:
+    /** Default constructor */
+    symbol_t() = default;
+    symbol_t(const symbol_t&) = default;
+    symbol_t(symbol_t&&) = default;
+    symbol_t& operator=(const symbol_t&) = default;
+    symbol_t& operator=(symbol_t&&) = default;
 
-       Symbols can only be accessed via instances of
-       symbol_t. Internally, symbols are reference counted and do not
-       need to be deallocated manually. Each symbol has a name (which
-       might be NULL) a type and an uninterpreted optional void
-       pointer.
+    /** Destructor */
+    ~symbol_t() noexcept;
 
-       Symbols are members of a frame (see also frame_t). It is
-       possible to access the frame of a symbol via the symbol (see
-       get_frame()). However, a symbol does not contain a counted
-       reference to its frame so you must maintain at least one
-       reference to the frame to avoid to be deallocated.
+    /** Equality operator */
+    bool operator==(const symbol_t&) const;
 
-       Notice that it is possible to add the same symbol to several
-       frames. In this case, the symbol will only "point back" to the
-       first frame it was added to.
-    */
-    class symbol_t
-    {
-    private:
-        struct symbol_data;
-        std::shared_ptr<symbol_data> data{nullptr};  // pImpl pattern
+    /** Inequality operator */
+    bool operator!=(const symbol_t&) const;
 
-    protected:
-        friend class frame_t;
-        symbol_t(frame_t* frame, type_t type, std::string name, position_t position, void* user);
+    /** Less-than operator */
+    bool operator<(const symbol_t&) const;
 
-    public:
-        /** Default constructor */
-        symbol_t() = default;
-        symbol_t(const symbol_t&) = default;
-        symbol_t(symbol_t&&) = default;
-        symbol_t& operator=(const symbol_t&) = default;
-        symbol_t& operator=(symbol_t&&) = default;
+    /** Get frame this symbol belongs to */
+    frame_t get_frame();  // TODO: consider removing this method (mostly unused)
 
-        /** Destructor */
-        ~symbol_t() noexcept;
+    /** Returns the type of this symbol. */
+    type_t get_type() const;
 
-        /** Equality operator */
-        bool operator==(const symbol_t&) const;
+    /** Alters the type of this symbol */
+    void set_type(type_t);
 
-        /** Inequality operator */
-        bool operator!=(const symbol_t&) const;
+    /** Returns the position of the symbol definition in the original source file */
+    position_t get_position() const;
 
-        /** Less-than operator */
-        bool operator<(const symbol_t&) const;
+    /** Returns the user data of this symbol */
+    void* get_data();
 
-        /** Get frame this symbol belongs to */
-        frame_t get_frame();  // TODO: consider removing this method (mostly unused)
+    /** Return the user data of this symbol */
+    const void* get_data() const;
 
-        /** Returns the type of this symbol. */
-        type_t get_type() const;
+    /** Returns the name (identifier) of this symbol */
+    const std::string& get_name() const;
 
-        /** Alters the type of this symbol */
-        void set_type(type_t);
+    /** Alters the name of this symbol */
+    void set_name(std::string);
+};
 
-        /** Returns the position of the symbol definition in the original source file */
-        position_t get_position() const;
+/**
+   A reference to a frame.
 
-        /** Returns the user data of this symbol */
-        void* get_data();
+   A frame is an ordered collection of symbols (see also
+   symbol_t). Frames can only be accessed via an instance of
+   frame_t. Internally, frames are reference counted and do not
+   need to be deallocated manually.
 
-        /** Return the user data of this symbol */
-        const void* get_data() const;
+   A frame can either be a root-frame or a sub-frame. Sub-frames
+   have a parent frame; root frames do not. When a symbol name
+   cannot be resolved in the current frame, it is resolved
+   recursively in the parent frame.
 
-        /** Returns the name (identifier) of this symbol */
-        const std::string& get_name() const;
+   Frames are constructed using one of the static factory methods
+   of frame_t.
 
-        /** Alters the name of this symbol */
-        void set_name(std::string);
-    };
+   In order to avoid cyclic references no counted reference to the
+   parent frame is maintained. Hence, the existence of the parent
+   frame must be ensured by other means throughout the lifetime of
+   the sub-frame.
+*/
+class frame_t
+{
+private:
+    struct frame_data;
+    std::shared_ptr<frame_data> data{nullptr};  // pImpl pattern
 
-    /**
-       A reference to a frame.
+protected:
+    friend class symbol_t;
+    explicit frame_t(frame_data*);
 
-       A frame is an ordered collection of symbols (see also
-       symbol_t). Frames can only be accessed via an instance of
-       frame_t. Internally, frames are reference counted and do not
-       need to be deallocated manually.
+public:
+    using iterator = std::vector<symbol_t>::iterator;
+    using const_iterator = std::vector<symbol_t>::const_iterator;
+    /** Default constructors and operators due to pImpl */
+    frame_t() = default;
+    frame_t(const frame_t&) = default;
+    frame_t(frame_t&&) = default;
+    frame_t& operator=(const frame_t&) = default;
+    frame_t& operator=(frame_t&&) = default;
 
-       A frame can either be a root-frame or a sub-frame. Sub-frames
-       have a parent frame; root frames do not. When a symbol name
-       cannot be resolved in the current frame, it is resolved
-       recursively in the parent frame.
+    /** Destructor due to pImpl */
+    ~frame_t() noexcept;
 
-       Frames are constructed using one of the static factory methods
-       of frame_t.
+    /** Equality operator */
+    bool operator==(const frame_t&) const;
 
-       In order to avoid cyclic references no counted reference to the
-       parent frame is maintained. Hence, the existence of the parent
-       frame must be ensured by other means throughout the lifetime of
-       the sub-frame.
-    */
-    class frame_t
-    {
-    private:
-        struct frame_data;
-        std::shared_ptr<frame_data> data{nullptr};  // pImpl pattern
+    /** Inequality operator */
+    bool operator!=(const frame_t&) const;
 
-    protected:
-        friend class symbol_t;
-        explicit frame_t(frame_data*);
+    /** Returns the number of symbols in this frame */
+    uint32_t get_size() const;
 
-    public:
-        using iterator = std::vector<symbol_t>::iterator;
-        using const_iterator = std::vector<symbol_t>::const_iterator;
-        /** Default constructors and operators due to pImpl */
-        frame_t() = default;
-        frame_t(const frame_t&) = default;
-        frame_t(frame_t&&) = default;
-        frame_t& operator=(const frame_t&) = default;
-        frame_t& operator=(frame_t&&) = default;
+    /** Returns the Nth symbol in this frame. */
+    symbol_t get_symbol(uint32_t) const;
 
-        /** Destructor due to pImpl */
-        ~frame_t() noexcept;
+    /** Checks whether the frame (already) contains the symbol with given name. */
+    bool contains(const std::string& name) const { return get_index_of(name).has_value(); }
 
-        /** Equality operator */
-        bool operator==(const frame_t&) const;
+    /** Checks whether the frame (already) contains the symbol with given name. */
+    bool contains(const symbol_t& symbol) const { return get_index_of(symbol).has_value(); }
 
-        /** Inequality operator */
-        bool operator!=(const frame_t&) const;
+    /** Returns the index of the symbol with the given name if it exists. */
+    std::optional<uint32_t> get_index_of(const std::string& name) const;
 
-        /** Returns the number of symbols in this frame */
-        uint32_t get_size() const;
+    /** Returns the index of a symbol if it exists. */
+    std::optional<uint32_t> get_index_of(const symbol_t&) const;
 
-        /** Returns the Nth symbol in this frame. */
-        symbol_t get_symbol(uint32_t) const;
+    /** Returns the Nth symbol in this frame. */
+    symbol_t& operator[](uint32_t);
 
-        /** Checks whether the frame (already) contains the symbol with given name. */
-        bool contains(const std::string& name) const { return get_index_of(name).has_value(); }
+    /** Returns the Nth symbol in this frame. */
+    const symbol_t& operator[](uint32_t) const;
 
-        /** Checks whether the frame (already) contains the symbol with given name. */
-        bool contains(const symbol_t& symbol) const { return get_index_of(symbol).has_value(); }
+    /** Iterates over the symbol declarations in the frame */
+    const_iterator begin() const;
+    const_iterator end() const;
+    iterator begin();
+    iterator end();
+    bool empty() const;
 
-        /** Returns the index of the symbol with the given name if it exists. */
-        std::optional<uint32_t> get_index_of(const std::string& name) const;
+    /** Adds a symbol of the given name and type to the frame */
+    symbol_t add_symbol(const std::string& name, type_t, position_t position, void* user = nullptr);
 
-        /** Returns the index of a symbol if it exists. */
-        std::optional<uint32_t> get_index_of(const symbol_t&) const;
+    /** Add all symbols from the given frame */
+    void add(symbol_t);
 
-        /** Returns the Nth symbol in this frame. */
-        symbol_t& operator[](uint32_t);
+    /** Add all symbols from the given frame */
+    void add(frame_t);
 
-        /** Returns the Nth symbol in this frame. */
-        const symbol_t& operator[](uint32_t) const;
+    /** Move all symbols from this to a given one (leaving this empty). */
+    void move_to(frame_t);
 
-        /** Iterates over the symbol declarations in the frame */
-        const_iterator begin() const;
-        const_iterator end() const;
-        iterator begin();
-        iterator end();
-        bool empty() const;
+    /** removes the given symbol*/
+    void remove(symbol_t s);
 
-        /** Adds a symbol of the given name and type to the frame */
-        symbol_t add_symbol(const std::string& name, type_t, position_t position, void* user = nullptr);
+    /** Resolves a name in this frame or a parent frame. */
+    bool resolve(const std::string& name, symbol_t& symbol) const;
 
-        /** Add all symbols from the given frame */
-        void add(symbol_t);
+    /** Returns the parent frame */
+    frame_t get_parent() const;
 
-        /** Add all symbols from the given frame */
-        void add(frame_t);
+    /** Returns true if this frame has a parent */
+    bool has_parent() const;
 
-        /** Move all symbols from this to a given one (leaving this empty). */
-        void move_to(frame_t);
+    /** Creates and returns a new root-frame. */
+    static frame_t create();
 
-        /** removes the given symbol*/
-        void remove(symbol_t s);
-
-        /** Resolves a name in this frame or a parent frame. */
-        bool resolve(const std::string& name, symbol_t& symbol) const;
-
-        /** Returns the parent frame */
-        frame_t get_parent() const;
-
-        /** Returns true if this frame has a parent */
-        bool has_parent() const;
-
-        /** Creates and returns a new root-frame. */
-        static frame_t create();
-
-        /** Creates and returns a new sub-frame. */
-        static frame_t create(const frame_t& parent);
-    };
+    /** Creates and returns a new sub-frame. */
+    static frame_t create(const frame_t& parent);
+};
 }  // namespace UTAP
 
 std::ostream& operator<<(std::ostream& o, const UTAP::symbol_t& t);
