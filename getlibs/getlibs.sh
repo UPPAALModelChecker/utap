@@ -49,7 +49,7 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Configuring ${DOCTEST}${NC}"
         cmake -S "$SOURCE/$DOCTEST" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
           -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
-          -DDOCTEST_WITH_TESTS=OFF
+          -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=ON
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
         #echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
