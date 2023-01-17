@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
+<nta>
+	<declaration>broadcast chan c, m;</declaration>
+	<template>
+		<name x="5" y="5">Cat</name>
+		<declaration>int s = 0;</declaration>
+		<location id="id0" x="34" y="-170">
+		</location>
+		<location id="id1" x="-102" y="-170">
+		</location>
+		<location id="id2" x="-102" y="-34">
+		</location>
+		<init ref="id1"/>
+		<transition id="id3" controllable="false">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="-93" y="-127">c?</label>
+			<label kind="assignment" x="-93" y="-110">s=4</label>
+		</transition>
+		<transition id="id4" controllable="false">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="-68" y="-187">c?</label>
+			<label kind="assignment" x="-34" y="-187">s=1</label>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">Mouse</name>
+		<declaration>int s = 13;</declaration>
+		<location id="id5" x="170" y="238">
+		</location>
+		<location id="id6" x="306" y="238">
+		</location>
+		<init ref="id6"/>
+		<transition id="id7">
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="synchronisation" x="204" y="238">m?</label>
+			<label kind="assignment" x="238" y="238">s=13</label>
+			<nail x="204" y="255"/>
+			<nail x="272" y="255"/>
+		</transition>
+		<transition id="id8">
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="204" y="221">m?</label>
+			<label kind="assignment" x="238" y="221">s=12</label>
+		</transition>
+	</template>
+	<template>
+		<name>Turns</name>
+		<declaration>clock x;</declaration>
+		<location id="id9" x="0" y="0">
+			<label kind="invariant" x="-25" y="17">x&lt;=1</label>
+		</location>
+		<location id="id10" x="136" y="0">
+			<urgent/>
+		</location>
+		<init ref="id10"/>
+		<transition id="id11" controllable="false">
+			<source ref="id10"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="68" y="17">c!</label>
+			<nail x="102" y="34"/>
+			<nail x="34" y="34"/>
+		</transition>
+		<transition id="id12">
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="34" y="-34">x&gt;=1</label>
+			<label kind="synchronisation" x="34" y="-17">m!</label>
+			<label kind="assignment" x="34" y="0">x=0</label>
+		</transition>
+	</template>
+	<system>system Cat, Mouse, Turns;
+
+//system Cat, Mouse, PCat, PMouse;
+</system>
+	<queries>
+		<query>
+			<formula>E&lt;&gt; Cat.s == Mouse.s</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2022-11-22 09:36:25 +0100">
+			</result>
+		</query>
+		<query>
+			<formula>Pr[&lt;=100](&lt;&gt; Cat.s == Mouse.s)</formula>
+			<comment/>
+		</query>
+	</queries>
+</nta>
