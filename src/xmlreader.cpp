@@ -1090,7 +1090,7 @@ namespace UTAP
     bool XMLReader::templ()
     {
         if (begin(tag_t::TEMPLATE)) {
-            std::string t_path = path.get(tag_t::TEMPLATE);
+            auto t_path = std::make_shared<std::string>(path.get(tag_t::TEMPLATE));
             read();
             try {
                 /* Get the name and the parameters of the template. */

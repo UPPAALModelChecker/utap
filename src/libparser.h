@@ -66,7 +66,7 @@ namespace UTAP
         uint32_t line;
         uint32_t offset;
         uint32_t position;
-        std::string path;
+        std::shared_ptr<std::string> path;
 
         /**
          * Sets the current path to \a s, offset to 0 and line to 1.
@@ -85,7 +85,19 @@ namespace UTAP
             // subtract 1 before calling Positions::find().
             line = 1;
             offset = 0;
-            path = s;
+            path = std::make_shared<std::string>(s);
+            ++position;
+            parser->addPosition(position, offset, line, path);
+        }
+
+        /**
+         * This overload provides a way reuse paths over multiple setPath calls
+         */
+        void setPath(UTAP::ParserBuilder* parser, std::shared_ptr<std::string> s)
+        {
+            line = 1;
+            offset = 0;
+            path = std::move(s);
             ++position;
             parser->addPosition(position, offset, line, path);
         }

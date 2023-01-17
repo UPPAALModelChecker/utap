@@ -135,7 +135,7 @@ namespace UTAP
         explicit ExpressionBuilder(Document& doc);
         ExpressionFragments& getExpressions();
 
-        void addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) override;
+        void addPosition(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path) override;
 
         void handleError(const TypeException&) override;
         void handleWarning(const TypeException&) override;
