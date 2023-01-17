@@ -91,8 +91,9 @@ std::string stringify_t<Item>::str(const std::string& indent) const
     return os.str();
 }
 
-// explicit instantiation to provide a specific implementation:
-template struct stringify_t<UTAP::chan_priority_t>;
+namespace UTAP {                               // Clang suggests stringify_t<chan_priority_t> to be in UTAP namespace
+template struct stringify_t<chan_priority_t>;  // explicit instantiation to generate implementation
+}
 
 std::ostream& location_t::print(std::ostream& os) const
 {
