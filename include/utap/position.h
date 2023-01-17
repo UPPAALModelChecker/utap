@@ -75,8 +75,6 @@ namespace UTAP
             line_t(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path):
                 position(position), offset(offset), line(line), path{std::move(path)}
             {}
-
-            const std::string& xpath() const { return *path; }
         };
 
     private:

@@ -70,7 +70,7 @@ void Positions::dump()
 
 std::ostream& operator<<(std::ostream& out, const UTAP::error_t& e)
 {
-    if (e.start.xpath().empty()) {
+    if (!e.start.path || e.start.path->empty()) {
         out << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position)
             << " to line " << e.end.line << " column " << (e.position.end - e.end.position);
     } else {
@@ -85,12 +85,12 @@ std::string UTAP::error_t::str() const
 {
     if (position.start < start.position || position.end < end.position)
         return msg + " (Unknown position in document)";
-    if (start.xpath().empty()) {
+    if (!start.path || start.path->empty()) {
         return msg + " at line " + std::to_string(start.line) + " column " +
                std::to_string(position.start - start.position) + " to line " + std::to_string(end.line) + " column " +
                std::to_string(position.end - end.position);
     } else {
-        return msg + " in " + start.xpath() + " at line " + std::to_string(start.line) + " column " +
+        return msg + " in " + *start.path + " at line " + std::to_string(start.line) + " column " +
                std::to_string(position.start - start.position) + " to line " + std::to_string(end.line) + " column " +
                std::to_string(position.end - end.position);
     }

@@ -1080,7 +1080,7 @@ void Document::recordStrictLowerBoundOnControllableEdges() { hasStrictLowControl
 
 void Document::addPosition(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path)
 {
-    positions.add(position, offset, line, path);
+    positions.add(position, offset, line, std::move(path));
 }
 
 const Positions::line_t& Document::findPosition(uint32_t position) const { return positions.find(position); }
