@@ -91,6 +91,18 @@ namespace UTAP
         }
 
         /**
+         * This overload provides a way reuse paths over multiple setPath calls
+         */
+        void setPath(UTAP::ParserBuilder* parser, std::shared_ptr<std::string> s)
+        {
+            line = 1;
+            offset = 0;
+            path = std::move(s);
+            ++position;
+            parser->addPosition(position, offset, line, path);
+        }
+
+        /**
          * Sets the position of \a builder to [position, position + n)
          * and increments position and offset by \a n.
          */
