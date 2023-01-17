@@ -21,16 +21,17 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Configuring ${LIBXML2}${NC}"
         cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
           -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF
+          -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_FTP=OFF -DLIBXML2_WITH_HTTP=OFF \
+          -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
         cmake --build "$BUILD"
         echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
         case "$target" in
             win64)
-                cp $(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/"
+                ln -snf $(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD"/
                 ;;
             win32)
-                cp $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD/"
+                ln -snf $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD"/
                 ;;
         esac
         (cd "$BUILD" ; ctest --output-on-failure)

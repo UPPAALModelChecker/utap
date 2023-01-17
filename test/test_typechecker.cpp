@@ -22,12 +22,12 @@
 #include "utap/typechecker.h"
 #include "utap/utap.h"
 
+#include <doctest/doctest.h>
+
 #include <memory>
 #include <stdexcept>
 #include <string>
-
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include <doctest/doctest.h>
+#include <cstring>  // strerror
 
 static constexpr const char* system_template = R"XML(<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>

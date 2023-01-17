@@ -17,7 +17,6 @@
 #include "utap/StatementBuilder.hpp"
 #include "utap/utap.h"
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 #include <filesystem>

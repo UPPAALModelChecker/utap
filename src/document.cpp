@@ -28,6 +28,7 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <utility>  // declval
 #include <cassert>
 
 #ifdef __MINGW32__
@@ -58,6 +59,19 @@ using namespace std::placeholders;  // _1, _2, etc for std::bind
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
 
+template <typename T, typename = void>
+struct has_print_indent : std::false_type
+{};
+
+template <typename T>
+struct has_print_indent<
+    T, std::void_t<decltype(std::declval<T&>().print(std::declval<std::ostream&>, std::declval<const std::string&>))>>
+    : std::true_type
+{};
+
+template <typename T>
+constexpr auto has_print_indent_v = has_print_indent<T>::value;
+
 template <typename Item>
 std::string stringify_t<Item>::str() const
 {
@@ -70,9 +84,15 @@ template <typename Item>
 std::string stringify_t<Item>::str(const std::string& indent) const
 {
     auto os = std::ostringstream{};
-    static_cast<const Item*>(this)->print(os, indent);
+    if constexpr (has_print_indent_v<Item>)
+        static_cast<const Item*>(this)->print(os, indent);
+    else
+        static_cast<const Item*>(this)->print(os);
     return os.str();
 }
+
+// explicit instantiation to provide a specific implementation:
+template struct stringify_t<UTAP::chan_priority_t>;
 
 std::ostream& location_t::print(std::ostream& os) const
 {
