@@ -159,7 +159,7 @@ TEST_CASE("Empty document")
 TEST_CASE("Clock floating point initializer")
 {
     auto f = document_fixture{};
-    f.set_decls("clock c = 2.5;");
+    f.add_global_decl("clock c = 2.5;");
     auto document = f.parse();
 
     UTAP::FeatureChecker checker(*document);
@@ -170,7 +170,7 @@ TEST_CASE("Clock floating point initializer")
 TEST_CASE("Clock integer initializer")
 {
     auto f = document_fixture{};
-    f.set_decls("clock c = 2;");
+    f.add_global_decl("clock c = 2;");
     auto document = f.parse();
 
     UTAP::FeatureChecker checker(*document);
@@ -181,7 +181,7 @@ TEST_CASE("Clock integer initializer")
 TEST_CASE("Clock uninitialized")
 {
     auto f = document_fixture{};
-    f.set_decls("clock c;");
+    f.add_global_decl("clock c;");
     auto document = f.parse();
 
     UTAP::FeatureChecker checker(*document);
