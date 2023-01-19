@@ -389,7 +389,7 @@ void AbstractBuilder::exprBuiltinFunction3(Constants::kind_t)
     throw NotSupportedException("exprBuiltinFunction3 is not supported");
 }
 
-void AbstractBuilder::exprMinMaxExp(Constants::kind_t, PRICETYPE, Constants::kind_t)
+void AbstractBuilder::exprMinMaxExp(Constants::kind_t, PRICETYPE)
 {
     throw NotSupportedException("exprMinMaxExp is not supported");
 }

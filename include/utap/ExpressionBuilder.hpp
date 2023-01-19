@@ -191,7 +191,7 @@ namespace UTAP
         void exprBuiltinFunction1(Constants::kind_t) override;
         void exprBuiltinFunction2(Constants::kind_t) override;
         void exprBuiltinFunction3(Constants::kind_t) override;
-        void exprMinMaxExp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+        void exprMinMaxExp(Constants::kind_t, PRICETYPE) override;
         void exprSaveStrategy() override;
         void exprLoadStrategy() override;
 

@@ -471,7 +471,7 @@ size_t expression_t::getSize() const
     case PROBAMINDIAMOND: assert(data->sub.size() == 5); return 5;
 
     case MIN_EXP:
-    case MAX_EXP: return 7;
+    case MAX_EXP: assert(data->sub.size() == 6); return 6;
 
     case PROBAEXP: assert(data->sub.size() == 5); return 5;
 
