@@ -366,6 +366,7 @@ namespace UTAP
         std::deque<edge_t> edges;               /**< Edges */
         std::vector<expression_t> dynamicEvals;
         bool isTA;
+        bool isInstanced{false}; /**< Is the template used in the system*/
 
         int addDynamicEval(expression_t t)
         {
@@ -536,7 +537,7 @@ namespace UTAP
         /** Returns the queries enclosed in the model. */
         queries_t& getQueries();
 
-        void addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path);
+        void addPosition(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
         const Positions::line_t& findPosition(uint32_t position) const;
 
         variable_t* addVariableToFunction(function_t*, frame_t, type_t, const std::string&, expression_t initital,

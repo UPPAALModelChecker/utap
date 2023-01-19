@@ -11,8 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: Get clang-format-11
+      run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install clang-format-11
     - name: Format
-      run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
+      run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format-11 -n -Werror
 #  build-nix:
 #    runs-on: ubuntu-latest
 #    steps:

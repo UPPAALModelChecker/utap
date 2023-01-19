@@ -19,6 +19,8 @@
    USA
 */
 
+#include "document_fixture.h"
+
 #include "utap/featurechecker.h"
 #include "utap/utap.h"
 
@@ -141,5 +143,48 @@ TEST_CASE("Double comparison")
     parseXMLBuffer(read_content("double_compare.xml").c_str(), document.get(), true);
     UTAP::FeatureChecker checker(*document);
     CHECK(!checker.getSupportedMethods().symbolic);
+    CHECK(checker.getSupportedMethods().stochastic);
+}
+
+TEST_CASE("Empty document")
+{
+    auto f = document_fixture{};
+    auto document = f.parse();
+
+    UTAP::FeatureChecker checker(*document);
+    CHECK(checker.getSupportedMethods().symbolic);
+    CHECK(checker.getSupportedMethods().stochastic);
+}
+
+TEST_CASE("Clock floating point initializer")
+{
+    auto f = document_fixture{};
+    f.set_decls("clock c = 2.5;");
+    auto document = f.parse();
+
+    UTAP::FeatureChecker checker(*document);
+    CHECK(!checker.getSupportedMethods().symbolic);
+    CHECK(checker.getSupportedMethods().stochastic);
+}
+
+TEST_CASE("Clock integer initializer")
+{
+    auto f = document_fixture{};
+    f.set_decls("clock c = 2;");
+    auto document = f.parse();
+
+    UTAP::FeatureChecker checker(*document);
+    CHECK(checker.getSupportedMethods().symbolic);
+    CHECK(checker.getSupportedMethods().stochastic);
+}
+
+TEST_CASE("Clock uninitialized")
+{
+    auto f = document_fixture{};
+    f.set_decls("clock c;");
+    auto document = f.parse();
+
+    UTAP::FeatureChecker checker(*document);
+    CHECK(checker.getSupportedMethods().symbolic);
     CHECK(checker.getSupportedMethods().stochastic);
 }

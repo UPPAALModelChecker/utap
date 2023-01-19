@@ -24,11 +24,10 @@
 #include "utap/builder.h"
 #include "utap/statement.h"
 
-#include <functional>  // std::bind
+#include <functional>  // std::mem_fn
 #include <sstream>
 #include <stack>
 #include <cassert>
-#include <cstring>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -39,7 +38,6 @@
 using namespace UTAP;
 using namespace Constants;
 
-using std::bind;
 using std::list;
 using std::stack;
 using std::vector;
@@ -52,8 +50,6 @@ using std::set;
 using std::string;
 using std::ostream;
 using std::deque;
-
-using namespace std::placeholders;  // _1, _2, etc for std::bind
 
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
@@ -973,31 +969,30 @@ static void visit(SystemVisitor& visitor, frame_t frame)
     }
 }
 
+void visitTemplate(template_t& t, SystemVisitor& visitor)
+{
+    if (visitor.visitTemplateBefore(t)) {
+        visit(visitor, t.frame);
+        for (auto& edge : t.edges)
+            visitor.visitEdge(edge);
+        for (auto& message : t.messages)
+            visitor.visitMessage(message);
+        for (auto& update : t.updates)
+            visitor.visitUpdate(update);
+        for (auto& cond : t.conditions)
+            visitor.visitCondition(cond);
+        visitor.visitTemplateAfter(t);
+    }
+}
+
 void Document::accept(SystemVisitor& visitor)
 {
     visitor.visitSystemBefore(this);
     visit(visitor, global.frame);
-    for (auto t = templates.begin(); t != templates.end(); ++t) {
-        if (visitor.visitTemplateBefore(*t)) {
-            visit(visitor, t->frame);
-            for_each(t->edges.begin(), t->edges.end(), bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(), bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(), bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(), bind(&SystemVisitor::visitCondition, &visitor, _1));
-            visitor.visitTemplateAfter(*t);
-        }
-    }
-
-    for (auto t = dynamicTemplates.begin(); t != dynamicTemplates.end(); ++t) {
-        if (visitor.visitTemplateBefore(*t)) {
-            visit(visitor, t->frame);
-            for_each(t->edges.begin(), t->edges.end(), bind(&SystemVisitor::visitEdge, &visitor, _1));
-            for_each(t->messages.begin(), t->messages.end(), bind(&SystemVisitor::visitMessage, &visitor, _1));
-            for_each(t->updates.begin(), t->updates.end(), bind(&SystemVisitor::visitUpdate, &visitor, _1));
-            for_each(t->conditions.begin(), t->conditions.end(), bind(&SystemVisitor::visitCondition, &visitor, _1));
-            visitor.visitTemplateAfter(*t);
-        }
-    }
+    for (auto& templ : templates)
+        visitTemplate(templ, visitor);
+    for (auto& templ : dynamicTemplates)
+        visitTemplate(templ, visitor);
 
     for (size_t i = 0; i < global.frame.getSize(); ++i) {
         type_t type = global.frame[i].getType();
@@ -1078,9 +1073,9 @@ bool Document::hasStrictLowerBoundOnControllableEdges() const { return hasStrict
 
 void Document::recordStrictLowerBoundOnControllableEdges() { hasStrictLowControlledGuards = true; }
 
-void Document::addPosition(uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
+void Document::addPosition(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path)
 {
-    positions.add(position, offset, line, path);
+    positions.add(position, offset, line, std::move(path));
 }
 
 const Positions::line_t& Document::findPosition(uint32_t position) const { return positions.find(position); }

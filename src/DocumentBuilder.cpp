@@ -404,7 +404,9 @@ void DocumentBuilder::process(const char* name)
     if (type.size() > 0) {
         // FIXME: Check type of unbound parameters
     }
-    document.addProcess(*static_cast<instance_t*>(symbol.getData()), position);
+    auto& instance = *static_cast<instance_t*>(symbol.getData());
+    instance.templ->isInstanced = true;
+    document.addProcess(instance, position);
     procPriority(name);
 }
 
