@@ -5,9 +5,8 @@
 #include <string>
 #include <unordered_map>
 
-namespace UTAP
-{
-    // clang-format off
+namespace UTAP {
+// clang-format off
     static const auto keyword_map = std::unordered_map<std::string_view, const Keyword>{
             {"const",         Keyword{T_CONST, syntax_t::OLD_NEW}},
             {"select",        Keyword{T_SELECT, syntax_t::NEW}},
@@ -150,22 +149,22 @@ namespace UTAP
             {"query",         Keyword{T_QUERY, syntax_t::NEW}},
             {"location",      Keyword{T_LOCATION, syntax_t::NEW}},
     };
-    // clang-format on
+// clang-format on
 
-    const Keyword* find_keyword(std::string_view word)
-    {
-        const auto keyword = keyword_map.find(word);
-        if (keyword == std::end(keyword_map))
-            return nullptr;
-        return &keyword->second;
-    }
+const Keyword* find_keyword(std::string_view word)
+{
+    const auto keyword = keyword_map.find(word);
+    if (keyword == std::end(keyword_map))
+        return nullptr;
+    return &keyword->second;
+}
 
-    bool is_keyword(std::string_view word, syntax_t syntax)
-    {
-        const auto* keyword = find_keyword(word);
-        if (keyword)
-            return keyword->syntax & syntax;
-        else
-            return false;
-    }
+bool is_keyword(std::string_view word, syntax_t syntax)
+{
+    const auto* keyword = find_keyword(word);
+    if (keyword)
+        return keyword->syntax & syntax;
+    else
+        return false;
+}
 }  // namespace UTAP

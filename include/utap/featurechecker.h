@@ -26,27 +26,26 @@
 #include "utap/expression.h"
 #include "utap/statement.h"
 
-namespace UTAP
+namespace UTAP {
+class FeatureChecker : public SystemVisitor, public AbstractStatementVisitor
 {
-    class FeatureChecker : public SystemVisitor, public AbstractStatementVisitor
-    {
-    private:
-        SupportedMethods supportedMethods{};
+private:
+    SupportedMethods supportedMethods{};
 
-    public:
-        explicit FeatureChecker(Document& document);
-        SupportedMethods getSupportedMethods() { return supportedMethods; }
+public:
+    explicit FeatureChecker(Document& document);
+    SupportedMethods getSupportedMethods() { return supportedMethods; }
 
-        void visitEdge(edge_t& edge) override;
-        void visitAssignment(expression_t& ass);
-        void visitGuard(expression_t& guard);
-        void visitLocation(location_t& state) override;
-        void visitVariable(variable_t&) override;
-        bool visitTemplateBefore(template_t&) override;
+    void visitEdge(edge_t& edge) override;
+    void visitAssignment(expression_t& ass);
+    void visitGuard(expression_t& guard);
+    void visitLocation(location_t& state) override;
+    void visitVariable(variable_t&) override;
+    bool visitTemplateBefore(template_t&) override;
 
-        void visitFrame(const frame_t& frame);
-        bool isRateDisallowedInSymbolic(const expression_t& e);
-    };
+    void visitFrame(const frame_t& frame);
+    bool isRateDisallowedInSymbolic(const expression_t& e);
+};
 
 };  // namespace UTAP
 

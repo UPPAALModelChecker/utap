@@ -54,91 +54,90 @@ constexpr std::underlying_type_t<syntax_t> operator&(const syntax_t& s1, const s
     return (static_cast<T>(s1) & static_cast<T>(s2));
 }
 
-namespace UTAP
+namespace UTAP {
+/**
+ * Help class used by the lexer, parser and xmlreader to keep
+ * track of the current position.
+ */
+class PositionTracker
 {
+public:
+    uint32_t line;
+    uint32_t offset;
+    uint32_t position;
+    std::shared_ptr<std::string> path;
+
     /**
-     * Help class used by the lexer, parser and xmlreader to keep
-     * track of the current position.
+     * Sets the current path to \a s, offset to 0 and line to 1.
+     * Sets the position of \a builder to [position, position + 1)
+     * (a one character dummy position; this is useful when
+     * assigning error messages to XML elements without a text
+     * content). Adds position to \a builder and increments it by
+     * 1.
      */
-    class PositionTracker
+    void setPath(UTAP::ParserBuilder* parser, const std::string& s)
     {
-    public:
-        uint32_t line;
-        uint32_t offset;
-        uint32_t position;
-        std::shared_ptr<std::string> path;
+        // Incrementing the position by one avoids the problem where the
+        // end-position happens to bleed into a path. E.g. the range 5-10
+        // contains 5 character (at positions 5, 6, 7, 8 and 9), thus
+        // position 10 could have a new path). An alternative would be to
+        // subtract 1 before calling Positions::find().
+        line = 1;
+        offset = 0;
+        path = std::make_shared<std::string>(s);
+        ++position;
+        parser->addPosition(position, offset, line, path);
+    }
 
-        /**
-         * Sets the current path to \a s, offset to 0 and line to 1.
-         * Sets the position of \a builder to [position, position + 1)
-         * (a one character dummy position; this is useful when
-         * assigning error messages to XML elements without a text
-         * content). Adds position to \a builder and increments it by
-         * 1.
-         */
-        void setPath(UTAP::ParserBuilder* parser, const std::string& s)
-        {
-            // Incrementing the position by one avoids the problem where the
-            // end-position happens to bleed into a path. E.g. the range 5-10
-            // contains 5 character (at positions 5, 6, 7, 8 and 9), thus
-            // position 10 could have a new path). An alternative would be to
-            // subtract 1 before calling Positions::find().
-            line = 1;
-            offset = 0;
-            path = std::make_shared<std::string>(s);
-            ++position;
-            parser->addPosition(position, offset, line, path);
-        }
-
-        /**
-         * This overload provides a way reuse paths over multiple setPath calls
-         */
-        void setPath(UTAP::ParserBuilder* parser, std::shared_ptr<std::string> s)
-        {
-            line = 1;
-            offset = 0;
-            path = std::move(s);
-            ++position;
-            parser->addPosition(position, offset, line, path);
-        }
-
-        /**
-         * Sets the position of \a builder to [position, position + n)
-         * and increments position and offset by \a n.
-         */
-        int increment(UTAP::ParserBuilder* parser, uint32_t n)
-        {
-            parser->setPosition(position, position + n);
-            position += n;
-            offset += n;
-            return position - n;
-        }
-
-        /**
-         * Increments line by \a n and adds the position to \a
-         * builder.
-         */
-        void newline(UTAP::ParserBuilder* parser, uint32_t n)
-        {
-            line += n;
-            parser->addPosition(position, offset, line, path);
-        }
-    };
-
-    extern PositionTracker tracker;
-
-    /** Errors from underlying XML reading operations (most likely OS issues) */
-    class XMLReaderError : public std::runtime_error
+    /**
+     * This overload provides a way reuse paths over multiple setPath calls
+     */
+    void setPath(UTAP::ParserBuilder* parser, std::shared_ptr<std::string> s)
     {
-    public:
-        using std::runtime_error::runtime_error;
-    };
-    /** Errors due to wrong XML document structure */
-    class XMLDocError : public std::logic_error
+        line = 1;
+        offset = 0;
+        path = std::move(s);
+        ++position;
+        parser->addPosition(position, offset, line, path);
+    }
+
+    /**
+     * Sets the position of \a builder to [position, position + n)
+     * and increments position and offset by \a n.
+     */
+    int increment(UTAP::ParserBuilder* parser, uint32_t n)
     {
-    public:
-        using std::logic_error::logic_error;
-    };
+        parser->setPosition(position, position + n);
+        position += n;
+        offset += n;
+        return position - n;
+    }
+
+    /**
+     * Increments line by \a n and adds the position to \a
+     * builder.
+     */
+    void newline(UTAP::ParserBuilder* parser, uint32_t n)
+    {
+        line += n;
+        parser->addPosition(position, offset, line, path);
+    }
+};
+
+extern PositionTracker tracker;
+
+/** Errors from underlying XML reading operations (most likely OS issues) */
+class XMLReaderError : public std::runtime_error
+{
+public:
+    using std::runtime_error::runtime_error;
+};
+/** Errors due to wrong XML document structure */
+class XMLDocError : public std::logic_error
+{
+public:
+    using std::logic_error::logic_error;
+};
 }  // namespace UTAP
 
 #endif /* UTAP_LIBPARSER_HH */

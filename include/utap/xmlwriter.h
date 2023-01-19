@@ -31,56 +31,55 @@
 
 #include <stdexcept>
 
-namespace UTAP
+namespace UTAP {
+xmlChar* ConvertInput(const char* in, const char* encoding);
+
+/** Errors produced by the underlying writer (most likely due to runtime/OS issues) */
+class XMLWriterError : public std::runtime_error
 {
-    xmlChar* ConvertInput(const char* in, const char* encoding);
+public:
+    using std::runtime_error::runtime_error;
+};
 
-    /** Errors produced by the underlying writer (most likely due to runtime/OS issues) */
-    class XMLWriterError : public std::runtime_error
-    {
-    public:
-        using std::runtime_error::runtime_error;
-    };
+class XMLWriter
+{
+public:                      // was private - needed for derived class SBMLtoXMLWriter
+    xmlTextWriterPtr writer; /**< The underlying xmlTextWriter */
+    Document* doc;           /**< The document to write */
+    std::map<int, int> selfLoops;
 
-    class XMLWriter
-    {
-    public:                      // was private - needed for derived class SBMLtoXMLWriter
-        xmlTextWriterPtr writer; /**< The underlying xmlTextWriter */
-        Document* doc;           /**< The document to write */
-        std::map<int, int> selfLoops;
+    void startDocument();
+    void endDocument();
+    void startElement(const char* element);
+    void endElement();
+    void writeElement(const char* name, const char* content);
+    void writeAttribute(const char* name, const char* value);
+    void writeString(const char* content);
+    void xmlwriteString(const xmlChar* content);
 
-        void startDocument();
-        void endDocument();
-        void startElement(const char* element);
-        void endElement();
-        void writeElement(const char* name, const char* content);
-        void writeAttribute(const char* name, const char* value);
-        void writeString(const char* content);
-        void xmlwriteString(const xmlChar* content);
+    void taTempl(const template_t& templ);
+    void location(const location_t& loc);
+    void init(const template_t& templ);
+    void name(const location_t& state, int x, int y);
+    void writeStateAttributes(const location_t& state, int x, int y);
+    void transition(const edge_t& edge);
+    void nail(int x, int y);
 
-        void taTempl(const template_t& templ);
-        void location(const location_t& loc);
-        void init(const template_t& templ);
-        void name(const location_t& state, int x, int y);
-        void writeStateAttributes(const location_t& state, int x, int y);
-        void transition(const edge_t& edge);
-        void nail(int x, int y);
+    void label(const char* kind, std::string data, int x, int y);
+    int source(const edge_t& edge);
+    int target(const edge_t& edge);
+    void selfLoop(int loc, double initialAngle, const edge_t& edge);
+    void labels(int x, int y, const edge_t& edge);
 
-        void label(const char* kind, std::string data, int x, int y);
-        int source(const edge_t& edge);
-        int target(const edge_t& edge);
-        void selfLoop(int loc, double initialAngle, const edge_t& edge);
-        void labels(int x, int y, const edge_t& edge);
+    void declaration();
+    std::string getChanPriority() const;
+    void system_instantiation();
 
-        void declaration();
-        std::string getChanPriority() const;
-        void system_instantiation();
-
-        // public:
-        XMLWriter(xmlTextWriterPtr writer, Document* doc);
-        virtual ~XMLWriter();
-        void project();
-    };
+    // public:
+    XMLWriter(xmlTextWriterPtr writer, Document* doc);
+    virtual ~XMLWriter();
+    void project();
+};
 }  // namespace UTAP
 
 #endif /* XMLWRITER_H */
