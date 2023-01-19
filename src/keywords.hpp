@@ -27,28 +27,27 @@
 #include <string_view>
 #include <cinttypes>  // uint32_t
 
-namespace UTAP
+namespace UTAP {
+struct Keyword
 {
-    struct Keyword
-    {
-        int token{};
-        syntax_t syntax{};
-    };
+    int token{};
+    syntax_t syntax{};
+};
 
-    /**
-     * Checks if the text is a keyword based on the specified syntax.
-     * @param text the string
-     * @param syntax the syntax
-     * @return true if the text is a keyword according to the specified syntax.
-     */
-    bool is_keyword(std::string_view word, syntax_t syntax);
+/**
+ * Checks if the text is a keyword based on the specified syntax.
+ * @param text the string
+ * @param syntax the syntax
+ * @return true if the text is a keyword according to the specified syntax.
+ */
+bool is_keyword(std::string_view word, syntax_t syntax);
 
-    /**
-     * Searches for the text among the keywords and returns address if found.
-     * @param text the string to search for
-     * @return the keyword struct if found and nullptr otherwise
-     */
-    const Keyword* find_keyword(std::string_view word);
+/**
+ * Searches for the text among the keywords and returns address if found.
+ * @param text the string to search for
+ * @return the keyword struct if found and nullptr otherwise
+ */
+const Keyword* find_keyword(std::string_view word);
 
 }  // namespace UTAP
 
