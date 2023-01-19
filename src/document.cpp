@@ -24,10 +24,10 @@
 #include "utap/builder.h"
 #include "utap/statement.h"
 
+#include <functional>  // std::mem_fn
 #include <sstream>
 #include <stack>
 #include <cassert>
-#include <cstring>
 
 #ifdef __MINGW32__
 #include <windows.h>
