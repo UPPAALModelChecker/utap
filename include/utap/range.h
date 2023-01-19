@@ -89,41 +89,41 @@ namespace UTAP
         constexpr static range_t make_empty() { return range_t{1, 0}; }
 
         /** the range is strictly below the other */
-        bool operator<(const range_t& o) const
+        constexpr bool operator<(const range_t& o) const
         {
             assert(!o.empty());
             return finish < o.start;
         }
         /** the range is below the other, may also overlap */
-        bool operator<=(const range_t& o) const { return !(*this > o); }
+        constexpr bool operator<=(const range_t& o) const { return !(*this > o); }
         /** the range is strictly above the other */
-        bool operator>(const range_t& o) const { return o < *this; }
+        constexpr bool operator>(const range_t& o) const { return o < *this; }
         /** the range is above the other, may also overlap */
-        bool operator>=(const range_t& o) const { return !(*this < o); }
+        constexpr bool operator>=(const range_t& o) const { return !(*this < o); }
 
         /** lowers the lower bound */
-        range_t& lower(const T& b)
+        constexpr range_t& lower(const T& b)
         {
             start = std::min(start, b);
             return *this;
         }
         /** raises the upper bound */
-        range_t& raise(const T& b)
+        constexpr range_t& raise(const T& b)
         {
             finish = std::max(finish, b);
             return *this;
         }
         /** inserts an element into a range by computing convex union: */
-        range_t& operator|=(const T& e) { return lower(e).raise(e); }
+        constexpr range_t& operator|=(const T& e) { return lower(e).raise(e); }
         /** computes a convex union of ranges */
-        range_t& operator|=(const range_t& o) { return lower(o.start).raise(o.finish); }
+        constexpr range_t& operator|=(const range_t& o) { return lower(o.start).raise(o.finish); }
         /** computes convex union of ranges */
-        range_t operator|(const range_t& o) const { return range_t(*this) |= o; }
+        constexpr range_t operator|(const range_t& o) const { return range_t(*this) |= o; }
         /** inserts an element into a range by computing a convex union: */
-        range_t operator|(const T& e) const { return range_t(*this) |= e; }
+        constexpr range_t operator|(const T& e) const { return range_t(*this) |= e; }
 
         /** Constrain to greater than the lower bound */
-        range_t& gt(const T& lower)
+        constexpr range_t& gt(const T& lower)
         {
             if constexpr (std::numeric_limits<T>::has_infinity) {
                 if (std::isinf(lower) && lower > std::numeric_limits<T>::max()) {
@@ -137,7 +137,7 @@ namespace UTAP
         }
 
         /** Constrain to lower than the upper bound */
-        range_t& lt(const T& upper)
+        constexpr range_t& lt(const T& upper)
         {
             if constexpr (std::numeric_limits<T>::has_infinity) {
                 if (std::isinf(upper) && upper < std::numeric_limits<T>::lowest()) {
@@ -151,27 +151,27 @@ namespace UTAP
         }
 
         /** constrain to greater-than-or-equal-to lower bound */
-        range_t& geq(const T& lower)
+        constexpr range_t& geq(const T& lower)
         {
             start = std::max(start, lower);
             return *this;
         }
         /** constrain to less-than-or-equal-to upper bound */
-        range_t& leq(const T& upper)
+        constexpr range_t& leq(const T& upper)
         {
             finish = std::min(finish, upper);
             return *this;
         }
         /** computes an intersection of two ranges (may become empty) */
-        range_t& operator&=(const range_t& o) { return geq(o.start).leq(o.finish); }
+        constexpr range_t& operator&=(const range_t& o) { return geq(o.start).leq(o.finish); }
         /** computes an intersection with an element (may become empty) */
-        range_t& operator&=(const T& e) { return geq(e).leq(e); }
+        constexpr range_t& operator&=(const T& e) { return geq(e).leq(e); }
         /** computes an intersection of ranges */
-        range_t operator&(const range_t& o) const { return range_t(*this) &= o; }
+        constexpr range_t operator&(const range_t& o) const { return range_t(*this) &= o; }
         /** computes an intersection of ranges */
-        range_t operator&(const T& e) const { return range_t(*this) &= e; }
+        constexpr range_t operator&(const T& e) const { return range_t(*this) &= e; }
 
-        /* computes the symbolic plus */
+        /** computes the symbolic plus */
         constexpr range_t& operator+=(const range_t& o)
         {
             assert(!o.empty());
@@ -180,7 +180,7 @@ namespace UTAP
             return *this;
         }
 
-        /* computes the symbolic plus */
+        /** computes the symbolic plus */
         constexpr range_t& operator+=(const T& e)
         {
             start += e;
@@ -188,7 +188,7 @@ namespace UTAP
             return *this;
         }
 
-        /* computes the symbolic minus */
+        /** computes the symbolic minus */
         constexpr range_t& operator-=(const range_t& o)
         {
             assert(!o.empty());
@@ -197,7 +197,7 @@ namespace UTAP
             return *this;
         }
 
-        /* computes the symbolic minus */
+        /** computes the symbolic minus */
         constexpr range_t& operator-=(const T& e)
         {
             start -= e;
@@ -205,7 +205,7 @@ namespace UTAP
             return *this;
         }
 
-        /* computes the symbolic multiplication */
+        /** computes the symbolic multiplication */
         constexpr range_t& operator*=(const range_t& o)
         {
             assert(!o.empty());
@@ -217,7 +217,7 @@ namespace UTAP
             finish = std::max(std::max(t1, t2), std::max(t3, t4));
             return *this;
         }
-        /* computes the symbolic multiplication */
+        /** computes the symbolic multiplication */
         constexpr range_t& operator*=(const T& e)
         {
             start *= e;
@@ -226,13 +226,13 @@ namespace UTAP
                 std::swap(start, finish);
             return *this;
         }
-        /* Computes the symbolic sum over the ranges*/
+        /** Computes the symbolic sum over the ranges*/
         constexpr range_t operator+(const range_t& o) const { return range_t(*this) += o; }
-        /* Computes the symbolic sum with an element (offset)*/
+        /** Computes the symbolic sum with an element (offset)*/
         constexpr range_t operator+(const T& e) const { return range_t(*this) += e; }
-        /* Computes the symbolic subtraction over the ranges*/
+        /** Computes the symbolic subtraction over the ranges*/
         constexpr range_t operator-(const range_t& o) const { return range_t(*this) -= o; }
-        /* Computes the symbolic subtraction with an element (offset)*/
+        /** Computes the symbolic subtraction with an element (offset)*/
         constexpr range_t operator-(const T& e) const { return range_t(*this) -= e; }
         /* Computes the symbolic product over the ranges*/
         constexpr range_t operator*(const range_t& o) const { return range_t(*this) *= o; }
@@ -329,13 +329,13 @@ namespace UTAP
 namespace std
 {
     template <typename T>
-    UTAP::range_t<T> min(const UTAP::range_t<T>& a, const UTAP::range_t<T>& b)
+    constexpr UTAP::range_t<T> min(const UTAP::range_t<T>& a, const UTAP::range_t<T>& b)
     {
         return UTAP::range_t<T>(std::min(a.first(), b.first()), std::min(a.last(), b.last()));
     }
 
     template <typename T>
-    UTAP::range_t<T> max(const UTAP::range_t<T>& a, const UTAP::range_t<T>& b)
+    constexpr UTAP::range_t<T> max(const UTAP::range_t<T>& a, const UTAP::range_t<T>& b)
     {
         return UTAP::range_t<T>(std::max(a.first(), b.first()), std::max(a.last(), b.last()));
     }

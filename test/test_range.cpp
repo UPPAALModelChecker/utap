@@ -147,5 +147,7 @@ TEST_CASE("Range Tests")
         constexpr auto r5 = r1 * r2;
         static_assert(r5.first() == 2);
         static_assert(r5.last() == 30);
+        static_assert(!(r1 < r2));
+        static_assert(!(r1 > r2));
     }
 }
