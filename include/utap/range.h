@@ -172,7 +172,7 @@ namespace UTAP
         range_t operator&(const T& e) const { return range_t(*this) &= e; }
 
         /* computes the symbolic plus */
-        range_t& operator+=(const range_t& o)
+        constexpr range_t& operator+=(const range_t& o)
         {
             assert(!o.empty());
             start += o.first();
@@ -181,7 +181,7 @@ namespace UTAP
         }
 
         /* computes the symbolic plus */
-        range_t& operator+=(const T& e)
+        constexpr range_t& operator+=(const T& e)
         {
             start += e;
             finish += e;
@@ -189,7 +189,7 @@ namespace UTAP
         }
 
         /* computes the symbolic minus */
-        range_t& operator-=(const range_t& o)
+        constexpr range_t& operator-=(const range_t& o)
         {
             assert(!o.empty());
             start -= o.last();
@@ -198,7 +198,7 @@ namespace UTAP
         }
 
         /* computes the symbolic minus */
-        range_t& operator-=(const T& e)
+        constexpr range_t& operator-=(const T& e)
         {
             start -= e;
             finish -= e;
@@ -206,7 +206,7 @@ namespace UTAP
         }
 
         /* computes the symbolic multiplication */
-        range_t& operator*=(const range_t& o)
+        constexpr range_t& operator*=(const range_t& o)
         {
             assert(!o.empty());
             auto t1 = first() * o.first();
@@ -218,7 +218,7 @@ namespace UTAP
             return *this;
         }
         /* computes the symbolic multiplication */
-        range_t& operator*=(const T& e)
+        constexpr range_t& operator*=(const T& e)
         {
             start *= e;
             finish *= e;
@@ -227,20 +227,20 @@ namespace UTAP
             return *this;
         }
         /* Computes the symbolic sum over the ranges*/
-        range_t operator+(const range_t& o) const { return range_t(*this) += o; }
+        constexpr range_t operator+(const range_t& o) const { return range_t(*this) += o; }
         /* Computes the symbolic sum with an element (offset)*/
-        range_t operator+(const T& e) const { return range_t(*this) += e; }
+        constexpr range_t operator+(const T& e) const { return range_t(*this) += e; }
         /* Computes the symbolic subtraction over the ranges*/
-        range_t operator-(const range_t& o) const { return range_t(*this) -= o; }
+        constexpr range_t operator-(const range_t& o) const { return range_t(*this) -= o; }
         /* Computes the symbolic subtraction with an element (offset)*/
-        range_t operator-(const T& e) const { return range_t(*this) -= e; }
+        constexpr range_t operator-(const T& e) const { return range_t(*this) -= e; }
         /* Computes the symbolic product over the ranges*/
-        range_t operator*(const range_t& o) const { return range_t(*this) *= o; }
+        constexpr range_t operator*(const range_t& o) const { return range_t(*this) *= o; }
         /* Computes the symbolic product with an element (offset)*/
-        range_t operator*(const T& e) const { return range_t(*this) *= e; }
+        constexpr range_t operator*(const T& e) const { return range_t(*this) *= e; }
 
         /** returns true if ranges overlap */
-        bool operator&&(const range_t& o) const
+        constexpr bool operator&&(const range_t& o) const
         {
             if (start <= o.start)  // o.start is inside [start,finish)
                 return (o.start <= finish);
@@ -249,10 +249,10 @@ namespace UTAP
         }
 
         /** returns true if the range includes an element */
-        bool operator&&(const T& e) const { return (start <= e) && (e <= finish); }
+        constexpr bool operator&&(const T& e) const { return (start <= e) && (e <= finish); }
 
         /** checks for equality between ranges */
-        bool operator==(const range_t& o) const
+        constexpr bool operator==(const range_t& o) const
         {
             if (empty() || o.empty())
                 return empty() == o.empty();
@@ -260,40 +260,40 @@ namespace UTAP
         }
 
         /** checks if range is singleton of exactly e*/
-        bool operator==(const T& e) const { return (*this) == range_t(e); }
+        constexpr bool operator==(const T& e) const { return (*this) == range_t(e); }
 
         /** inserts an element into a range by computing convex union: */
-        range_t& add(const T& e) { return *this |= e; }
+        constexpr range_t& add(const T& e) { return *this |= e; }
 
         /** merges two ranges by computing convex union: */
-        range_t& add(const range_t& r) { return *this |= r; }
+        constexpr range_t& add(const range_t& r) { return *this |= r; }
 
         /** computes convex union of a range and an element: */
-        range_t unite(const T& e) const { return *this | e; }
+        constexpr range_t unite(const T& e) const { return *this | e; }
 
         /** computes convex union of two ranges: */
-        range_t unite(const range_t& r) const { return (*this | r); }
+        constexpr range_t unite(const range_t& r) const { return (*this | r); }
 
         /** intersects the range with an element: */
-        range_t& intersect(const T& e) { return *this &= e; }
+        constexpr range_t& intersect(const T& e) { return *this &= e; }
 
         /** intersects the range with another: */
-        range_t& intersect(const range_t& r) { return *this &= r; }
+        constexpr range_t& intersect(const range_t& r) { return *this &= r; }
 
         /** computes intersection with an element: */
-        range_t intersection(const T& e) const { return (*this & e); }
+        constexpr range_t intersection(const T& e) const { return (*this & e); }
 
         /** computes intersection of two ranges: */
-        range_t intersection(const range_t& r) const { return (*this & r); }
+        constexpr range_t intersection(const range_t& r) const { return (*this & r); }
 
         /** checks if the range contains an element */
-        bool contains(const T& e) const { return (*this && e); }
+        constexpr bool contains(const T& e) const { return (*this && e); }
 
         /** checks if the range intersects with another */
-        bool intersects(const range_t& r) const { return (*this && r); }
+        constexpr bool intersects(const range_t& r) const { return (*this && r); }
 
         /** checks if the range is empty */
-        bool empty() const { return start > finish; }
+        constexpr bool empty() const { return start > finish; }
         void clear() { *this = range_t{}; }
 
         friend std::ostream& operator<<(std::ostream& os, const range_t& range)
@@ -302,10 +302,10 @@ namespace UTAP
         }
 
         /** outputs number of discrete elements of T in range*/
-        uint32_t size() const { return empty() ? 0 : 1 + (finish - start); }
+        constexpr uint32_t size() const { return empty() ? 0 : 1 + (finish - start); }
 
-        T first() const { return start; }
-        T last() const { return finish; }
+        constexpr T first() const { return start; }
+        constexpr T last() const { return finish; }
 
     }; /* range_t */
 
