@@ -25,6 +25,7 @@
 
 #include "utap/builder.h"
 
+#include <memory>
 #include <system_error>
 
 // The maximum length is 4000 (see error message) + 1 for the
@@ -61,15 +62,13 @@ namespace UTAP {
  * Help class used by the lexer, parser and xmlreader to keep
  * track of the current position.
  */
-class PositionTracker
+struct PositionTracker
 {
     uint32_t line{};
     uint32_t offset{};
-    uint32_t index{};
-    std::string path{};
+    uint32_t position{};
+    std::shared_ptr<std::string> path;
 
-public:
-    uint32_t get_index() const { return index; }
     /**
      * Sets the current path to \a s, offset to 0 and line to 1.
      * Sets the position of \a builder to [position, position + 1)
@@ -87,22 +86,33 @@ public:
         // subtract 1 before calling Positions::find().
         line = 1;
         offset = 0;
-        path = s;
-        ++index;
-        parser->add_position(index, offset, line, path);
+        path = std::make_shared<std::string>(s);
+        ++position;
+        parser->add_position(position, offset, line, path);
+    }
+
+    /**
+     * This overload provides a way reuse paths over multiple setPath calls
+     */
+    void setPath(UTAP::ParserBuilder* parser, std::shared_ptr<std::string> s)
+    {
+        line = 1;
+        offset = 0;
+        path = std::move(s);
+        ++position;
+        parser->add_position(position, offset, line, path);
     }
 
     /**
      * Sets the position of \a builder to [position, position + n)
      * and increments position and offset by \a n.
      */
-    int increment(UTAP::ParserBuilder* parser, uint32_t n = 1)
+    int increment(UTAP::ParserBuilder* parser, uint32_t n)
     {
-        auto last = index;
-        parser->set_position(index, index + 1);
-        index += 1;
+        parser->set_position(position, position + n);
+        position += n;
         offset += n;
-        return last;
+        return position - n;
     }
 
     /**
@@ -112,7 +122,7 @@ public:
     void newline(UTAP::ParserBuilder* parser, uint32_t n)
     {
         line += n;
-        parser->add_position(index, offset, line, path);
+        parser->add_position(position, offset, line, path);
     }
 };
 

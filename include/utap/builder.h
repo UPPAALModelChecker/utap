@@ -25,6 +25,7 @@
 
 #include "utap/common.h"
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -98,7 +99,7 @@ public:
      * Add mapping from an absolute position to a relative XML
      * element.
      */
-    virtual void add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) = 0;
+    virtual void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path) = 0;
 
     /**
      * Sets the current position. The current position indicates
@@ -345,18 +346,19 @@ public:
     virtual void expr_sum_begin(const char* name) = 0;
     virtual void expr_sum_end(const char* name) = 0;
 
-    // Extension for SMC.
-    virtual void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) = 0;
-    virtual void expr_proba_quantitative(Constants::kind_t) = 0;
-    virtual void expr_proba_compare(Constants::kind_t, Constants::kind_t) = 0;
-    virtual void expr_proba_expected(const char* identifier) = 0;
+    // Extensions for SMC:
+    virtual void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) = 0;  ///< estimate Pr
+    virtual void expr_proba_quantitative(Constants::kind_t) = 0;                            ///< evaluate if Pr >= value
+    virtual void expr_proba_compare(Constants::kind_t, Constants::kind_t) = 0;              ///< compare two Prs
+    virtual void expr_proba_expected(const char* identifier) = 0;                           ///< estimate mean value
     virtual void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) = 0;
     virtual void expr_builtin_function1(Constants::kind_t) = 0;
     virtual void expr_builtin_function2(Constants::kind_t) = 0;
     virtual void expr_builtin_function3(Constants::kind_t) = 0;
 
+    // Extensions for learning:
     enum PRICETYPE { TIMEPRICE, EXPRPRICE, PROBAPRICE };
-    virtual void expr_min_max_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) = 0;
+    virtual void expr_optimize_exp(Constants::kind_t, PRICETYPE) = 0;  ///< minimize/maximize expected value query
     virtual void expr_load_strategy() = 0;
     virtual void expr_save_strategy() = 0;
 

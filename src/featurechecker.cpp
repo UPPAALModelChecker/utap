@@ -37,6 +37,18 @@ FeatureChecker::FeatureChecker(Document& document)
         supported_methods.symbolic = false;
 }
 
+bool FeatureChecker::visitTemplateBefore(template_t& templ)
+{
+    // Only check features if template is actually used in the system
+    return templ.isInstanced;
+}
+
+void FeatureChecker::visitVariable(variable_t& var)
+{
+    if (var.uid.get_type().is_clock() && !var.init.empty() && var.init.uses_fp())
+        supported_methods.symbolic = false;
+}
+
 void FeatureChecker::visitEdge(edge_t& edge)
 {
     visitAssignment(edge.assign);

@@ -36,7 +36,7 @@ namespace UTAP {
     PositionTracker tracker;
 }
 
-#define YY_USER_ACTION yylloc.start = tracker.get_index(); tracker.increment(ch, yyleng); yylloc.end = tracker.get_index();
+#define YY_USER_ACTION yylloc.start = tracker.position; tracker.increment(ch, yyleng); yylloc.end = tracker.position;
 
 // #define YY_FATAL_ERROR(msg) { throw TypeException(msg); }
 

@@ -36,9 +36,18 @@ using std::map;
 
 inline static bool isMITL(const expression_t& e)
 {
-    const auto k = e.get_kind();
-    return (k == MITL_FORMULA || k == MITL_RELEASE || k == MITL_UNTIL || k == MITL_CONJ || k == MITL_DISJ ||
-            k == MITL_NEXT || k == MITL_ATOM || k == MITL_EXISTS || k == MITL_FORALL);
+    switch (e.get_kind()) {
+    case MITL_FORMULA:
+    case MITL_RELEASE:
+    case MITL_UNTIL:
+    case MITL_CONJ:
+    case MITL_DISJ:
+    case MITL_NEXT:
+    case MITL_ATOM:
+    case MITL_EXISTS:
+    case MITL_FORALL: return true;
+    default: return false;
+    }
 }
 
 inline static expression_t toMITLAtom(const expression_t& e) { return expression_t::create_unary(MITL_ATOM, e); }
@@ -56,9 +65,10 @@ ExpressionBuilder::ExpressionBuilder(Document& doc): document{doc}
     scalar_count = 0;
 }
 
-void ExpressionBuilder::add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path)
+void ExpressionBuilder::add_position(uint32_t position, uint32_t offset, uint32_t line,
+                                     std::shared_ptr<std::string> path)
 {
-    document.add_position(position, offset, line, path);
+    document.add_position(position, offset, line, std::move(path));
 }
 
 void ExpressionBuilder::handle_error(const TypeException& ex) { document.add_error(position, ex.what()); }
@@ -681,42 +691,34 @@ void ExpressionBuilder::expr_proba_qualitative(Constants::kind_t pathType, Const
                                              std::move(args), position));
 }
 
-void ExpressionBuilder::expr_min_max_exp(Constants::kind_t kind, PRICETYPE ptype, Constants::kind_t quant)
+void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype)
 {
-    if (quant != Constants::DIAMOND) {
-        handle_error(TypeException{"$Wrong_path_quantifier"});
-    }
-
-    auto boundVar = fragments[4];
-    auto bound = fragments[3];
-    auto discrete = fragments[2];
-    auto cont = fragments[1];
+    auto boundVar = fragments[3];
+    auto bound = fragments[2];
+    auto discrete = fragments[1];
+    auto cont = fragments[0];
 
     if (!discrete.is_true() && !cont.is_true()) {
         discrete.set_type(type_t::create_primitive(LIST, position));
         cont.set_type(type_t::create_primitive(LIST, position));
     }
-    auto& control = fragments[0];
     expression_t price;
     expression_t level = make_constant(0);
-    size_t nb = 5;
+    size_t nb = 4;
     switch (ptype) {
     case TIMEPRICE:  // use time
         price = make_constant(1);
         break;
     case EXPRPRICE:  // user-provided expression
-        price = fragments[5];
+        price = fragments[4];
         ++nb;
-        break;
-    case PROBAPRICE:  // use boolean expression
-        price = control;
         break;
     default: handle_error(TypeException{"$Unknown_price_type"});
     }
 
     assert(nb <= fragments.size());
 
-    auto args = std::vector<expression_t>{boundVar, bound, control, price, level, discrete, cont};
+    auto args = std::vector<expression_t>{boundVar, bound, price, level, discrete, cont};
     fragments.pop(nb);
     fragments.push(expression_t::create_nary(kind, std::move(args), position));
 }

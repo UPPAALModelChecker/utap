@@ -472,7 +472,7 @@ size_t expression_t::get_size() const
     case PROBA_MIN_DIAMOND: assert(data->sub.size() == 5); return 5;
 
     case MIN_EXP:
-    case MAX_EXP: return 7;
+    case MAX_EXP: assert(data->sub.size() == 6); return 6;
 
     case PROBA_EXP: assert(data->sub.size() == 5); return 5;
 

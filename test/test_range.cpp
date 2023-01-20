@@ -21,7 +21,10 @@
 
 #include "utap/range.h"
 
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
+
+using UTAP::range_t;
 
 TEST_CASE("Range Tests")
 {
@@ -115,15 +118,36 @@ TEST_CASE("Range Tests")
 
     SUBCASE("Greater than infinity")
     {
-        auto r1 = UTAP::range_t<double>(0, d_inf);
+        auto r1 = range_t<double>(0, d_inf);
         r1 = r1.gt(d_inf);
         CHECK(r1.empty());
     }
 
     SUBCASE("Less than negative double infinity")
     {
-        auto r1 = UTAP::range_t<double>(d_ninf, 0);
+        auto r1 = range_t<double>{d_ninf, 0};
         r1 = r1.lt(d_ninf);
         CHECK(r1.empty());
+    }
+    SUBCASE("constexpr")
+    {
+        constexpr auto r1 = range_t<double>{1, 10};
+        static_assert(r1.first() == 1);
+        static_assert(r1.last() == 10);
+        static_assert(!r1.contains(0));
+        static_assert(r1.contains(5));
+        static_assert(!r1.contains(20));
+        constexpr auto r2 = range_t<double>{2, 3};
+        constexpr auto r3 = r1 + r2;
+        static_assert(r3.first() == 3);
+        static_assert(r3.last() == 13);
+        constexpr auto r4 = r1 - r2;
+        static_assert(r4.first() == -2);
+        static_assert(r4.last() == 8);
+        constexpr auto r5 = r1 * r2;
+        static_assert(r5.first() == 2);
+        static_assert(r5.last() == 30);
+        static_assert(!(r1 < r2));
+        static_assert(!(r1 > r2));
     }
 }

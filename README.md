@@ -151,7 +151,7 @@ else(utap_FOUND)
   FetchContent_Declare(
     UTAP
     GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
-    GIT_TAG v1.1.6
+    GIT_TAG main
     GIT_SHALLOW TRUE # get only the last commit version
     GIT_PROGRESS TRUE # show progress of download
     FIND_PACKAGE_ARGS NAMES UTAP

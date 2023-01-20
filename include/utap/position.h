@@ -25,6 +25,7 @@
 
 #include <iosfwd>
 #include <limits>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -69,8 +70,8 @@ public:
         uint32_t position;
         uint32_t offset;
         uint32_t line;
-        std::string path;
-        line_t(uint32_t position, uint32_t offset, uint32_t line, std::string path):
+        std::shared_ptr<std::string> path;
+        line_t(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path):
             position(position), offset(offset), line(line), path{std::move(path)}
         {}
     };
@@ -81,7 +82,7 @@ private:
 
 public:
     /** Add information about a line to the container. */
-    void add(uint32_t position, uint32_t offset, uint32_t line, std::string path);
+    void add(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
 
     /**
      * Retrieves information about the line containing the given

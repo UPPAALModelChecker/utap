@@ -366,6 +366,7 @@ struct template_t : public instance_t, declarations_t
     std::deque<edge_t> edges;               /**< Edges */
     std::vector<expression_t> dynamic_evals;
     bool isTA;
+    bool isInstanced{false}; /**< Is the template used in the system*/
 
     int add_dynamic_eval(expression_t t)
     {
@@ -536,7 +537,7 @@ public:
     /** Returns the queries enclosed in the model. */
     queries_t& get_queries();
 
-    void add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path);
+    void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
 
     variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,

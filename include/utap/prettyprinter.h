@@ -55,7 +55,7 @@ private:
 public:
     PrettyPrinter(std::ostream& stream);
 
-    void add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) override;
+    void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path) override;
 
     void handle_error(const TypeException&) override;
     void handle_warning(const TypeException&) override;

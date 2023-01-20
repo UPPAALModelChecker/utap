@@ -767,7 +767,7 @@ bool XMLReader::location()
              * length 1.
              */
             tracker.setPath(parser, l_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
 
             /* Push location to parser builder. */
             parser->proc_location(l_name.c_str(), l_invariant, l_exponentialRate);
@@ -797,7 +797,7 @@ bool XMLReader::instance()
 
             /* Get name of the instance. */
             tracker.setPath(parser, i_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             std::string i_name = name(true);
 
             /* Remember the mapping from id to name */
@@ -810,7 +810,7 @@ bool XMLReader::instance()
              * position of length 1.
              */
             tracker.setPath(parser, i_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             /* Push instance to parser builder. */
             parser->proc_instance_line();
             parse((xmlChar*)i_name.c_str(), S_INSTANCE_LINE);
@@ -852,7 +852,7 @@ bool XMLReader::prechart()
             bottomPrechart = lscLocation();
             if (strcasecmp(currentType.c_str(), "existential") == 0) {
                 tracker.setPath(parser, p_path);
-                tracker.increment(parser);
+                tracker.increment(parser, 1);
                 parser->handle_error(TypeException{"$Existential_charts_must_not_have_prechart"});
             }
             parser->prechart_set(true);
@@ -879,10 +879,10 @@ bool XMLReader::message()
             int location = lscLocation();
             bool pch = (location < bottomPrechart);
             tracker.setPath(parser, m_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_message(from.c_str(), to.c_str(), location, pch);
             tracker.setPath(parser, m_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             label(true, "message");
         } catch (TypeException& e) {
             parser->handle_error(e);
@@ -904,7 +904,7 @@ bool XMLReader::condition()
             bool pch = (location < bottomPrechart);
 
             tracker.setPath(parser, c_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             std::string temp = temperature();
             bool hot = (temp == "hot");
             parser->proc_condition(instance_anchors, location, pch, hot);
@@ -931,7 +931,7 @@ bool XMLReader::update()
             bool pch = (location < bottomPrechart);
 
             tracker.setPath(parser, u_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_LSC_update(instance_anchor.c_str(), location, pch);
             label(true, "update");
         } catch (TypeException& e) {
@@ -963,7 +963,7 @@ bool XMLReader::branchpoint()
              * length 1.
              */
             tracker.setPath(parser, b_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             /* Push branchpoint to parser builder. */
             parser->proc_branchpoint(b_name.c_str());
         } catch (TypeException& e) {
@@ -1087,7 +1087,7 @@ int XMLReader::parameter()
 bool XMLReader::templ()
 {
     if (begin(tag_t::TEMPLATE)) {
-        std::string t_path = path.str(tag_t::TEMPLATE);
+        auto t_path = std::make_shared<std::string>(path.str(tag_t::TEMPLATE));
         read();
         try {
             /* Get the name and the parameters of the template. */
@@ -1097,7 +1097,7 @@ bool XMLReader::templ()
             /* Push template start to parser builder. This might
              * throw a TypeException. */
             tracker.setPath(parser, t_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_begin(t_name.c_str());
 
             /* Parse declarations, locations, branchpoints,
@@ -1108,14 +1108,14 @@ bool XMLReader::templ()
             while (branchpoint())
                 ;
             tracker.setPath(parser, t_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             init();
             while (transition())
                 ;
 
             /* Push template end to parser builder. */
             tracker.setPath(parser, t_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_end();
         } catch (TypeException& e) {
             parser->handle_error(e);
@@ -1141,7 +1141,7 @@ bool XMLReader::lscTempl()
             /* Push template start to parser builder. This might
              * throw a TypeException. */
             tracker.setPath(parser, t_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_begin(t_name.c_str(), false, currentType, currentMode);
 
             /* Parse declarations, locations, instances, prechart
@@ -1161,7 +1161,7 @@ bool XMLReader::lscTempl()
 
             /* Push template end to parser builder. */
             tracker.setPath(parser, t_path);
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->proc_end();
         } catch (TypeException& e) {
             parser->handle_error(e);
@@ -1197,7 +1197,7 @@ void XMLReader::system()
         // leading to nonsense error placements.
         if (nodeType == XML_READER_TYPE_END_ELEMENT || is_blank(text)) {
             tracker.setPath(parser, path.str(tag_t::SYSTEM));
-            tracker.increment(parser);
+            tracker.increment(parser, 1);
             parser->handle_error(TypeException{"$syntax_error: $unexpected $end"});
             close(tag_t::SYSTEM);
             return;
@@ -1207,7 +1207,7 @@ void XMLReader::system()
     } else {
         std::string s = (nta) ? path.str(tag_t::NTA) : path.str(tag_t::PROJECT);
         tracker.setPath(parser, s);
-        tracker.increment(parser);
+        tracker.increment(parser, 1);
         parser->handle_error(TypeException{"$Missing_system_tag"});
     }
 }

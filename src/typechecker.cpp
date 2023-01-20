@@ -634,13 +634,13 @@ void TypeChecker::visitProcess(instance_t& process)
         symbol_t parameter = process.parameters[i];
         type_t type = parameter.get_type();
         if (!(type.is_scalar() || type.is_range()) || type.is(REF) || isDefaultInt(type)) {
-            handleError(type, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
+            handleError(process.uid, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
         }
         /* Unbound parameters must not be used either directly or indirectly in any array size declarations.
          * I.e. they must not be restricted. */
         if (process.restricted.find(parameter) != process.restricted.end()) {
-            handleError(type, "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
-                              "an_array_declaration_or_select_expression");
+            handleError(process.uid, "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
+                                     "an_array_declaration_or_select_expression");
         }
     }
 }
@@ -1057,12 +1057,11 @@ void TypeChecker::visitProperty(expression_t expr)
                 }
             }
             */
-        } else if (expr.get_kind() != SUP_VAR && expr.get_kind() != INF_VAR && expr.get_kind() != SCENARIO &&
-                   expr.get_kind() != PROBA_MIN_BOX && expr.get_kind() != PROBA_MIN_DIAMOND &&
-                   expr.get_kind() != PROBA_BOX && expr.get_kind() != PROBA_DIAMOND && expr.get_kind() != PROBA_EXP &&
-                   expr.get_kind() != PROBA_CMP && expr.get_kind() != SIMULATE && expr.get_kind() != SIMULATEREACH &&
-                   expr.get_kind() != MITL_FORMULA && expr.get_kind() != MIN_EXP &&  // ALREADY CHEKED IN PARSE
-                   expr.get_kind() != MAX_EXP)                                       // ALREADY CHEKED IN PARSE
+        } else if (auto k = expr.get_kind(); k != SUP_VAR && k != INF_VAR && k != SCENARIO && k != PROBA_MIN_BOX &&
+                                             k != PROBA_MIN_DIAMOND && k != PROBA_BOX && k != PROBA_DIAMOND &&
+                                             k != PROBA_EXP && k != PROBA_CMP && k != SIMULATE && k != SIMULATEREACH &&
+                                             k != MITL_FORMULA && k != MIN_EXP &&  // ALREADY CHECKED IN PARSE
+                                             k != MAX_EXP)                         // ALREADY CHECKED IN PARSE
         {
             for (uint32_t i = 0; i < expr.get_size(); i++) {
                 /* No nesting except for constraints */
@@ -2322,7 +2321,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
     case MIN_EXP:
     case MAX_EXP:
-        // 0 = bound clock, 1 = boundvar, 2 = path, 3 = price
+        // 0 = bound clock, 1 = boundvar, 2 = price
         if (!is_const_integer(expr[0]) && !is_clock(expr[0])) {
             handleError(expr[0], "$Clock_expected");
             ok = false;
@@ -2333,15 +2332,13 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
         if (!ok)
             return false;
-        if (is_formula(expr[2])) {
-            type = type_t::create_primitive(FORMULA);
-        }
-        for (size_t i = 3; i < expr.get_size(); ++i) {
+        for (size_t i = 2; i < expr.get_size(); ++i) {
             if (expr[i].changes_any_variable()) {
                 handleError(expr[i], "$Property_must_be_side-effect_free");
                 return false;
             }
         }
+        type = type_t::create_primitive(FORMULA);
         break;
     case SMC_CONTROL:
         if (expr.get_size() == 3) {

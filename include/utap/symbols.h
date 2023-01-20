@@ -23,9 +23,9 @@
 #ifndef UTAP_SYMBOLS_HH
 #define UTAP_SYMBOLS_HH
 
-#include "utap/common.h"
-#include "utap/position.h"
-#include "utap/type.h"
+#include "common.h"
+#include "position.h"
+#include "type.h"
 
 #include <exception>
 #include <optional>

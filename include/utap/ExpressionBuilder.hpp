@@ -134,7 +134,7 @@ public:
     explicit ExpressionBuilder(Document& doc);
     ExpressionFragments& getExpressions();
 
-    void add_position(uint32_t position, uint32_t offset, uint32_t line, const std::string& path) override;
+    void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path) override;
 
     void handle_error(const TypeException&) override;
     void handle_warning(const TypeException&) override;
@@ -190,7 +190,7 @@ public:
     void expr_builtin_function1(Constants::kind_t) override;
     void expr_builtin_function2(Constants::kind_t) override;
     void expr_builtin_function3(Constants::kind_t) override;
-    void expr_min_max_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+    void expr_optimize_exp(Constants::kind_t, PRICETYPE) override;
     void expr_save_strategy() override;
     void expr_load_strategy() override;
 
