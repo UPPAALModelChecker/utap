@@ -1777,7 +1777,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
 
         /* check that spawn is only made for templates with definitions*/
-        if (!temp->isDefined) {
+        if (!temp->is_defined) {
             handleError(expr, "Template is only declared - not defined");
             return false;
         }

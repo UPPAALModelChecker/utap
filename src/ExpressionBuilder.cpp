@@ -1074,7 +1074,7 @@ void ExpressionBuilder::expr_foreach_dynamic_end(const char* name)
 
 void ExpressionBuilder::push_dynamic_frame_of(template_t* t, string name)
 {
-    if (!t->isDefined) {
+    if (!t->is_defined) {
         throw TypeException("Template referenced before used");
     }
     dynamicFrames[name] = t->frame;

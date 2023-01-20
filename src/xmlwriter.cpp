@@ -311,7 +311,7 @@ void XMLWriter::labels(int x, int y, const edge_t& edge)
 /** writes a template */
 void XMLWriter::taTempl(const template_t& templ)
 {
-    if (!templ.isTA) {
+    if (!templ.is_TA) {
         return;
     }
     selfLoops.clear();
@@ -327,29 +327,24 @@ void XMLWriter::taTempl(const template_t& templ)
     // locations
     for (auto& loc : templ.locations) {
         location(loc);
-        selfLoops.insert(std::pair<int, int>(loc.nr, 0));
+        selfLoops[loc.nr] = 0;
     }
     // initial location
     init(templ);
     // transitions
-    std::deque<edge_t>::const_iterator e_itr;
-    for (e_itr = templ.edges.begin(); e_itr != templ.edges.end(); ++e_itr) {
-        transition(*e_itr);
-    }
+    for (auto& e : templ.edges)
+        transition(e);
     endElement();  // end of the "template" tag
 }
 
 void XMLWriter::system_instantiation()
 {  // TODO proc priority
-    const std::list<instance_t>* instances = &(doc->get_processes());
     string str = "";
     string proc = "";
-    std::list<instance_t>::const_iterator itr;
-    for (itr = instances->begin(); itr != instances->end(); ++itr) {
-        if (itr->uid.get_name() != itr->templ->uid.get_name()) {
-            str += itr->uid.get_name() + " = " + itr->templ->uid.get_name() + "(" + itr->arguments_str() + ");\n";
-        }
-        proc += itr->uid.get_name() + ", ";
+    for (const instance_t& p : doc->get_processes()) {
+        if (p.uid.get_name() != p.templ->uid.get_name())
+            str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
+        proc += p.uid.get_name() + ", ";
     }
     proc = proc.substr(0, proc.size() - 2);
     str += "system " + proc + "; ";
@@ -363,9 +358,8 @@ void XMLWriter::project()
     startElement("nta");
     declaration();  // global declarations
 
-    for (const template_t& itr : doc->get_templates()) {
-        taTempl(itr);
-    }
+    for (const template_t& t : doc->get_templates())
+        taTempl(t);
     system_instantiation();
     endElement();  // close the "nta" element
     endDocument();

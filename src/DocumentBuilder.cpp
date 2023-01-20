@@ -151,7 +151,7 @@ void DocumentBuilder::proc_begin(const char* name, const bool isTA, const string
                     handle_error(TypeException{"Inconsistent parameters"});
             }
         }
-        currentTemplate->isDefined = true;
+        currentTemplate->is_defined = true;
     } else {
         if (frames.top().contains(name)) {
             handle_error(DuplicateDefinitionError(name));
@@ -399,7 +399,7 @@ void DocumentBuilder::process(const char* name)
         // FIXME: Check type of unbound parameters
     }
     auto& instance = *static_cast<instance_t*>(symbol.get_data());
-    instance.templ->isInstanced = true;
+    instance.templ->is_instantiated = true;
     document.add_process(instance, position);
     proc_priority(name);
 }

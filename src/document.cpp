@@ -56,19 +56,6 @@ using std::deque;
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
 
-template <typename T, typename = void>
-struct has_print_indent : std::false_type
-{};
-
-template <typename T>
-struct has_print_indent<
-    T, std::void_t<decltype(std::declval<T&>().print(std::declval<std::ostream&>, std::declval<const std::string&>))>>
-    : std::true_type
-{};
-
-template <typename T>
-constexpr auto has_print_indent_v = has_print_indent<T>::value;
-
 template <typename Item>
 std::string stringify_t<Item>::str() const
 {
@@ -78,13 +65,10 @@ std::string stringify_t<Item>::str() const
 }
 
 template <typename Item>
-std::string stringify_t<Item>::str(const std::string& indent) const
+std::string stringify_indent_t<Item>::str(const std::string& indent) const
 {
     auto os = std::ostringstream{};
-    if constexpr (has_print_indent_v<Item>)
-        static_cast<const Item*>(this)->print(os, indent);
-    else
-        static_cast<const Item*>(this)->print(os);
+    static_cast<const Item*>(this)->print(os, indent);
     return os.str();
 }
 
@@ -307,26 +291,26 @@ branchpoint_t& template_t::add_branchpoint(const string& name, position_t pos)
 edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, string actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
-    edges.push_back(edge_t());
+    edge_t& edge = edges.emplace_back();
     if (src.get_type().is_location()) {
-        edges.back().src = static_cast<location_t*>(src.get_data());
-        edges.back().srcb = 0;
+        edge.src = static_cast<location_t*>(src.get_data());
+        edge.srcb = nullptr;
     } else {
-        edges.back().src = 0;
-        edges.back().srcb = static_cast<branchpoint_t*>(src.get_data());
+        edge.src = nullptr;
+        edge.srcb = static_cast<branchpoint_t*>(src.get_data());
     }
     if (dst.get_type().is_location()) {
-        edges.back().dst = static_cast<location_t*>(dst.get_data());
-        edges.back().dstb = 0;
+        edge.dst = static_cast<location_t*>(dst.get_data());
+        edge.dstb = nullptr;
     } else {
-        edges.back().dst = 0;
-        edges.back().dstb = static_cast<branchpoint_t*>(dst.get_data());
+        edge.dst = nullptr;
+        edge.dstb = static_cast<branchpoint_t*>(dst.get_data());
     }
 
-    edges.back().control = control;
-    edges.back().actname = std::move(actname);
-    edges.back().nr = nr;
-    return edges.back();
+    edge.control = control;
+    edge.actname = std::move(actname);
+    edge.nr = nr;
+    return edge;
 }
 
 // LSC
@@ -334,10 +318,9 @@ instance_line_t& template_t::add_instance_line()
 {
     // bool duplicate = frame.get_index_of(name) != -1;
 
-    instances.push_back(instance_line_t());
-    instance_line_t& instance = instances.back();
+    instance_line_t& instance = instances.emplace_back();
     // instance.uid = frame.add_symbol(name, type_t::create_primitive(INSTANCELINE), &instance);
-    instance.instanceNr = instances.size() - 1;
+    instance.instance_nr = instances.size() - 1;
 
     //    if (duplicate)
     //    {
@@ -350,24 +333,24 @@ instance_line_t& template_t::add_instance_line()
 message_t& template_t::add_message(symbol_t src, symbol_t dst, int loc, bool pch)
 {
     int32_t nr = messages.empty() ? 0 : messages.back().nr + 1;
-    messages.push_back(message_t());
-    messages.back().src = static_cast<instance_line_t*>(src.get_data());
-    messages.back().dst = static_cast<instance_line_t*>(dst.get_data());
-    messages.back().location = loc;
-    messages.back().isInPrechart = pch;
-    messages.back().nr = nr;
-    return messages.back();
+    auto& message = messages.emplace_back();
+    message.src = static_cast<instance_line_t*>(src.get_data());
+    message.dst = static_cast<instance_line_t*>(dst.get_data());
+    message.location = loc;
+    message.is_in_prechart = pch;
+    message.nr = nr;
+    return message;
 }
 
 update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
 {
     int32_t nr = updates.empty() ? 0 : updates.back().nr + 1;
-    updates.push_back(update_t());
-    updates.back().anchor = static_cast<instance_line_t*>(anchor.get_data());
-    updates.back().location = loc;
-    updates.back().isInPrechart = pch;
-    updates.back().nr = nr;
-    return updates.back();
+    auto& update = updates.emplace_back();
+    update.anchor = static_cast<instance_line_t*>(anchor.get_data());
+    update.location = loc;
+    update.is_in_prechart = pch;
+    update.nr = nr;
+    return update;
 }
 
 condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool pch, bool isHot)
@@ -379,7 +362,7 @@ condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool p
         condition.anchors.push_back(static_cast<instance_line_t*>(anchor.get_data()));  // TODO
     }
     condition.location = loc;
-    condition.isInPrechart = pch;
+    condition.is_in_prechart = pch;
     condition.nr = nr;
     condition.isHot = isHot;
     return condition;
@@ -410,7 +393,7 @@ const vector<simregion_t> template_t::get_simregions()
     deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
     deque<int> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
 
-    vector<simregion_t> simregions;
+    auto simregions = vector<simregion_t>{};
     simregions.reserve(m_nr.size());
 
     /**
@@ -509,7 +492,7 @@ bool template_t::get_condition(instance_line_t& instance, int y, condition_t*& s
         if (condition.location == y) {
             for (auto& anchor : condition.anchors) {
                 instance_line_t* instancej = anchor;
-                if (instancej->instanceNr == instance.instanceNr) {
+                if (instancej->instance_nr == instance.instance_nr) {
                     simCondition = &condition;
                     return true;
                 }
@@ -527,7 +510,7 @@ bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpda
 {
     for (auto& update : updates) {
         if (update.location == y) {
-            if (update.anchor->instanceNr == instance.instanceNr) {
+            if (update.anchor->instance_nr == instance.instance_nr) {
                 simUpdate = &update;
                 return true;
             }
@@ -573,13 +556,13 @@ vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& si
     // get the simregions anchored to this instance
     for (const auto& reg : simregions) {
         const message_t* m = reg.message;
-        if (!m->empty() && (m->src->instanceNr == this->instanceNr || m->dst->instanceNr == this->instanceNr)) {
+        if (!m->empty() && (m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr)) {
             i_simregions.push_back(reg);
             continue;
         }
 
         const update_t* u = reg.update;
-        if (!u->empty() && u->anchor->instanceNr == this->instanceNr) {
+        if (!u->empty() && u->anchor->instance_nr == this->instance_nr) {
             i_simregions.push_back(reg);
             continue;
         }
@@ -587,7 +570,7 @@ vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& si
         const condition_t* c = reg.condition;
         if (!c->empty()) {
             for (auto* instance : c->anchors) {
-                if (instance->instanceNr == this->instanceNr) {
+                if (instance->instance_nr == this->instance_nr) {
                     i_simregions.push_back(reg);
                     break;
                 }
@@ -599,13 +582,13 @@ vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& si
 
     //    std::cout << "--------instance--------\n";
     //    for (auto& reg : i_simregions) {
-    //        std::cout << reg.str() << " " << reg.getLoc() << " " << reg.isInPrechart()<<"\n";
+    //        std::cout << reg.str() << " " << reg.getLoc() << " " << reg.is_in_prechart()<<"\n";
     //    } //test OK
 
     return i_simregions;
 }
 
-int simregion_t::getLoc() const
+int simregion_t::get_loc() const
 {
     if (has_message())
         return message->location;
@@ -617,14 +600,14 @@ int simregion_t::getLoc() const
     return -1;  // should not happen
 }
 
-bool simregion_t::isInPrechart() const
+bool simregion_t::is_in_prechart() const
 {
     if (has_message())
-        return message->isInPrechart;
+        return message->is_in_prechart;
     if (has_condition())
-        return condition->isInPrechart;
+        return condition->is_in_prechart;
     if (has_update())
-        return update->isInPrechart;
+        return update->is_in_prechart;
     assert(false);
     return false;  // should not happen
 }
@@ -692,11 +675,12 @@ inline auto find_simregion_by_nr(int nr)
 
 void cut_t::erase(const simregion_t& s)
 {
-    simregions.erase(std::remove_if(simregions.begin(), simregions.end(), find_simregion_by_nr(nr)), simregions.end());
+    simregions.erase(std::remove_if(simregions.begin(), simregions.end(), find_simregion_by_nr(s.nr)),
+                     simregions.end());
 }
 bool cut_t::contains(const simregion_t& s) const
 {
-    return std::find_if(simregions.begin(), simregions.end(), find_simregion_by_nr(nr)) != simregions.end();
+    return std::find_if(simregions.begin(), simregions.end(), find_simregion_by_nr(s.nr)) != simregions.end();
 }
 
 /**
@@ -709,21 +693,18 @@ bool cut_t::contains(const simregion_t& s) const
  * that are in the prechart, if it is the limit between the prechart
  * and the mainchart)
  */
-bool cut_t::isInPrechart(const simregion_t& fSimregion) const
+bool cut_t::is_in_prechart(const simregion_t& fSimregion) const
 {
-    if (!isInPrechart())
+    if (!is_in_prechart())
         return false;
-    if (!fSimregion.isInPrechart())
+    if (!fSimregion.is_in_prechart())
         return false;
     return true;
 }
 
-bool cut_t::isInPrechart() const
+bool cut_t::is_in_prechart() const
 {
-    for (auto& sim : simregions)
-        if (!sim.isInPrechart())
-            return false;
-    return true;
+    return std::all_of(simregions.begin(), simregions.end(), [](auto& sr) { return sr.is_in_prechart(); });
 }
 
 bool cut_t::equals(const cut_t& y) const
@@ -745,14 +726,14 @@ std::ostream& cut_t::print(std::ostream& os) const
             b->print(os << " ");
     }
     return os << ")";
-};
+}
 
 /**
  * return true if the LSC is of invariant mode
  */
-bool template_t::is_invariant()
+bool template_t::is_invariant() const
 {
-    if (isTA)
+    if (is_TA)
         return false;
     return mode == "invariant";
 }
@@ -796,10 +777,10 @@ library_t& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(const string& name, frame_t params, position_t position, const bool isTA,
+template_t& Document::add_template(const string& name, frame_t params, position_t position, const bool is_TA,
                                    const string& typeLSC, const string& mode)
 {
-    type_t type = (isTA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
+    type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
     templ.frame = frame_t::create(global.frame);
@@ -808,7 +789,7 @@ template_t& Document::add_template(const string& name, frame_t params, position_
     templ.uid = global.frame.add_symbol(name, type, position, (instance_t*)&templ);
     templ.arguments = 0;
     templ.unbound = params.get_size();
-    templ.isTA = isTA;
+    templ.is_TA = is_TA;
     templ.dynamic = false;
     // LSC
     templ.type = typeLSC;
@@ -828,10 +809,10 @@ template_t& Document::add_dynamic_template(const std::string& name, frame_t para
     templ.uid = global.frame.add_symbol(name, type, pos, (instance_t*)&templ);
     templ.arguments = 0;
     templ.unbound = params.get_size();
-    templ.isTA = true;
+    templ.is_TA = true;
     templ.dynamic = true;
-    templ.dynindex = dyn_templates.size() - 1;
-    templ.isDefined = false;
+    templ.dyn_index = dyn_templates.size() - 1;
+    templ.is_defined = false;
     return templ;
 }
 
@@ -934,8 +915,6 @@ void Document::add_query(query_t query) { queries.push_back(std::move(query)); }
 options_t& Document::get_options() { return model_options; }
 
 void Document::set_options(const options_t& options) { model_options = options; }
-
-queries_t& Document::get_queries() { return queries; }
 
 // Add a regular variable
 variable_t* Document::add_variable(declarations_t* context, type_t type, const string& name, expression_t initial,

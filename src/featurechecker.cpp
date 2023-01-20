@@ -40,7 +40,7 @@ FeatureChecker::FeatureChecker(Document& document)
 bool FeatureChecker::visitTemplateBefore(template_t& templ)
 {
     // Only check features if template is actually used in the system
-    return templ.isInstanced;
+    return templ.is_instantiated;
 }
 
 void FeatureChecker::visitVariable(variable_t& var)
