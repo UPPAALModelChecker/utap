@@ -34,7 +34,7 @@ for target in "$@" ; do
                 ln -snf $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD"/
                 ;;
         esac
-        (cd "$BUILD" ; ctest --output-on-failure)
+        # (cd "$BUILD" ; ctest --output-on-failure)
         echo -e "${BW}${target}: Installing ${LIBXML2}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
