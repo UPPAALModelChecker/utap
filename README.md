@@ -1,4 +1,4 @@
-# libutap, version 0.94
+# libutap, version 2.0.0
 
 # Mini HOWTO
 Gerd Behrmann
