@@ -111,7 +111,7 @@ the parser and the third is a flag indicating whether we want to use
 the new or the old syntax (the old syntax is the one used in Uppaal
 3.4, the new is the one that will be used since Uppaal 3.6).
 
-After the call to `parseXMLFile`, one can access the network of timed
+After the call to `parse_XML_file`, one can access the network of timed
 automata in the system variable. Take a look at [utap/system.h](src/utap/system.h) to see
 what kind of structures you can access.
 Distribution also includes [pretty.cpp](src/pretty.cpp) for pretty-printing model files.
@@ -176,7 +176,7 @@ target_link_libraries(example PRIVATE UTAP)
 
 Configure:
 ```shell
-cmake -B build -DCMAKE_PREFIX_PATH=$MYPATH -G Ninja .
+cmake -B build .
 ```
 Compile:
 ```shell
