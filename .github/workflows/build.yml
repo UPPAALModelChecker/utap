@@ -3,8 +3,29 @@ name: Build and Test
 on:
   push:
     branches: [ main ]
+    paths:
+    - '**.h'
+    - '**.c'
+    - '**.hpp'
+    - '**.cpp'
+    - '**.y'
+    - '**.l'
+    - '**.sh'
+    - '**.cmake'
+    - '**CMakeLists.txt'
   pull_request:
     branches: [ main ]
+    paths:
+    - '**.h'
+    - '**.c'
+    - '**.hpp'
+    - '**.cpp'
+    - '**.y'
+    - '**.l'
+    - '**.sh'
+    - '**.cmake'
+    - '**.xml'
+    - '**CMakeLists.txt'
 
 jobs:
   format:
