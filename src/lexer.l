@@ -54,7 +54,7 @@ idchr        [a-zA-Z0-9_$#]
   \n           { tracker.newline(ch, 1); }
   "*/"         { BEGIN(INITIAL); }
   <<EOF>>      { BEGIN(INITIAL); yyerror("$Comment_not_closed"); return 0; }
-  "EXPECT:"[^\t \n]* { ch->handleExpect(utap_text+7); }
+  "EXPECT:"[^\t \n]* { ch->handle_expect(utap_text+7); }
   .            /* ignore (multiline comments)*/
 }
 
@@ -196,7 +196,7 @@ idchr        [a-zA-Z0-9_$#]
         // Don't keep the cut of strncpy silent.
         utap_error(ID_TOO_LONG);
     }
-    if (ch->isType(utap_text)) {
+    if (ch->is_type(utap_text)) {
         strncpy(utap_lval.string, utap_text, MAXLEN);
         utap_lval.string[MAXLEN - 1] = '\0';
         return T_TYPENAME;

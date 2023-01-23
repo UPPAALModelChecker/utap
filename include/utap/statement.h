@@ -99,7 +99,7 @@ public:
     IterationStatement(symbol_t symbol, frame_t frame, std::unique_ptr<Statement> statement):
         frame{std::move(frame)}, symbol{std::move(symbol)}, stat{std::move(statement)}
     {}
-    frame_t getFrame() { return frame; }
+    frame_t get_frame() { return frame; }
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
     std::string str(const std::string& prefix) const override;
@@ -142,7 +142,7 @@ public:
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
 
-    frame_t getFrame() { return frame; }
+    frame_t get_frame() { return frame; }
     void push_stat(std::unique_ptr<Statement> stat);
     std::unique_ptr<Statement> pop_stat();
     Statement* back();

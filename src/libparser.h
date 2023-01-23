@@ -25,6 +25,9 @@
 
 #include "utap/builder.h"
 
+#include <memory>
+#include <system_error>
+
 // The maximum length is 4000 (see error message) + 1 for the
 // terminating \0.
 constexpr auto MAXLEN = 4001u;
@@ -59,12 +62,11 @@ namespace UTAP {
  * Help class used by the lexer, parser and xmlreader to keep
  * track of the current position.
  */
-class PositionTracker
+struct PositionTracker
 {
-public:
-    uint32_t line;
-    uint32_t offset;
-    uint32_t position;
+    uint32_t line{};
+    uint32_t offset{};
+    uint32_t position{};
     std::shared_ptr<std::string> path;
 
     /**
@@ -86,7 +88,7 @@ public:
         offset = 0;
         path = std::make_shared<std::string>(s);
         ++position;
-        parser->addPosition(position, offset, line, path);
+        parser->add_position(position, offset, line, path);
     }
 
     /**
@@ -98,7 +100,7 @@ public:
         offset = 0;
         path = std::move(s);
         ++position;
-        parser->addPosition(position, offset, line, path);
+        parser->add_position(position, offset, line, path);
     }
 
     /**
@@ -107,7 +109,7 @@ public:
      */
     int increment(UTAP::ParserBuilder* parser, uint32_t n)
     {
-        parser->setPosition(position, position + n);
+        parser->set_position(position, position + n);
         position += n;
         offset += n;
         return position - n;
@@ -120,17 +122,17 @@ public:
     void newline(UTAP::ParserBuilder* parser, uint32_t n)
     {
         line += n;
-        parser->addPosition(position, offset, line, path);
+        parser->add_position(position, offset, line, path);
     }
 };
 
-extern PositionTracker tracker;
+extern PositionTracker tracker;  // defined in lexer.l
 
 /** Errors from underlying XML reading operations (most likely OS issues) */
-class XMLReaderError : public std::runtime_error
+class XMLReaderError : public std::system_error
 {
 public:
-    using std::runtime_error::runtime_error;
+    using std::system_error::system_error;
 };
 /** Errors due to wrong XML document structure */
 class XMLDocError : public std::logic_error

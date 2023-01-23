@@ -32,15 +32,15 @@
 #include <filesystem>
 #include <vector>
 
-bool parseXTA(FILE*, UTAP::Document*, bool newxta);
-bool parseXTA(const char* buffer, UTAP::Document*, bool newxta);
-int32_t parseXMLBuffer(const char* buffer, UTAP::Document*, bool newxta,
+bool parse_XTA(FILE*, UTAP::Document*, bool newxta);
+bool parse_XTA(const char* buffer, UTAP::Document*, bool newxta);
+int32_t parse_XML_buffer(const char* buffer, UTAP::Document*, bool newxta,
+                         const std::vector<std::filesystem::path>& libpaths = {});
+int32_t parse_XML_file(const char* buffer, UTAP::Document*, bool newxta,
                        const std::vector<std::filesystem::path>& libpaths = {});
-int32_t parseXMLFile(const char* buffer, UTAP::Document*, bool newxta,
-                     const std::vector<std::filesystem::path>& libpaths = {});
-int32_t parseXMLFd(int fd, UTAP::Document*, bool newxta, const std::vector<std::filesystem::path>& libpaths = {});
-UTAP::expression_t parseExpression(const char* buffer, UTAP::Document*, bool);
-int32_t writeXMLFile(const char* filename, UTAP::Document* doc);
+int32_t parse_XML_fd(int fd, UTAP::Document*, bool newxta, const std::vector<std::filesystem::path>& libpaths = {});
+UTAP::expression_t parse_expression(const char* buffer, UTAP::Document*, bool);
+int32_t write_XML_file(const char* filename, UTAP::Document* doc);
 
 /** returns a string representation of built-in types and constants (see parser.y) */
 const char* utap_builtin_declarations();

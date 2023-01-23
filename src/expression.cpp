@@ -24,6 +24,7 @@
 #include "utap/document.h"
 
 #include <algorithm>
+#include <sstream>
 #include <stdexcept>
 #include <cassert>
 #include <cstring>
@@ -65,7 +66,7 @@ expression_t::expression_t(kind_t kind, const position_t& pos)
 
 expression_t expression_t::clone() const
 {
-    expression_t expr(data->kind, data->position);
+    auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
@@ -74,23 +75,23 @@ expression_t expression_t::clone() const
     return expr;
 }
 
-expression_t expression_t::deeperClone() const
+expression_t expression_t::clone_deeper() const
 {
-    expression_t expr(data->kind, data->position);
+    auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
     if (!data->sub.empty()) {
         expr.data->sub.reserve(data->sub.size());
         for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.deeperClone());
+            expr.data->sub.push_back(s.clone_deeper());
     }
     return expr;
 }
 
-expression_t expression_t::deeperClone(symbol_t from, symbol_t to) const
+expression_t expression_t::clone_deeper(symbol_t from, symbol_t to) const
 {
-    expression_t expr(data->kind, data->position);
+    auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = (data->symbol == from) ? to : data->symbol;
@@ -98,21 +99,21 @@ expression_t expression_t::deeperClone(symbol_t from, symbol_t to) const
     if (!data->sub.empty()) {
         expr.data->sub.reserve(data->sub.size());
         for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.deeperClone(from, to));
+            expr.data->sub.push_back(s.clone_deeper(from, to));
     }
     return expr;
 }
 
-expression_t expression_t::deeperClone(frame_t frame, frame_t select) const
+expression_t expression_t::clone_deeper(frame_t frame, frame_t select) const
 {
-    expression_t expr(data->kind, data->position);
+    auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     symbol_t uid;
     if (data->symbol != symbol_t()) {
-        bool res = frame.resolve(data->symbol.getName(), uid);
+        bool res = frame.resolve(data->symbol.get_name(), uid);
         if (!res && select != frame_t()) {
-            res = select.resolve(data->symbol.getName(), uid);
+            res = select.resolve(data->symbol.get_name(), uid);
         }
         assert(res);
         expr.data->symbol = uid;
@@ -123,7 +124,7 @@ expression_t expression_t::deeperClone(frame_t frame, frame_t select) const
     if (!data->sub.empty()) {
         expr.data->sub.reserve(data->sub.size());
         for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.deeperClone(frame, select));
+            expr.data->sub.push_back(s.clone_deeper(frame, select));
     }
     return expr;
 }
@@ -132,32 +133,32 @@ expression_t expression_t::subst(symbol_t symbol, expression_t expr) const
 {
     if (empty()) {
         return *this;
-    } else if (getKind() == IDENTIFIER && getSymbol() == symbol) {
+    } else if (get_kind() == IDENTIFIER && get_symbol() == symbol) {
         return expr;
-    } else if (getSize() == 0) {
+    } else if (get_size() == 0) {
         return *this;
     } else {
         expression_t e = clone();
-        for (size_t i = 0; i < getSize(); i++) {
+        for (size_t i = 0; i < get_size(); i++) {
             e[i] = e[i].subst(symbol, expr);
         }
         return e;
     }
 }
 
-kind_t expression_t::getKind() const
+kind_t expression_t::get_kind() const
 {
     assert(data);
     return data->kind;
 }
 
-const position_t& expression_t::getPosition() const
+const position_t& expression_t::get_position() const
 {
     assert(data);
     return data->position;
 }
 
-bool expression_t::usesFP() const
+bool expression_t::uses_fp() const
 {
     if (empty()) {
         return false;
@@ -209,15 +210,15 @@ bool expression_t::usesFP() const
     case LDEXP_F:
     case ILOGB_F:
     case LOGB_F:
-    case NEXTAFTER_F:
-    case COPYSIGN_F:
-    case FPCLASSIFY_F:
-    case ISFINITE_F:
-    case ISINF_F:
-    case ISNAN_F:
-    case ISNORMAL_F:
+    case NEXT_AFTER_F:
+    case COPY_SIGN_F:
+    case FP_CLASSIFY_F:
+    case IS_FINITE_F:
+    case IS_INF_F:
+    case IS_NAN_F:
+    case IS_NORMAL_F:
     case SIGNBIT_F:
-    case ISUNORDERED_F:
+    case IS_UNORDERED_F:
     case RANDOM_F:
     case RANDOM_ARCSINE_F:
     case RANDOM_BETA_F:
@@ -230,9 +231,9 @@ bool expression_t::usesFP() const
     default:;
     }
 
-    size_t n = getSize();
+    size_t n = get_size();
     for (size_t i = 0; i < n; ++i) {
-        if (get(i).usesFP()) {
+        if (get(i).uses_fp()) {
             return true;
         }
     }
@@ -240,41 +241,41 @@ bool expression_t::usesFP() const
     return false;
 }
 
-bool expression_t::usesHybrid() const
+bool expression_t::uses_hybrid() const
 {
     if (empty()) {
         return false;
     }
-    if (getType().is(HYBRID)) {
+    if (get_type().is(HYBRID)) {
         return true;
     }
-    size_t n = getSize();
+    size_t n = get_size();
     for (size_t i = 0; i < n; ++i) {
-        if (get(i).usesHybrid()) {
+        if (get(i).uses_hybrid()) {
             return true;
         }
     }
     return false;
 }
 
-bool expression_t::usesClock() const
+bool expression_t::uses_clock() const
 {
     if (empty()) {
         return false;
     }
-    if (getType().isClock()) {
+    if (get_type().is_clock()) {
         return true;
     }
-    size_t n = getSize();
+    size_t n = get_size();
     for (size_t i = 0; i < n; ++i) {
-        if (get(i).usesClock()) {
+        if (get(i).uses_clock()) {
             return true;
         }
     }
     return false;
 }
 
-bool expression_t::isDynamic() const
+bool expression_t::is_dynamic() const
 {
     if (empty()) {
         return false;
@@ -283,27 +284,27 @@ bool expression_t::isDynamic() const
         case SPAWN:
         case NUMOF:
         case EXIT:
-        case SUMDYNAMIC:
-        case EXISTSDYNAMIC:
-        case FORALLDYNAMIC: return true;
+        case SUM_DYNAMIC:
+        case EXISTS_DYNAMIC:
+        case FORALL_DYNAMIC: return true;
         default:;
         }
     }
     return false;
 }
 
-bool expression_t::hasDynamicSub() const
+bool expression_t::has_dynamic_sub() const
 {
     bool hasIt = false;
-    size_t n = getSize();
+    size_t n = get_size();
     if (n <= 0) {
         return false;
     } else {
         for (size_t i = 0; i < n; ++i) {
-            if (get(i).isDynamic()) {
+            if (get(i).is_dynamic()) {
                 return true;
             } else {
-                hasIt |= get(i).hasDynamicSub();
+                hasIt |= get(i).has_dynamic_sub();
             }
         }
     }
@@ -311,7 +312,7 @@ bool expression_t::hasDynamicSub() const
     return hasIt;
 }
 
-size_t expression_t::getSize() const
+size_t expression_t::get_size() const
 {
     if (empty())
         return 0;
@@ -342,16 +343,16 @@ size_t expression_t::getSize() const
     case ARRAY:
     case COMMA:
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT:
     case FORALL:
     case EXISTS:
     case SUM:
@@ -366,8 +367,8 @@ size_t expression_t::getSize() const
     case HYPOT_F:
     case ATAN2_F:
     case LDEXP_F:
-    case NEXTAFTER_F:
-    case COPYSIGN_F:
+    case NEXT_AFTER_F:
+    case COPY_SIGN_F:
     case RANDOM_ARCSINE_F:
     case RANDOM_BETA_F:
     case RANDOM_GAMMA_F:
@@ -378,10 +379,10 @@ size_t expression_t::getSize() const
     case NOT:
     case DOT:
     case SYNC:
-    case PREINCREMENT:
-    case POSTINCREMENT:
-    case PREDECREMENT:
-    case POSTDECREMENT:
+    case PRE_INCREMENT:
+    case POST_INCREMENT:
+    case PRE_DECREMENT:
+    case POST_DECREMENT:
     case RATE:
     case ABS_F:
     case FABS_F:
@@ -418,13 +419,13 @@ size_t expression_t::getSize() const
     case FINT_F:
     case ILOGB_F:
     case LOGB_F:
-    case FPCLASSIFY_F:
-    case ISFINITE_F:
-    case ISINF_F:
-    case ISNAN_F:
-    case ISNORMAL_F:
+    case FP_CLASSIFY_F:
+    case IS_FINITE_F:
+    case IS_INF_F:
+    case IS_NAN_F:
+    case IS_NORMAL_F:
     case SIGNBIT_F:
-    case ISUNORDERED_F:
+    case IS_UNORDERED_F:
     case RANDOM_F:
     case RANDOM_POISSON_F: assert(data->sub.size() == 1); return 1;
 
@@ -433,12 +434,12 @@ size_t expression_t::getSize() const
     case DEADLOCK: assert(data->sub.size() == 0); return 0;
 
     case LOAD_STRAT:
-    case INLINEIF:
+    case INLINE_IF:
     case FMA_F:
     case RANDOM_TRI_F: assert(data->sub.size() == 3); return 3;
 
-    case FUNCALL:
-    case EFUNCALL:
+    case FUN_CALL:
+    case FUN_CALL_EXT:
     case LIST:
     case SIMULATE:
     case SIMULATEREACH:
@@ -455,73 +456,73 @@ size_t expression_t::getSize() const
     case SCENARIO:
     case SAVE_STRAT: assert(data->sub.size() == 1); return 1;
 
-    case LEADSTO:
+    case LEADS_TO:
     case SCENARIO2:
     case A_UNTIL:
-    case A_WEAKUNTIL:
+    case A_WEAK_UNTIL:
     case A_BUCHI:
     case PO_CONTROL:
     case CONTROL_TOPT_DEF1: assert(data->sub.size() == 2); return 2;
 
     case CONTROL_TOPT:
     case SMC_CONTROL: assert(data->sub.size() == 3); return 3;
-    case PROBABOX:
-    case PROBADIAMOND:
-    case PROBAMINBOX:
-    case PROBAMINDIAMOND: assert(data->sub.size() == 5); return 5;
+    case PROBA_BOX:
+    case PROBA_DIAMOND:
+    case PROBA_MIN_BOX:
+    case PROBA_MIN_DIAMOND: assert(data->sub.size() == 5); return 5;
 
     case MIN_EXP:
     case MAX_EXP: assert(data->sub.size() == 6); return 6;
 
-    case PROBAEXP: assert(data->sub.size() == 5); return 5;
+    case PROBA_EXP: assert(data->sub.size() == 5); return 5;
 
-    case PROBACMP: assert(data->sub.size() == 8); return 8;
-    case MITLFORMULA:
-    case MITLATOM:
-    case MITLNEXT: assert(data->sub.size() == 1); return 1;
-    case MITLDISJ:
-    case MITLCONJ: assert(data->sub.size() == 2); return 2;
-    case MITLUNTIL:
-    case MITLRELEASE: assert(data->sub.size() == 4); return 4;
+    case PROBA_CMP: assert(data->sub.size() == 8); return 8;
+    case MITL_FORMULA:
+    case MITL_ATOM:
+    case MITL_NEXT: assert(data->sub.size() == 1); return 1;
+    case MITL_DISJ:
+    case MITL_CONJ: assert(data->sub.size() == 2); return 2;
+    case MITL_UNTIL:
+    case MITL_RELEASE: assert(data->sub.size() == 4); return 4;
     case EXIT: assert(data->sub.size() == 0); return 0;
     case NUMOF: assert(data->sub.size() == 1); return 1;
-    case EXISTSDYNAMIC:
-    case FORALLDYNAMIC:
-    case SUMDYNAMIC:
-    case MITLEXISTS:
-    case MITLFORALL:
-    case FOREACHDYNAMIC: assert(data->sub.size() == 3); return 3;
-    case DYNAMICEVAL: assert(data->sub.size() == 2); return 2;
+    case EXISTS_DYNAMIC:
+    case FORALL_DYNAMIC:
+    case SUM_DYNAMIC:
+    case MITL_EXISTS:
+    case MITL_FORALL:
+    case FOREACH_DYNAMIC: assert(data->sub.size() == 3); return 3;
+    case DYNAMIC_EVAL: assert(data->sub.size() == 2); return 2;
     default: assert(0); return 0;
     }
 }
 
-type_t expression_t::getType() const
+type_t expression_t::get_type() const
 {
     assert(data);
     return data->type;
 }
 
-void expression_t::setType(type_t type)
+void expression_t::set_type(type_t type)
 {
     assert(data);
     data->type = type;
 }
 
-int32_t expression_t::getValue() const
+int32_t expression_t::get_value() const
 {
     assert(data && data->kind == CONSTANT &&
-           (data->type.isIntegral() || data->type.isString() || data->kind == VARINDEX));
-    return data->type.isInteger() || data->type.isString() ? data->value : (data->value ? 1 : 0);
+           (data->type.is_integral() || data->type.is_string() || data->kind == VAR_INDEX));
+    return data->type.is_integer() || data->type.is_string() ? data->value : (data->value ? 1 : 0);
 }
 
-int32_t expression_t::getRecordLabelIndex() const
+int32_t expression_t::get_record_label_index() const
 {
-    assert(data && (get(0).getType().isProcess() || get(0).getType().isRecord()));
+    assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
     return data->value;
 }
 
-double expression_t::getDoubleValue() const
+double expression_t::get_double_value() const
 {
     assert(data);
     assert(data->kind == CONSTANT);
@@ -529,14 +530,14 @@ double expression_t::getDoubleValue() const
     return data->doubleValue;
 }
 
-int32_t expression_t::getIndex() const
+int32_t expression_t::get_index() const
 {
     assert(data);
     assert(data->kind == DOT);
     return data->index;
 }
 
-synchronisation_t expression_t::getSync() const
+synchronisation_t expression_t::get_sync() const
 {
     assert(data);
     assert(data->kind == SYNC);
@@ -545,33 +546,33 @@ synchronisation_t expression_t::getSync() const
 
 expression_t& expression_t::operator[](uint32_t i)
 {
-    assert(i < getSize());
+    assert(i < get_size());
     return data->sub[i];
 }
 
 const expression_t expression_t::operator[](uint32_t i) const
 {
-    assert(i < getSize());
+    assert(i < get_size());
     return data->sub[i];
 }
 
 expression_t& expression_t::get(uint32_t i)
 {
-    assert(i < getSize());
+    assert(i < get_size());
     return data->sub[i];
 }
 
 const expression_t& expression_t::get(uint32_t i) const
 {
-    assert(i < getSize());
+    assert(i < get_size());
     return data->sub[i];
 }
 
 bool expression_t::empty() const { return data == nullptr; }
 
-bool expression_t::isTrue() const
+bool expression_t::is_true() const
 {
-    return data == nullptr || (getType().isIntegral() && data->kind == CONSTANT && getValue() == 1);
+    return data == nullptr || (get_type().is_integral() && data->kind == CONSTANT && get_value() == 1);
 }
 
 /** Two expressions are identical iff all the sub expressions
@@ -583,12 +584,12 @@ bool expression_t::equal(const expression_t& e) const
         return true;
     }
 
-    if (getSize() != e.getSize() || data->kind != e.data->kind || data->value != e.data->value ||
+    if (get_size() != e.get_size() || data->kind != e.data->kind || data->value != e.data->value ||
         data->symbol != e.data->symbol) {
         return false;
     }
 
-    for (uint32_t i = 0; i < getSize(); i++) {
+    for (uint32_t i = 0; i < get_size(); i++) {
         if (!data->sub[i].equal(e[i])) {
             return false;
         }
@@ -604,85 +605,85 @@ bool expression_t::equal(const expression_t& e) const
    case of inline if, the symbol referenced by the 'true' part is
    returned.
 */
-symbol_t expression_t::getSymbol() { return ((const expression_t*)this)->getSymbol(); }
+symbol_t expression_t::get_symbol() { return ((const expression_t*)this)->get_symbol(); }
 
-const symbol_t expression_t::getSymbol() const
+const symbol_t expression_t::get_symbol() const
 {
     assert(data);
 
-    switch (getKind()) {
+    switch (get_kind()) {
     case IDENTIFIER: return data->symbol;
 
-    case DOT: return get(0).getSymbol();
+    case DOT: return get(0).get_symbol();
 
-    case ARRAY: return get(0).getSymbol();
+    case ARRAY: return get(0).get_symbol();
 
-    case PREINCREMENT:
-    case PREDECREMENT: return get(0).getSymbol();
+    case PRE_INCREMENT:
+    case PRE_DECREMENT: return get(0).get_symbol();
 
-    case INLINEIF: return get(1).getSymbol();
+    case INLINE_IF: return get(1).get_symbol();
 
-    case COMMA: return get(1).getSymbol();
+    case COMMA: return get(1).get_symbol();
 
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT: return get(0).getSymbol();
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT: return get(0).get_symbol();
 
-    case SYNC: return get(0).getSymbol();
+    case SYNC: return get(0).get_symbol();
 
-    case FUNCALL:
-    case EFUNCALL: return get(0).getSymbol();
+    case FUN_CALL:
+    case FUN_CALL_EXT: return get(0).get_symbol();
 
-    case SCENARIO: return get(0).getSymbol();
+    case SCENARIO: return get(0).get_symbol();
 
     default: return symbol_t();
     }
 }
 
-void expression_t::getSymbols(std::set<symbol_t>& symbols) const
+void expression_t::get_symbols(std::set<symbol_t>& symbols) const
 {
     if (empty()) {
         return;
     }
 
-    switch (getKind()) {
+    switch (get_kind()) {
     case IDENTIFIER: symbols.insert(data->symbol); break;
 
-    case DOT: get(0).getSymbols(symbols); break;
+    case DOT: get(0).get_symbols(symbols); break;
 
-    case ARRAY: get(0).getSymbols(symbols); break;
+    case ARRAY: get(0).get_symbols(symbols); break;
 
-    case PREINCREMENT:
-    case PREDECREMENT: get(0).getSymbols(symbols); break;
+    case PRE_INCREMENT:
+    case PRE_DECREMENT: get(0).get_symbols(symbols); break;
 
-    case INLINEIF:
-        get(1).getSymbols(symbols);
-        get(2).getSymbols(symbols);
+    case INLINE_IF:
+        get(1).get_symbols(symbols);
+        get(2).get_symbols(symbols);
         break;
 
-    case COMMA: get(1).getSymbols(symbols); break;
+    case COMMA: get(1).get_symbols(symbols); break;
 
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT: get(0).getSymbols(symbols); break;
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT: get(0).get_symbols(symbols); break;
 
-    case SYNC: get(0).getSymbols(symbols); break;
+    case SYNC: get(0).get_symbols(symbols); break;
 
     default:
         // Do nothing
@@ -692,16 +693,16 @@ void expression_t::getSymbols(std::set<symbol_t>& symbols) const
 
 /** Returns true if expr might be a reference to a symbol in the
     set. */
-bool expression_t::isReferenceTo(const std::set<symbol_t>& symbols) const
+bool expression_t::is_reference_to(const std::set<symbol_t>& symbols) const
 {
     std::set<symbol_t> s;
-    getSymbols(s);
+    get_symbols(s);
     return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end()) != symbols.end();
 }
 
 bool expression_t::contains_deadlock() const
 {
-    if (getKind() == UTAP::Constants::DEADLOCK)
+    if (get_kind() == UTAP::Constants::DEADLOCK)
         return true;
     if (data)
         for (auto& subexp : data->sub)
@@ -710,30 +711,30 @@ bool expression_t::contains_deadlock() const
     return false;
 }
 
-bool expression_t::changesVariable(const std::set<symbol_t>& symbols) const
+bool expression_t::changes_variable(const std::set<symbol_t>& symbols) const
 {
-    std::set<symbol_t> changes;
-    collectPossibleWrites(changes);
+    auto changes = std::set<symbol_t>{};
+    collect_possible_writes(changes);
     return find_first_of(symbols.begin(), symbols.end(), changes.begin(), changes.end()) != symbols.end();
 }
 
-bool expression_t::changesAnyVariable() const
+bool expression_t::changes_any_variable() const
 {
-    std::set<symbol_t> changes;
-    collectPossibleWrites(changes);
+    auto changes = std::set<symbol_t>{};
+    collect_possible_writes(changes);
     return !changes.empty();
 }
 
-bool expression_t::dependsOn(const std::set<symbol_t>& symbols) const
+bool expression_t::depends_on(const std::set<symbol_t>& symbols) const
 {
     std::set<symbol_t> dependencies;
-    collectPossibleReads(dependencies);
+    collect_possible_reads(dependencies);
     return find_first_of(symbols.begin(), symbols.end(), dependencies.begin(), dependencies.end()) != symbols.end();
 }
 
-int expression_t::getPrecedence() const { return getPrecedence(data->kind); }
+int expression_t::get_precedence() const { return get_precedence(data->kind); }
 
-int expression_t::getPrecedence(kind_t kind)
+int expression_t::get_precedence(kind_t kind)
 {
     switch (kind) {
     case PLUS:
@@ -772,41 +773,41 @@ int expression_t::getPrecedence(kind_t kind)
 
     case IDENTIFIER:
     case CONSTANT:
-    case VARINDEX:
+    case VAR_INDEX:
     case DEADLOCK:
-    case FUNCALL:
-    case EFUNCALL: return 110;
+    case FUN_CALL:
+    case FUN_CALL_EXT: return 110;
 
     case ARRAY: return 105;
     case DOT:
     case RATE: return 100;
 
-    case PREINCREMENT:
-    case PREDECREMENT:
+    case PRE_INCREMENT:
+    case PRE_DECREMENT:
     case UNARY_MINUS:
     case NOT: return 90;
 
     case FRACTION: return 14;
-    case INLINEIF: return 15;
+    case INLINE_IF: return 15;
 
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT: return 10;
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT: return 10;
 
     case FORALL:
     case EXISTS:
     case SUM: return 8;
 
     case A_UNTIL:
-    case A_WEAKUNTIL:
+    case A_WEAK_UNTIL:
     case A_BUCHI: return 7;
 
     case EF:
@@ -814,17 +815,17 @@ int expression_t::getPrecedence(kind_t kind)
     case AF:
     case AG: return 6;
 
-    case LEADSTO:
+    case LEADS_TO:
     case SCENARIO:
     case SCENARIO2: return 5;
 
     case COMMA: return 4;
 
-    case PROBAMINBOX:
-    case PROBAMINDIAMOND:
-    case PROBABOX:
-    case PROBADIAMOND:
-    case PROBAEXP:
+    case PROBA_MIN_BOX:
+    case PROBA_MIN_DIAMOND:
+    case PROBA_BOX:
+    case PROBA_DIAMOND:
+    case PROBA_EXP:
     case PO_CONTROL:
     case CONTROL:
     case SMC_CONTROL:
@@ -841,8 +842,8 @@ int expression_t::getPrecedence(kind_t kind)
 
     case SYNC: return 0;
 
-    case POSTDECREMENT:
-    case POSTINCREMENT:
+    case POST_DECREMENT:
+    case POST_INCREMENT:
     case ABS_F:
     case FABS_F:
     case FMOD_F:
@@ -887,15 +888,15 @@ int expression_t::getPrecedence(kind_t kind)
     case LDEXP_F:
     case ILOGB_F:
     case LOGB_F:
-    case NEXTAFTER_F:
-    case COPYSIGN_F:
-    case FPCLASSIFY_F:
-    case ISFINITE_F:
-    case ISINF_F:
-    case ISNAN_F:
-    case ISNORMAL_F:
+    case NEXT_AFTER_F:
+    case COPY_SIGN_F:
+    case FP_CLASSIFY_F:
+    case IS_FINITE_F:
+    case IS_INF_F:
+    case IS_NAN_F:
+    case IS_NORMAL_F:
     case SIGNBIT_F:
-    case ISUNORDERED_F:
+    case IS_UNORDERED_F:
     case RANDOM_F:
     case RANDOM_ARCSINE_F:
     case RANDOM_BETA_F:
@@ -905,23 +906,23 @@ int expression_t::getPrecedence(kind_t kind)
     case RANDOM_WEIBULL_F:
     case RANDOM_TRI_F: return 110;
 
-    case MITLFORMULA:
-    case MITLUNTIL:
-    case MITLRELEASE:
-    case MITLDISJ:
-    case MITLCONJ:
-    case MITLATOM:
-    case MITLNEXT:
+    case MITL_FORMULA:
+    case MITL_UNTIL:
+    case MITL_RELEASE:
+    case MITL_DISJ:
+    case MITL_CONJ:
+    case MITL_ATOM:
+    case MITL_NEXT:
     case LIST:
     case SPAWN:
     case EXIT:
     case NUMOF:
-    case FORALLDYNAMIC:
-    case EXISTSDYNAMIC:
-    case FOREACHDYNAMIC:
-    case SUMDYNAMIC:
-    case PROCESSVAR:
-    case DYNAMICEVAL: return -1;  // TODO
+    case FORALL_DYNAMIC:
+    case EXISTS_DYNAMIC:
+    case FOREACH_DYNAMIC:
+    case SUM_DYNAMIC:
+    case PROCESS_VAR:
+    case DYNAMIC_EVAL: return -1;  // TODO
 
     default: throw std::logic_error("Unknown precedence of the expression");
     }
@@ -957,31 +958,22 @@ static void append(char*& str, char*& end, int& size, const char* s)
     }
 }
 
-static void append(char*& str, char*& end, int& size, char c)
+std::ostream& expression_t::print_bound_type(std::ostream& os, expression_t e) const
 {
-    if (size - (end - str) < 2) {
-        ensure(str, end, size, size + 2);
-    }
-    *end = c;
-    ++end;
-    *end = 0;
-}
+    if (e.get_kind() == CONSTANT) {
+        assert(e.get_type().is(Constants::INT));  // Encoding used here.
 
-void expression_t::appendBoundType(char*& str, char*& end, int& size, expression_t e) const
-{
-    if (e.getKind() == CONSTANT) {
-        assert(e.getType().is(Constants::INT));  // Encoding used here.
-
-        if (e.getValue() == 0) {
-            append(str, end, size, "#");
+        if (e.get_value() == 0) {
+            os << "#";
         }
     } else {
-        e.str(false, str, end, size);
+        e.print(os, false);
     }
-    append(str, end, size, "<=");
+    os << "<=";
+    return os;
 }
 
-static const char* getBuiltinFunName(kind_t kind)
+static const char* get_builtin_fun_name(kind_t kind)
 {
     // the order must match declarations in include/utap/common.h
     static const char* funNames[] = {"abs",
@@ -1051,62 +1043,66 @@ static const char* getBuiltinFunName(kind_t kind)
     return funNames[kind - ABS_F];
 }
 
-void expression_t::str(bool old, char*& str, char*& end, int& size) const
+static inline std::ostream& embrace_strict(std::ostream& os, bool old, const expression_t& expr, int precedence)
 {
-    char s[64];
-    int precedence = getPrecedence();
+    if (precedence > expr.get_precedence())
+        return expr.print(os << '(', old) << ')';
+    else
+        return expr.print(os, old);
+}
+
+static inline std::ostream& embrace(std::ostream& os, bool old, const expression_t& expr, int precedence)
+{
+    if (precedence >= expr.get_precedence())
+        return expr.print(os << '(', old) << ')';
+    else
+        return expr.print(os, old);
+}
+
+std::ostream& expression_t::print(std::ostream& os, bool old) const
+{
+    const int precedence = get_precedence();
     bool flag = false;
     int nb;
 
     switch (data->kind) {
-    case PROBAMINBOX: flag = true; [[fallthrough]];
-    case PROBAMINDIAMOND:
-        append(str, end, size, "Pr[");
-        appendBoundType(str, end, size, get(0));
-        get(1).str(old, str, end, size);
-        append(str, end, size, flag ? "]([] " : "](<> ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ") >= ");
-        snprintf(s, sizeof(s), "%f", get(3).getDoubleValue());
-        append(str, end, size, s);
+    case PROBA_MIN_BOX: flag = true; [[fallthrough]];
+    case PROBA_MIN_DIAMOND:
+        os << "Pr[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old);
+        os << (flag ? "]([] " : "](<> ");
+        get(2).print(os, old) << ") >= " << get(3).get_double_value();
         break;
 
-    case PROBABOX: flag = true; [[fallthrough]];
-    case PROBADIAMOND:
-        append(str, end, size, "Pr[");
-        appendBoundType(str, end, size, get(0));
-        get(1).str(old, str, end, size);
-        append(str, end, size, flag ? "]([] " : "](<> ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ") ?");
+    case PROBA_BOX: flag = true; [[fallthrough]];
+    case PROBA_DIAMOND:
+        os << "Pr[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old) << (flag ? "]([] " : "](<> ");
+        get(2).print(os, old) << ")";
         break;
 
-    case PROBAEXP:
-        append(str, end, size, "E[");
-        appendBoundType(str, end, size, get(0));
-        get(1).str(old, str, end, size);
-        append(str, end, size, "; ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, "] (");
-        append(str, end, size, get(4).getValue() ? "max: " : "min: ");
-        get(3).str(old, str, end, size);
-        append(str, end, size, ")");
+    case PROBA_EXP:
+        os << "E[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old) << "; ";
+        get(2).print(os, old) << "] (" << (get(4).get_value() ? "max: " : "min: ");
+        get(3).print(os, old) << ")";
         break;
 
     case SIMULATE:
-        append(str, end, size, "simulate[");
-        get(0).str(old, str, end, size);
-        append(str, end, size, "x ");
-        appendBoundType(str, end, size, get(1));
-        get(2).str(old, str, end, size);
-        append(str, end, size, "]{");
-        nb = getValue() - 3;
-        for (int i = 0; i < nb; ++i) {
-            if (i > 0)
-                append(str, end, size, ", ");
-            get(3 + i).str(old, str, end, size);
+        os << "simulate[";
+        get(0).print(os, old) << "x ";
+        print_bound_type(os, get(1));
+        get(2).print(os, old) << "]{";
+        nb = get_value() - 3;
+        if (nb > 0) {
+            get(3).print(os, old);
+            for (int i = 1; i < nb; ++i)
+                get(3 + i).print(os << ", ", old);
         }
-        append(str, end, size, "}");
+        os << "}";
         break;
 
     case PLUS:
@@ -1129,132 +1125,84 @@ void expression_t::str(bool old, char*& str, char*& end, int& size) const
     case GE:
     case GT:
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT:
     case MIN:
     case MAX:
     case FRACTION:
-
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-        }
-        get(0).str(old, str, end, size);
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, ')');
-        }
-
+        embrace(os, old, get(0), precedence);
         switch (data->kind) {
-        case FRACTION: append(str, end, size, " : "); break;
-        case PLUS: append(str, end, size, " + "); break;
-        case MINUS: append(str, end, size, " - "); break;
-        case MULT: append(str, end, size, " * "); break;
-        case DIV: append(str, end, size, " / "); break;
-        case MOD: append(str, end, size, " % "); break;
-        case POW: append(str, end, size, " ** "); break;
-        case BIT_AND: append(str, end, size, " & "); break;
-        case BIT_OR: append(str, end, size, " | "); break;
-        case BIT_XOR: append(str, end, size, " ^ "); break;
-        case BIT_LSHIFT: append(str, end, size, " << "); break;
-        case BIT_RSHIFT: append(str, end, size, " >> "); break;
-        case AND: append(str, end, size, " && "); break;
-        case OR: append(str, end, size, " || "); break;
-        case LT: append(str, end, size, " < "); break;
-        case LE: append(str, end, size, " <= "); break;
-        case EQ: append(str, end, size, " == "); break;
-        case NEQ: append(str, end, size, " != "); break;
-        case GE: append(str, end, size, " >= "); break;
-        case GT: append(str, end, size, " > "); break;
-        case ASSIGN:
-            if (old) {
-                append(str, end, size, " := ");
-            } else {
-                append(str, end, size, " = ");
-            }
-            break;
-        case ASSPLUS: append(str, end, size, " += "); break;
-        case ASSMINUS: append(str, end, size, " -= "); break;
-        case ASSDIV: append(str, end, size, " /= "); break;
-        case ASSMOD: append(str, end, size, " %= "); break;
-        case ASSMULT: append(str, end, size, " *= "); break;
-        case ASSAND: append(str, end, size, " &= "); break;
-        case ASSOR: append(str, end, size, " |= "); break;
-        case ASSXOR: append(str, end, size, " ^= "); break;
-        case ASSLSHIFT: append(str, end, size, " <<= "); break;
-        case ASSRSHIFT: append(str, end, size, " >>= "); break;
-        case MIN: append(str, end, size, " <? "); break;
-        case MAX: append(str, end, size, " >? "); break;
+        case FRACTION: os << " : "; break;
+        case PLUS: os << " + "; break;
+        case MINUS: os << " - "; break;
+        case MULT: os << " * "; break;
+        case DIV: os << " / "; break;
+        case MOD: os << " % "; break;
+        case POW: os << " ** "; break;
+        case BIT_AND: os << " & "; break;
+        case BIT_OR: os << " | "; break;
+        case BIT_XOR: os << " ^ "; break;
+        case BIT_LSHIFT: os << " << "; break;
+        case BIT_RSHIFT: os << " >> "; break;
+        case AND: os << " && "; break;
+        case OR: os << " || "; break;
+        case LT: os << " < "; break;
+        case LE: os << " <= "; break;
+        case EQ: os << " == "; break;
+        case NEQ: os << " != "; break;
+        case GE: os << " >= "; break;
+        case GT: os << " > "; break;
+        case ASSIGN: os << (old ? " := " : " = "); break;
+        case ASS_PLUS: os << " += "; break;
+        case ASS_MINUS: os << " -= "; break;
+        case ASS_DIV: os << " /= "; break;
+        case ASS_MOD: os << " %= "; break;
+        case ASS_MULT: os << " *= "; break;
+        case ASS_AND: os << " &= "; break;
+        case ASS_OR: os << " |= "; break;
+        case ASS_XOR: os << " ^= "; break;
+        case ASS_LSHIFT: os << " <<= "; break;
+        case ASS_RSHIFT: os << " >>= "; break;
+        case MIN: os << " <? "; break;
+        case MAX: os << " >? "; break;
         default: assert(0);
         }
-
-        if (precedence >= get(1).getPrecedence()) {
-            append(str, end, size, '(');
-        }
-        get(1).str(old, str, end, size);
-        if (precedence >= get(1).getPrecedence()) {
-            append(str, end, size, ')');
-        }
+        embrace(os, old, get(1), precedence);
         break;
 
-    case IDENTIFIER: append(str, end, size, data->symbol.getName().c_str()); break;
+    case IDENTIFIER: os << data->symbol.get_name(); break;
 
-    case VARINDEX:
+    case VAR_INDEX:
     case CONSTANT:
-        if (getType().is(Constants::DOUBLE)) {
-            snprintf(s, sizeof(s), "%f", getDoubleValue());
-        } else if (getType().isString()) {
-            snprintf(s, sizeof(s), "string#%d", data->value);
-        } else if (getType().is(Constants::INT)) {
-            snprintf(s, sizeof(s), "%d", data->value);
+        if (get_type().is(Constants::DOUBLE)) {
+            os << get_double_value();
+        } else if (get_type().is_string()) {
+            os << "string#" << data->value;
+        } else if (get_type().is(Constants::INT)) {
+            os << data->value;
         } else {
-            assert(getType().is(Constants::BOOL));
-            snprintf(s, sizeof(s), "%s", data->value ? "true" : "false");
+            assert(get_type().is(Constants::BOOL));
+            os << (data->value ? "true" : "false");
         }
-        append(str, end, size, s);
         break;
 
     case ARRAY:
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
-        append(str, end, size, '[');
-        get(1).str(old, str, end, size);
-        append(str, end, size, ']');
+        embrace_strict(os << '-', old, get(0), precedence);
+        get(1).print(os << '[', old) << ']';
         break;
 
-    case UNARY_MINUS:
-        append(str, end, size, '-');
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
-        break;
+    case UNARY_MINUS: embrace(os << '-', old, get(0), precedence); break;
 
-    case POSTDECREMENT:
-    case POSTINCREMENT:
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
-        append(str, end, size, getKind() == POSTDECREMENT ? "--" : "++");
-        break;
+    case POST_DECREMENT:
+    case POST_INCREMENT: embrace(os, old, get(0), precedence) << (get_kind() == POST_DECREMENT ? "--" : "++"); break;
 
     case ABS_F:
     case FABS_F:
@@ -1291,19 +1239,17 @@ void expression_t::str(bool old, char*& str, char*& end, int& size) const
     case FINT_F:
     case ILOGB_F:
     case LOGB_F:
-    case FPCLASSIFY_F:
-    case ISFINITE_F:
-    case ISINF_F:
-    case ISNAN_F:
-    case ISNORMAL_F:
+    case FP_CLASSIFY_F:
+    case IS_FINITE_F:
+    case IS_INF_F:
+    case IS_NAN_F:
+    case IS_NORMAL_F:
     case SIGNBIT_F:
-    case ISUNORDERED_F:
+    case IS_UNORDERED_F:
     case RANDOM_F:
     case RANDOM_POISSON_F:
-        append(str, end, size, getBuiltinFunName(data->kind));
-        append(str, end, size, "(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ')');
+        os << get_builtin_fun_name(data->kind);
+        get(0).print(os << '(', old) << ')';
         break;
 
     case FMOD_F:
@@ -1314,390 +1260,274 @@ void expression_t::str(bool old, char*& str, char*& end, int& size) const
     case HYPOT_F:
     case ATAN2_F:
     case LDEXP_F:
-    case NEXTAFTER_F:
-    case COPYSIGN_F:
+    case NEXT_AFTER_F:
+    case COPY_SIGN_F:
     case RANDOM_ARCSINE_F:
     case RANDOM_BETA_F:
     case RANDOM_GAMMA_F:
     case RANDOM_NORMAL_F:
     case RANDOM_WEIBULL_F:
-        append(str, end, size, getBuiltinFunName(data->kind));
-        append(str, end, size, "(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ',');
-        get(1).str(old, str, end, size);
-        append(str, end, size, ')');
+        os << get_builtin_fun_name(data->kind) << '(';
+        get(0).print(os, old) << ',';
+        get(1).print(os, old) << ')';
         break;
 
     case FMA_F:
     case RANDOM_TRI_F:
-        append(str, end, size, getBuiltinFunName(data->kind));
-        append(str, end, size, "(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ',');
-        get(1).str(old, str, end, size);
-        append(str, end, size, ',');
-        get(2).str(old, str, end, size);
-        append(str, end, size, ')');
+        os << get_builtin_fun_name(data->kind) << '(';
+        get(0).print(os, old) << ',';
+        get(1).print(os, old) << ',';
+        get(2).print(os, old) << ')';
         break;
 
     case XOR:
-        append(str, end, size, '(');
-        get(0).str(old, str, end, size);
-        append(str, end, size, ") xor (");
-        get(1).str(old, str, end, size);
-        append(str, end, size, ')');
+        os << '(';
+        get(0).print(os, old) << ") xor (";
+        get(1).print(os, old) << ')';
         break;
 
-    case PREDECREMENT:
-    case PREINCREMENT:
-        append(str, end, size, getKind() == PREDECREMENT ? "--" : "++");
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
+    case PRE_DECREMENT:
+    case PRE_INCREMENT:
+        os << (get_kind() == PRE_DECREMENT ? "--" : "++");
+        embrace(os, old, get(0), precedence);
         break;
 
-    case NOT:
-        append(str, end, size, '!');
-        if (precedence > get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
-        break;
+    case NOT: embrace(os << '!', old, get(0), precedence); break;
 
     case DOT: {
-        type_t type = get(0).getType();
-        if (type.isProcess() || type.isRecord()) {
-            if (precedence > get(0).getPrecedence()) {
-                append(str, end, size, '(');
-                get(0).str(old, str, end, size);
-                append(str, end, size, ')');
-            } else {
-                get(0).str(old, str, end, size);
-            }
-            append(str, end, size, '.');
-            append(str, end, size, type.getRecordLabel(data->value).c_str());
-        } else {
+        type_t type = get(0).get_type();
+        if (type.is_process() || type.is_record())
+            embrace(os, old, get(0), precedence) << '.' << type.get_record_label(data->value);
+        else
             assert(0);
-        }
         break;
     }
 
-    case INLINEIF:
-        if (precedence >= get(0).getPrecedence()) {
-            append(str, end, size, '(');
-            get(0).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(0).str(old, str, end, size);
-        }
-
-        append(str, end, size, " ? ");
-
-        if (precedence >= get(1).getPrecedence()) {
-            append(str, end, size, '(');
-            get(1).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(1).str(old, str, end, size);
-        }
-
-        append(str, end, size, " : ");
-
-        if (precedence >= get(2).getPrecedence()) {
-            append(str, end, size, '(');
-            get(2).str(old, str, end, size);
-            append(str, end, size, ')');
-        } else {
-            get(2).str(old, str, end, size);
-        }
-
+    case INLINE_IF:
+        embrace(os, old, get(0), precedence) << " ? ";
+        embrace(os, old, get(1), precedence) << " : ";
+        embrace(os, old, get(2), precedence);
         break;
 
     case COMMA:
-        get(0).str(old, str, end, size);
-        append(str, end, size, ", ");
-        get(1).str(old, str, end, size);
+        get(0).print(os, old) << ", ";
+        get(1).print(os, old);
         break;
 
     case SYNC:
-        get(0).str(old, str, end, size);
+        get(0).print(os, old);
         switch (data->sync) {
-        case SYNC_QUE: append(str, end, size, '?'); break;
-        case SYNC_BANG: append(str, end, size, '!'); break;
+        case SYNC_QUE: os << '?'; break;
+        case SYNC_BANG: os << '!'; break;
         case SYNC_CSP:
             // no append
             break;
         }
         break;
 
-    case DEADLOCK: append(str, end, size, "deadlock"); break;
+    case DEADLOCK: os << "deadlock"; break;
 
     case LIST:
-        get(0).str(old, str, end, size);
-        for (uint32_t i = 1; i < getSize(); i++) {
-            append(str, end, size, ", ");
-            get(i).str(old, str, end, size);
-        }
+        get(0).print(os, old);
+        for (uint32_t i = 1; i < get_size(); i++)
+            get(i).print(os << ", ", old);
         break;
 
-    case FUNCALL:
-    case EFUNCALL:
-        get(0).str(old, str, end, size);
-        append(str, end, size, '(');
-        if (getSize() > 1) {
-            get(1).str(old, str, end, size);
-            for (uint32_t i = 2; i < getSize(); i++) {
-                append(str, end, size, ", ");
-                get(i).str(old, str, end, size);
-            }
+    case FUN_CALL:
+    case FUN_CALL_EXT:
+        get(0).print(os, old) << '(';
+        if (get_size() > 1) {
+            get(1).print(os, old);
+            for (uint32_t i = 2; i < get_size(); i++)
+                get(i).print(os << ", ", old);
         }
-        append(str, end, size, ')');
+        os << ')';
         break;
 
-    case RATE:
-        get(0).str(old, str, end, size);
-        append(str, end, size, "'");
-        break;
+    case RATE: get(0).print(os, old) << '\''; break;
 
     case EF:
-        append(str, end, size, "E<> ");
-        get(0).str(old, str, end, size);
+        os << "E<> ";
+        get(0).print(os, old);
         break;
 
     case EG:
-        append(str, end, size, "E[] ");
-        get(0).str(old, str, end, size);
+        os << "E[] ";
+        get(0).print(os, old);
         break;
 
     case AF:
-        append(str, end, size, "A<> ");
-        get(0).str(old, str, end, size);
+        os << "A<> ";
+        get(0).print(os, old);
         break;
 
     case AG:
-        append(str, end, size, "A[] ");
-        get(0).str(old, str, end, size);
+        os << "A[] ";
+        get(0).print(os, old);
         break;
 
-    case LEADSTO:
-        get(0).str(old, str, end, size);
-        append(str, end, size, " --> ");
-        get(1).str(old, str, end, size);
+    case LEADS_TO:
+        get(0).print(os, old) << " --> ";
+        get(1).print(os, old);
         break;
 
     case A_UNTIL:
-        append(str, end, size, "A[");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " U ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, "] ");
+        os << "A[";
+        get(0).print(os, old) << " U ";
+        get(1).print(os, old) << "] ";
         break;
 
-    case A_WEAKUNTIL:
-        append(str, end, size, "A[");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " W ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, "] ");
+    case A_WEAK_UNTIL:
+        get(0).print(os << "A[", old) << " W ";
+        get(1).print(os, old) << "] ";
         break;
 
     case A_BUCHI:
-        append(str, end, size, "A[] ((");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ") and A<> ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, ") ");
+        os << "A[] ((";
+        get(0).print(os, old) << ") and A<> ";
+        get(1).print(os, old) << ") ";
         break;
 
     case FORALL:
-        append(str, end, size, "forall (");
-        append(str, end, size, get(0).getSymbol().getName().c_str());
-        append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().str().c_str());
-        append(str, end, size, ") ");
-        get(1).str(old, str, end, size);
+        os << "forall(" << get(0).get_symbol().get_name() << ':' << get(0).get_symbol().get_type().str() << ") ";
+        get(1).print(os, old);
         break;
 
     case EXISTS:
-        append(str, end, size, "exists (");
-        append(str, end, size, get(0).getSymbol().getName().c_str());
-        append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().str().c_str());
-        append(str, end, size, ") ");
-        get(1).str(old, str, end, size);
+        os << "exists(" << get(0).get_symbol().get_name() << ':' << get(0).get_symbol().get_type().str() << ") ";
+        get(1).print(os, old);
         break;
 
     case SUM:
-        append(str, end, size, "sum (");
-        append(str, end, size, get(0).getSymbol().getName().c_str());
-        append(str, end, size, ":");
-        append(str, end, size, get(0).getSymbol().getType().str().c_str());
-        append(str, end, size, ") ");
-        get(1).str(old, str, end, size);
+        os << "sum(" << get(0).get_symbol().get_name() << ':' << get(0).get_symbol().get_type().str() << ") ";
+        get(1).print(os, old);
         break;
 
     case SMC_CONTROL:
         assert(false);
-        append(str, end, size, "control[");
-        appendBoundType(str, end, size, get(0));
-        get(1).str(old, str, end, size);
-        append(str, end, size, "]: ");
-        get(2).str(old, str, end, size);
+        os << "control[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old) << "]: ";
+        get(2).print(os, old);
         break;
 
     case PO_CONTROL:
-        append(str, end, size, "{ ");
-        get(0).str(old, str, end, size);
-        append(str, end, size, "} control: ");
-        get(1).str(old, str, end, size);
+        os << "{ ";
+        get(0).print(os, old) << "} control: ";
+        get(1).print(os, old);
         break;
 
-    case EF_CONTROL: append(str, end, size, "E<> "); [[fallthrough]];
+    case EF_CONTROL: os << "E<> "; [[fallthrough]];
     case CONTROL:
-        append(str, end, size, "control: ");
-        get(0).str(old, str, end, size);
+        os << "control: ";
+        get(0).print(os, old);
         break;
 
     case CONTROL_TOPT:
-        append(str, end, size, "control_t*(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ",");
-        get(1).str(old, str, end, size);
-        append(str, end, size, "): ");
-        get(2).str(old, str, end, size);
+        os << "control_t*(";
+        get(0).print(os, old) << ',';
+        get(1).print(os, old) << "): ";
+        get(2).print(os, old);
         break;
 
     case CONTROL_TOPT_DEF1:
-        append(str, end, size, "control_t*(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, "): ");
-        get(1).str(old, str, end, size);
+        os << "control_t*(";
+        get(0).print(os, old) << "): ";
+        get(1).print(os, old);
         break;
 
     case CONTROL_TOPT_DEF2:
-        append(str, end, size, "control_t*: ");
-        get(0).str(old, str, end, size);
+        os << "control_t*: ";
+        get(0).print(os, old);
         break;
 
     case SUP_VAR:
-        append(str, end, size, "sup{");
-        get(0).str(old, str, end, size);
-        append(str, end, size, "}: ");
-        get(1).str(old, str, end, size);
+        os << "sup{";
+        get(0).print(os, old) << "}: ";
+        get(1).print(os, old);
         break;
 
     case INF_VAR:
-        append(str, end, size, "inf{");
-        get(0).str(old, str, end, size);
-        append(str, end, size, "}: ");
-        get(1).str(old, str, end, size);
+        os << "inf{";
+        get(0).print(os, old) << "}: ";
+        get(1).print(os, old);
         break;
 
-    case MITLFORMULA:
-        append(str, end, size, "MITL: ");
-        get(0).str(old, str, end, size);
+    case MITL_FORMULA:
+        os << "MITL: ";
+        get(0).print(os, old);
         break;
-    case MITLRELEASE:
-    case MITLUNTIL:
-        get(0).str(old, str, end, size);
-        append(str, end, size, "U[");
-        get(1).str(old, str, end, size);
-        append(str, end, size, ";");
-        get(2).str(old, str, end, size);
-        append(str, end, size, "]");
-        get(3).str(old, str, end, size);
+    case MITL_RELEASE:
+    case MITL_UNTIL:
+        get(0).print(os, old) << "U[";
+        get(1).print(os, old) << ";";
+        get(2).print(os, old) << "]";
+        get(3).print(os, old);
         break;
 
-    case MITLDISJ:
-        get(0).str(old, str, end, size);
-        append(str, end, size, "\\/");
-        get(1).str(old, str, end, size);
+    case MITL_DISJ:
+        get(0).print(os, old) << "\\/";
+        get(1).print(os, old);
         break;
-    case MITLCONJ:
-        get(0).str(old, str, end, size);
-        append(str, end, size, "/\\");
-        get(1).str(old, str, end, size);
+    case MITL_CONJ:
+        get(0).print(os, old) << "/\\";
+        get(1).print(os, old);
         break;
-    case MITLATOM: get(0).str(old, str, end, size); break;
-    case MITLNEXT:
-        append(str, end, size, "X(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ")");
+    case MITL_ATOM: get(0).print(os, old); break;
+    case MITL_NEXT:
+        os << "X(";
+        get(0).print(os, old) << ")";
         break;
-    case SPAWN: append(str, end, size, "SPAWN"); break;
-    case EXIT: append(str, end, size, "EXIT"); break;
+    case SPAWN: os << "SPAWN"; break;
+    case EXIT: os << "EXIT"; break;
     case NUMOF:
-
-        append(str, end, size, "numof(");
-        get(0).str(old, str, end, size);
-        append(str, end, size, ")");
+        os << "numof(";
+        get(0).print(os, old) << ")";
         break;
-    case FORALLDYNAMIC:
-        append(str, end, size, "forall (");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " : ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, " )( ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ")");
+    case FORALL_DYNAMIC:
+        os << "forall(";
+        get(0).print(os, old) << " : ";
+        get(1).print(os, old) << " )( ";
+        get(2).print(os, old) << ")";
         break;
-    case SUMDYNAMIC:
-        append(str, end, size, "sum (");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " : ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, " )( ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ")");
+    case SUM_DYNAMIC:
+        os << "sum(";
+        get(0).print(os, old) << " : ";
+        get(1).print(os, old) << " )( ";
+        get(2).print(os, old) << ")";
         break;
-    case FOREACHDYNAMIC:
-        append(str, end, size, "foreach (");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " : ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, " )( ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ")");
+    case FOREACH_DYNAMIC:
+        os << "foreach (";
+        get(0).print(os, old) << " : ";
+        get(1).print(os, old) << " )( ";
+        get(2).print(os, old) << ")";
         break;
-    case DYNAMICEVAL:
-        get(1).str(old, str, end, size);
-        append(str, end, size, ".");
-        get(0).str(old, str, end, size);
+    case DYNAMIC_EVAL:
+        get(1).print(os, old) << ".";
+        get(0).print(os, old);
         break;
-    case PROCESSVAR: get(0).str(old, str, end, size); break;
-    case MITLEXISTS:
-    case EXISTSDYNAMIC:
-        append(str, end, size, "exists (");
-        get(0).str(old, str, end, size);
-        append(str, end, size, " : ");
-        get(1).str(old, str, end, size);
-        append(str, end, size, " )( ");
-        get(2).str(old, str, end, size);
-        append(str, end, size, ")");
+    case PROCESS_VAR: get(0).print(os, old); break;
+    case MITL_EXISTS:
+    case EXISTS_DYNAMIC:
+        os << "exists(";
+        get(0).print(os, old) << " : ";
+        get(1).print(os, old) << " )( ";
+        get(2).print(os, old) << ")";
         break;
-    case SAVE_STRAT: append(str, end, size, "saveStrategy (...)"); break;
+    case SAVE_STRAT: os << "saveStrategy(...)"; break;
     case LOAD_STRAT:
-        append(str, end, size, "loadStrategy (");
-        get(0).str(old, str, end, size);
-        if (!get(1).isTrue() && !get(2).isTrue()) {
-            append(str, end, size, ", {");
-            get(2).str(old, str, end, size);
-            append(str, end, size, "} -> {");
-            get(3).str(old, str, end, size);
-            append(str, end, size, "}");
+        os << "loadStrategy(";
+        get(0).print(os, old);
+        if (!get(1).is_true() && !get(2).is_true()) {
+            os << ", {";
+            get(2).print(os, old) << "} -> {";
+            get(3).print(os, old) << "}";
         }
-        append(str, end, size, ")");
+        os << ')';
         break;
     default: throw std::logic_error("Support is not implemented for the given expression type");
     }
+    return os;
 }
 
 bool expression_t::operator<(const expression_t e) const
@@ -1708,69 +1538,59 @@ bool expression_t::operator<(const expression_t e) const
 bool expression_t::operator==(const expression_t e) const { return data == e.data; }
 
 /** Returns a string representation of the expression. The string
-    returned must be deallocated with delete[]. Returns NULL is the
+    returned must be deallocated with delete[]. Returns empty is the
     expression is empty. */
 std::string expression_t::str(bool old) const
 {
-    if (empty()) {
-        return std::string();
-    } else {
-        int size = 16;
-        char *s, *end;
-        s = end = new char[size];
-        *s = 0;
-        str(old, s, end, size);
-        std::string result(s);
-        delete[] s;
-        return result;
-    }
+    auto os = std::ostringstream{};
+    print(os, old);
+    return os.str();
 }
 
-void expression_t::collectPossibleWrites(set<symbol_t>& symbols) const
+void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
 {
     function_t* fun;
     symbol_t symbol;
     type_t type;
 
-    if (empty()) {
+    if (empty())
         return;
+
+    for (uint32_t i = 0; i < get_size(); i++) {
+        get(i).collect_possible_writes(symbols);
     }
 
-    for (uint32_t i = 0; i < getSize(); i++) {
-        get(i).collectPossibleWrites(symbols);
-    }
-
-    switch (getKind()) {
+    switch (get_kind()) {
     case ASSIGN:
-    case ASSPLUS:
-    case ASSMINUS:
-    case ASSDIV:
-    case ASSMOD:
-    case ASSMULT:
-    case ASSAND:
-    case ASSOR:
-    case ASSXOR:
-    case ASSLSHIFT:
-    case ASSRSHIFT:
-    case POSTINCREMENT:
-    case POSTDECREMENT:
-    case PREINCREMENT:
-    case PREDECREMENT: get(0).getSymbols(symbols); break;
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT:
+    case POST_INCREMENT:
+    case POST_DECREMENT:
+    case PRE_INCREMENT:
+    case PRE_DECREMENT: get(0).get_symbols(symbols); break;
 
-    case EFUNCALL:
-    case FUNCALL:
+    case FUN_CALL:
+    case FUN_CALL_EXT:
         // Add all symbols which are changed by the function
-        symbol = get(0).getSymbol();
-        if ((symbol.getType().isFunction() || symbol.getType().isExternalFunction()) && symbol.getData()) {
-            fun = (function_t*)symbol.getData();
+        symbol = get(0).get_symbol();
+        if ((symbol.get_type().is_function() || symbol.get_type().is_function_external()) && symbol.get_data()) {
+            fun = (function_t*)symbol.get_data();
 
             symbols.insert(fun->changes.begin(), fun->changes.end());
 
             // Add arguments to non-constant reference parameters
-            type = fun->uid.getType();
-            for (uint32_t i = 1; i < min(getSize(), type.size()); i++) {
-                if (type[i].is(REF) && !type[i].isConstant()) {
-                    get(i).getSymbols(symbols);
+            type = fun->uid.get_type();
+            for (uint32_t i = 1; i < min(get_size(), type.size()); i++) {
+                if (type[i].is(REF) && !type[i].is_constant()) {
+                    get(i).get_symbols(symbols);
                 }
             }
         }
@@ -1780,24 +1600,22 @@ void expression_t::collectPossibleWrites(set<symbol_t>& symbols) const
     }
 }
 
-void expression_t::collectPossibleReads(set<symbol_t>& symbols, bool collectRandom) const
+void expression_t::collect_possible_reads(set<symbol_t>& symbols, bool collectRandom) const
 {
-    if (empty()) {
+    if (empty())
         return;
-    }
 
-    for (uint32_t i = 0; i < getSize(); i++) {
-        get(i).collectPossibleReads(symbols);
-    }
+    for (uint32_t i = 0; i < get_size(); i++)
+        get(i).collect_possible_reads(symbols);
 
-    switch (getKind()) {
-    case IDENTIFIER: symbols.insert(getSymbol()); break;
+    switch (get_kind()) {
+    case IDENTIFIER: symbols.insert(get_symbol()); break;
 
-    case FUNCALL: {
+    case FUN_CALL: {
         // Add all symbols which are used by the function
-        auto symbol = get(0).getSymbol();
-        if (auto type = symbol.getType(); type.isFunction() || type.isExternalFunction()) {
-            if (auto* data = symbol.getData(); data) {
+        auto symbol = get(0).get_symbol();
+        if (auto type = symbol.get_type(); type.is_function() || type.is_function_external()) {
+            if (auto* data = symbol.get_data(); data) {
                 auto fun = static_cast<function_t*>(data);
                 symbols.insert(fun->depends.begin(), fun->depends.end());
             }
@@ -1832,70 +1650,71 @@ void expression_t::collectPossibleReads(set<symbol_t>& symbols, bool collectRand
     }
 }
 
-expression_t expression_t::createConstant(int32_t value, position_t pos)
+expression_t expression_t::create_constant(int32_t value, position_t pos)
 {
-    expression_t expr(CONSTANT, pos);
+    auto expr = expression_t{CONSTANT, pos};
     expr.data->value = value;
-    expr.data->type = type_t::createPrimitive(Constants::INT);
+    expr.data->type = type_t::create_primitive(Constants::INT);
     return expr;
 }
 
-expression_t expression_t::createVarIndex(int32_t value, position_t pos)
+expression_t expression_t::create_var_index(int32_t value, position_t pos)
 {
-    expression_t expr(VARINDEX, pos);
+    auto expr = expression_t{VAR_INDEX, pos};
     expr.data->value = value;
-    expr.data->type = type_t::createPrimitive(Constants::INT);
+    expr.data->type = type_t::create_primitive(Constants::INT);
     return expr;
 }
 
-expression_t expression_t::createExit(position_t pos)
+expression_t expression_t::create_exit(position_t pos)
 {
-    expression_t expr(EXIT, pos);
+    auto expr = expression_t{EXIT, pos};
     expr.data->value = 0;
-    expr.data->type = type_t::createPrimitive(Constants::VOID_TYPE);
+    expr.data->type = type_t::create_primitive(Constants::VOID_TYPE);
     return expr;
 }
 
-expression_t expression_t::createDouble(double value, position_t pos)
+expression_t expression_t::create_double(double value, position_t pos)
 {
-    expression_t expr(CONSTANT, pos);
+    auto expr = expression_t{CONSTANT, pos};
     expr.data->doubleValue = value;
-    expr.data->type = type_t::createPrimitive(Constants::DOUBLE);
+    expr.data->type = type_t::create_primitive(Constants::DOUBLE);
     return expr;
 }
 
-expression_t expression_t::createIdentifier(symbol_t symbol, position_t pos)
+expression_t expression_t::create_identifier(symbol_t symbol, position_t pos)
 {
-    expression_t expr(IDENTIFIER, pos);
+    auto expr = expression_t{IDENTIFIER, pos};
     expr.data->symbol = symbol;
     if (symbol != symbol_t()) {
-        expr.data->type = symbol.getType();
+        expr.data->type = symbol.get_type();
     } else {
         expr.data->type = type_t();
     }
     return expr;
 }
 
-expression_t expression_t::createNary(kind_t kind, vector<expression_t> sub, position_t pos, type_t type)
+expression_t expression_t::create_nary(kind_t kind, vector<expression_t> sub, position_t pos, type_t type)
 {
-    expression_t expr(kind, pos);
+    auto expr = expression_t{kind, pos};
     expr.data->value = sub.size();
     expr.data->sub = std::move(sub);
     expr.data->type = type;
     return expr;
 }
 
-expression_t expression_t::createUnary(kind_t kind, expression_t sub, position_t pos, type_t type)
+expression_t expression_t::create_unary(kind_t kind, expression_t sub, position_t pos, type_t type)
 {
-    expression_t expr(kind, pos);
+    auto expr = expression_t{kind, pos};
     expr.data->sub.push_back(sub);
     expr.data->type = type;
     return expr;
 }
 
-expression_t expression_t::createBinary(kind_t kind, expression_t left, expression_t right, position_t pos, type_t type)
+expression_t expression_t::create_binary(kind_t kind, expression_t left, expression_t right, position_t pos,
+                                         type_t type)
 {
-    expression_t expr(kind, pos);
+    auto expr = expression_t{kind, pos};
     expr.data->sub.reserve(2);
     expr.data->sub.push_back(left);
     expr.data->sub.push_back(right);
@@ -1903,10 +1722,10 @@ expression_t expression_t::createBinary(kind_t kind, expression_t left, expressi
     return expr;
 }
 
-expression_t expression_t::createTernary(kind_t kind, expression_t e1, expression_t e2, expression_t e3, position_t pos,
-                                         type_t type)
+expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expression_t e2, expression_t e3,
+                                          position_t pos, type_t type)
 {
-    expression_t expr(kind, pos);
+    auto expr = expression_t{kind, pos};
     expr.data->sub.reserve(3);
     expr.data->sub.push_back(e1);
     expr.data->sub.push_back(e2);
@@ -1915,26 +1734,26 @@ expression_t expression_t::createTernary(kind_t kind, expression_t e1, expressio
     return expr;
 }
 
-expression_t expression_t::createDot(expression_t e, int32_t idx, position_t pos, type_t type)
+expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t pos, type_t type)
 {
-    expression_t expr(DOT, pos);
+    auto expr = expression_t{DOT, pos};
     expr.data->index = idx;
     expr.data->sub.push_back(e);
     expr.data->type = type;
     return expr;
 }
 
-expression_t expression_t::createSync(expression_t e, synchronisation_t s, position_t pos)
+expression_t expression_t::create_sync(expression_t e, synchronisation_t s, position_t pos)
 {
-    expression_t expr(SYNC, pos);
+    auto expr = expression_t{SYNC, pos};
     expr.data->sync = s;
     expr.data->sub.push_back(std::move(e));
     return expr;
 }
 
-expression_t expression_t::createDeadlock(position_t pos)
+expression_t expression_t::create_deadlock(position_t pos)
 {
-    expression_t expr(DEADLOCK, pos);
-    expr.data->type = type_t::createPrimitive(CONSTRAINT);
+    auto expr = expression_t{DEADLOCK, pos};
+    expr.data->type = type_t::create_primitive(CONSTRAINT);
     return expr;
 }

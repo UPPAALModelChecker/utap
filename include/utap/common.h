@@ -110,15 +110,15 @@ enum kind_t {
     LDEXP_F,
     ILOGB_F,
     LOGB_F,
-    NEXTAFTER_F,
-    COPYSIGN_F,
-    FPCLASSIFY_F,
-    ISFINITE_F,
-    ISINF_F,
-    ISNAN_F,
-    ISNORMAL_F,
+    NEXT_AFTER_F,
+    COPY_SIGN_F,
+    FP_CLASSIFY_F,
+    IS_FINITE_F,
+    IS_INF_F,
+    IS_NAN_F,
+    IS_NORMAL_F,
     SIGNBIT_F,
-    ISUNORDERED_F,
+    IS_UNORDERED_F,
     RANDOM_F,
     RANDOM_ARCSINE_F,
     RANDOM_BETA_F,
@@ -132,16 +132,16 @@ enum kind_t {
      * Assignment operators
      */
     ASSIGN,
-    ASSPLUS,
-    ASSMINUS,
-    ASSDIV,
-    ASSMOD,
-    ASSMULT,
-    ASSAND,
-    ASSOR,
-    ASSXOR,
-    ASSLSHIFT,
-    ASSRSHIFT,
+    ASS_PLUS,
+    ASS_MINUS,
+    ASS_DIV,
+    ASS_MOD,
+    ASS_MULT,
+    ASS_AND,
+    ASS_OR,
+    ASS_XOR,
+    ASS_LSHIFT,
+    ASS_RSHIFT,
 
     /*******************************************************
      * CTL Quantifiers
@@ -150,17 +150,17 @@ enum kind_t {
     EG,
     AF,
     AG,
-    LEADSTO,
+    LEADS_TO,
     A_UNTIL,
-    A_WEAKUNTIL,
+    A_WEAK_UNTIL,
     A_BUCHI,
     PMAX,
-    PROBAMINBOX,
-    PROBAMINDIAMOND,
-    PROBABOX,
-    PROBADIAMOND,
-    PROBACMP,
-    PROBAEXP,
+    PROBA_MIN_BOX,
+    PROBA_MIN_DIAMOND,
+    PROBA_BOX,      ///< probability estimation of staying on course
+    PROBA_DIAMOND,  ///< probability estimation of eventuality
+    PROBA_CMP,      ///< probability comparison without estimation
+    PROBA_EXP,      ///< expected value estimation
     SIMULATE,
     SIMULATEREACH,
     BOX,
@@ -198,26 +198,26 @@ enum kind_t {
      * the TypeCheckBuilder (but not by the parser, although
      * some of then ought to be used, FIXME).
      */
-    // VARINDEX is only used during compilation when creating processes.
+    // VAR_INDEX is only used during compilation when creating processes.
     // this is the *only* type to be sent as a ref for shorthand process
     // initialization or a spawn.
-    VARINDEX,
+    VAR_INDEX,
     IDENTIFIER,
     CONSTANT,
     ARRAY,
-    POSTINCREMENT,
-    PREINCREMENT,
-    POSTDECREMENT,
-    PREDECREMENT,
+    POST_INCREMENT,
+    PRE_INCREMENT,
+    POST_DECREMENT,
+    PRE_DECREMENT,
     UNARY_MINUS,
     LIST,
     DOT,
-    INLINEIF,
+    INLINE_IF,
     COMMA,
     SYNC,
     DEADLOCK,
-    FUNCALL,
-    EFUNCALL,
+    FUN_CALL,
+    FUN_CALL_EXT,
 
     /*******************************************************
      * Types
@@ -243,7 +243,7 @@ enum kind_t {
     BRANCHPOINT,
     PROBABILITY,
     // LSC
-    INSTANCELINE,
+    INSTANCE_LINE,
     MESSAGE,
     CONDITION,
     UPDATE,
@@ -258,36 +258,36 @@ enum kind_t {
     HYBRID,
     TYPEDEF,
     PROCESS,
-    PROCESSSET,
+    PROCESS_SET,
     INSTANCE,  // TA template (instantiated or not)
     SYSTEM_META,
     FUNCTION,
-    EXTERNAL_FUNCTION,
-    LSCINSTANCE,  // LSC template (instantiated or not)
+    FUNCTION_EXTERNAL,
+    LSC_INSTANCE,  // LSC template (instantiated or not)
 
     /******************************************************
      * MITL Extension
      */
-    MITLFORMULA,
-    MITLRELEASE,
-    MITLUNTIL,
-    MITLCONJ,
-    MITLDISJ,
-    MITLNEXT,
-    MITLATOM,
-    MITLEXISTS,
-    MITLFORALL,
+    MITL_FORMULA,
+    MITL_RELEASE,
+    MITL_UNTIL,
+    MITL_CONJ,
+    MITL_DISJ,
+    MITL_NEXT,
+    MITL_ATOM,
+    MITL_EXISTS,
+    MITL_FORALL,
     /*Dynamic */
     SPAWN,
     EXIT,
     NUMOF,
-    FORALLDYNAMIC,
-    EXISTSDYNAMIC,
-    SUMDYNAMIC,
-    FOREACHDYNAMIC,
-    DYNAMICEVAL,
-    PROCESSVAR,
-    DOUBLEINVGUARD,
+    FORALL_DYNAMIC,
+    EXISTS_DYNAMIC,
+    SUM_DYNAMIC,
+    FOREACH_DYNAMIC,
+    DYNAMIC_EVAL,
+    PROCESS_VAR,
+    DOUBLE_INV_GUARD,
 
 };
 
@@ -306,7 +306,7 @@ enum xta_part_t {
     S_SYSTEM,
     S_PARAMETERS,
     S_INVARIANT,
-    S_EXPONENTIALRATE,
+    S_EXPONENTIAL_RATE,
     S_SELECT,
     S_GUARD,
     S_SYNC,
@@ -316,7 +316,7 @@ enum xta_part_t {
     S_PROPERTY,
     S_XTA_PROCESS,
     S_PROBABILITY,
-    /*LSC*/ S_INSTANCELINE,
+    /*LSC*/ S_INSTANCE_LINE,
     S_MESSAGE,
     S_UPDATE,
     S_CONDITION

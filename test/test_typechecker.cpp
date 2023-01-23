@@ -21,7 +21,6 @@
 
 #include "document_fixture.h"
 
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
 TEST_SUITE("Quantifier sum")
@@ -31,9 +30,9 @@ TEST_SUITE("Quantifier sum")
         auto df = document_fixture{};
         df.add_system_decl("int x = sum (index : int[0, 5]) index;");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 
@@ -43,9 +42,9 @@ TEST_SUITE("Quantifier sum")
         df.add_system_decl("int a[3] = {1,4,9};");
         df.add_system_decl("int x = sum(i : int[0, 2]) a[i];");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$Must_be_computable_at_compile_time");
     }
@@ -56,9 +55,9 @@ TEST_SUITE("Quantifier sum")
         df.add_system_decl("const int a[3] = {1,4,9};");
         df.add_system_decl("int x = sum(i : int[0, 2]) a[i];");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 }
@@ -70,9 +69,9 @@ TEST_SUITE("Quantifier forall")
         auto df = document_fixture{};
         df.add_system_decl("bool x = forall(index : int[0, 5]) index > 3;");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 
@@ -81,9 +80,9 @@ TEST_SUITE("Quantifier forall")
         auto df = document_fixture{};
         df.add_system_decl("bool b[3] = {1,1,1};");
         df.add_system_decl("bool x = forall(i : int[0,2]) b[i];");
-        auto document = df.add_default_process().parse();
-        CHECK(document->getWarnings().size() == 0);
-        const auto errors = document->getErrors();
+        auto doc = df.add_default_process().parse();
+        CHECK(doc->get_warnings().size() == 0);
+        const auto errors = doc->get_errors();
         REQUIRE(errors.size() == 1);
         CHECK(errors[0].msg == "$Must_be_computable_at_compile_time");
     }
@@ -94,9 +93,9 @@ TEST_SUITE("Quantifier forall")
         df.add_system_decl("const bool b[3]={1,1,1};");
         df.add_system_decl("bool x = forall(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 }
@@ -108,9 +107,9 @@ TEST_SUITE("Quantifier exists")
         auto df = document_fixture{};
         df.add_system_decl("bool x = exists(index : int[0, 5]) index > 3;");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
     TEST_CASE("exists over array")
@@ -119,9 +118,9 @@ TEST_SUITE("Quantifier exists")
         df.add_system_decl("bool b[3] = {0,0,1};");
         df.add_system_decl("bool x = exists(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$Must_be_computable_at_compile_time");
     }
@@ -131,9 +130,9 @@ TEST_SUITE("Quantifier exists")
         df.add_system_decl("const bool b[3]={0,0,1};");
         df.add_system_decl("bool x = exists(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 }
@@ -147,9 +146,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 
@@ -160,9 +159,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 0);
     }
 
@@ -173,9 +172,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 1);
         auto pos = errs.front().position;
         CHECK(pos.start != pos.unknown_pos);
@@ -189,9 +188,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto warns = doc->getWarnings();
+        auto warns = doc->get_warnings();
         CHECK(warns.size() == 0);
-        auto errs = doc->getErrors();
+        auto errs = doc->get_errors();
         CHECK(errs.size() == 1);
         auto pos = errs.front().position;
         CHECK(pos.start != pos.unknown_pos);

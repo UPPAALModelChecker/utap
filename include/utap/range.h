@@ -80,12 +80,12 @@ public:
     using value_type = T;
     constexpr range_t() = default;
     constexpr range_t(const range_t&) = default;
+    constexpr static range_t make_empty() { return range_t{1, 0}; }
+
     /** construct a range of [first,last] */
     constexpr range_t(const T& first, const T& last): start{first}, finish{last} {}
     /** construct a range of singleton {e} */
     constexpr explicit range_t(const T& e): range_t{e, e} {}
-
-    constexpr static range_t make_empty() { return range_t{1, 0}; }
 
     /** the range is strictly below the other */
     constexpr bool operator<(const range_t& o) const

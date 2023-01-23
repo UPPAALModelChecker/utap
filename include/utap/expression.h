@@ -75,61 +75,64 @@ public:
     /** Default constructor. Creates an empty expression. */
     expression_t() = default;
 
-    bool usesFP() const;
-    bool usesClock() const;
-    bool usesHybrid() const;
-    bool isDynamic() const;
-    bool hasDynamicSub() const;
+    bool uses_fp() const;
+    bool uses_clock() const;
+    bool uses_hybrid() const;
+    bool is_dynamic() const;
+    bool has_dynamic_sub() const;
     /** Make a shallow clone of the expression. */
     expression_t clone() const;
 
     /** Makes a deep clone of the expression. */
-    expression_t deeperClone() const;
+    expression_t clone_deeper() const;
 
     /** Makes a deep clone of the expression and replaces the symbol
      * "from" with the symbol "to". */
-    expression_t deeperClone(symbol_t from, symbol_t to) const;
+    expression_t clone_deeper(symbol_t from, symbol_t to) const;
 
     /** Makes a deep clone of the expression and replaces each symbol
      * with a symbol from the given frame(s), with the same name */
-    expression_t deeperClone(frame_t frame, frame_t select = {}) const;
+    expression_t clone_deeper(frame_t frame, frame_t select = {}) const;
 
     /** Returns the kind of the expression. */
-    Constants::kind_t getKind() const;
+    Constants::kind_t get_kind() const;
 
     /** Returns the number of subexpression. */
-    size_t getSize() const;
+    size_t get_size() const;
 
     /** Returns the position of this expression. */
-    const position_t& getPosition() const;
+    const position_t& get_position() const;
 
     /** Returns the type of the expression. */
-    type_t getType() const;
+    type_t get_type() const;
 
     /** Sets the type of the expression. */
-    void setType(type_t);
+    void set_type(type_t);
 
     /** Returns the value field of this expression. This
         call is not valid for all expressions. */
-    int32_t getValue() const;
+    int32_t get_value() const;
 
     /** Returns an index into the record-labels
-        Assumes that .getType().isProcess() or
-                     .getType().isRecord()*/
-    int32_t getRecordLabelIndex() const;
+        Assumes that .get_type().is_process() or
+                     .get_type().is_record()*/
+    int32_t get_record_label_index() const;
 
     /** Returns the index field of this expression. */
-    int32_t getIndex() const;
+    int32_t get_index() const;
 
     /** Returns the value field of this expression. This
         call is not valid for all expressions. */
-    double getDoubleValue() const;
+    double get_double_value() const;
 
     /** Returns true if this is an empty expression. */
     bool empty() const;
 
     /** Returns the synchronisation type of SYNC operations. */
-    Constants::synchronisation_t getSync() const;
+    Constants::synchronisation_t get_sync() const;
+
+    /** Outputs a textual representation of the expression. */
+    std::ostream& print(std::ostream& os, bool old = false) const;
 
     /** Returns a string representation of the expression. */
     std::string str(bool old = false) const;
@@ -155,11 +158,11 @@ public:
      *  dot-expressions, the record/process symbol is returned. In
      *  case of an inline if, the 'true' branch is returned.
      *
-     *  (a=1).getSymbol() returns 'a'
-     *  (s.f).getSymbol() returns 's'
-     *  (i<1?j:k).getSymbol() returns 'j'
+     *  (a=1).get_symbol() returns 'a'
+     *  (s.f).get_symbol() returns 's'
+     *  (i<1?j:k).get_symbol() returns 'j'
      */
-    symbol_t getSymbol();
+    symbol_t get_symbol();
 
     /**
      * Returns the set of symbols this expression might resolve
@@ -167,35 +170,35 @@ public:
      * branch is added. In case of dot-expressions, both the left
      * hand reference and the member field are returned.
      *
-     * (a=1).getSymbol() returns 'a'
-     * (s.f).getSymbol() returns 's,f'
-     * (i<1?j:k).getSymbol() returns 'j,k'
+     * (a=1).get_symbol() returns 'a'
+     * (s.f).get_symbol() returns 's,f'
+     * (i<1?j:k).get_symbol() returns 'j,k'
      */
-    void getSymbols(std::set<symbol_t>& symbols) const;
+    void get_symbols(std::set<symbol_t>& symbols) const;
 
     /** Returns the symbol this expression evaluates to. Notice
         that not all expression evaluate to a symbol. */
-    const symbol_t getSymbol() const;
+    const symbol_t get_symbol() const;
 
     /** Returns true if this expression is a reference to a
         symbol in the given set. */
-    bool isReferenceTo(const std::set<symbol_t>&) const;
+    bool is_reference_to(const std::set<symbol_t>&) const;
 
     /** Returns true if the expression contains deadlock expression */
     bool contains_deadlock() const;
     /** True if this expression can change any of the variables
             identified by the given symbols. */
-    bool changesVariable(const std::set<symbol_t>&) const;
+    bool changes_variable(const std::set<symbol_t>&) const;
 
     /** True if this expression can change any variable at all. */
-    bool changesAnyVariable() const;
+    bool changes_any_variable() const;
 
     /** True if the evaluation of this expression depends on
         any of the symbols in the given set. */
-    bool dependsOn(const std::set<symbol_t>&) const;
+    bool depends_on(const std::set<symbol_t>&) const;
 
-    void collectPossibleWrites(std::set<symbol_t>&) const;
-    void collectPossibleReads(std::set<symbol_t>&, bool collectRandom = false) const;
+    void collect_possible_writes(std::set<symbol_t>&) const;
+    void collect_possible_reads(std::set<symbol_t>&, bool collectRandom = false) const;
 
     /** Less-than operator. Makes it possible to put expression_t
         objects into an STL set. */
@@ -207,49 +210,48 @@ public:
 
     expression_t subst(symbol_t, expression_t) const;
 
-    static int getPrecedence(Constants::kind_t);
+    static int get_precedence(Constants::kind_t);
 
     /** Create a CONSTANT expression. */
-    static expression_t createConstant(int32_t, position_t = {});
-    static expression_t createVarIndex(int32_t, position_t = {});
+    static expression_t create_constant(int32_t, position_t = {});
+    static expression_t create_var_index(int32_t, position_t = {});
 
-    static expression_t createDouble(double, position_t = {});
+    static expression_t create_double(double, position_t = {});
 
     /** Create an IDENTIFIER expression */
-    static expression_t createIdentifier(symbol_t, position_t = {});
+    static expression_t create_identifier(symbol_t, position_t = {});
 
     /** Create a unary expression */
-    static expression_t createUnary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
+    static expression_t create_unary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
 
     /** Create a binary expression */
-    static expression_t createBinary(Constants::kind_t, expression_t, expression_t, position_t = {}, type_t = {});
+    static expression_t create_binary(Constants::kind_t, expression_t, expression_t, position_t = {}, type_t = {});
 
     /** Create a ternary expression */
-    static expression_t createTernary(Constants::kind_t, expression_t, expression_t, expression_t, position_t = {},
-                                      type_t = {});
+    static expression_t create_ternary(Constants::kind_t, expression_t, expression_t, expression_t, position_t = {},
+                                       type_t = {});
 
     /** Create an n-ary expression */
-    static expression_t createNary(Constants::kind_t, std::vector<expression_t> sub, position_t = {}, type_t = {});
+    static expression_t create_nary(Constants::kind_t, std::vector<expression_t> sub, position_t = {}, type_t = {});
 
     /** Create a DOT expression */
-    static expression_t createDot(expression_t, int32_t = -1, position_t = {}, type_t = {});
+    static expression_t create_dot(expression_t, int32_t index, position_t = {}, type_t = {});
 
     /** Create a SYNC expression */
-    static expression_t createSync(expression_t, Constants::synchronisation_t, position_t = {});
+    static expression_t create_sync(expression_t, Constants::synchronisation_t, position_t = {});
 
     /** Create a DEADLOCK expression */
-    static expression_t createDeadlock(position_t = {});
+    static expression_t create_deadlock(position_t = {});
 
-    static expression_t createExit(position_t = {});
+    static expression_t create_exit(position_t = {});
 
     // true if empty or equal to 1.
-    bool isTrue() const;
+    bool is_true() const;
+    int get_precedence() const;
     friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.str(); }
 
 private:
-    int getPrecedence() const;
-    void str(bool, char*& str, char*& end, int& size) const;
-    void appendBoundType(char*& str, char*& end, int& size, expression_t e) const;
+    std::ostream& print_bound_type(std::ostream& os, expression_t e) const;
 };
 
 }  // namespace UTAP

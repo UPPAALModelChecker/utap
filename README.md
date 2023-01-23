@@ -26,7 +26,7 @@ libutap is licensed under the LGPL.
 
 ## 2. Compiling
 
-Use `cmake` to compile `libutap` easily for various platforms. 
+Use `cmake` to compile `libutap` easily for various platforms.
 You will need GCC version 10 or newer, Ninja or GNU make,
 and `libxml2` from [XMLSoft](https://www.xmlsoft.org) (at least version 2.6.10).
 
@@ -42,7 +42,7 @@ sudo apt-get install flex bison libxml2-dev doctest-dev
 
 Configure UTAP:
 ```shell
-cmake . -B build -DTESTING=ON -DCMAKE_INSTALL_PREFIX=$MYPATH -G Ninja # to install to $MYPATH, e.g. /usr/local
+cmake . -B build -DCMAKE_INSTALL_PREFIX=$MYPATH -G Ninja # to install to $MYPATH, e.g. /usr/local
 ```
 Compile UTAP:
 ```shell
@@ -101,7 +101,7 @@ e.g. `example.cpp`:
 int main()
 {
     UTAP::Document doc;
-    int res = parseXMLFile("myfile.xml", &doc, true);
+    int res = parse_XML_file("myfile.xml", &doc, true);
     std::cout << "Result: " << res << std::endl;
 }
 ```
@@ -131,9 +131,9 @@ g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
 ```
 
 ### Use Case with CMake
-Add `CMakeLists.txt` build script:
+Add the following `CMakeLists.txt` build script:
 ```cmake
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.24)
 project(Example CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -141,18 +141,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(UTAP 1.1.6 REQUIRED)
+find_package(UTAP 1.1.6 QUIET)
 
 if (utap_FOUND)
-  message(STATUS "Found UTAP.")
+  message(STATUS "Found UTAP preinstalled.")
 else(utap_FOUND)
-  message(STATUS "Failed to find UTAP, will try fetching and compiling from source.")
+  message(STATUS "Failed to find UTAP, will fetch and compile from source.")
   include(FetchContent)
   FetchContent_Declare(
     UTAP
     GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
-    GIT_TAG main
-    GIT_SHALLOW TRUE # get only the last commit version
+    GIT_TAG main      # fetches main branch, can be a version tag like v2.0.0
+    GIT_SHALLOW TRUE  # get only the last commit version
     GIT_PROGRESS TRUE # show progress of download
     FIND_PACKAGE_ARGS NAMES UTAP
     USES_TERMINAL_DOWNLOAD TRUE # show progress in ninja generator
@@ -163,11 +163,13 @@ else(utap_FOUND)
     LOG_CONFIGURE ON
     LOG_BUILD ON
     LOG_INSTALL ON
-    LOG_OUTPUT_ON_FAILURE ON
-  )
+    LOG_OUTPUT_ON_FAILURE ON)
   FetchContent_MakeAvailable(UTAP)
 endif(utap_FOUND)
+```
 
+Then the UTAP can be linked with `example` like this:
+```cmake
 add_executable(example example.cpp)
 target_link_libraries(example PRIVATE UTAP)
 ```

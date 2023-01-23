@@ -45,21 +45,21 @@ int main(int argc, char* argv[])
         auto name = std::string{argv[argc - 1]};
 
         if (name.substr(name.length() - 4) == ".xml") {
-            parseXMLFile(name.c_str(), &system, !old);
+            parse_XML_file(name.c_str(), &system, !old);
         } else {
             FILE* file = fopen(name.c_str(), "r");
             if (!file) {
                 perror("check");
                 return 1;
             }
-            parseXTA(file, &system, !old);
+            parse_XTA(file, &system, !old);
             fclose(file);
         }
-        for (const auto& err : system.getErrors())
+        for (const auto& err : system.get_errors())
             cerr << err << endl;
-        for (const auto& warn : system.getWarnings())
+        for (const auto& warn : system.get_warnings())
             cerr << warn << endl;
-        return system.getErrors().empty() && system.getWarnings().empty() ? 0 : 2;
+        return system.get_errors().empty() && system.get_warnings().empty() ? 0 : 2;
     } catch (std::exception& e) {
         cerr << e.what() << endl;
         return 3;

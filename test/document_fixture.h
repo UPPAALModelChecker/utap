@@ -138,10 +138,10 @@ system %s;
     /** Derives a document from a document template and parses it */
     [[nodiscard]] std::unique_ptr<UTAP::Document> parse() const
     {
-        auto document = std::make_unique<UTAP::Document>();
+        auto doc = std::make_unique<UTAP::Document>();
         auto data = str();
-        parseXMLBuffer(data.c_str(), document.get(), true);
-        return document;
+        parse_XML_buffer(data.c_str(), doc.get(), true);
+        return doc;
     }
 };
 

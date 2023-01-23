@@ -62,7 +62,7 @@ struct position_t
  * essence, the whole input file is treated as if it were a single
  * XML element.
  */
-class Positions
+class position_index_t
 {
 public:
     struct line_t
@@ -77,7 +77,7 @@ public:
     };
 
 private:
-    std::vector<line_t> elements;
+    std::vector<line_t> lines;
     const line_t& find(uint32_t position, uint32_t first, uint32_t last) const;
 
 public:
@@ -92,12 +92,12 @@ public:
     const line_t& find(uint32_t position) const;
 
     /** Dump table to stdout. */
-    void dump();
+    std::ostream& print(std::ostream&) const;
 };
 
 struct error_t
 {
-    using line_t = Positions::line_t;
+    using line_t = position_index_t::line_t;
     line_t start;
     line_t end;
     position_t position;

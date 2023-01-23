@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2020 Aalborg University.
+   Copyright (C) 2020-2022 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -32,21 +32,21 @@ using namespace UTAP;
 FeatureChecker::FeatureChecker(Document& document)
 {
     document.accept(*this);
-    visitFrame(document.getGlobals().frame);
-    if (document.hasDynamicTemplates())
-        supportedMethods.symbolic = false;
+    visitFrame(document.get_globals().frame);
+    if (document.has_dynamic_templates())
+        supported_methods.symbolic = false;
 }
 
 bool FeatureChecker::visitTemplateBefore(template_t& templ)
 {
     // Only check features if template is actually used in the system
-    return templ.isInstanced;
+    return templ.is_instantiated;
 }
 
 void FeatureChecker::visitVariable(variable_t& var)
 {
-    if (var.uid.getType().isClock() && !var.init.empty() && var.init.usesFP())
-        supportedMethods.symbolic = false;
+    if (var.uid.get_type().is_clock() && !var.init.empty() && var.init.uses_fp())
+        supported_methods.symbolic = false;
 }
 
 void FeatureChecker::visitEdge(edge_t& edge)
@@ -57,13 +57,13 @@ void FeatureChecker::visitEdge(edge_t& edge)
 
 void FeatureChecker::visitGuard(expression_t& guard)
 {
-    switch (guard.getKind()) {
+    switch (guard.get_kind()) {
     case Constants::LT:
     case Constants::LE:
     case Constants::EQ:
-        for (size_t i = 0; i < guard.getSize(); ++i) {
-            if (guard.get(i).usesFP())
-                supportedMethods.symbolic = false;
+        for (size_t i = 0; i < guard.get_size(); ++i) {
+            if (guard.get(i).uses_fp())
+                supported_methods.symbolic = false;
         }
     default: break;
     }
@@ -71,13 +71,13 @@ void FeatureChecker::visitGuard(expression_t& guard)
 
 void FeatureChecker::visitAssignment(expression_t& ass)
 {
-    switch (ass.getKind()) {
+    switch (ass.get_kind()) {
     case Constants::ASSIGN:
-        if (ass.usesFP() && !ass.usesHybrid())
-            supportedMethods.symbolic = false;
+        if (ass.uses_fp() && !ass.uses_hybrid())
+            supported_methods.symbolic = false;
         break;
     case Constants::COMMA:
-        for (size_t i = 0; i < ass.getSize(); ++i)
+        for (size_t i = 0; i < ass.get_size(); ++i)
             visitAssignment(ass.get(i));
         break;
     default: break;
@@ -90,7 +90,7 @@ void FeatureChecker::visitLocation(location_t& location)
     if (invariant.empty())
         return;
     if (isRateDisallowedInSymbolic(invariant))
-        supportedMethods.symbolic = false;
+        supported_methods.symbolic = false;
 }
 
 /**
@@ -99,16 +99,16 @@ void FeatureChecker::visitLocation(location_t& location)
  */
 bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
 {
-    if (e.getKind() == Constants::EQ) {
-        assert(e.getSize() >= 2);
+    if (e.get_kind() == Constants::EQ) {
+        assert(e.get_size() >= 2);
 
         expression_t rate;
         expression_t clock;
 
-        if (e.get(0).getKind() == Constants::RATE) {
+        if (e.get(0).get_kind() == Constants::RATE) {
             clock = e.get(0);
             rate = e.get(1);
-        } else if (e.get(1).getKind() == Constants::RATE) {
+        } else if (e.get(1).get_kind() == Constants::RATE) {
             clock = e.get(1);
             rate = e.get(0);
         } else {
@@ -116,19 +116,19 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
         }
 
         // rates over hybrid clocks are allowed, because they are ignored/abstracted in symbolic analysis
-        if (clock.get(0).getSymbol().getType().is(Constants::HYBRID))
+        if (clock.get(0).get_symbol().get_type().is(Constants::HYBRID))
             return false;
 
-        if (rate.getKind() != Constants::CONSTANT)
+        if (rate.get_kind() != Constants::CONSTANT)
             return false;
-        if (rate.getValue() != 0 && rate.getValue() != 1)
+        if (rate.get_value() != 0 && rate.get_value() != 1)
             return true;  // NOLINT(readability-simplify-boolean-expr)
 
         return false;
     }
 
-    if (e.getKind() == Constants::AND) {
-        for (size_t i = 0; i < e.getSize(); ++i) {
+    if (e.get_kind() == Constants::AND) {
+        for (size_t i = 0; i < e.get_size(); ++i) {
             if (isRateDisallowedInSymbolic(e.get(i)))
                 return true;
         }
@@ -139,9 +139,9 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
 
 void FeatureChecker::visitFrame(const frame_t& frame)
 {
-    for (size_t i = 0; i < frame.getSize(); ++i) {
-        const type_t& t = frame.getSymbol(i).getType();
-        if (t.isChannel() && !t.is(Constants::BROADCAST))
-            supportedMethods.stochastic = false;
+    for (size_t i = 0; i < frame.get_size(); ++i) {
+        type_t t = frame.get_symbol(i).get_type();
+        if (t.is_channel() && !t.is(Constants::BROADCAST))
+            supported_methods.stochastic = false;
     }
 }
