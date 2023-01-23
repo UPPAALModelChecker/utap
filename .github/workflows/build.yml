@@ -4,19 +4,28 @@ on:
   push:
     branches: [ main ]
     paths:
-    - 'src/**'
-    - 'include/**'
-    - 'test/**'
-    - 'cmake/**'
-    - 'CMakeLists.txt'
+    - '**.h'
+    - '**.c'
+    - '**.hpp'
+    - '**.cpp'
+    - '**.y'
+    - '**.l'
+    - '**.sh'
+    - '**.cmake'
+    - '**CMakeLists.txt'
   pull_request:
     branches: [ main ]
     paths:
-    - 'src/**'
-    - 'include/**'
-    - 'test/**'
-    - 'cmake/**'
-    - 'CMakeLists.txt'
+    - '**.h'
+    - '**.c'
+    - '**.hpp'
+    - '**.cpp'
+    - '**.y'
+    - '**.l'
+    - '**.sh'
+    - '**.cmake'
+    - '**.xml'
+    - '**CMakeLists.txt'
 
 jobs:
   format:
