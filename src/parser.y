@@ -541,7 +541,7 @@ FunctionDecl:
         Type Id OptionalParameterList '{' {
           CALL(@1, @2, decl_func_begin($2));
         } BlockLocalDeclList StatementList EndBlock {
-          CALL(@8, @8, decl_func_end());
+          CALL(@4, @8, decl_func_end());
         }
         ;
         
