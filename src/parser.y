@@ -607,7 +607,7 @@ DeclId:
         Id {
             CALL(@1, @1, type_duplicate());
         } ArrayDecl VarInit {
-            CALL(@1, @4, decl_var($1, $4));
+            CALL(@1, @1, decl_var($1, $4));
         }
         ;
 
@@ -1518,7 +1518,7 @@ OldConstDeclId:
         NonTypeId {
           CALL(@1, @1, type_duplicate());
         } ArrayDecl Initializer {
-          CALL(@1, @4, decl_var($1, true));
+          CALL(@1, @1, decl_var($1, true));
         }
         ;
 

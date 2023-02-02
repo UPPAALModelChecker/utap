@@ -261,7 +261,7 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
     }
 
     // Add variable to document
-    addVariable(type, name, init, position_t());
+    addVariable(type, name, init, position);
 }
 
 // Array and struct initialisers are represented as expressions having
