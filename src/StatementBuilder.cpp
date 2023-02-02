@@ -127,13 +127,15 @@ void StatementBuilder::type_array_of_type(size_t n)
  */
 void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
 {
-    vector<type_t> f(fields.end() - n, fields.end());
-    vector<string> l(labels.end() - n, labels.end());
+    vector<type_t> f{fields.end() - n, fields.end()};
+    vector<string> l{labels.end() - n, labels.end()};
+    vector<position_t> p{positions.end() - n, positions.end()};
 
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
+    positions.erase(positions.end() - n, positions.end());
 
-    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, position)));
+    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, p, position)));
 }
 
 /**
@@ -152,6 +154,7 @@ void StatementBuilder::struct_field(const char* name)
 
     fields.push_back(type);
     labels.push_back(name);
+    positions.push_back(position);
 
     /* Check the base type. We should check this in the type
      * checker. The problem is that we do not maintain the position of
@@ -310,15 +313,18 @@ void StatementBuilder::decl_init_list(uint32_t num)
     // Compute new type (each field has a label type, see decl_field_init())
     vector<type_t> types;
     vector<string> labels;
+    vector<position_t> positions;
     for (uint32_t i = 0; i < num; i++) {
         type_t type = fields[i].get_type();
         types.push_back(type[0]);
         labels.push_back(type.get_label(0));
         fields[i].set_type(type[0]);
+        positions.push_back(fields[i].get_position());
     }
 
     // Create list expression
-    fragments.push(expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
+    fragments.push(
+        expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, positions, position)));
 }
 
 /********************************************************************

@@ -55,6 +55,9 @@ protected:
     /** The labels of a struct. */
     std::vector<std::string> labels;
 
+    /** The positions of a struct. */
+    std::vector<position_t> positions;
+
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 

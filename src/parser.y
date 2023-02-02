@@ -780,7 +780,7 @@ FieldDeclId:
         Id {
             CALL(@1, @1, type_duplicate());
         } ArrayDecl {
-            CALL(@1, @3, struct_field($1));
+            CALL(@1, @1, struct_field($1));
         }
         ;
 
