@@ -1101,14 +1101,12 @@ void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, s
 
 const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
 
-<<<<<<< HEAD
 void Document::add_channel(bool is_broadcast) { hasNonBroadcastChan |= !is_broadcast; }
-=======
-const position_index_t::line_t& Document::findFirstPosition(uint32_t position) const
+
+const position_index_t::line_t& Document::find_first_position(uint32_t position) const
 {
     return positions.find_first_line(position);
 }
->>>>>>> 6e241b2 (Fix issues with member hiding inherited member)
 
 void Document::add_error(position_t position, std::string msg, std::string context)
 {
