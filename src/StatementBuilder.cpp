@@ -368,7 +368,7 @@ void StatementBuilder::decl_func_begin(const char* name)
         labels.push_back(params[i].get_name());
     }
     type_t type = type_t::create_function(return_type, types, labels, position);
-    if (!addFunction(type, name, {})) {
+    if (!addFunction(type, name, position)) {
         handle_error(DuplicateDefinitionError(name));
     }
 
