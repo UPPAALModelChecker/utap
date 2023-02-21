@@ -103,6 +103,7 @@ public:
      * Function declarations
      */
     void decl_parameter(const char* name, bool) override;
+    void func_type() override;
     void decl_func_begin(const char* name) override;  // n paramaters
     void decl_func_end() override;                    // 1 block
     void dynamic_load_lib(const char* name) override;

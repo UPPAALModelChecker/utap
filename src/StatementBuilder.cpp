@@ -342,9 +342,8 @@ void StatementBuilder::decl_parameter(const char* name, bool ref)
     params.add_symbol(name, type, position);
 }
 
-void StatementBuilder::decl_func_begin(const char* name)
+void StatementBuilder::func_type()
 {
-    // assert(currentFun == nullptr); // the parser should recover cleanly, but it does not
     if (currentFun != nullptr) {
         /* If currentFun != nullptr, we are in an error state. This error
          * state arises when a parsing error happens in the middle of a
@@ -359,7 +358,6 @@ void StatementBuilder::decl_func_begin(const char* name)
     }
 
     type_t return_type = typeFragments[0];
-    typeFragments.pop();
 
     vector<type_t> types;
     vector<string> labels;
@@ -367,7 +365,15 @@ void StatementBuilder::decl_func_begin(const char* name)
         types.push_back(params[i].get_type());
         labels.push_back(params[i].get_name());
     }
-    type_t type = type_t::create_function(return_type, types, labels, position);
+
+    typeFragments[0] = type_t::create_function(return_type, types, labels, position);
+}
+
+void StatementBuilder::decl_func_begin(const char* name)
+{
+    type_t type = typeFragments[0];
+    typeFragments.pop();
+
     if (!addFunction(type, name, position)) {
         handle_error(DuplicateDefinitionError(name));
     }

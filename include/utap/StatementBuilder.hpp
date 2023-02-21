@@ -82,6 +82,7 @@ public:
     void decl_init_list(uint32_t num) override;
     void decl_field_init(const char* name) override;
     void decl_parameter(const char* name, bool) override;
+    void func_type() override;
     void decl_func_begin(const char* name) override;
     void decl_func_end() override;
     void dynamic_load_lib(const char* name) override;

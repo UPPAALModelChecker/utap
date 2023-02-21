@@ -232,6 +232,7 @@ public:
      * Function declarations
      */
     virtual void decl_parameter(const char* name, bool ref) = 0;
+    virtual void func_type() = 0;
     virtual void decl_func_begin(const char* name) = 0;
     virtual void decl_func_end() = 0;  // 1 block
     virtual void dynamic_load_lib(const char* name) = 0;

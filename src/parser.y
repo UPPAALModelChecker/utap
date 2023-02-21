@@ -539,7 +539,8 @@ FunctionDecl:
      * StatementBuilder::declFuncBegin definition
          */
         Type Id OptionalParameterList '{' {
-          CALL(@1, @2, decl_func_begin($2));
+          CALL(@1, @2, func_type());
+          CALL(@2, @2, decl_func_begin($2));
         } BlockLocalDeclList StatementList EndBlock {
           CALL(@4, @8, decl_func_end());
         }
