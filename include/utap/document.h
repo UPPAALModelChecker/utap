@@ -248,20 +248,6 @@ struct simregion_t : stringify_t<simregion_t>
     int get_loc() const;
     bool is_in_prechart() const;
 
-    simregion_t()
-    {
-        message = new message_t();
-        condition = new condition_t();
-        update = new update_t();
-    }
-
-    ~simregion_t() noexcept
-    {
-        delete message;
-        delete condition;
-        delete update;
-    }
-
     std::ostream& print(std::ostream&) const;
     bool has_message() const { return message != nullptr && !message->empty(); }
     bool has_condition() const { return condition != nullptr && !condition->empty(); }
