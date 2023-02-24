@@ -572,7 +572,7 @@ public:
     expression_t get_after_update();
 
     void add_query(query_t query);  // creates a copy and moves it
-    bool queriesEmpty() const;
+    bool queries_empty() const;
 
     /* The default priority for channels is also used for 'tau
      * transitions' (i.e. non-synchronizing transitions).

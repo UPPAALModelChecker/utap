@@ -915,7 +915,7 @@ void Document::add_process(instance_t& instance, position_t pos)
     process.uid = global.frame.add_symbol(instance.uid.get_name(), type, pos, &process);
 }
 
-bool Document::queriesEmpty() const { return queries.empty(); }
+bool Document::queries_empty() const { return queries.empty(); }
 
 void Document::add_gantt(declarations_t* context, gantt_t g) { context->ganttChart.push_back(std::move(g)); }
 
