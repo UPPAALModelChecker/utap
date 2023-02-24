@@ -436,7 +436,7 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
     return out;
 }
 
-int32_t writeXMLFile(const char* filename, Document* doc)
+int32_t write_XML_file(const char* filename, Document* doc)
 {
     xmlTextWriterPtr writer;
 
