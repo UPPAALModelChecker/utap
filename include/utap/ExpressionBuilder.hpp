@@ -190,7 +190,7 @@ public:
     void expr_builtin_function1(Constants::kind_t) override;
     void expr_builtin_function2(Constants::kind_t) override;
     void expr_builtin_function3(Constants::kind_t) override;
-    void expr_optimize_exp(Constants::kind_t, PRICETYPE) override;
+    void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
     void expr_save_strategy() override;
     void expr_load_strategy() override;
 

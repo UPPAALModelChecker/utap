@@ -691,12 +691,16 @@ void ExpressionBuilder::expr_proba_qualitative(Constants::kind_t pathType, Const
                                              std::move(args), position));
 }
 
-void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype)
+void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype, Constants::kind_t goal_type)
 {
-    auto boundVar = fragments[3];
-    auto bound = fragments[2];
-    auto discrete = fragments[1];
-    auto cont = fragments[0];
+    if (goal_type != Constants::DIAMOND)
+        handle_error(TypeException{"$Wrong_path_quantifier"});
+
+    auto boundVar = fragments[4];
+    auto bound = fragments[3];
+    auto discrete = fragments[2];
+    auto cont = fragments[1];
+    auto goal = fragments[0];
 
     if (!discrete.is_true() && !cont.is_true()) {
         discrete.set_type(type_t::create_primitive(LIST, position));
@@ -710,15 +714,16 @@ void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptyp
         price = make_constant(1);
         break;
     case EXPRPRICE:  // user-provided expression
-        price = fragments[4];
+        price = fragments[5];
         ++nb;
         break;
+    case PROBAPRICE: price = goal; break;
     default: handle_error(TypeException{"$Unknown_price_type"});
     }
 
     assert(nb <= fragments.size());
 
-    auto args = std::vector<expression_t>{boundVar, bound, price, level, discrete, cont};
+    auto args = std::vector<expression_t>{boundVar, bound, goal, price, level, discrete, cont};
     fragments.pop(nb);
     fragments.push(expression_t::create_nary(kind, std::move(args), position));
 }

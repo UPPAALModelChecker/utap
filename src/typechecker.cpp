@@ -2321,7 +2321,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
     case MIN_EXP:
     case MAX_EXP:
-        // 0 = bound clock, 1 = boundvar, 2 = price
+        // 0 = bound clock, 1 = boundvar, 2 = goal, 3 = price
         if (!is_const_integer(expr[0]) && !is_clock(expr[0])) {
             handleError(expr[0], "$Clock_expected");
             ok = false;
@@ -2332,13 +2332,16 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
         if (!ok)
             return false;
-        for (size_t i = 2; i < expr.get_size(); ++i) {
+
+        if (is_formula(expr[2]))
+            type = type_t::create_primitive(FORMULA);
+
+        for (size_t i = 3; i < expr.get_size(); ++i) {
             if (expr[i].changes_any_variable()) {
                 handleError(expr[i], "$Property_must_be_side-effect_free");
                 return false;
             }
         }
-        type = type_t::create_primitive(FORMULA);
         break;
     case SMC_CONTROL:
         if (expr.get_size() == 3) {

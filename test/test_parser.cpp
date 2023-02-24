@@ -162,26 +162,50 @@ TEST_CASE("Parsing implicit goals for learning queries")
     auto doc = read_document("simpleSystem.xml");
     auto builder = std::make_unique<QueryBuilder>(*doc);
 
-    SUBCASE("Implicit constraint goal")
+    SUBCASE("Implicit time goal time priced")
     {
-        auto res = parseProperty("minE[c<=25]", builder.get());
+        auto res = parseProperty("minPr[<=20]", builder.get());
+        CHECK(res == -1);
+    }
+
+    SUBCASE("Implicit step goal time priced")
+    {
+        REQUIRE(doc->get_errors().size() == 0);
+        auto res = parseProperty("minE(c)[#<=20]", builder.get());
+        CHECK(res == -1);
+    }
+
+    SUBCASE("Implicit constraint goal expr priced")
+    {
+        auto res = parseProperty("minE(c)[c<=25]", builder.get());
+        CHECK(res == -1);
+    }
+
+    SUBCASE("Implicit time goal expr priced")
+    {
+        auto res = parseProperty("minE(c)[<=20]", builder.get());
+        CHECK(res == -1);
+    }
+
+    SUBCASE("Implicit step goal expr priced")
+    {
+        auto res = parseProperty("minE(c)[#<=20]", builder.get());
+        CHECK(res == -1);
+    }
+
+    SUBCASE("Explicit goal expr priced")
+    {
+        REQUIRE(doc->get_errors().size() == 0);
+        auto res = parseProperty("minE(c)[<=20] :<> true", builder.get());
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().size() == 0);
     }
 
-    SUBCASE("Implicit time goal")
-    {
-        auto res = parseProperty("minE[<=20]", builder.get());
-        REQUIRE(res == 0);
-        builder->typecheck();
-        REQUIRE(doc->get_errors().size() == 0);
-    }
-
-    SUBCASE("Implicit step goal")
+    SUBCASE("Explicit constraint goal expr priced")
     {
         REQUIRE(doc->get_errors().size() == 0);
-        auto res = parseProperty("minE[#<=20]", builder.get());
+        auto res = parseProperty("minE(c)[<=20] :<> c>=5", builder.get());
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().size() == 0);
