@@ -533,6 +533,9 @@ public:
     /** Returns the processes of the document. */
     std::list<instance_t>& get_processes() { return processes; }
 
+    /** Returns the instances of the document. */
+    const std::list<instance_t>& get_instances() const { return instances; }
+
     options_t& get_options();
     void set_options(const options_t& options);
 
