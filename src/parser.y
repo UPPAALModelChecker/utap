@@ -2139,17 +2139,25 @@ return
 ;
 }
 
+#include <iostream>
+
 int32_t parse_XTA(const char *str, ParserBuilder *builder, bool newxta)
 {
-    if (newxta)
+    if (newxta){
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        builder->builtin_decl_end();  
+    }
+
     return parse_XTA(str, builder, newxta, S_XTA, "");
 }
 
 int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
 {
-    if (newxta)
+    if (newxta){
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        builder->builtin_decl_end();  
+    }
+
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
     int res = parse_XTA(builder, newxta, S_XTA, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);

@@ -220,6 +220,8 @@ public:
     void expr_foreach_dynamic_end(const char* name) override;
     void push_dynamic_frame_of(template_t* t, std::string name);  // no override
     void pop_dynamic_frame_of(std::string name);
+
+    void builtin_decl_end() override;
 };
 }  // namespace UTAP
 

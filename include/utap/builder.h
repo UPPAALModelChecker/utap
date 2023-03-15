@@ -444,6 +444,13 @@ public:
     virtual void query_results_begin() = 0;
     virtual void query_results_end() = 0;
     virtual void query_end() = 0;
+
+    // Called after built in declarations have been parsed
+    virtual void builtin_decl_end() = 0;
+
+    // Before and after system declarations are parsed
+    virtual void system_decl_begin() = 0;
+    virtual void system_decl_end() = 0;
 };
 
 /** Error/warning messages with some arguments */

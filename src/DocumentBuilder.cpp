@@ -38,7 +38,9 @@ using std::string;
 
 DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::path> paths):
     StatementBuilder{doc, std::move(paths)}
-{}
+{
+    declarations.push(&doc.get_globals());
+}
 
 /************************************************************
  * Variable and function declarations
@@ -48,7 +50,7 @@ variable_t* DocumentBuilder::addVariable(type_t type, const std::string& name, e
     if (currentFun) {
         return document.add_variable_to_function(currentFun, frames.top(), type, name, init, pos);
     } else {
-        return document.add_variable(getCurrentDeclarationBlock(), type, name, init, pos);
+        return document.add_variable(getCurrentDeclarationBlock(), frames.top(), type, name, init, pos);
     }
 }
 
@@ -57,9 +59,18 @@ bool DocumentBuilder::addFunction(type_t type, const std::string& name, position
     return getCurrentDeclarationBlock()->add_function(type, name, pos, currentFun);
 }
 
-declarations_t* DocumentBuilder::getCurrentDeclarationBlock()
+declarations_t* DocumentBuilder::getCurrentDeclarationBlock() { return declarations.top(); }
+
+void DocumentBuilder::system_decl_begin()
 {
-    return (currentTemplate ? currentTemplate : &document.get_globals());
+    declarations.push(&document.get_system_declarations());
+    push_frame(document.get_system_declarations().frame);
+}
+
+void DocumentBuilder::system_decl_end()
+{
+    declarations.pop();
+    popFrame();
 }
 
 void DocumentBuilder::addSelectSymbolToFrame(const std::string& id, frame_t& frame, position_t pos)
@@ -165,12 +176,14 @@ void DocumentBuilder::proc_begin(const char* name, const bool isTA, const string
         }
     }
 
+    declarations.push(currentTemplate);
     push_frame(currentTemplate->frame);
     params = frame_t::create();
 }
 
 void DocumentBuilder::proc_end()  // 1 ProcBody
 {
+    declarations.pop();
     currentTemplate = nullptr;
     popFrame();
 }
@@ -642,7 +655,10 @@ void DocumentBuilder::prechart_set(const bool pch) { currentTemplate->has_precha
 void DocumentBuilder::decl_dynamic_template(const std::string& name)
 {
     // Should be null, but error recovery can result in proc_end not being called
-    currentTemplate = nullptr;
+    if (currentTemplate != nullptr) {
+        currentTemplate = nullptr;
+        declarations.pop();
+    }
     /* check if name already exists */
     if (frames.top().contains(name)) {
         handle_error(DuplicateDefinitionError(name));

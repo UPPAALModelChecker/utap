@@ -523,6 +523,8 @@ public:
 
     /** Returns the global declarations of the document. */
     declarations_t& get_globals() { return global; }
+    frame_t get_builtin_decls() { return global.frame.get_parent(); }
+    declarations_t& get_system_declarations() { return system_declarations; }
 
     /** Returns the templates of the document. */
     std::list<template_t>& get_templates() { return templates; }
@@ -548,7 +550,8 @@ public:
 
     variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,
                                          position_t);
-    variable_t* add_variable(declarations_t*, type_t type, const std::string&, expression_t initial, position_t);
+    variable_t* add_variable(declarations_t*, frame_t, type_t type, const std::string&, expression_t initial,
+                             position_t);
     void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
 
     template_t& add_template(const std::string& name, frame_t params, position_t, bool isTA = true,
@@ -656,6 +659,7 @@ protected:
 
     // Global declarations
     declarations_t global;
+    declarations_t system_declarations;
 
     expression_t before_update;
     expression_t after_update;

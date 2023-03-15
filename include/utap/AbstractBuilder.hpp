@@ -298,6 +298,10 @@ public:
     void query_results_begin() override;
     void query_results_end() override;
     void query_end() override;
+
+    void builtin_decl_end() override {}
+    void system_decl_begin() override {}
+    void system_decl_end() override {}
 };
 }  // namespace UTAP
 #endif
