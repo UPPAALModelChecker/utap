@@ -14,6 +14,8 @@
  * Created on 20 August 2021, 09:47
  */
 
+#include "document_fixture.h"
+
 #include "utap/StatementBuilder.hpp"
 #include "utap/typechecker.h"
 #include "utap/utap.h"
@@ -186,4 +188,12 @@ TEST_CASE("Parsing implicit goals for learning queries")
         builder->typecheck();
         REQUIRE(doc->get_errors().size() == 0);
     }
+}
+
+TEST_CASE("Heap-use-after-free reported by ASAN due to double free")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void f(){ int x = }");
+
+    auto doc = f.parse();
 }

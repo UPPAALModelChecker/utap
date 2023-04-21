@@ -47,12 +47,6 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
     this->libpaths.insert(this->libpaths.begin(), "");
 }
 
-StatementBuilder::~StatementBuilder() noexcept
-{
-    for (auto* b : blocks)
-        delete b;
-}
-
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
 {
     std::set<symbol_t> symbols;
@@ -356,7 +350,6 @@ void StatementBuilder::decl_func_begin(const char* name)
          */
         currentFun = nullptr;
         while (!blocks.empty()) {
-            delete blocks.back();
             blocks.pop_back();
         }
     }
@@ -383,8 +376,7 @@ void StatementBuilder::decl_func_begin(const char* name)
 
     /* Create function block.
      */
-    currentFun->body = std::make_unique<BlockStatement>(frames.top());
-    blocks.push_back(currentFun->body.get());
+    blocks.push_back(std::make_unique<BlockStatement>(frames.top()));
 }
 
 void StatementBuilder::decl_func_end()
@@ -395,11 +387,11 @@ void StatementBuilder::decl_func_end()
     /* Recover from unterminated blocks - delete any excess blocks.
      */
     while (blocks.size() > 1) {
-        delete blocks.back();
         blocks.pop_back();
     }
 
-    assert(currentFun->body.get() == blocks.back());
+    currentFun->body = std::move(blocks.back());
+    blocks.pop_back();
 
     /* If function has a non void return type, then check that last
      * statement is a return statement.
@@ -407,10 +399,6 @@ void StatementBuilder::decl_func_end()
     if (!currentFun->uid.get_type()[0].is_void() && !currentFun->body->returns()) {
         handle_error(TypeException{"$Return_statement_expected"});
     }
-
-    /* Pop outer function block.
-     */
-    blocks.pop_back();
 
     /* Restore global frame.
      */
@@ -476,8 +464,7 @@ void StatementBuilder::decl_external_func(const char* name, const char* alias)
     }
     push_frame(frame_t::create(frames.top()));
     params.move_to(frames.top());  // params is emptied here
-    currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());
-    blocks.push_back(currentFun->body.get());
+    blocks.push_back(std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void()));
     decl_func_end();
 }
 
@@ -487,16 +474,16 @@ void StatementBuilder::decl_external_func(const char* name, const char* alias)
 void StatementBuilder::block_begin()
 {
     push_frame(frame_t::create(frames.top()));
-    blocks.push_back(new BlockStatement(frames.top()));
+    blocks.push_back(std::make_unique<BlockStatement>(frames.top()));
 }
 
 void StatementBuilder::block_end()
 {
     // Append the block which is being terminated as a statement to
     // the containing block.
-    BlockStatement* block = blocks.back();
+    std::unique_ptr<BlockStatement> block = std::move(blocks.back());
     blocks.pop_back();
-    blocks.back()->push_stat(std::unique_ptr<BlockStatement>(block));
+    blocks.back()->push_stat(std::move(block));
 
     // Restore containing frame
     popFrame();
