@@ -10,7 +10,7 @@ add_custom_target(lexer_generate DEPENDS "${lexer_source}")
 
 set(parser_source "${CMAKE_CURRENT_BINARY_DIR}/parser.cpp")
 add_custom_command(OUTPUT "${parser_source}" "${CMAKE_CURRENT_BINARY_DIR}/include/parser.hpp"
-        COMMAND ${BISON_EXECUTABLE} -putap_ -bparser "${CMAKE_CURRENT_SOURCE_DIR}/parser.y" "--output=${parser_source}" "--defines=${CMAKE_CURRENT_BINARY_DIR}/include/parser.hpp"
+        COMMAND ${BISON_EXECUTABLE} -putap_ -bparser -Wcounterexamples "${CMAKE_CURRENT_SOURCE_DIR}/parser.y" "--output=${parser_source}" "--defines=${CMAKE_CURRENT_BINARY_DIR}/include/parser.hpp"
         DEPENDS lexer_generate parser.y
         )
 add_custom_target(parser_generate DEPENDS "${parser_source}")
