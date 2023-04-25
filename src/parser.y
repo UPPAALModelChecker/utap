@@ -585,10 +585,10 @@ ParameterList:
 
 Parameter:
           Type '&' NonTypeId ArrayDecl {
-          CALL(@3, @3, decl_parameter($3, true));
+          CALL(@1, @3, decl_parameter($3, true));
         }
         | Type NonTypeId ArrayDecl {
-          CALL(@2, @2, decl_parameter($2, false));
+          CALL(@1, @2, decl_parameter($2, false));
         }
         ;
 
