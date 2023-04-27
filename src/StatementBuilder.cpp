@@ -381,8 +381,8 @@ BlockStatement& StatementBuilder::get_block() { return blocks.empty() ? *current
 
 void StatementBuilder::decl_func_end()
 {
-    assert(currentFun->body);
     assert(currentFun);
+    assert(currentFun->body);
 
     /* Recover from unterminated blocks - delete any excess blocks.
      */
