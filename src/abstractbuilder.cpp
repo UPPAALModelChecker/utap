@@ -300,7 +300,7 @@ void AbstractBuilder::expr_builtin_function2(Constants::kind_t) { UNSUPPORTED; }
 
 void AbstractBuilder::expr_builtin_function3(Constants::kind_t) { UNSUPPORTED; }
 
-void AbstractBuilder::expr_optimize_exp(Constants::kind_t, PRICETYPE) { UNSUPPORTED; }
+void AbstractBuilder::expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) { UNSUPPORTED; }
 
 void AbstractBuilder::expr_load_strategy() { UNSUPPORTED; }
 

@@ -358,7 +358,8 @@ public:
 
     // Extensions for learning:
     enum PRICETYPE { TIMEPRICE, EXPRPRICE, PROBAPRICE };
-    virtual void expr_optimize_exp(Constants::kind_t, PRICETYPE) = 0;  ///< minimize/maximize expected value query
+    virtual void expr_optimize_exp(Constants::kind_t, PRICETYPE,
+                                   Constants::kind_t) = 0;  ///< minimize/maximize expected value query
     virtual void expr_load_strategy() = 0;
     virtual void expr_save_strategy() = 0;
 
