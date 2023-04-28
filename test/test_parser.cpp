@@ -14,6 +14,8 @@
  * Created on 20 August 2021, 09:47
  */
 
+#include "document_fixture.h"
+
 #include "utap/StatementBuilder.hpp"
 #include "utap/typechecker.h"
 #include "utap/utap.h"
@@ -210,4 +212,87 @@ TEST_CASE("Parsing implicit goals for learning queries")
         builder->typecheck();
         REQUIRE(doc->get_errors().size() == 0);
     }
+}
+
+TEST_CASE("Function body is recovered after syntax error")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void f(){ int x = }");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 1);
+    CHECK(doc->get_globals().functions.back().body != nullptr);
+}
+
+TEST_CASE("Multiple functions despite early failure variable decl")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void failing(){ int x = } void working(){ int x = 5;}");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 2);
+    for (const UTAP::function_t& func : doc->get_globals().functions)
+        CHECK(func.body != nullptr);
+}
+
+TEST_CASE("Multiple functions despite early failure type def")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void failing(){ typedef int } void working(){ typedef int x;}");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 2);
+    for (const UTAP::function_t& func : doc->get_globals().functions)
+        CHECK(func.body != nullptr);
+}
+
+TEST_CASE("variable declaration failure shoulnt shadow declarations")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("int x = 0;int asdf\nint z = 0;");
+
+    auto doc = f.parse();
+    UTAP::symbol_t sym;
+    CHECK(doc->get_globals().frame.resolve("x", sym));
+    CHECK(doc->get_globals().frame.resolve("z", sym));
+}
+
+TEST_CASE("variable declaration failure shoulnt shadow declarations")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("typedef int x;\ntypedef int y\ntypedef int z;");
+
+    auto doc = f.parse();
+    UTAP::symbol_t sym;
+    CHECK(doc->get_globals().frame.resolve("x", sym));
+    CHECK(doc->get_globals().frame.resolve("z", sym));
+}
+
+TEST_CASE("variable declaration failure shoulnt shadow function")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("typedef int y\nvoid func(){}");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 1);
+}
+
+TEST_CASE("Missing closing curlybrace for function")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void func(){ ");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 1);
+    CHECK(doc->get_errors().size() > 0);
+}
+
+TEST_CASE("Missing closing curlybrace shouldnt shadow function")
+{
+    auto f = document_fixture{};
+    f.add_global_decl("void func() {} void func2(){ ");
+
+    auto doc = f.parse();
+    CHECK(doc->get_globals().functions.size() == 2);
+    CHECK(doc->get_errors().size() > 0);
 }
