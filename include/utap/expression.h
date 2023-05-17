@@ -217,6 +217,7 @@ public:
     static expression_t create_var_index(int32_t, position_t = {});
 
     static expression_t create_double(double, position_t = {});
+    static expression_t create_string(const char*, position_t = {});
 
     /** Create an IDENTIFIER expression */
     static expression_t create_identifier(symbol_t, position_t = {});

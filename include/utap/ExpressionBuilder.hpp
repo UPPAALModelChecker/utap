@@ -111,6 +111,7 @@ protected:
 
     expression_t make_constant(int value) const;
     expression_t make_constant(double value) const;
+    expression_t make_constant(const char* value) const;
 
     /**
      * Given a prefix and a type, this method creates a new type
@@ -191,6 +192,8 @@ public:
     void expr_builtin_function2(Constants::kind_t) override;
     void expr_builtin_function3(Constants::kind_t) override;
     void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+    // void strategy_declaration(const char* name) override;
+    void subjection(const char* name) override;
     void expr_save_strategy() override;
     void expr_load_strategy() override;
 

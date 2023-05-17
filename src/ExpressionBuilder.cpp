@@ -106,6 +106,11 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
+expression_t ExpressionBuilder::make_constant(const char* value) const
+{
+    return expression_t::create_string(value, position);
+}
+
 type_t ExpressionBuilder::apply_prefix(PREFIX prefix, type_t type)
 {
     switch (prefix) {
@@ -281,12 +286,10 @@ void ExpressionBuilder::expr_double(double d)
 
 void ExpressionBuilder::expr_string(const char* name)
 {
-    auto newstring = std::string{name};
-    // remove quotes:
-    newstring.pop_back();
-    newstring.erase(0, 1);
-    expression_t expr = make_constant((int)document.add_string_if_new(newstring));
-    expr.set_type(type_t::create_primitive(Constants::STRING));
+    auto is = std::istringstream{name};
+    auto newstring = std::string{};
+    is >> std::quoted(newstring);
+    expression_t expr = make_constant(newstring.c_str());
     fragments.push(expr);
 }
 
@@ -741,9 +744,25 @@ void ExpressionBuilder::expr_load_strategy()
     fragments.push(expression_t::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
 }
 
+/*
+void ExpressionBuilder::strategy_declaration(const char* name)
+{
+    fragments[0] = expression_t::create_binary()
+}
+*/
+
+void ExpressionBuilder::subjection(const char* name)
+{  // TODO: lookup a proper identifier symbol instead of just a constant
+    fragments.push(make_constant(name));
+}
+
 void ExpressionBuilder::expr_save_strategy()
 {
-    fragments[0] = expression_t::create_unary(SAVE_STRAT, fragments[0], position);
+    assert(fragments.size() == 2);
+    auto strategy = fragments[0];
+    auto path = fragments[1];
+    fragments.pop(2);
+    fragments.push(expression_t::create_binary(SAVE_STRAT, path, strategy, position));
 }
 
 void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)

@@ -24,6 +24,7 @@
 #include "utap/document.h"
 
 #include <algorithm>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
 #include <cassert>
@@ -51,12 +52,17 @@ struct expression_t::expression_data : public std::enable_shared_from_this<expre
         int32_t index;
         synchronisation_t sync; /**< The sync value of the node  */
         double doubleValue;
+        char* text;
     };
     symbol_t symbol;                 /**< The symbol of the node */
     type_t type;                     /**< The type of the expression */
     std::vector<expression_t> sub{}; /**< Subexpressions */
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
-    ~expression_data() noexcept = default;
+    ~expression_data() noexcept
+    {
+        if (kind == Constants::CONSTANT && type.is(Constants::STRING) && text != nullptr)
+            free(text);  // created in expression_t::make_constant(const char*)
+    }
 };
 
 expression_t::expression_t(kind_t kind, const position_t& pos)
@@ -453,8 +459,7 @@ size_t expression_t::get_size() const
     case EF_CONTROL:
     case CONTROL_TOPT_DEF2:
     case PMAX:
-    case SCENARIO:
-    case SAVE_STRAT: assert(data->sub.size() == 1); return 1;
+    case SCENARIO: assert(data->sub.size() == 1); return 1;
 
     case LEADS_TO:
     case SCENARIO2:
@@ -462,7 +467,8 @@ size_t expression_t::get_size() const
     case A_WEAK_UNTIL:
     case A_BUCHI:
     case PO_CONTROL:
-    case CONTROL_TOPT_DEF1: assert(data->sub.size() == 2); return 2;
+    case CONTROL_TOPT_DEF1:
+    case SAVE_STRAT: assert(data->sub.size() == 2); return 2;
 
     case CONTROL_TOPT:
     case SMC_CONTROL: assert(data->sub.size() == 3); return 3;
@@ -1185,7 +1191,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         if (get_type().is(Constants::DOUBLE)) {
             os << get_double_value();
         } else if (get_type().is_string()) {
-            os << "string#" << data->value;
+            os << data->text;
         } else if (get_type().is(Constants::INT)) {
             os << data->value;
         } else {
@@ -1328,9 +1334,11 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case DEADLOCK: os << "deadlock"; break;
 
     case LIST:
-        get(0).print(os, old);
-        for (uint32_t i = 1; i < get_size(); i++)
-            get(i).print(os << ", ", old);
+        if (get_size() > 0) {
+            get(0).print(os, old);
+            for (uint32_t i = 1; i < get_size(); i++)
+                get(i).print(os << ", ", old);
+        }
         break;
 
     case FUN_CALL:
@@ -1409,6 +1417,66 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         print_bound_type(os, get(0));
         get(1).print(os, old) << "]: ";
         get(2).print(os, old);
+        break;
+
+    case MIN_EXP:
+        assert(get_size() == 7);
+        os << "minE(";
+        get(3).print(os, old);
+        os << ")[";
+        if (get(0).get_kind() == Constants::CONSTANT) {
+            if (bool is_step_bound = (get(0).get_value() == 0))
+                os << "#";
+        } else {
+            get(0).print(os, old);
+        }
+        os << "<=";
+        get(1).print(os, old);
+        os << "]";
+        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+            features1.print(os << " {", old);
+            os << "} -> {";
+            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+                features2.print(os, old);
+            os << "}";
+        }
+        os << " : <> ";
+        get(2).print(os, old);
+        break;
+    case MAX_EXP:
+        assert(get_size() == 7);
+        os << "maxE(";
+        get(3).print(os, old);
+        os << ")[";
+        if (get(0).get_kind() == Constants::CONSTANT) {
+            if (bool is_step_bound = (get(0).get_value() == 0))
+                os << "#";
+        } else {
+            get(0).print(os, old);
+        }
+        os << "<=";
+        get(1).print(os, old);
+        os << "]";
+        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+            features1.print(os << " {", old);
+            os << "} -> {";
+            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+                features2.print(os, old);
+            os << "}";
+        }
+        os << " : <> ";
+        get(2).print(os, old);
+        break;
+    case SAVE_STRAT: os << "saveStrategy(" << std::quoted(get(0).data->text) << ", " << get(1).data->text << ")"; break;
+    case LOAD_STRAT:
+        os << "loadStrategy(";
+        get(0).print(os, old);
+        if (!get(1).is_true() && !get(2).is_true()) {
+            os << ", {";
+            get(2).print(os, old) << "} -> {";
+            get(3).print(os, old) << "}";
+        }
+        os << ')';
         break;
 
     case PO_CONTROL:
@@ -1513,17 +1581,6 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(0).print(os, old) << " : ";
         get(1).print(os, old) << " )( ";
         get(2).print(os, old) << ")";
-        break;
-    case SAVE_STRAT: os << "saveStrategy(...)"; break;
-    case LOAD_STRAT:
-        os << "loadStrategy(";
-        get(0).print(os, old);
-        if (!get(1).is_true() && !get(2).is_true()) {
-            os << ", {";
-            get(2).print(os, old) << "} -> {";
-            get(3).print(os, old) << "}";
-        }
-        os << ')';
         break;
     default: throw std::logic_error("Support is not implemented for the given expression type");
     }
@@ -1679,6 +1736,14 @@ expression_t expression_t::create_double(double value, position_t pos)
     auto expr = expression_t{CONSTANT, pos};
     expr.data->doubleValue = value;
     expr.data->type = type_t::create_primitive(Constants::DOUBLE);
+    return expr;
+}
+
+expression_t expression_t::create_string(const char* value, position_t pos)
+{
+    auto expr = expression_t{CONSTANT, pos};
+    expr.data->text = strdup(value);
+    expr.data->type = type_t::create_primitive(Constants::STRING);
     return expr;
 }
 

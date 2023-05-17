@@ -618,6 +618,7 @@ public:
     bool has_urgent_transition() const { return hasUrgentTrans; }
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
+    /*
     const std::vector<std::string>& get_strings() const { return strings; }
     void add_string(const std::string& string) { strings.push_back(string); }
     size_t add_string_if_new(const std::string& string)
@@ -630,6 +631,7 @@ public:
             return std::distance(std::begin(strings), it);
         }
     }
+     */
 
 protected:
     bool hasUrgentTrans{false};

@@ -112,11 +112,11 @@ public:
     UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
                                   UTAP::position_t pos) override
     {
-        throw UTAP::NotSupportedException("addVariable is not supported");
+        throw UTAP::NotSupportedException(__FUNCTION__);
     }
     bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override
     {
-        throw UTAP::NotSupportedException("addFunction is not supported");
+        throw UTAP::NotSupportedException(__FUNCTION__);
     }
 };
 
@@ -157,6 +157,188 @@ TEST_CASE("SMC bounds in queries")
         CHECK(expr.get(0).get_value() == -1);  // number of runs
     }
 }
+
+TEST_CASE("Minimization pretty printing")
+{
+    auto doc = read_document("simpleSystem.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    SUBCASE("global time bound")
+    {
+        auto res = parseProperty("minE(c)[<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("step bound")
+    {
+        auto res = parseProperty("minE(c)[#<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[#<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("cost bound without features")
+    {
+        auto res = parseProperty("minE(c)[c<=20] : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[c<=20] : <> c >= 20");
+    }
+    SUBCASE("empty features")
+    {
+        auto res = parseProperty("minE(c)[c<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[c<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("one discrete feature")
+    {
+        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[c<=20] {Process.location} -> {} : <> c >= 20");
+    }
+    SUBCASE("one continuous feature")
+    {
+        auto res = parseProperty("minE(c)[c<=20] {} -> { c } : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[c<=20] {} -> {c} : <> c >= 20");
+    }
+    SUBCASE("discrete and continuous features")
+    {
+        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "minE(c)[c<=20] {Process.location} -> {c} : <> c >= 20");
+    }
+}
+
+TEST_CASE("Maximization pretty printing")
+{
+    auto doc = read_document("simpleSystem.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    SUBCASE("global time bound")
+    {
+        auto res = parseProperty("maxE(c)[<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("step bound")
+    {
+        auto res = parseProperty("maxE(c)[#<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[#<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("cost bound without features")
+    {
+        auto res = parseProperty("maxE(c)[c<=20] : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[c<=20] : <> c >= 20");
+    }
+    SUBCASE("empty features")
+    {
+        auto res = parseProperty("maxE(c)[c<=20] {} -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[c<=20] {} -> {} : <> c >= 20");
+    }
+    SUBCASE("one discrete feature")
+    {
+        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> {} : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[c<=20] {Process.location} -> {} : <> c >= 20");
+    }
+    SUBCASE("one continuous feature")
+    {
+        auto res = parseProperty("maxE(c)[c<=20] {} -> { c } : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[c<=20] {} -> {c} : <> c >= 20");
+    }
+    SUBCASE("discrete and continuous features")
+    {
+        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        auto os = std::ostringstream{};
+        builder->getQuery().print(os);
+        CHECK(os.str() == "maxE(c)[c<=20] {Process.location} -> {c} : <> c >= 20");
+    }
+}
+
+TEST_CASE("saveStrategy pretty printing")
+{
+    auto doc = read_document("simpleSystem.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    auto res = parseProperty("saveStrategy(\"path\", Name)", builder.get());
+    REQUIRE(res == 0);
+    builder->typecheck();
+    REQUIRE(doc->get_errors().empty());
+    auto os = std::ostringstream{};
+    builder->getQuery().print(os);
+    CHECK(os.str() == "saveStrategy(\"path\", Name)");
+}
+
+/*
+TEST_CASE("loadStrategy pretty printing")
+{
+    auto doc = read_document("simpleSystem.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    auto res = parseProperty("strategy Name = loadStrategy{Process.location}->{c}(\"path\")", builder.get());
+    CHECK(res == 0);
+    builder->typecheck();
+    for (auto&& err : doc->get_errors())
+        std::cerr << err << std::endl;
+    CHECK(doc->get_errors().empty());
+    auto os = std::ostringstream{};
+    builder->getQuery().print(os);
+    CHECK(os.str() == "strategy Name = loadStrategy{Process.location}->{c}(\"path\")");
+}
+*/
 
 TEST_CASE("Parsing implicit goals for learning queries")
 {
