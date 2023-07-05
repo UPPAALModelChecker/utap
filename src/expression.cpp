@@ -928,6 +928,10 @@ int expression_t::get_precedence(kind_t kind)
     case FOREACH_DYNAMIC:
     case SUM_DYNAMIC:
     case PROCESS_VAR:
+    case PROBA_CMP:
+    case BOX:
+    case DIAMOND:
+    case SIMULATEREACH:
     case DYNAMIC_EVAL: return -1;  // TODO
 
     default: throw std::logic_error("Unknown precedence of the expression");
@@ -1065,9 +1069,19 @@ static inline std::ostream& embrace(std::ostream& os, bool old, const expression
         return expr.print(os, old);
 }
 
+int get_precedence_or_default(const expression_t& expr)
+{
+    try {
+        return expr.get_precedence();
+    } catch (const std::logic_error&) {
+        return -1;
+    }
+}
+
 std::ostream& expression_t::print(std::ostream& os, bool old) const
 {
-    const int precedence = get_precedence();
+    const int precedence = get_precedence_or_default(*this);
+
     bool flag = false;
     int nb;
 
@@ -1097,12 +1111,42 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old) << ")";
         break;
 
+    case PROBA_CMP:
+        os << "Pr[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old) << "] (";
+        os << (get(2).get_value() == kind_t::BOX ? "[] " : "<> ");
+        get(3).print(os, old) << ") >= ";
+
+        os << "Pr[";
+        print_bound_type(os, get(4));
+        get(5).print(os, old) << "] (";
+        os << (get(6).get_value() == kind_t::BOX ? "[] " : "<> ");
+        get(7).print(os, old) << ")";
+        break;
+    case BOX: os << "[]"; break;
+    case DIAMOND: os << "<>"; break;
+    case SIMULATEREACH:
+        os << "simulate[";
+        print_bound_type(os, get(1));
+        get(2).print(os, old) << "; ";
+        get(0).print(os, old) << "] {";
+        nb = get_size() - 5;
+        if (nb > 0) {
+            get(3).print(os, old);
+            for (int i = 1; i < nb; ++i)
+                get(3 + i).print(os << ", ", old);
+        }
+        os << "} : ";
+        get(4 + nb).print(os, old) << " : ";
+        get(3 + nb).print(os, old);
+        break;
     case SIMULATE:
         os << "simulate[";
-        get(0).print(os, old) << "x ";
         print_bound_type(os, get(1));
-        get(2).print(os, old) << "]{";
-        nb = get_value() - 3;
+        get(2).print(os, old) << "; ";
+        get(0).print(os, old) << "] {";
+        nb = get_size() - 3;
         if (nb > 0) {
             get(3).print(os, old);
             for (int i = 1; i < nb; ++i)
@@ -1469,14 +1513,12 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         break;
     case SAVE_STRAT: os << "saveStrategy(" << std::quoted(get(0).data->text) << ", " << get(1).data->text << ")"; break;
     case LOAD_STRAT:
-        os << "loadStrategy(";
-        get(0).print(os, old);
-        if (!get(1).is_true() && !get(2).is_true()) {
-            os << ", {";
-            get(2).print(os, old) << "} -> {";
-            get(3).print(os, old) << "}";
+        os << "loadStrategy";
+        if (get(1).get_type().is(LIST) && get(2).get_type().is(LIST)) {
+            get(1).print(os << "{", old) << "} -> {";
+            get(2).print(os, old) << "}";
         }
-        os << ')';
+        get(0).print(os << "(\"", old) << "\")";
         break;
 
     case PO_CONTROL:
@@ -1552,6 +1594,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "numof(";
         get(0).print(os, old) << ")";
         break;
+    case MITL_FORALL:
     case FORALL_DYNAMIC:
         os << "forall(";
         get(0).print(os, old) << " : ";
@@ -1582,7 +1625,54 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(1).print(os, old) << " )( ";
         get(2).print(os, old) << ")";
         break;
-    default: throw std::logic_error("Support is not implemented for the given expression type");
+    case TYPEDEF: os << "typedef"; break;
+
+    // Types - Not applicable in expression printing
+    case RANGE:
+    case RECORD:
+    case REF:
+    case URGENT:
+    case COMMITTED:
+    case BROADCAST:
+    case VOID_TYPE:
+    case CLOCK:
+    case INT:
+    case DOUBLE:
+    case STRING:
+    case BOOL:
+    case SCALAR:
+    case CHANNEL:
+    case INVARIANT:
+    case INVARIANT_WR:
+    case HYBRID:
+    case PROCESS_SET:
+    case SYSTEM_META:
+    case GUARD:
+    case DIFF:
+    case CONSTRAINT:
+    case FORMULA:
+    case COST:
+    case PROCESS:
+    case INSTANCE:
+    case LABEL:
+    case FUNCTION_EXTERNAL:
+    case FUNCTION:
+    case LOCATION_EXPR:
+    case LOCATION:
+    case BRANCHPOINT:
+    case DOUBLE_INV_GUARD:
+    // Deprecated LSC features
+    case SCENARIO:
+    case SCENARIO2:
+    case INSTANCE_LINE:
+    case MESSAGE:
+    case CONDITION:
+    case UPDATE:
+    case LSC_INSTANCE:
+    // Deprecated probability feature
+    case PMAX:
+
+    case UNKNOWN: break;
     }
     return os;
 }
