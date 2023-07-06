@@ -618,21 +618,6 @@ public:
     bool has_urgent_transition() const { return hasUrgentTrans; }
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
-    /*
-    const std::vector<std::string>& get_strings() const { return strings; }
-    void add_string(const std::string& string) { strings.push_back(string); }
-    size_t add_string_if_new(const std::string& string)
-    {
-        auto it = std::find(std::begin(strings), std::end(strings), string);
-        if (it == std::end(strings)) {
-            strings.push_back(string);
-            return strings.size() - 1;
-        } else {
-            return std::distance(std::begin(strings), it);
-        }
-    }
-     */
-
 protected:
     bool hasUrgentTrans{false};
     bool hasPriorities{false};
@@ -673,7 +658,6 @@ protected:
 
     std::string location;
     std::vector<library_t> libraries;
-    std::vector<std::string> strings;
     SupportedMethods supported_methods{};
 
 public:

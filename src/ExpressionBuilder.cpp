@@ -106,9 +106,9 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
-expression_t ExpressionBuilder::make_constant(const char* value) const
+expression_t ExpressionBuilder::make_constant(std::string value) const
 {
-    return expression_t::create_string(value, position);
+    return expression_t::create_string(std::move(value), position);
 }
 
 type_t ExpressionBuilder::apply_prefix(PREFIX prefix, type_t type)
@@ -289,7 +289,7 @@ void ExpressionBuilder::expr_string(const char* name)
     auto is = std::istringstream{name};
     auto newstring = std::string{};
     is >> std::quoted(newstring);
-    expression_t expr = make_constant(newstring.c_str());
+    expression_t expr = make_constant(std::move(newstring));
     fragments.push(expr);
 }
 

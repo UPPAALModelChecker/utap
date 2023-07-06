@@ -111,7 +111,7 @@ protected:
 
     expression_t make_constant(int value) const;
     expression_t make_constant(double value) const;
-    expression_t make_constant(const char* value) const;
+    expression_t make_constant(std::string value) const;
 
     /**
      * Given a prefix and a type, this method creates a new type

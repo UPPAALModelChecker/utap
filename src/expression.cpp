@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <variant>
 #include <cassert>
 #include <cstring>
 
@@ -46,23 +47,13 @@ struct expression_t::expression_data : public std::enable_shared_from_this<expre
 {
     position_t position; /**< The position of the expression */
     kind_t kind;         /**< The kind of the node */
-    union
-    {
-        int32_t value; /**< The value of the node */
-        int32_t index;
-        synchronisation_t sync; /**< The sync value of the node  */
-        double doubleValue;
-        char* text;
-    };
+
+    std::variant<int32_t, synchronisation_t, double, std::string> value;
+
     symbol_t symbol;                 /**< The symbol of the node */
     type_t type;                     /**< The type of the expression */
     std::vector<expression_t> sub{}; /**< Subexpressions */
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
-    ~expression_data() noexcept
-    {
-        if (kind == Constants::CONSTANT && type.is(Constants::STRING) && text != nullptr)
-            free(text);  // created in expression_t::make_constant(const char*)
-    }
 };
 
 expression_t::expression_t(kind_t kind, const position_t& pos)
@@ -449,7 +440,7 @@ size_t expression_t::get_size() const
     case LIST:
     case SIMULATE:
     case SIMULATEREACH:
-    case SPAWN: return data->value;
+    case SPAWN: return std::get<int32_t>(data->value);
 
     case EG:
     case AG:
@@ -517,15 +508,15 @@ void expression_t::set_type(type_t type)
 
 int32_t expression_t::get_value() const
 {
-    assert(data && data->kind == CONSTANT &&
-           (data->type.is_integral() || data->type.is_string() || data->kind == VAR_INDEX));
-    return data->type.is_integer() || data->type.is_string() ? data->value : (data->value ? 1 : 0);
+    assert(data && data->kind == CONSTANT && (data->type.is_integral() || data->kind == VAR_INDEX));
+    int32_t value = std::get<int32_t>(data->value);
+    return data->type.is_integer() ? value : (value ? 1 : 0);
 }
 
 int32_t expression_t::get_record_label_index() const
 {
     assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
-    return data->value;
+    return get_value();
 }
 
 double expression_t::get_double_value() const
@@ -533,21 +524,29 @@ double expression_t::get_double_value() const
     assert(data);
     assert(data->kind == CONSTANT);
     assert(data->type.is(Constants::DOUBLE));
-    return data->doubleValue;
+    return std::get<double>(data->value);
 }
 
 int32_t expression_t::get_index() const
 {
     assert(data);
     assert(data->kind == DOT);
-    return data->index;
+    return std::get<int32_t>(data->value);
 }
 
 synchronisation_t expression_t::get_sync() const
 {
     assert(data);
     assert(data->kind == SYNC);
-    return data->sync;
+    return std::get<synchronisation_t>(data->value);
+}
+
+const std::string& expression_t::get_string_value() const
+{
+    assert(data);
+    assert(data->kind == CONSTANT);
+    assert(data->type.is_string());
+    return std::get<std::string>(data->value);
 }
 
 expression_t& expression_t::operator[](uint32_t i)
@@ -1235,12 +1234,12 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         if (get_type().is(Constants::DOUBLE)) {
             os << get_double_value();
         } else if (get_type().is_string()) {
-            os << data->text;
-        } else if (get_type().is(Constants::INT)) {
-            os << data->value;
+            os << get_string_value();
+        } else if (get_type().is_integer()) {
+            os << std::get<int32_t>(data->value);
         } else {
             assert(get_type().is(Constants::BOOL));
-            os << (data->value ? "true" : "false");
+            os << (std::get<int32_t>(data->value) ? "true" : "false");
         }
         break;
 
@@ -1347,7 +1346,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case DOT: {
         type_t type = get(0).get_type();
         if (type.is_process() || type.is_record())
-            embrace(os, old, get(0), precedence) << '.' << type.get_record_label(data->value);
+            embrace(os, old, get(0), precedence) << '.' << type.get_record_label(std::get<int32_t>(data->value));
         else
             assert(0);
         break;
@@ -1366,7 +1365,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case SYNC:
         get(0).print(os, old);
-        switch (data->sync) {
+        switch (get_sync()) {
         case SYNC_QUE: os << '?'; break;
         case SYNC_BANG: os << '!'; break;
         case SYNC_CSP:
@@ -1511,7 +1510,9 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << " : <> ";
         get(2).print(os, old);
         break;
-    case SAVE_STRAT: os << "saveStrategy(" << std::quoted(get(0).data->text) << ", " << get(1).data->text << ")"; break;
+    case SAVE_STRAT:
+        os << "saveStrategy(" << std::quoted(get(0).get_string_value()) << ", " << get(1).get_string_value() << ")";
+        break;
     case LOAD_STRAT:
         os << "loadStrategy";
         if (get(1).get_type().is(LIST) && get(2).get_type().is(LIST)) {
@@ -1824,15 +1825,15 @@ expression_t expression_t::create_exit(position_t pos)
 expression_t expression_t::create_double(double value, position_t pos)
 {
     auto expr = expression_t{CONSTANT, pos};
-    expr.data->doubleValue = value;
+    expr.data->value = value;
     expr.data->type = type_t::create_primitive(Constants::DOUBLE);
     return expr;
 }
 
-expression_t expression_t::create_string(const char* value, position_t pos)
+expression_t expression_t::create_string(std::string value, position_t pos)
 {
     auto expr = expression_t{CONSTANT, pos};
-    expr.data->text = strdup(value);
+    expr.data->value = std::move(value);
     expr.data->type = type_t::create_primitive(Constants::STRING);
     return expr;
 }
@@ -1852,7 +1853,7 @@ expression_t expression_t::create_identifier(symbol_t symbol, position_t pos)
 expression_t expression_t::create_nary(kind_t kind, vector<expression_t> sub, position_t pos, type_t type)
 {
     auto expr = expression_t{kind, pos};
-    expr.data->value = sub.size();
+    expr.data->value = static_cast<int32_t>(sub.size());
     expr.data->sub = std::move(sub);
     expr.data->type = type;
     return expr;
@@ -1892,7 +1893,7 @@ expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expressi
 expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t pos, type_t type)
 {
     auto expr = expression_t{DOT, pos};
-    expr.data->index = idx;
+    expr.data->value = idx;
     expr.data->sub.push_back(e);
     expr.data->type = type;
     return expr;
@@ -1901,7 +1902,7 @@ expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t po
 expression_t expression_t::create_sync(expression_t e, synchronisation_t s, position_t pos)
 {
     auto expr = expression_t{SYNC, pos};
-    expr.data->sync = s;
+    expr.data->value = s;
     expr.data->sub.push_back(std::move(e));
     return expr;
 }
