@@ -1,9 +1,6 @@
 #ifndef INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 #define INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 
-#include "utap/StatementBuilder.hpp"
-#include "utap/typechecker.h"
-
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -11,6 +8,9 @@
 #include <string>
 #include <cstring>
 
+#include <utap/StatementBuilder.hpp>
+#include <utap/property.h>
+#include <utap/typechecker.h>
 #include <utap/utap.h>
 
 inline std::string read_content(const std::string& file_name)
@@ -132,12 +132,12 @@ public:
 class QueryFixture
 {
     std::unique_ptr<UTAP::Document> doc;
-    QueryBuilder query_builder;
+    UTAP::TigaPropertyBuilder query_builder;
 
 public:
     QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
     auto get_errors() const { return doc->get_errors(); }
-    [[nodiscard]] UTAP::expression_t parse_query(std::string_view query)
+    [[nodiscard]] const UTAP::PropInfo& parse_query(std::string_view query)
     {
         if (parseProperty(query.data(), &query_builder) == -1) {
             if (doc->get_errors().empty())
@@ -145,7 +145,7 @@ public:
             else
                 throw std::logic_error(doc->get_errors()[0].msg);
         }
-        return query_builder.getQuery();
+        return query_builder.getProperties().back();
     }
 };
 

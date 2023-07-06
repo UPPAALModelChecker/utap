@@ -744,25 +744,12 @@ void ExpressionBuilder::expr_load_strategy()
     fragments.push(expression_t::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
 }
 
-/*
-void ExpressionBuilder::strategy_declaration(const char* name)
-{
-    fragments[0] = expression_t::create_binary()
-}
-*/
-
-void ExpressionBuilder::subjection(const char* name)
-{  // TODO: lookup a proper identifier symbol instead of just a constant
-    fragments.push(make_constant(name));
-}
-
 void ExpressionBuilder::expr_save_strategy()
 {
-    assert(fragments.size() == 2);
-    auto strategy = fragments[0];
-    auto path = fragments[1];
-    fragments.pop(2);
-    fragments.push(expression_t::create_binary(SAVE_STRAT, path, strategy, position));
+    assert(fragments.size() == 1);
+    auto path = fragments[0];
+    fragments.pop(1);
+    fragments.push(expression_t::create_unary(SAVE_STRAT, path, position));
 }
 
 void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)

@@ -159,15 +159,12 @@ TEST_CASE("Maximization pretty printing")
 
 TEST_CASE("saveStrategy pretty printing")
 {
-    auto doc = read_document("simpleSystem.xml");
-    auto builder = std::make_unique<QueryBuilder>(*doc);
-    auto res = parseProperty("saveStrategy(\"path\", Name)", builder.get());
-    REQUIRE(res == 0);
-    builder->typecheck();
-    REQUIRE(doc->get_errors().empty());
-    auto os = std::ostringstream{};
-    builder->getQuery().print(os);
-    CHECK(os.str() == "saveStrategy(\"path\", Name)");
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+    const auto& strat = f.parse_query("strategy Name = control: A[] true");
+    auto res = f.parse_query("saveStrategy(\"path\", Name)");
+    CHECK(res.subjections.at(0) == &strat);
+    CHECK(res.intermediate.str() == "saveStrategy(\"path\", Name)");
 }
 
 TEST_CASE("Probability compare pretty print")
@@ -175,7 +172,7 @@ TEST_CASE("Probability compare pretty print")
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     REQUIRE(f.get_errors().empty());
 
-    auto query = f.parse_query("Pr[<=20] (<> true) >= Pr[<=5]([] false)");
+    auto query = f.parse_query("Pr[<=20] (<> true) >= Pr[<=5]([] false)").intermediate;
     REQUIRE(query.get_kind() == UTAP::Constants::PROBA_CMP);
     CHECK(query.str() == "Pr[<=20] (<> true) >= Pr[<=5] ([] false)");
 }
@@ -185,11 +182,11 @@ TEST_CASE("Simulate pretty prints")
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     REQUIRE(f.get_errors().empty());
 
-    auto query1 = f.parse_query("simulate[<=20;1000] {5, true} : 100 : true");
+    auto query1 = f.parse_query("simulate[<=20;1000] {5, true} : 100 : true").intermediate;
     REQUIRE(query1.get_kind() == UTAP::Constants::SIMULATEREACH);
     CHECK(query1.str() == "simulate[<=20; 1000] {5, true} : 100 : true");
 
-    auto query2 = f.parse_query("simulate[#<=10;500] {25, false}");
+    auto query2 = f.parse_query("simulate[#<=10;500] {25, false}").intermediate;
     REQUIRE(query2.get_kind() == UTAP::Constants::SIMULATE);
     CHECK(query2.str() == "simulate[#<=10; 500] {25, false}");
 }
