@@ -176,6 +176,8 @@ void ExpressionBuilder::type_bounded_int(PREFIX prefix)
 
 void ExpressionBuilder::type_channel(PREFIX prefix)
 {
+    bool is_broadcast = prefix == PREFIX::PREFIX_BROADCAST || prefix == PREFIX_URGENT_BROADCAST;
+    document.add_channel(is_broadcast);
     type_t type = type_t::create_primitive(CHANNEL, position);
     typeFragments.push(apply_prefix(prefix, type));
 }

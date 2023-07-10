@@ -221,8 +221,8 @@ void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
     if (prob) {
         if (document.has_priority_declaration())
             throw UTAP::TypeException("Priorities are not supported");
-        // if (sys && !sys->allBroadcast())
-        //     throw UTAP::TypeException("All channels must be broadcast");
+        if (!document.all_broadcast())
+            throw UTAP::TypeException("All channels must be broadcast");
     }
     if (document.get_sync_used() == 2 && document.has_priority_declaration())
         throw UTAP::TypeException("CSP synchronization is not implemented with priorities.");
@@ -413,8 +413,8 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
     default: return PropertyBuilder::typeProperty(expr);
     }
 
-    // if (prob && sys && !sys->allBroadcast())
-    //     throw UTAP::TypeException("All channels must be broadcast");
+    if (prob && !document.all_broadcast())
+        throw UTAP::TypeException("All channels must be broadcast");
 
     if (potigaProp && document.has_strict_lower_bound_on_controllable_edges())
         throw UTAP::TypeException("$(PO)TIGA_properties_cannot_be_checked_for_systems_with_strict_lower_bounds_in_"

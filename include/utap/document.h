@@ -628,6 +628,7 @@ protected:
     bool stopsClock{false};
     bool hasStrictLowControlledGuards{false};
     bool hasGuardOnRecvBroadcast{false};
+    bool hasNonBroadcastChan{false};
     int defaultChanPriority{0};
     std::list<chan_priority_t> chan_priorities;
     std::map<std::string, int> proc_priority;
@@ -682,6 +683,8 @@ public:
     void set_supported_methods(const SupportedMethods& supportedMethods);
     const SupportedMethods& get_supported_methods() const { return supported_methods; }
     const position_index_t& get_positions() const { return positions; }
+    void add_channel(bool is_broadcast);
+    bool all_broadcast() const { return !hasNonBroadcastChan; }
 
 private:
     // TODO: move errors & warnings to ParserBuilder to get rid of mutable
