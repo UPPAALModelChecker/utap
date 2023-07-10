@@ -24,6 +24,7 @@
 
 #include "utap/common.h"
 #include "utap/position.h"
+#include "utap/string_interning.h"
 #include "utap/symbols.h"
 
 #include <memory>  // shared_ptr
@@ -113,7 +114,8 @@ public:
     /** Returns the value field of this expression. This
         call is not valid for all expressions. */
     int32_t get_value() const;
-    const std::string& get_string_value() const;
+    std::string_view get_string_value() const;
+    int get_string_index() const;
 
     /** Returns an index into the record-labels
         Assumes that .get_type().is_process() or
@@ -219,7 +221,8 @@ public:
     static expression_t create_var_index(int32_t, position_t = {});
 
     static expression_t create_double(double, position_t = {});
-    static expression_t create_string(std::string, position_t = {});
+    /** Life time of string reference must outlive expression */
+    static expression_t create_string(StringIndex, position_t = {});
 
     /** Create an IDENTIFIER expression */
     static expression_t create_identifier(symbol_t, position_t = {});

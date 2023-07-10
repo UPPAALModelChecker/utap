@@ -24,6 +24,7 @@
 #include "utap/document.h"
 
 #include <algorithm>
+#include <functional>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -48,7 +49,7 @@ struct expression_t::expression_data : public std::enable_shared_from_this<expre
     position_t position; /**< The position of the expression */
     kind_t kind;         /**< The kind of the node */
 
-    std::variant<int32_t, synchronisation_t, double, std::string> value;
+    std::variant<int32_t, synchronisation_t, double, StringIndex> value;
 
     symbol_t symbol;                 /**< The symbol of the node */
     type_t type;                     /**< The type of the expression */
@@ -541,12 +542,20 @@ synchronisation_t expression_t::get_sync() const
     return std::get<synchronisation_t>(data->value);
 }
 
-const std::string& expression_t::get_string_value() const
+std::string_view expression_t::get_string_value() const
 {
     assert(data);
     assert(data->kind == CONSTANT);
     assert(data->type.is_string());
-    return std::get<std::string>(data->value);
+    return std::get<StringIndex>(data->value).str();
+}
+
+int expression_t::get_string_index() const
+{
+    assert(data);
+    assert(data->kind == CONSTANT);
+    assert(data->type.is_string());
+    return std::get<StringIndex>(data->value).index();
 }
 
 expression_t& expression_t::operator[](uint32_t i)
@@ -580,6 +589,21 @@ bool expression_t::is_true() const
     return data == nullptr || (get_type().is_integral() && data->kind == CONSTANT && get_value() == 1);
 }
 
+/**
+ * Compares two variants if they have the same type they'll be compared otherwise return false
+ */
+struct ValueTypeEquality
+{
+    template <typename T1, typename T2>
+    bool operator()(const T1& a, const T2& b) const
+    {
+        if constexpr (std::is_same_v<T1, T2>)
+            return a == b;
+        else
+            return false;
+    }
+};
+
 /** Two expressions are identical iff all the sub expressions
     are identical and if the kind, value and symbol of the
     root are identical. */
@@ -589,8 +613,8 @@ bool expression_t::equal(const expression_t& e) const
         return true;
     }
 
-    if (get_size() != e.get_size() || data->kind != e.data->kind || data->value != e.data->value ||
-        data->symbol != e.data->symbol) {
+    if (get_size() != e.get_size() || data->kind != e.data->kind ||
+        !std::visit(ValueTypeEquality{}, data->value, e.data->value) || data->symbol != e.data->symbol) {
         return false;
     }
 
@@ -1231,6 +1255,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case VAR_INDEX:
     case CONSTANT:
+
         if (get_type().is(Constants::DOUBLE)) {
             os << get_double_value();
         } else if (get_type().is_string()) {
@@ -1828,10 +1853,10 @@ expression_t expression_t::create_double(double value, position_t pos)
     return expr;
 }
 
-expression_t expression_t::create_string(std::string value, position_t pos)
+expression_t expression_t::create_string(StringIndex str, position_t pos)
 {
     auto expr = expression_t{CONSTANT, pos};
-    expr.data->value = std::move(value);
+    expr.data->value = str;
     expr.data->type = type_t::create_primitive(Constants::STRING);
     return expr;
 }

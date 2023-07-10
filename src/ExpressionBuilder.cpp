@@ -106,9 +106,13 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
-expression_t ExpressionBuilder::make_constant(std::string value) const
+expression_t ExpressionBuilder::make_constant(const char* value) const
 {
-    return expression_t::create_string(std::move(value), position);
+    auto is = std::istringstream{value};
+    auto newstring = std::string{};
+    is >> std::quoted(newstring);
+    StringIndex str = document.add_string(std::move(newstring));
+    return expression_t::create_string(str, position);
 }
 
 type_t ExpressionBuilder::apply_prefix(PREFIX prefix, type_t type)
@@ -284,14 +288,7 @@ void ExpressionBuilder::expr_double(double d)
     fragments.push(expr);
 }
 
-void ExpressionBuilder::expr_string(const char* name)
-{
-    auto is = std::istringstream{name};
-    auto newstring = std::string{};
-    is >> std::quoted(newstring);
-    expression_t expr = make_constant(std::move(newstring));
-    fragments.push(expr);
-}
+void ExpressionBuilder::expr_string(const char* name) { fragments.push(make_constant(name)); }
 
 void ExpressionBuilder::expr_identifier(const char* name)
 {
@@ -747,9 +744,7 @@ void ExpressionBuilder::expr_load_strategy()
 void ExpressionBuilder::expr_save_strategy()
 {
     assert(fragments.size() == 1);
-    auto path = fragments[0];
-    fragments.pop(1);
-    fragments.push(expression_t::create_unary(SAVE_STRAT, path, position));
+    fragments[0] = expression_t::create_unary(SAVE_STRAT, fragments[0], position);
 }
 
 void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)

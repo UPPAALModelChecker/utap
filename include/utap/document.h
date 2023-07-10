@@ -618,6 +618,9 @@ public:
     bool has_urgent_transition() const { return hasUrgentTrans; }
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
+    StringIndex add_string(std::string&& str) { return strings.add_string_if_new(std::move(str)); }
+    const std::vector<std::string>& get_strings() const { return strings.get_strings(); };
+
 protected:
     bool hasUrgentTrans{false};
     bool hasPriorities{false};
@@ -658,6 +661,7 @@ protected:
 
     std::string location;
     std::vector<library_t> libraries;
+    StringInternedContainer strings;
     SupportedMethods supported_methods{};
 
 public:

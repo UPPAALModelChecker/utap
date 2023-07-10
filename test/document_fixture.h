@@ -139,7 +139,7 @@ public:
     auto get_errors() const { return doc->get_errors(); }
     [[nodiscard]] const UTAP::PropInfo& parse_query(std::string_view query)
     {
-        if (parseProperty(query.data(), &query_builder) == -1) {
+        if (parseProperty(query.data(), &query_builder) == -1 || !doc->get_errors().empty()) {
             if (doc->get_errors().empty())
                 throw std::logic_error("Query parsing failed with no errors");
             else
