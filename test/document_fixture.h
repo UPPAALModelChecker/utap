@@ -137,13 +137,12 @@ class QueryFixture
 public:
     QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
     auto get_errors() const { return doc->get_errors(); }
-    [[nodiscard]] const UTAP::PropInfo& parse_query(std::string_view query)
+    const UTAP::PropInfo& parse_query(const char* query)
     {
-        if (parseProperty(query.data(), &query_builder) == -1 || !doc->get_errors().empty()) {
+        if (parseProperty(query, &query_builder) == -1 || !doc->get_errors().empty()) {
             if (doc->get_errors().empty())
                 throw std::logic_error("Query parsing failed with no errors");
-            else
-                throw std::logic_error(doc->get_errors()[0].msg);
+            throw std::logic_error(doc->get_errors()[0].msg);
         }
         return query_builder.getProperties().back();
     }
