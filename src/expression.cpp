@@ -1212,7 +1212,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case MIN:
     case MAX:
     case FRACTION:
-        embrace(os, old, get(0), precedence);
+        embrace_strict(os, old, get(0), precedence);
         switch (data->kind) {
         case FRACTION: os << " : "; break;
         case PLUS: os << " + "; break;

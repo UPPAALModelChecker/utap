@@ -218,6 +218,45 @@ TEST_CASE("Array access pretty printing")
     CHECK(query1.str() == "E<> arr[2] == 5");
 }
 
+TEST_CASE("Chaining conjunctions")
+{
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+
+    auto query1 = f.parse_query("E<> true && true && true").intermediate;
+    CHECK(query1.str() == "E<> true && true && true");
+}
+
+TEST_CASE("Chaining disjuntive conjunctions")
+{
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+
+    auto query1 = f.parse_query("E<> true && true || true && true").intermediate;
+    CHECK(query1.str() == "E<> true && true || true && true");
+}
+
+TEST_CASE("Chaining disjuntive conjunctions")
+{
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+
+    auto query1 = f.parse_query("E<> true || true && true || true").intermediate;
+    CHECK(query1.str() == "E<> true || true && true || true");
+}
+
+TEST_CASE("Chaining disjuntive conjunctions with outer conjunction")
+{
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+
+    auto query1 = f.parse_query("E<> (true || true && true || true) && false").intermediate;
+    CHECK(query1.str() == "E<> (true || true && true || true) && false");
+
+    auto query2 = f.parse_query("E<> false && (true || true && true || true)").intermediate;
+    CHECK(query2.str() == "E<> false && (true || true && true || true)");
+}
+
 TEST_CASE("Post incrementing an indentifier should not require paranthesis")
 {
     auto frame = frame_t::create();
