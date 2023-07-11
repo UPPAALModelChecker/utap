@@ -517,7 +517,7 @@ int32_t expression_t::get_value() const
 int32_t expression_t::get_record_label_index() const
 {
     assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
-    return get_value();
+    return std::get<int32_t>(data->value);
 }
 
 double expression_t::get_double_value() const
