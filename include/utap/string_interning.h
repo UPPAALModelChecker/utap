@@ -1,7 +1,7 @@
 #pragma once
 #include <algorithm>
+#include <list>
 #include <string>
-#include <vector>
 
 namespace UTAP {
 
@@ -30,7 +30,7 @@ public:
 class InternedStringVector
 {
 public:
-    const std::vector<std::string>& get_strings() const { return strings; }
+    const std::list<std::string>& get_strings() const { return strings; }
     StringIndex add_string_if_new(std::string&& string)
     {
         auto it = std::find(std::begin(strings), std::end(strings), string);
@@ -44,7 +44,8 @@ public:
 
 private:
     // Strings must be constant and memory stable because StringIndex references the std::string data directly
-    std::vector<std::string> strings;
+    // Using list is nessecary because std::string are not moved in C++ versions below c++17
+    std::list<std::string> strings;
 };
 
 }  // namespace UTAP

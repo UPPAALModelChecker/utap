@@ -619,7 +619,7 @@ public:
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
     StringIndex add_string(std::string&& str) { return strings.add_string_if_new(std::move(str)); }
-    const std::vector<std::string>& get_strings() const { return strings.get_strings(); };
+    const std::list<std::string>& get_strings() const { return strings.get_strings(); };
 
 protected:
     bool hasUrgentTrans{false};

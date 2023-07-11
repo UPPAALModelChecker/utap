@@ -167,7 +167,7 @@ TEST_CASE("saveStrategy pretty printing")
     const auto& strat = f.parse_query("strategy Name = control: A[] true");
     auto res = f.parse_query("saveStrategy(\"path\", Name)");
     CHECK(res.subjections.at(0) == &strat);
-    CHECK(res.intermediate.str() == "saveStrategy(\"path\", ...)");
+    CHECK(res.intermediate.str() == "saveStrategy(\"path\", Name)");
 }
 
 TEST_CASE("Probability compare pretty print")

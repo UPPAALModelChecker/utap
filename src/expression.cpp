@@ -451,8 +451,7 @@ size_t expression_t::get_size() const
     case EF_CONTROL:
     case CONTROL_TOPT_DEF2:
     case PMAX:
-    case SCENARIO:
-    case SAVE_STRAT: assert(data->sub.size() == 1); return 1;
+    case SCENARIO: assert(data->sub.size() == 1); return 1;
 
     case LEADS_TO:
     case SCENARIO2:
@@ -460,6 +459,7 @@ size_t expression_t::get_size() const
     case A_WEAK_UNTIL:
     case A_BUCHI:
     case PO_CONTROL:
+    case SAVE_STRAT:
     case CONTROL_TOPT_DEF1: assert(data->sub.size() == 2); return 2;
 
     case CONTROL_TOPT:
@@ -1536,7 +1536,9 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << " : <> ";
         get(2).print(os, old);
         break;
-    case SAVE_STRAT: os << "saveStrategy(" << std::quoted(get(0).get_string_value()) << ", ...)"; break;
+    case SAVE_STRAT:
+        os << "saveStrategy(" << std::quoted(get(0).get_string_value()) << ", " << get(1).get_string_value() << ')';
+        break;
     case LOAD_STRAT:
         os << "loadStrategy";
         if (get(1).get_type().is(LIST) && get(2).get_type().is(LIST)) {

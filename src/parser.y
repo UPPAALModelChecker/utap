@@ -1872,7 +1872,7 @@ PropertyExpr:
     }
     | T_SAVE_STRAT '(' Expression ',' Id ')' {
         CALL(@1, @6, subjection($5));
-        CALL(@1, @3, expr_save_strategy());
+        CALL(@1, @3, expr_save_strategy($5));
         CALL(@1, @6, property());
     }
     ;

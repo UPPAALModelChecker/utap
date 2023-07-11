@@ -745,10 +745,10 @@ void ExpressionBuilder::expr_load_strategy()
     fragments.push(expression_t::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
 }
 
-void ExpressionBuilder::expr_save_strategy()
+void ExpressionBuilder::expr_save_strategy(const char* strategy_name)
 {
     assert(fragments.size() == 1);
-    fragments[0] = expression_t::create_unary(SAVE_STRAT, fragments[0], position);
+    fragments[0] = expression_t::create_binary(SAVE_STRAT, fragments[0], make_constant(strategy_name), position);
 }
 
 void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)

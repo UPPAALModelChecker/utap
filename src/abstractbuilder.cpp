@@ -213,7 +213,7 @@ void AbstractBuilder::expr_builtin_function3(Constants::kind_t) { UNSUPPORTED; }
 void AbstractBuilder::expr_simulate(int no_of_exprs, bool, int) { UNSUPPORTED; }
 void AbstractBuilder::expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) { UNSUPPORTED; }
 void AbstractBuilder::expr_load_strategy() { UNSUPPORTED; }
-void AbstractBuilder::expr_save_strategy() { UNSUPPORTED; }
+void AbstractBuilder::expr_save_strategy(const char* strategy_name) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_formula() { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_until(int, int) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_release(int, int) { UNSUPPORTED; }
