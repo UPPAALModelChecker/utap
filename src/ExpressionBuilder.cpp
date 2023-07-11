@@ -21,6 +21,8 @@
 
 #include "utap/ExpressionBuilder.hpp"
 
+#include <sstream>
+#include <string>
 #include <vector>
 #include <cassert>
 #include <cinttypes>
@@ -108,7 +110,7 @@ expression_t ExpressionBuilder::make_constant(double value) const
 
 expression_t ExpressionBuilder::make_constant(const std::string& value) const
 {
-    auto is = std::istringstream(value);
+    auto is = std::istringstream{value};
     auto newstring = std::string{};
     is >> std::quoted(newstring);
     StringIndex str = document.add_string(std::move(newstring));
