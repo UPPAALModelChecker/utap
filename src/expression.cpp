@@ -803,7 +803,8 @@ int expression_t::get_precedence(kind_t kind)
     case IDENTIFIER:
     case CONSTANT:
     case VAR_INDEX:
-    case DEADLOCK:
+    case DEADLOCK: return 120;
+
     case FUN_CALL:
     case FUN_CALL_EXT: return 110;
 
@@ -1086,7 +1087,7 @@ static inline std::ostream& embrace_strict(std::ostream& os, bool old, const exp
 
 static inline std::ostream& embrace(std::ostream& os, bool old, const expression_t& expr, int precedence)
 {
-    if (precedence > expr.get_precedence())
+    if (precedence >= expr.get_precedence())
         return expr.print(os << '(', old) << ')';
     else
         return expr.print(os, old);
@@ -1269,7 +1270,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         break;
 
     case ARRAY:
-        embrace_strict(os << '-', old, get(0), precedence);
+        embrace_strict(os, old, get(0), precedence);
         get(1).print(os << '[', old) << ']';
         break;
 

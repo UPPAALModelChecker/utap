@@ -1,9 +1,12 @@
 #include "document_fixture.h"
 
 #include "utap/StatementBuilder.hpp"
+#include "utap/expression.h"
 #include "utap/utap.h"
 
 #include <doctest/doctest.h>
+
+using namespace UTAP;
 
 TEST_CASE("Minimization pretty printing")
 {
@@ -204,4 +207,23 @@ TEST_CASE("loadStrategy pretty printing")
     auto os = std::ostringstream{};
     builder->getQuery().print(os);
     CHECK(os.str() == "loadStrategy{Process.location} -> {c}(\"path\")");
+}
+
+TEST_CASE("Array access pretty printing")
+{
+    auto f = document_fixture{}.add_global_decl("int arr[5];").add_default_process().build_query_fixture();
+    REQUIRE(f.get_errors().empty());
+
+    auto query1 = f.parse_query("E<> arr[2] == 5").intermediate;
+    CHECK(query1.str() == "E<> arr[2] == 5");
+}
+
+TEST_CASE("Post incrementing an indentifier should not require paranthesis")
+{
+    auto frame = frame_t::create();
+    auto test_symbol = frame.add_symbol("foo", type_t::create_primitive(Constants::INT), {});
+    auto id = expression_t::create_identifier(test_symbol);
+    auto expr = expression_t::create_unary(Constants::POST_INCREMENT, id);
+
+    CHECK(expr.str() == "foo++");
 }
