@@ -106,9 +106,9 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
-expression_t ExpressionBuilder::make_constant(const char* value) const
+expression_t ExpressionBuilder::make_constant(const std::string& value) const
 {
-    auto is = std::istringstream{value};
+    auto is = std::istringstream(value);
     auto newstring = std::string{};
     is >> std::quoted(newstring);
     StringIndex str = document.add_string(std::move(newstring));
