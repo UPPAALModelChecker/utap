@@ -1086,7 +1086,7 @@ static inline std::ostream& embrace_strict(std::ostream& os, bool old, const exp
 
 static inline std::ostream& embrace(std::ostream& os, bool old, const expression_t& expr, int precedence)
 {
-    if (precedence >= expr.get_precedence())
+    if (precedence > expr.get_precedence())
         return expr.print(os << '(', old) << ')';
     else
         return expr.print(os, old);
