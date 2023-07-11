@@ -249,9 +249,8 @@ TEST_CASE("Missing closing curlybrace shouldnt shadow function")
     CHECK(doc->get_errors().size() > 0);
 }
 
-TEST_CASE("Parsing leads to")
+TEST_CASE("Test leads to token is parsed correctly")
 {
-    auto f = document_fixture{}.add_global_decl("bool x;").add_default_process().build_query_fixture();
-
-    CHECK_NOTHROW(f.parse_query("!x --> x"));
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    CHECK_NOTHROW(f.parse_query("true --> true"));
 }

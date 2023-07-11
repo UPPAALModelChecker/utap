@@ -139,7 +139,9 @@ public:
     auto get_errors() const { return doc->get_errors(); }
     const UTAP::PropInfo& parse_query(const char* query)
     {
-        if (parseProperty(query, &query_builder) == -1 || !doc->get_errors().empty()) {
+        auto result = parseProperty(query, &query_builder);
+
+        if (result == -1 || !doc->get_errors().empty()) {
             if (doc->get_errors().empty())
                 throw std::logic_error("Query parsing failed with no errors");
             throw std::logic_error(doc->get_errors()[0].msg);

@@ -164,7 +164,7 @@ idchr        [a-zA-Z0-9_$#]
 "A[]"           { return T_AG; }
 "E<>"           { return T_EF; }
 "E[]"           { return T_EG; }
-"-->"           { return T_LEADSTO; }
+"-->"           { return T_LEADS_TO; }
 "A[]+"          { return T_AG_PLUS; }
 "E<>+"          { return T_EF_PLUS; }
 "A[]*"          { return T_AG_MULT; }
