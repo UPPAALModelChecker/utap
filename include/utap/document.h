@@ -662,7 +662,7 @@ protected:
 
     std::string location;
     std::vector<library_t> libraries;
-    StringInternedContainer strings;
+    InternedStringVector strings;
     SupportedMethods supported_methods{};
 
 public:

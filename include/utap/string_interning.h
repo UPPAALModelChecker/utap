@@ -6,12 +6,11 @@
 namespace UTAP {
 
 /**
- * Used to highlight that an integer is an index into a string container.
- * Nothing is exposed to the user as all operations should go through a StringContainer
+ * Special type used distinquish a int from a string index, also stores a reference to string for ease of use
  */
 class StringIndex
 {
-    friend class StringInternedContainer;
+    friend class InternedStringVector;
 
     std::string_view string;
     int interned_index;
@@ -28,7 +27,7 @@ public:
 /**
  * Intern strings to reduce memory footprints
  */
-class StringInternedContainer
+class InternedStringVector
 {
 public:
     const std::vector<std::string>& get_strings() const { return strings; }
@@ -44,6 +43,7 @@ public:
     }
 
 private:
+    // Strings must be constant and memory stable because StringIndex references the std::string data directly
     std::vector<std::string> strings;
 };
 
