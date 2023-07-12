@@ -37,9 +37,10 @@ public:
     {
         const InternedStrings* interned;  // pointer allows default copy operations
         size_t id;
+        Index(const InternedStrings& interned, size_t id): interned{&interned}, id{id} {}
+        friend class InternedStrings;
 
     public:
-        Index(const InternedStrings& interned, size_t id): interned{&interned}, id{id} {}
         size_t index() const { return id; }
         const std::string& str() const { return interned->strings[id]; }
         bool operator==(const Index& other) const { return interned == other.interned && id == other.id; }
