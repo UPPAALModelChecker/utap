@@ -1687,6 +1687,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case LOCATION_EXPR:
     case LOCATION:
     case BRANCHPOINT:
+    case PROBABILITY:
     case DOUBLE_INV_GUARD:
     // Deprecated LSC features
     case SCENARIO:
