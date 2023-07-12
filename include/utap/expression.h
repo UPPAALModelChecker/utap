@@ -115,7 +115,7 @@ public:
         call is not valid for all expressions. */
     int32_t get_value() const;
     std::string_view get_string_value() const;
-    int get_string_index() const;
+    size_t get_string_index() const;
 
     /** Returns an index into the record-labels
         Assumes that .get_type().is_process() or

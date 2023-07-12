@@ -550,7 +550,7 @@ std::string_view expression_t::get_string_value() const
     return std::get<StringIndex>(data->value).str();
 }
 
-int expression_t::get_string_index() const
+size_t expression_t::get_string_index() const
 {
     assert(data);
     assert(data->kind == CONSTANT);

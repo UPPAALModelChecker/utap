@@ -1,51 +1,67 @@
-#pragma once
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020 Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
+#ifndef UTAP_STRINGINTERNING_H
+#define UTAP_STRINGINTERNING_H
+
 #include <algorithm>
-#include <list>
 #include <string>
+#include <vector>
 
 namespace UTAP {
 
 /**
- * Special type used distinquish a int from a string index, also stores a reference to string for ease of use
+ * Reuses strings to reduce memory footprint
  */
-class StringIndex
-{
-    friend class InternedStringVector;
-
-    std::string_view string;
-    int interned_index;
-
-    StringIndex(std::string_view str, int index): string{str}, interned_index{index} {}
-
-public:
-    bool operator==(const StringIndex& other) const { return interned_index == other.interned_index; }
-
-    std::string_view str() const { return string; }
-    int index() const { return interned_index; }
-};
-
-/**
- * Intern strings to reduce memory footprints
- */
-class InternedStringVector
+class InternedStrings
 {
 public:
-    const std::list<std::string>& get_strings() const { return strings; }
-    StringIndex add_string_if_new(std::string&& string)
+    class Index
+    {
+        const InternedStrings* interned;  // pointer allows default copy operations
+        size_t id;
+
+    public:
+        Index(const InternedStrings& interned, size_t id): interned{&interned}, id{id} {}
+        size_t index() const { return id; }
+        const std::string& str() const { return interned->strings[id]; }
+        bool operator==(const Index& other) const { return interned == other.interned && id == other.id; }
+    };
+    const std::vector<std::string>& get_strings() const { return strings; }
+    Index add_string_if_new(std::string&& string)
     {
         auto it = std::find(std::begin(strings), std::end(strings), string);
         if (it == std::end(strings)) {
-            strings.emplace_back(std::move(string));
-            return StringIndex(strings.back(), strings.size() - 1);
+            strings.push_back(std::move(string));
+            return Index{*this, strings.size() - 1};
         } else {
-            return StringIndex(*it, std::distance(std::begin(strings), it));
+            return Index{*this, static_cast<size_t>(it - std::begin(strings))};
         }
     }
 
 private:
-    // Strings must be constant and memory stable because StringIndex references the std::string data directly
-    // Using list is nessecary because std::string are not moved in C++ versions below c++17
-    std::list<std::string> strings;
+    std::vector<std::string> strings;
 };
 
+using StringIndex = InternedStrings::Index;
+
 }  // namespace UTAP
+
+#endif /* UTAP_STRINGINTERNING_H */

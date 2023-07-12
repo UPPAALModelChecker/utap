@@ -1,5 +1,30 @@
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2023 Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
 #ifndef INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 #define INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
+
+#include "utap/StatementBuilder.hpp"
+#include "utap/property.h"
+#include "utap/typechecker.h"
+#include "utap/utap.h"
 
 #include <filesystem>
 #include <fstream>
@@ -7,11 +32,6 @@
 #include <stdexcept>
 #include <string>
 #include <cstring>
-
-#include <utap/StatementBuilder.hpp>
-#include <utap/property.h>
-#include <utap/typechecker.h>
-#include <utap/utap.h>
 
 inline std::string read_content(const std::string& file_name)
 {
