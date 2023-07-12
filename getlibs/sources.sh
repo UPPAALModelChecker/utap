@@ -8,15 +8,15 @@ SOURCE="$LOCAL/source"
 BW="\e[1;97m" # bold white
 NC="\e[0m"    # no color
 
-LIBXML2=libxml2-2.10.3
+LIBXML2=libxml2-2.11.4
 LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
-LIBXML2_SHA256=5d2cc3d78bec3dbe212a9d7fa629ada25a7da928af432c93060ff5c17ee28a9c
+LIBXML2_SHA256=737e1d7f8ab3f139729ca13a2494fd17bf30ddb4b7a427cf336252cab57f57f7
 
-DOCTEST=doctest-2.4.9
+DOCTEST=doctest-2.4.11
 DOCTEST_Z="${DOCTEST}.tar.gz"
 DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doctest-}.tar.gz"
-DOCTEST_SHA256=19b2df757f2f3703a5e63cee553d85596875f06d91a3333acd80a969ef210856
+DOCTEST_SHA256=632ed2c05a7f53fa961381497bf8069093f0d6628c5f26286161fbd32a560186
 
 BISON=bison-3.8.2
 BISON_Z="${BISON}.tar.gz"
