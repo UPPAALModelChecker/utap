@@ -1,13 +1,14 @@
 find_package(doctest 2.4.8 QUIET)
 if(doctest_FOUND)
-  message(STATUS "Found doctest preinstalled.")
+  get_target_property(DOCTEST_INCLUDE_DIR doctest::doctest INTERFACE_INCLUDE_DIRECTORIES)
+  message(STATUS "Found doctest preinstalled: ${DOCTEST_INCLUDE_DIR}")
 else(doctest_FOUND)
   message(STATUS "Failed to find doctest, going to make it from scratch.")
   include(FetchContent)
   set(DOCTEST_WITH_TESTS OFF CACHE BOOL "doctest tests")
   FetchContent_Declare(doctest
     GIT_REPOSITORY git@github.com:doctest/doctest.git
-    GIT_TAG v2.4.9
+    GIT_TAG v2.4.11
     GIT_SHALLOW ON
     GIT_PROGRESS ON
     UPDATE_DISCONNECTED ON
