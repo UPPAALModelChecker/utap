@@ -22,28 +22,6 @@
 
 #include <doctest/doctest.h>
 
-#include <filesystem>
-#include <fstream>
-
-inline std::string read_content(const std::string& file_name)
-{
-    const auto path = std::filesystem::path{MODELS_DIR} / file_name;
-    auto ifs = std::ifstream{path};
-    if (ifs.fail())
-        throw std::system_error{errno, std::system_category(), "Failed to open " + path.string()};
-    auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
-    REQUIRE(!content.empty());
-    return content;
-}
-
-std::unique_ptr<UTAP::Document> read_document(const std::string& file_name)
-{
-    auto doc = std::make_unique<UTAP::Document>();
-    auto res = parse_XML_buffer(read_content(file_name).c_str(), doc.get(), true);
-    REQUIRE(res == 0);
-    return doc;
-}
-
 TEST_CASE("Double Serialization Test")
 {
     auto doc = read_document("if_statement.xml");
@@ -93,32 +71,6 @@ TEST_CASE("Error location")
     REQUIRE(error.start.path != nullptr);
     CHECK(*error.start.path == "/nta/template[1]/transition[1]/label[1]");
 }
-
-class QueryBuilder : public UTAP::StatementBuilder
-{
-    UTAP::expression_t query;
-    UTAP::TypeChecker checker;
-
-public:
-    explicit QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc}, checker{doc} {}
-    void property() override
-    {
-        REQUIRE(fragments.size() > 0);
-        query = fragments[0];
-        fragments.pop();
-    }
-    void typecheck() { checker.checkExpression(query); }
-    [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
-    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
-                                  UTAP::position_t pos) override
-    {
-        throw UTAP::NotSupportedException("addVariable is not supported");
-    }
-    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override
-    {
-        throw UTAP::NotSupportedException("addFunction is not supported");
-    }
-};
 
 TEST_CASE("SMC bounds in queries")
 {
@@ -295,4 +247,10 @@ TEST_CASE("Missing closing curlybrace shouldnt shadow function")
     auto doc = f.parse();
     CHECK(doc->get_globals().functions.size() == 2);
     CHECK(doc->get_errors().size() > 0);
+}
+
+TEST_CASE("Test leads to token is parsed correctly")
+{
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    CHECK_NOTHROW(f.parse_query("true --> true"));
 }

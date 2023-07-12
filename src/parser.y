@@ -228,7 +228,7 @@ const char* utap_msg(const char *msg)
 %token T_QUERY
 
 /* Property tokens */
-%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO T_RESULTSET
+%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADS_TO T_RESULTSET
 %token T_EF_PLUS T_AG_PLUS T_EF_MULT T_AG_MULT T_SCENARIO
 
 /* Control Synthesis */
@@ -1872,7 +1872,7 @@ PropertyExpr:
     }
     | T_SAVE_STRAT '(' Expression ',' Id ')' {
         CALL(@1, @6, subjection($5));
-        CALL(@1, @3, expr_save_strategy());
+        CALL(@1, @3, expr_save_strategy($5));
         CALL(@1, @6, property());
     }
     ;

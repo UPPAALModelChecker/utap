@@ -24,8 +24,11 @@
 #include "utap/document.h"
 
 #include <algorithm>
+#include <functional>
+#include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <variant>
 #include <cassert>
 #include <cstring>
 
@@ -45,18 +48,13 @@ struct expression_t::expression_data : public std::enable_shared_from_this<expre
 {
     position_t position; /**< The position of the expression */
     kind_t kind;         /**< The kind of the node */
-    union
-    {
-        int32_t value; /**< The value of the node */
-        int32_t index;
-        synchronisation_t sync; /**< The sync value of the node  */
-        double doubleValue;
-    };
+
+    std::variant<int32_t, synchronisation_t, double, StringIndex> value;
+
     symbol_t symbol;                 /**< The symbol of the node */
     type_t type;                     /**< The type of the expression */
     std::vector<expression_t> sub{}; /**< Subexpressions */
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
-    ~expression_data() noexcept = default;
 };
 
 expression_t::expression_t(kind_t kind, const position_t& pos)
@@ -443,7 +441,7 @@ size_t expression_t::get_size() const
     case LIST:
     case SIMULATE:
     case SIMULATEREACH:
-    case SPAWN: return data->value;
+    case SPAWN: return std::get<int32_t>(data->value);
 
     case EG:
     case AG:
@@ -453,8 +451,7 @@ size_t expression_t::get_size() const
     case EF_CONTROL:
     case CONTROL_TOPT_DEF2:
     case PMAX:
-    case SCENARIO:
-    case SAVE_STRAT: assert(data->sub.size() == 1); return 1;
+    case SCENARIO: assert(data->sub.size() == 1); return 1;
 
     case LEADS_TO:
     case SCENARIO2:
@@ -462,6 +459,7 @@ size_t expression_t::get_size() const
     case A_WEAK_UNTIL:
     case A_BUCHI:
     case PO_CONTROL:
+    case SAVE_STRAT:
     case CONTROL_TOPT_DEF1: assert(data->sub.size() == 2); return 2;
 
     case CONTROL_TOPT:
@@ -511,15 +509,15 @@ void expression_t::set_type(type_t type)
 
 int32_t expression_t::get_value() const
 {
-    assert(data && data->kind == CONSTANT &&
-           (data->type.is_integral() || data->type.is_string() || data->kind == VAR_INDEX));
-    return data->type.is_integer() || data->type.is_string() ? data->value : (data->value ? 1 : 0);
+    assert(data && data->kind == CONSTANT && (data->type.is_integral() || data->kind == VAR_INDEX));
+    int32_t value = std::get<int32_t>(data->value);
+    return data->type.is_integer() ? value : (value ? 1 : 0);
 }
 
 int32_t expression_t::get_record_label_index() const
 {
     assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
-    return data->value;
+    return std::get<int32_t>(data->value);
 }
 
 double expression_t::get_double_value() const
@@ -527,21 +525,37 @@ double expression_t::get_double_value() const
     assert(data);
     assert(data->kind == CONSTANT);
     assert(data->type.is(Constants::DOUBLE));
-    return data->doubleValue;
+    return std::get<double>(data->value);
 }
 
 int32_t expression_t::get_index() const
 {
     assert(data);
     assert(data->kind == DOT);
-    return data->index;
+    return std::get<int32_t>(data->value);
 }
 
 synchronisation_t expression_t::get_sync() const
 {
     assert(data);
     assert(data->kind == SYNC);
-    return data->sync;
+    return std::get<synchronisation_t>(data->value);
+}
+
+std::string_view expression_t::get_string_value() const
+{
+    assert(data);
+    assert(data->kind == CONSTANT);
+    assert(data->type.is_string());
+    return std::get<StringIndex>(data->value).str();
+}
+
+size_t expression_t::get_string_index() const
+{
+    assert(data);
+    assert(data->kind == CONSTANT);
+    assert(data->type.is_string());
+    return std::get<StringIndex>(data->value).index();
 }
 
 expression_t& expression_t::operator[](uint32_t i)
@@ -575,6 +589,21 @@ bool expression_t::is_true() const
     return data == nullptr || (get_type().is_integral() && data->kind == CONSTANT && get_value() == 1);
 }
 
+/**
+ * Compares two variants if they have the same type they'll be compared otherwise return false
+ */
+struct ValueTypeEquality
+{
+    template <typename T1, typename T2>
+    bool operator()(const T1& a, const T2& b) const
+    {
+        if constexpr (std::is_same_v<T1, T2>)
+            return a == b;
+        else
+            return false;
+    }
+};
+
 /** Two expressions are identical iff all the sub expressions
     are identical and if the kind, value and symbol of the
     root are identical. */
@@ -584,8 +613,8 @@ bool expression_t::equal(const expression_t& e) const
         return true;
     }
 
-    if (get_size() != e.get_size() || data->kind != e.data->kind || data->value != e.data->value ||
-        data->symbol != e.data->symbol) {
+    if (get_size() != e.get_size() || data->kind != e.data->kind ||
+        !std::visit(ValueTypeEquality{}, data->value, e.data->value) || data->symbol != e.data->symbol) {
         return false;
     }
 
@@ -774,7 +803,8 @@ int expression_t::get_precedence(kind_t kind)
     case IDENTIFIER:
     case CONSTANT:
     case VAR_INDEX:
-    case DEADLOCK:
+    case DEADLOCK: return 120;
+
     case FUN_CALL:
     case FUN_CALL_EXT: return 110;
 
@@ -922,6 +952,10 @@ int expression_t::get_precedence(kind_t kind)
     case FOREACH_DYNAMIC:
     case SUM_DYNAMIC:
     case PROCESS_VAR:
+    case PROBA_CMP:
+    case BOX:
+    case DIAMOND:
+    case SIMULATEREACH:
     case DYNAMIC_EVAL: return -1;  // TODO
 
     default: throw std::logic_error("Unknown precedence of the expression");
@@ -1059,9 +1093,19 @@ static inline std::ostream& embrace(std::ostream& os, bool old, const expression
         return expr.print(os, old);
 }
 
+int get_precedence_or_default(const expression_t& expr)
+{
+    try {
+        return expr.get_precedence();
+    } catch (const std::logic_error&) {
+        return -1;
+    }
+}
+
 std::ostream& expression_t::print(std::ostream& os, bool old) const
 {
-    const int precedence = get_precedence();
+    const int precedence = get_precedence_or_default(*this);
+
     bool flag = false;
     int nb;
 
@@ -1091,12 +1135,42 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old) << ")";
         break;
 
+    case PROBA_CMP:
+        os << "Pr[";
+        print_bound_type(os, get(0));
+        get(1).print(os, old) << "] (";
+        os << (get(2).get_value() == kind_t::BOX ? "[] " : "<> ");
+        get(3).print(os, old) << ") >= ";
+
+        os << "Pr[";
+        print_bound_type(os, get(4));
+        get(5).print(os, old) << "] (";
+        os << (get(6).get_value() == kind_t::BOX ? "[] " : "<> ");
+        get(7).print(os, old) << ")";
+        break;
+    case BOX: os << "[]"; break;
+    case DIAMOND: os << "<>"; break;
+    case SIMULATEREACH:
+        os << "simulate[";
+        print_bound_type(os, get(1));
+        get(2).print(os, old) << "; ";
+        get(0).print(os, old) << "] {";
+        nb = get_size() - 5;
+        if (nb > 0) {
+            get(3).print(os, old);
+            for (int i = 1; i < nb; ++i)
+                get(3 + i).print(os << ", ", old);
+        }
+        os << "} : ";
+        get(4 + nb).print(os, old) << " : ";
+        get(3 + nb).print(os, old);
+        break;
     case SIMULATE:
         os << "simulate[";
-        get(0).print(os, old) << "x ";
         print_bound_type(os, get(1));
-        get(2).print(os, old) << "]{";
-        nb = get_value() - 3;
+        get(2).print(os, old) << "; ";
+        get(0).print(os, old) << "] {";
+        nb = get_size() - 3;
         if (nb > 0) {
             get(3).print(os, old);
             for (int i = 1; i < nb; ++i)
@@ -1138,7 +1212,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case MIN:
     case MAX:
     case FRACTION:
-        embrace(os, old, get(0), precedence);
+        embrace_strict(os, old, get(0), precedence);
         switch (data->kind) {
         case FRACTION: os << " : "; break;
         case PLUS: os << " + "; break;
@@ -1182,20 +1256,21 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case VAR_INDEX:
     case CONSTANT:
+
         if (get_type().is(Constants::DOUBLE)) {
             os << get_double_value();
         } else if (get_type().is_string()) {
-            os << "string#" << data->value;
-        } else if (get_type().is(Constants::INT)) {
-            os << data->value;
+            os << get_string_value();
+        } else if (get_type().is_integer()) {
+            os << std::get<int32_t>(data->value);
         } else {
             assert(get_type().is(Constants::BOOL));
-            os << (data->value ? "true" : "false");
+            os << (std::get<int32_t>(data->value) ? "true" : "false");
         }
         break;
 
     case ARRAY:
-        embrace_strict(os << '-', old, get(0), precedence);
+        embrace_strict(os, old, get(0), precedence);
         get(1).print(os << '[', old) << ']';
         break;
 
@@ -1297,7 +1372,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case DOT: {
         type_t type = get(0).get_type();
         if (type.is_process() || type.is_record())
-            embrace(os, old, get(0), precedence) << '.' << type.get_record_label(data->value);
+            embrace(os, old, get(0), precedence) << '.' << type.get_record_label(std::get<int32_t>(data->value));
         else
             assert(0);
         break;
@@ -1316,7 +1391,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case SYNC:
         get(0).print(os, old);
-        switch (data->sync) {
+        switch (get_sync()) {
         case SYNC_QUE: os << '?'; break;
         case SYNC_BANG: os << '!'; break;
         case SYNC_CSP:
@@ -1328,9 +1403,11 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     case DEADLOCK: os << "deadlock"; break;
 
     case LIST:
-        get(0).print(os, old);
-        for (uint32_t i = 1; i < get_size(); i++)
-            get(i).print(os << ", ", old);
+        if (get_size() > 0) {
+            get(0).print(os, old);
+            for (uint32_t i = 1; i < get_size(); i++)
+                get(i).print(os << ", ", old);
+        }
         break;
 
     case FUN_CALL:
@@ -1411,6 +1488,66 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(2).print(os, old);
         break;
 
+    case MIN_EXP:
+        assert(get_size() == 7);
+        os << "minE(";
+        get(3).print(os, old);
+        os << ")[";
+        if (get(0).get_kind() == Constants::CONSTANT) {
+            if (bool is_step_bound = (get(0).get_value() == 0))
+                os << "#";
+        } else {
+            get(0).print(os, old);
+        }
+        os << "<=";
+        get(1).print(os, old);
+        os << "]";
+        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+            features1.print(os << " {", old);
+            os << "} -> {";
+            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+                features2.print(os, old);
+            os << "}";
+        }
+        os << " : <> ";
+        get(2).print(os, old);
+        break;
+    case MAX_EXP:
+        assert(get_size() == 7);
+        os << "maxE(";
+        get(3).print(os, old);
+        os << ")[";
+        if (get(0).get_kind() == Constants::CONSTANT) {
+            if (bool is_step_bound = (get(0).get_value() == 0))
+                os << "#";
+        } else {
+            get(0).print(os, old);
+        }
+        os << "<=";
+        get(1).print(os, old);
+        os << "]";
+        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+            features1.print(os << " {", old);
+            os << "} -> {";
+            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+                features2.print(os, old);
+            os << "}";
+        }
+        os << " : <> ";
+        get(2).print(os, old);
+        break;
+    case SAVE_STRAT:
+        os << "saveStrategy(" << std::quoted(get(0).get_string_value()) << ", " << get(1).get_string_value() << ')';
+        break;
+    case LOAD_STRAT:
+        os << "loadStrategy";
+        if (get(1).get_type().is(LIST) && get(2).get_type().is(LIST)) {
+            get(1).print(os << "{", old) << "} -> {";
+            get(2).print(os, old) << "}";
+        }
+        get(0).print(os << "(\"", old) << "\")";
+        break;
+
     case PO_CONTROL:
         os << "{ ";
         get(0).print(os, old) << "} control: ";
@@ -1484,6 +1621,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "numof(";
         get(0).print(os, old) << ")";
         break;
+    case MITL_FORALL:
     case FORALL_DYNAMIC:
         os << "forall(";
         get(0).print(os, old) << " : ";
@@ -1514,18 +1652,54 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(1).print(os, old) << " )( ";
         get(2).print(os, old) << ")";
         break;
-    case SAVE_STRAT: os << "saveStrategy(...)"; break;
-    case LOAD_STRAT:
-        os << "loadStrategy(";
-        get(0).print(os, old);
-        if (!get(1).is_true() && !get(2).is_true()) {
-            os << ", {";
-            get(2).print(os, old) << "} -> {";
-            get(3).print(os, old) << "}";
-        }
-        os << ')';
-        break;
-    default: throw std::logic_error("Support is not implemented for the given expression type");
+    case TYPEDEF: os << "typedef"; break;
+
+    // Types - Not applicable in expression printing
+    case RANGE:
+    case RECORD:
+    case REF:
+    case URGENT:
+    case COMMITTED:
+    case BROADCAST:
+    case VOID_TYPE:
+    case CLOCK:
+    case INT:
+    case DOUBLE:
+    case STRING:
+    case BOOL:
+    case SCALAR:
+    case CHANNEL:
+    case INVARIANT:
+    case INVARIANT_WR:
+    case HYBRID:
+    case PROCESS_SET:
+    case SYSTEM_META:
+    case GUARD:
+    case DIFF:
+    case CONSTRAINT:
+    case FORMULA:
+    case COST:
+    case PROCESS:
+    case INSTANCE:
+    case LABEL:
+    case FUNCTION_EXTERNAL:
+    case FUNCTION:
+    case LOCATION_EXPR:
+    case LOCATION:
+    case BRANCHPOINT:
+    case DOUBLE_INV_GUARD:
+    // Deprecated LSC features
+    case SCENARIO:
+    case SCENARIO2:
+    case INSTANCE_LINE:
+    case MESSAGE:
+    case CONDITION:
+    case UPDATE:
+    case LSC_INSTANCE:
+    // Deprecated probability feature
+    case PMAX:
+
+    case UNKNOWN: break;
     }
     return os;
 }
@@ -1677,8 +1851,16 @@ expression_t expression_t::create_exit(position_t pos)
 expression_t expression_t::create_double(double value, position_t pos)
 {
     auto expr = expression_t{CONSTANT, pos};
-    expr.data->doubleValue = value;
+    expr.data->value = value;
     expr.data->type = type_t::create_primitive(Constants::DOUBLE);
+    return expr;
+}
+
+expression_t expression_t::create_string(StringIndex str, position_t pos)
+{
+    auto expr = expression_t{CONSTANT, pos};
+    expr.data->value = str;
+    expr.data->type = type_t::create_primitive(Constants::STRING);
     return expr;
 }
 
@@ -1697,7 +1879,7 @@ expression_t expression_t::create_identifier(symbol_t symbol, position_t pos)
 expression_t expression_t::create_nary(kind_t kind, vector<expression_t> sub, position_t pos, type_t type)
 {
     auto expr = expression_t{kind, pos};
-    expr.data->value = sub.size();
+    expr.data->value = static_cast<int32_t>(sub.size());
     expr.data->sub = std::move(sub);
     expr.data->type = type;
     return expr;
@@ -1737,7 +1919,7 @@ expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expressi
 expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t pos, type_t type)
 {
     auto expr = expression_t{DOT, pos};
-    expr.data->index = idx;
+    expr.data->value = idx;
     expr.data->sub.push_back(e);
     expr.data->type = type;
     return expr;
@@ -1746,7 +1928,7 @@ expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t po
 expression_t expression_t::create_sync(expression_t e, synchronisation_t s, position_t pos)
 {
     auto expr = expression_t{SYNC, pos};
-    expr.data->sync = s;
+    expr.data->value = s;
     expr.data->sub.push_back(std::move(e));
     return expr;
 }
