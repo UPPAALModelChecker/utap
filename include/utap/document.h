@@ -558,7 +558,7 @@ public:
     expression_t get_after_update();
 
     void add_query(query_t query);  // creates a copy and moves it
-    bool queriesEmpty() const;
+    bool queries_empty() const;
 
     /* The default priority for channels is also used for 'tau
      * transitions' (i.e. non-synchronizing transitions).
@@ -604,18 +604,8 @@ public:
     bool has_urgent_transition() const { return hasUrgentTrans; }
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
-    const std::vector<std::string>& get_strings() const { return strings; }
-    void add_string(const std::string& string) { strings.push_back(string); }
-    size_t add_string_if_new(const std::string& string)
-    {
-        auto it = std::find(std::begin(strings), std::end(strings), string);
-        if (it == std::end(strings)) {
-            strings.push_back(string);
-            return strings.size() - 1;
-        } else {
-            return std::distance(std::begin(strings), it);
-        }
-    }
+    StringIndex add_string(std::string&& str) { return strings.add_string_if_new(std::move(str)); }
+    const std::vector<std::string>& get_strings() const { return strings.get_strings(); };
 
 protected:
     bool hasUrgentTrans{false};
@@ -624,6 +614,7 @@ protected:
     bool stopsClock{false};
     bool hasStrictLowControlledGuards{false};
     bool hasGuardOnRecvBroadcast{false};
+    bool hasNonBroadcastChan{false};
     int defaultChanPriority{0};
     std::list<chan_priority_t> chan_priorities;
     std::map<std::string, int> proc_priority;
@@ -657,7 +648,7 @@ protected:
 
     std::string location;
     std::vector<library_t> libraries;
-    std::vector<std::string> strings;
+    InternedStrings strings;
     SupportedMethods supported_methods{};
 
 public:
@@ -678,6 +669,8 @@ public:
     void set_supported_methods(const SupportedMethods& supportedMethods);
     const SupportedMethods& get_supported_methods() const { return supported_methods; }
     const position_index_t& get_positions() const { return positions; }
+    void add_channel(bool is_broadcast);
+    bool all_broadcast() const { return !hasNonBroadcastChan; }
 
 private:
     // TODO: move errors & warnings to ParserBuilder to get rid of mutable

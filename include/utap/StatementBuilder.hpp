@@ -47,7 +47,7 @@ protected:
     function_t* currentFun{nullptr};
 
     /** Stack of nested statement blocks. */
-    std::vector<BlockStatement*> blocks;
+    std::vector<std::unique_ptr<BlockStatement>> blocks;
 
     /** The types of a struct. */
     std::vector<type_t> fields;
@@ -67,7 +67,8 @@ protected:
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
     StatementBuilder(const StatementBuilder&) = delete;
-    ~StatementBuilder() noexcept override;
+
+    BlockStatement& get_block();
 
     void type_array_of_size(size_t) override;
     void type_array_of_type(size_t) override;

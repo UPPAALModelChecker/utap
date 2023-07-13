@@ -1,12 +1,58 @@
+/* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2023 Aalborg University.
+   Copyright (C) 2002-2006 Uppsala University and Aalborg University.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public License
+   as published by the Free Software Foundation; either version 2.1 of
+   the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful, but
+   WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   USA
+*/
+
 #ifndef INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 #define INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 
+#include "utap/StatementBuilder.hpp"
+#include "utap/property.h"
+#include "utap/typechecker.h"
+#include "utap/utap.h"
+
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <cstring>
 
-#include <utap/utap.h>
+inline std::string read_content(const std::string& file_name)
+{
+    const auto path = std::filesystem::path{MODELS_DIR} / file_name;
+    auto ifs = std::ifstream{path};
+    if (ifs.fail())
+        throw std::system_error{errno, std::system_category(), "Failed to open " + path.string()};
+    auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
+    if (content.empty())
+        throw std::runtime_error("No data was read from model file");
+    return content;
+}
+
+std::unique_ptr<UTAP::Document> read_document(const std::string& file_name)
+{
+    auto doc = std::make_unique<UTAP::Document>();
+    auto res = parse_XML_buffer(read_content(file_name).c_str(), doc.get(), true);
+    if (res != 0)
+        throw std::logic_error("Failed to parse document");
+    return doc;
+}
 
 template <typename... Args>
 std::string string_format(const std::string& format, Args... args)
@@ -74,6 +120,56 @@ public:
 private:
 };
 
+class QueryBuilder : public UTAP::StatementBuilder
+{
+    UTAP::expression_t query;
+    UTAP::TypeChecker checker;
+
+public:
+    explicit QueryBuilder(UTAP::Document& doc): UTAP::StatementBuilder{doc}, checker{doc} {}
+    void property() override
+    {
+        if (fragments.size() == 0)
+            throw std::logic_error("No query fragments after building query");
+
+        query = fragments[0];
+        fragments.pop();
+    }
+    void strategy_declaration(const char* strategy_name) override {}
+    void typecheck() { checker.checkExpression(query); }
+    [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
+    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
+                                  UTAP::position_t pos) override
+    {
+        throw UTAP::NotSupportedException(__FUNCTION__);
+    }
+    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override
+    {
+        throw UTAP::NotSupportedException(__FUNCTION__);
+    }
+};
+
+class QueryFixture
+{
+    std::unique_ptr<UTAP::Document> doc;
+    UTAP::TigaPropertyBuilder query_builder;
+
+public:
+    QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
+    auto get_errors() const { return doc->get_errors(); }
+    const UTAP::PropInfo& parse_query(const char* query)
+    {
+        auto result = parseProperty(query, &query_builder);
+
+        if (result == -1 || !doc->get_errors().empty()) {
+            if (doc->get_errors().empty())
+                throw std::logic_error("Query parsing failed with no errors");
+            throw std::logic_error(doc->get_errors()[0].msg);
+        }
+        return query_builder.getProperties().back();
+    }
+};
+
 class document_fixture
 {
     std::string global_decls{};
@@ -83,11 +179,12 @@ class document_fixture
 
 public:
     /** Adds text at the global declarations section of the document */
-    void add_global_decl(std::string text)
+    document_fixture& add_global_decl(std::string text)
     {
         if (!global_decls.empty())
             global_decls += '\n';
         global_decls += escape_xml(std::move(text));
+        return *this;
     }
     /** Adds a template text, @see template_fixture::str() */
     document_fixture& add_template(std::string text)
@@ -143,6 +240,8 @@ system %s;
         parse_XML_buffer(data.c_str(), doc.get(), true);
         return doc;
     }
+
+    [[nodiscard]] QueryFixture build_query_fixture() const { return QueryFixture(parse()); }
 };
 
 #endif  // INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP

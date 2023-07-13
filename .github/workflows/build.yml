@@ -81,9 +81,8 @@ jobs:
           echo "CTEST_OUTPUT_ON_FAILURE=1" >> "$GITHUB_ENV"
     - name: Get Ubuntu dependencies
       run: |
-          sudo dpkg --add-architecture i386 # to shut up wine wining about wine32
           sudo apt-get -qy update
-          sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine wine64 wine32
+          sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine wine64
           sudo apt-get -qy install wine-binfmt
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix

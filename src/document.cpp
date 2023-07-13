@@ -72,9 +72,16 @@ std::string stringify_indent_t<Item>::str(const std::string& indent) const
     return os.str();
 }
 
-namespace UTAP {                               // Clang suggests stringify_t<chan_priority_t> to be in UTAP namespace
-template struct stringify_t<chan_priority_t>;  // explicit instantiation to generate implementation
-}
+namespace UTAP {  // Explicit instantiations to generate implementation
+template struct stringify_t<chan_priority_t>;
+template struct stringify_t<variable_t>;
+template struct stringify_t<location_t>;
+template struct stringify_t<edge_t>;
+template struct stringify_t<function_t>;
+template struct stringify_t<declarations_t>;
+template struct stringify_t<simregion_t>;
+template struct stringify_t<cut_t>;
+}  // namespace UTAP
 
 std::ostream& location_t::print(std::ostream& os) const
 {
@@ -908,6 +915,8 @@ void Document::add_process(instance_t& instance, position_t pos)
     process.uid = global.frame.add_symbol(instance.uid.get_name(), type, pos, &process);
 }
 
+bool Document::queries_empty() const { return queries.empty(); }
+
 void Document::add_gantt(declarations_t* context, gantt_t g) { context->ganttChart.push_back(std::move(g)); }
 
 void Document::add_query(query_t query) { queries.push_back(std::move(query)); }
@@ -1091,6 +1100,8 @@ void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, s
 }
 
 const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
+
+void Document::add_channel(bool is_broadcast) { hasNonBroadcastChan |= !is_broadcast; }
 
 void Document::add_error(position_t position, std::string msg, std::string context)
 {

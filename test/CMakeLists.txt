@@ -45,4 +45,10 @@ if(UTAP_WITH_TESTS)
   target_link_libraries(test_typechecker PRIVATE UTAP doctest::doctest)
   add_test(NAME test_typechecker COMMAND test_typechecker)
 
+  add_executable(test_prettyprint test_prettyprint.cpp)
+  target_compile_definitions(test_prettyprint
+                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
+  target_link_libraries(test_prettyprint PRIVATE UTAP doctest::doctest)
+  add_test(NAME test_prettyprint COMMAND test_prettyprint)
+
 endif(UTAP_WITH_TESTS)

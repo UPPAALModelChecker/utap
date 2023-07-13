@@ -2,7 +2,7 @@ find_package(LibXml2 2.9.14 QUIET) # minimum version
 #find_package(LibXml2 2.10.3 QUIET)
 
 if(LibXml2_FOUND)
-    message(STATUS "Found LibXml2 preinstalled.")
+    message(STATUS "Found LibXml2 preinstalled: ${LIBXML2_INCLUDE_DIRS}")
 else(LibXml2_FOUND)
     message(STATUS "Failed to find LibXml2, going to make it from scratch.")
     include(FetchContent)

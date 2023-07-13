@@ -228,7 +228,7 @@ const char* utap_msg(const char *msg)
 %token T_QUERY
 
 /* Property tokens */
-%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADSTO T_RESULTSET
+%token T_DEADLOCK T_EF T_EG T_AF T_AG T_LEADS_TO T_RESULTSET
 %token T_EF_PLUS T_AG_PLUS T_EF_MULT T_AG_MULT T_SCENARIO
 
 /* Control Synthesis */
@@ -283,7 +283,7 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-%type <kind> ExpQuantifier
+%type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
 %type <number> ParameterList FieldInitList
@@ -595,7 +595,7 @@ VariableDecl:
         Type DeclIdList ';' {
             CALL(@1, @3, type_pop());
         }
-        | Type error ';'
+        | Type error
         ;
 
 DeclIdList:
@@ -651,7 +651,7 @@ TypeDecl:
         T_TYPEDEF Type TypeIdList ';' {
           CALL(@1, @4, type_pop());
         }
-        | T_TYPEDEF error ';'
+        | T_TYPEDEF error
         ;
 
 TypeIdList:
@@ -1691,6 +1691,10 @@ ExpQuantifier:
          T_MINEXP { $$ = MIN_EXP;} 
          | T_MAXEXP { $$ = MAX_EXP;};
 
+ExpPrQuantifier:
+         T_MINPR { $$ = MIN_EXP;} 
+         | T_MAXPR { $$ = MAX_EXP;};
+
 SubjectionList: // do not allow multiple subjections for the time being
         /*Id ',' SubjectionList {
           CALL(@1, @1, subjection($1));
@@ -1788,14 +1792,14 @@ AssignablePropperty:
         CALL(@1, @4, expr_binary(PO_CONTROL));
 	CALL(@1, @4, property());
     }
-    | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features Subjection Imitation
+    | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
-        CALL(@1, @9, expr_optimize_exp($1,  ParserBuilder::EXPRPRICE));
+        CALL(@1, @12, expr_optimize_exp($1,  ParserBuilder::EXPRPRICE, $10));
 	CALL(@1, @9, property());
     }
-    | ExpQuantifier '[' BoundType ']' Features Subjection Imitation
+    | ExpPrQuantifier '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
-        CALL(@1, @6, expr_optimize_exp($1, ParserBuilder::TIMEPRICE));
+        CALL(@1, @9, expr_optimize_exp($1, ParserBuilder::TIMEPRICE, $7));
 	CALL(@1, @6, property());
     }
     | T_LOAD_STRAT Features '(' Expression ')' {
@@ -1868,7 +1872,7 @@ PropertyExpr:
     }
     | T_SAVE_STRAT '(' Expression ',' Id ')' {
         CALL(@1, @6, subjection($5));
-        CALL(@1, @3, expr_save_strategy());
+        CALL(@1, @3, expr_save_strategy($5));
         CALL(@1, @6, property());
     }
     ;

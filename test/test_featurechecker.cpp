@@ -29,14 +29,6 @@
 #include <filesystem>
 #include <fstream>
 
-inline std::string read_content(const std::string& file_name)
-{
-    const auto path = std::filesystem::path{MODELS_DIR} / file_name;
-    auto ifs = std::ifstream{path};
-    auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
-    return content;
-}
-
 TEST_CASE("Simple system")
 {
     auto doc = std::make_unique<UTAP::Document>();

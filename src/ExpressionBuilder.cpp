@@ -21,6 +21,8 @@
 
 #include "utap/ExpressionBuilder.hpp"
 
+#include <sstream>
+#include <string>
 #include <vector>
 #include <cassert>
 #include <cinttypes>
@@ -106,6 +108,15 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
+expression_t ExpressionBuilder::make_constant(const std::string& value) const
+{
+    auto is = std::istringstream{value};
+    auto newstring = std::string{};
+    is >> std::quoted(newstring);
+    StringIndex str = document.add_string(std::move(newstring));
+    return expression_t::create_string(str, position);
+}
+
 type_t ExpressionBuilder::apply_prefix(PREFIX prefix, type_t type)
 {
     switch (prefix) {
@@ -167,6 +178,8 @@ void ExpressionBuilder::type_bounded_int(PREFIX prefix)
 
 void ExpressionBuilder::type_channel(PREFIX prefix)
 {
+    bool is_broadcast = prefix == PREFIX::PREFIX_BROADCAST || prefix == PREFIX_URGENT_BROADCAST;
+    document.add_channel(is_broadcast);
     type_t type = type_t::create_primitive(CHANNEL, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
@@ -279,16 +292,7 @@ void ExpressionBuilder::expr_double(double d)
     fragments.push(expr);
 }
 
-void ExpressionBuilder::expr_string(const char* name)
-{
-    auto newstring = std::string{name};
-    // remove quotes:
-    newstring.pop_back();
-    newstring.erase(0, 1);
-    expression_t expr = make_constant((int)document.add_string_if_new(newstring));
-    expr.set_type(type_t::create_primitive(Constants::STRING));
-    fragments.push(expr);
-}
+void ExpressionBuilder::expr_string(const char* name) { fragments.push(make_constant(name)); }
 
 void ExpressionBuilder::expr_identifier(const char* name)
 {
@@ -691,12 +695,16 @@ void ExpressionBuilder::expr_proba_qualitative(Constants::kind_t pathType, Const
                                              std::move(args), position));
 }
 
-void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype)
+void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype, Constants::kind_t goal_type)
 {
-    auto boundVar = fragments[3];
-    auto bound = fragments[2];
-    auto discrete = fragments[1];
-    auto cont = fragments[0];
+    if (goal_type != Constants::DIAMOND)
+        handle_error(TypeException{"$Wrong_path_quantifier"});
+
+    auto boundVar = fragments[4];
+    auto bound = fragments[3];
+    auto discrete = fragments[2];
+    auto cont = fragments[1];
+    auto goal = fragments[0];
 
     if (!discrete.is_true() && !cont.is_true()) {
         discrete.set_type(type_t::create_primitive(LIST, position));
@@ -710,15 +718,16 @@ void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptyp
         price = make_constant(1);
         break;
     case EXPRPRICE:  // user-provided expression
-        price = fragments[4];
+        price = fragments[5];
         ++nb;
         break;
+    case PROBAPRICE: price = goal; break;
     default: handle_error(TypeException{"$Unknown_price_type"});
     }
 
     assert(nb <= fragments.size());
 
-    auto args = std::vector<expression_t>{boundVar, bound, price, level, discrete, cont};
+    auto args = std::vector<expression_t>{boundVar, bound, goal, price, level, discrete, cont};
     fragments.pop(nb);
     fragments.push(expression_t::create_nary(kind, std::move(args), position));
 }
@@ -736,9 +745,10 @@ void ExpressionBuilder::expr_load_strategy()
     fragments.push(expression_t::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
 }
 
-void ExpressionBuilder::expr_save_strategy()
+void ExpressionBuilder::expr_save_strategy(const char* strategy_name)
 {
-    fragments[0] = expression_t::create_unary(SAVE_STRAT, fragments[0], position);
+    assert(fragments.size() == 1);
+    fragments[0] = expression_t::create_binary(SAVE_STRAT, fragments[0], make_constant(strategy_name), position);
 }
 
 void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)
