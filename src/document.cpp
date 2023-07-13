@@ -621,6 +621,8 @@ bool simregion_t::is_in_prechart() const
 
 void simregion_t::set_message(std::deque<message_t>& messages, int nr)
 {
+    assert(nr != -1);
+
     for (auto& message : messages) {
         if (message.nr == nr) {
             this->message = &message;
@@ -631,6 +633,8 @@ void simregion_t::set_message(std::deque<message_t>& messages, int nr)
 
 void simregion_t::set_condition(std::deque<condition_t>& conditions, int nr)
 {
+    assert(nr != -1);
+
     for (auto& condition : conditions) {
         if (condition.nr == nr) {
             this->condition = &condition;
@@ -641,6 +645,8 @@ void simregion_t::set_condition(std::deque<condition_t>& conditions, int nr)
 
 void simregion_t::set_update(std::deque<update_t>& updates, int nr)
 {
+    assert(nr != -1);
+
     for (auto& update : updates) {
         if (update.nr == nr) {
             this->update = &update;

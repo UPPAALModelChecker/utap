@@ -241,17 +241,17 @@ struct update_t : LSC_element_t
 struct simregion_t : stringify_t<simregion_t>
 {
     int nr{};
-    message_t* message;     /** May be empty */
-    condition_t* condition; /** May be empty */
-    update_t* update;       /** May be empty */
+    message_t* message{nullptr};     /** May be empty */
+    condition_t* condition{nullptr}; /** May be empty */
+    update_t* update{nullptr};       /** May be empty */
 
     int get_loc() const;
     bool is_in_prechart() const;
 
     std::ostream& print(std::ostream&) const;
-    bool has_message() const { return message != nullptr && !message->empty(); }
-    bool has_condition() const { return condition != nullptr && !condition->empty(); }
-    bool has_update() const { return update != nullptr && !update->empty(); }
+    bool has_message() const { return message != nullptr; }
+    bool has_condition() const { return condition != nullptr; }
+    bool has_update() const { return update != nullptr; }
     void set_message(std::deque<message_t>& messages, int nr);
     void set_condition(std::deque<condition_t>& conditions, int nr);
     void set_update(std::deque<update_t>& updates, int nr);
