@@ -99,9 +99,10 @@ enum class quant_t {
     strategy_load,
     strategy_save,
 
-    /* Extensions for getting supremum/infimum of variables/clocks */
+    /* Extensions for getting supremum/infimum/bounds for variable/clock values */
     supremum,
     infimum,
+    bounds,
 
     /* Prob properties */
     PMax,

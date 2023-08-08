@@ -188,7 +188,7 @@ const char* utap_msg(const char *msg)
 %token T_KW_AND T_KW_OR T_KW_XOR T_KW_IMPLY T_KW_NOT
 
 /* Special */
-%token T_SUP T_INF
+%token T_SUP T_INF T_BOUNDS
 
 /* Math functions */
 %token T_ABS T_FABS T_FMOD T_FMA T_FMAX T_FMIN T_FDIM
@@ -756,6 +756,7 @@ NonTypeId:
         | 'M' { strncpy($$, "M", MAXLEN); }
         | T_SUP { strncpy($$, "sup", MAXLEN); }
         | T_INF { strncpy($$, "inf", MAXLEN); }
+        | T_BOUNDS { strncpy($$, "bounds", MAXLEN); }
         | T_SIMULATION { strncpy($$, "simulation", MAXLEN); }
         ;
 
@@ -1942,16 +1943,23 @@ SupPrefix:
         T_SUP ':' {
 	    CALL(@1, @2, expr_true());
 	}
-        | T_SUP '{' Expression '}' ':'
+	| T_SUP '{' Expression '}' ':'
 	;
 
 InfPrefix:
 	T_INF ':' {
 	    CALL(@1, @2, expr_true());
 	}
-        | T_INF '{' Expression '}' ':'
+	| T_INF '{' Expression '}' ':'
 	;
-        
+
+BoundsPrefix:
+	T_BOUNDS ':' {
+	    CALL(@1, @2, expr_true());
+	}
+	| T_BOUNDS '{' Expression '}' ':'
+	;
+
             
 StrategyAssignment: 
     T_STRATEGY Id T_ASSIGNMENT AssignablePropperty { 
@@ -1964,14 +1972,19 @@ Property:
         | PropertyExpr
 	| SupPrefix NonEmptyExpressionList Subjection {
 	    CALL(@1, @2, expr_nary(LIST,$2));
-            CALL(@1, @2, expr_binary(SUP_VAR));
+	    CALL(@1, @2, expr_binary(SUP_VAR));
 	    CALL(@1, @2, property());
         }
 	| InfPrefix NonEmptyExpressionList Subjection {
 	    CALL(@1, @2, expr_nary(LIST,$2));
-            CALL(@1, @2, expr_binary(INF_VAR));
+	    CALL(@1, @2, expr_binary(INF_VAR));
 	    CALL(@1, @2, property());
-        };
+	}
+	| BoundsPrefix NonEmptyExpressionList Subjection {
+	    CALL(@1, @2, expr_nary(LIST,$2));
+	    CALL(@1, @2, expr_binary(BOUNDS_VAR));
+	    CALL(@1, @2, property());
+	};
 
 %%
 

@@ -76,6 +76,7 @@ namespace UTAP {
             {"sat",           Keyword{T_SCENARIO, syntax_t::PROPERTY}},
             {"inf",           Keyword{T_INF, syntax_t::PROPERTY}},
             {"sup",           Keyword{T_SUP, syntax_t::PROPERTY}},
+            {"bounds",        Keyword{T_BOUNDS, syntax_t::PROPERTY}},
             {"Pmax",          Keyword{T_PMAX, syntax_t::PROPERTY_PROB}},
             {"Pr",            Keyword{T_PROBA, syntax_t::PROPERTY}},
             {"X",             Keyword{T_MITL_NEXT, syntax_t::PROPERTY}},

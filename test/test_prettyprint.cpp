@@ -8,77 +8,137 @@
 
 using namespace UTAP;
 
+TEST_CASE("Symbolic queries")
+{
+    auto doc = read_document("simpleSystem.xml");
+    REQUIRE(doc->get_errors().empty());
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    auto* pb = builder.get();
+    auto os = std::stringstream{};
+    // the redundant white-space is there to stress the parser
+    SUBCASE("Reachability")
+    {
+        auto res = parseProperty("E<> \t Process.L3", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "E<> Process.L3");
+    }
+    SUBCASE("Safety")
+    {
+        auto res = parseProperty("A[] \t Process.L3", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "A[] Process.L3");
+    }
+    SUBCASE("Liveness")
+    {
+        auto res = parseProperty("Process.L2 \t --> \t Process.L3", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "Process.L2 --> Process.L3");
+    }
+    SUBCASE("Infimum")
+    {
+        auto res = parseProperty("inf {  Process.L2  }  :  c", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "inf{Process.L2}: c");
+    }
+    SUBCASE("Supremum")
+    {
+        auto res = parseProperty("sup {  Process.L2  }  :  c", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "sup{Process.L2}: c");
+    }
+    SUBCASE("Bounds")
+    {
+        auto res = parseProperty("bounds {  Process.L2  }  :  c", pb);
+        REQUIRE(res == 0);
+        pb->typecheck();
+        REQUIRE(doc->get_errors().empty());
+        pb->getQuery().print(os);
+        CHECK(os.str() == "bounds{Process.L2}: c");
+    }
+}
+
 TEST_CASE("Minimization pretty printing")
 {
     auto doc = read_document("simpleSystem.xml");
+    REQUIRE(doc->get_errors().empty());
     auto builder = std::make_unique<QueryBuilder>(*doc);
+    auto* pb = builder.get();
+    auto os = std::ostringstream{};
     SUBCASE("global time bound")
     {
-        auto res = parseProperty("minE(c)[<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("step bound")
     {
-        auto res = parseProperty("minE(c)[#<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[#<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[#<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("cost bound without features")
     {
-        auto res = parseProperty("minE(c)[c<=20] : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[c<=20] : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[c<=20] : <> c >= 20");
     }
     SUBCASE("empty features")
     {
-        auto res = parseProperty("minE(c)[c<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[c<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[c<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("one discrete feature")
     {
-        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[c<=20] {Process.location} -> {} : <> c >= 20");
     }
     SUBCASE("one continuous feature")
     {
-        auto res = parseProperty("minE(c)[c<=20] {} -> { c } : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[c<=20] {} -> { c } : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[c<=20] {} -> {c} : <> c >= 20");
     }
     SUBCASE("discrete and continuous features")
     {
-        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", builder.get());
+        auto res = parseProperty("minE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "minE(c)[c<=20] {Process.location} -> {c} : <> c >= 20");
     }
@@ -87,74 +147,70 @@ TEST_CASE("Minimization pretty printing")
 TEST_CASE("Maximization pretty printing")
 {
     auto doc = read_document("simpleSystem.xml");
+    REQUIRE(doc->get_errors().empty());
     auto builder = std::make_unique<QueryBuilder>(*doc);
+    auto* pb = builder.get();
+    auto os = std::ostringstream{};
     SUBCASE("global time bound")
     {
-        auto res = parseProperty("maxE(c)[<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("step bound")
     {
-        auto res = parseProperty("maxE(c)[#<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[#<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[#<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("cost bound without features")
     {
-        auto res = parseProperty("maxE(c)[c<=20] : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[c<=20] : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[c<=20] : <> c >= 20");
     }
     SUBCASE("empty features")
     {
-        auto res = parseProperty("maxE(c)[c<=20] {} -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[c<=20] {} -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[c<=20] {} -> {} : <> c >= 20");
     }
     SUBCASE("one discrete feature")
     {
-        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> {} : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> {} : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[c<=20] {Process.location} -> {} : <> c >= 20");
     }
     SUBCASE("one continuous feature")
     {
-        auto res = parseProperty("maxE(c)[c<=20] {} -> { c } : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[c<=20] {} -> { c } : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[c<=20] {} -> {c} : <> c >= 20");
     }
     SUBCASE("discrete and continuous features")
     {
-        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", builder.get());
+        auto res = parseProperty("maxE(c)[c<=20] { Process.location } -> { c } : <> c >= 20", pb);
         REQUIRE(res == 0);
         builder->typecheck();
         REQUIRE(doc->get_errors().empty());
-        auto os = std::ostringstream{};
         builder->getQuery().print(os);
         CHECK(os.str() == "maxE(c)[c<=20] {Process.location} -> {c} : <> c >= 20");
     }
