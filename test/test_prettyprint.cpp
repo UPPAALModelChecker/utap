@@ -227,7 +227,7 @@ TEST_CASE("Chaining conjunctions")
     CHECK(query1.str() == "E<> true && true && true");
 }
 
-TEST_CASE("Chaining disjuntive conjunctions")
+TEST_CASE("Chaining disjunctive conjunctions")
 {
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     REQUIRE(f.get_errors().empty());
@@ -236,7 +236,7 @@ TEST_CASE("Chaining disjuntive conjunctions")
     CHECK(query1.str() == "E<> true && true || true && true");
 }
 
-TEST_CASE("Chaining disjuntive conjunctions")
+TEST_CASE("Chaining disjunctive conjunctions")
 {
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     REQUIRE(f.get_errors().empty());
@@ -245,7 +245,7 @@ TEST_CASE("Chaining disjuntive conjunctions")
     CHECK(query1.str() == "E<> true || true && true || true");
 }
 
-TEST_CASE("Chaining disjuntive conjunctions with outer conjunction")
+TEST_CASE("Chaining disjunctive conjunctions with outer conjunction")
 {
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     REQUIRE(f.get_errors().empty());
@@ -257,7 +257,7 @@ TEST_CASE("Chaining disjuntive conjunctions with outer conjunction")
     CHECK(query2.str() == "E<> false && (true || true && true || true)");
 }
 
-TEST_CASE("Post incrementing an indentifier should not require paranthesis")
+TEST_CASE("Post incrementing an identifier should not require parenthesis")
 {
     auto frame = frame_t::create();
     auto test_symbol = frame.add_symbol("foo", type_t::create_primitive(Constants::INT), {});
