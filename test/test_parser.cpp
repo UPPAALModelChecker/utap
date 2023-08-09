@@ -254,3 +254,15 @@ TEST_CASE("Test leads to token is parsed correctly")
     auto f = document_fixture{}.add_default_process().build_query_fixture();
     CHECK_NOTHROW(f.parse_query("true --> true"));
 }
+
+TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
+{
+    auto doc = read_document("lsc_example.xml");
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+
+    auto& templ = doc->get_templates().back();
+    auto sims = templ.get_simregions();
+    CHECK(sims.size() == 3);
+}
