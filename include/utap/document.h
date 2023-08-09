@@ -202,11 +202,11 @@ struct instance_line_t;  // to be defined later
 /** Common members among LSC elements */
 struct LSC_element_t
 {
-    int nr{-1}; /**< Placement in input file */
+    uint32_t nr; /**< Placement in input file */
     int location{-1};
     bool is_in_prechart{false};
+    explicit LSC_element_t(uint32_t nr): nr{nr} {}
     int get_nr() const { return nr; }
-    bool empty() const { return nr == -1; }
 };
 
 /** Information about a message. Messages have a source (src) and a
@@ -218,6 +218,7 @@ struct message_t : LSC_element_t
     instance_line_t* src{nullptr}; /**< Pointer to source instance line */
     instance_line_t* dst{nullptr}; /**< Pointer to destination instance line */
     expression_t label;            /**< The label */
+    explicit message_t(uint32_t nr): LSC_element_t{nr} {}
 };
 /** Information about a condition. Conditions have an anchor instance lines.
  * The label is stored as an expression.
@@ -227,6 +228,7 @@ struct condition_t : LSC_element_t
     std::vector<instance_line_t*> anchors{}; /**< Pointer to anchor instance lines */
     expression_t label;                      /**< The label */
     bool isHot{false};
+    explicit condition_t(uint32_t nr): LSC_element_t{nr} {}
 };
 
 /** Information about an update. Update have an anchor instance line.
@@ -236,11 +238,12 @@ struct update_t : LSC_element_t
 {
     instance_line_t* anchor{nullptr}; /**< Pointer to anchor instance line */
     expression_t label;               /**< The label */
+    explicit update_t(uint32_t nr): LSC_element_t{nr} {}
 };
 
 struct simregion_t : stringify_t<simregion_t>
 {
-    int nr{};
+    uint32_t nr{};
     message_t* message{nullptr};     /** May be empty */
     condition_t* condition{nullptr}; /** May be empty */
     update_t* update{nullptr};       /** May be empty */
@@ -252,9 +255,9 @@ struct simregion_t : stringify_t<simregion_t>
     bool has_message() const { return message != nullptr; }
     bool has_condition() const { return condition != nullptr; }
     bool has_update() const { return update != nullptr; }
-    void set_message(std::deque<message_t>& messages, int nr);
-    void set_condition(std::deque<condition_t>& conditions, int nr);
-    void set_update(std::deque<update_t>& updates, int nr);
+    void set_message(std::deque<message_t>& messages, uint32_t nr);
+    void set_condition(std::deque<condition_t>& conditions, uint32_t nr);
+    void set_update(std::deque<update_t>& updates, uint32_t nr);
 };
 
 struct compare_simregion
@@ -339,7 +342,7 @@ struct instance_t
  */
 struct instance_line_t : public instance_t
 {
-    int32_t instance_nr; /**< InstanceLine number in template */
+    uint32_t instance_nr; /**< InstanceLine number in template */
     std::vector<simregion_t> getSimregions(const std::vector<simregion_t>& simregions);
     void add_parameters(instance_t& inst, frame_t params, const std::vector<expression_t>& arguments);
 };

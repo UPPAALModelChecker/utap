@@ -340,37 +340,34 @@ instance_line_t& template_t::add_instance_line()
 message_t& template_t::add_message(symbol_t src, symbol_t dst, int loc, bool pch)
 {
     int32_t nr = messages.empty() ? 0 : messages.back().nr + 1;
-    auto& message = messages.emplace_back();
+    auto& message = messages.emplace_back(nr);
     message.src = static_cast<instance_line_t*>(src.get_data());
     message.dst = static_cast<instance_line_t*>(dst.get_data());
     message.location = loc;
     message.is_in_prechart = pch;
-    message.nr = nr;
     return message;
 }
 
 update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
 {
     int32_t nr = updates.empty() ? 0 : updates.back().nr + 1;
-    auto& update = updates.emplace_back();
+    auto& update = updates.emplace_back(nr);
     update.anchor = static_cast<instance_line_t*>(anchor.get_data());
     update.location = loc;
     update.is_in_prechart = pch;
-    update.nr = nr;
     return update;
 }
 
 condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool pch, bool isHot)
 {
     int32_t nr = conditions.empty() ? 0 : conditions.back().nr + 1;
-    auto& condition = conditions.emplace_back();
+    auto& condition = conditions.emplace_back(nr);
 
     for (auto& anchor : anchors) {
         condition.anchors.push_back(static_cast<instance_line_t*>(anchor.get_data()));  // TODO
     }
     condition.location = loc;
     condition.is_in_prechart = pch;
-    condition.nr = nr;
     condition.isHot = isHot;
     return condition;
 }
@@ -532,7 +529,6 @@ bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpda
  */
 bool template_t::get_update(vector<instance_line_t*>& instances, int y, update_t*& simUpdate)
 {
-    update_t update;
     for (auto& instance : instances) {
         if (get_update(*instance, y, simUpdate))
             return true;
@@ -563,24 +559,22 @@ vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& si
     // get the simregions anchored to this instance
     for (const auto& reg : simregions) {
         const message_t* m = reg.message;
-        if (!m->empty() && (m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr)) {
+        if ((m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr)) {
             i_simregions.push_back(reg);
             continue;
         }
 
         const update_t* u = reg.update;
-        if (!u->empty() && u->anchor->instance_nr == this->instance_nr) {
+        if (u->anchor->instance_nr == this->instance_nr) {
             i_simregions.push_back(reg);
             continue;
         }
 
         const condition_t* c = reg.condition;
-        if (!c->empty()) {
-            for (auto* instance : c->anchors) {
-                if (instance->instance_nr == this->instance_nr) {
-                    i_simregions.push_back(reg);
-                    break;
-                }
+        for (auto* instance : c->anchors) {
+            if (instance->instance_nr == this->instance_nr) {
+                i_simregions.push_back(reg);
+                break;
             }
         }
     }
@@ -619,10 +613,8 @@ bool simregion_t::is_in_prechart() const
     return false;  // should not happen
 }
 
-void simregion_t::set_message(std::deque<message_t>& messages, int nr)
+void simregion_t::set_message(std::deque<message_t>& messages, uint32_t nr)
 {
-    assert(nr != -1);
-
     for (auto& message : messages) {
         if (message.nr == nr) {
             this->message = &message;
@@ -631,10 +623,8 @@ void simregion_t::set_message(std::deque<message_t>& messages, int nr)
     }
 }
 
-void simregion_t::set_condition(std::deque<condition_t>& conditions, int nr)
+void simregion_t::set_condition(std::deque<condition_t>& conditions, uint32_t nr)
 {
-    assert(nr != -1);
-
     for (auto& condition : conditions) {
         if (condition.nr == nr) {
             this->condition = &condition;
@@ -643,10 +633,8 @@ void simregion_t::set_condition(std::deque<condition_t>& conditions, int nr)
     }
 }
 
-void simregion_t::set_update(std::deque<update_t>& updates, int nr)
+void simregion_t::set_update(std::deque<update_t>& updates, uint32_t nr)
 {
-    assert(nr != -1);
-
     for (auto& update : updates) {
         if (update.nr == nr) {
             this->update = &update;
@@ -681,7 +669,7 @@ std::ostream& simregion_t::print(std::ostream& os) const
     return os << ")";
 }
 
-inline auto find_simregion_by_nr(int nr)
+inline auto find_simregion_by_nr(uint32_t nr)
 {
     return [nr](const simregion_t& reg) { return reg.nr == nr; };
 }
