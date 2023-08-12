@@ -448,6 +448,12 @@ void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
             checkType(type.get_sub(i), true, true);
         }
         break;
+    case Constants::STRING:
+        if (inStruct) {
+            handleError(type, "$This_type_cannot_be_declared_inside_a_struct");
+        }
+    case Constants::CLOCK:
+    case Constants::DOUBLE:
     case Constants::INT:
     case Constants::BOOL: break;
 
