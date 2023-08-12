@@ -181,13 +181,13 @@ void StatementBuilder::decl_typedef(const char* name)
     frames.top().add_symbol(name, type, position);
 }
 
-static bool initRec(type_t type, int thisTypeOnly)
+static bool initialisable(type_t type)
 {
     type = type.strip();
     switch (type.get_kind()) {
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
-            if (!initRec(type[i], thisTypeOnly)) {
+            if (!initialisable(type[i])) {
                 return false;
             }
         }
@@ -197,13 +197,11 @@ static bool initRec(type_t type, int thisTypeOnly)
         if (type.get_array_size().is_scalar()) {
             return false;
         }
-        return initRec(type.get_sub(), thisTypeOnly);
+        return initialisable(type.get_sub());
     case STRING: return true;
-    default: return thisTypeOnly == 0 ? type.is_integral() : (thisTypeOnly == 1 ? type.is_clock() : type.is_double());
+    default: return type.is_integral() || type.is_clock() || type.is_double();
     }
 }
-
-static bool initialisable(type_t type) { return initRec(type, 0) || initRec(type, 1) || initRec(type, 2); }
 
 static bool mustInitialise(type_t type)
 {
