@@ -159,7 +159,7 @@ void StatementBuilder::struct_field(const char* name)
      * the type check phase.
      */
     type_t base = type.strip_array();
-    if (!base.is_record() && !base.is_scalar() && !base.is_integral()) {
+    if (!base.is_record() && !base.is_scalar() && !base.is_integral() && !base.is_double() && !base.is_clock()) {
         handle_error(TypeException{"$Invalid_type_in_structure"});
     }
 }
