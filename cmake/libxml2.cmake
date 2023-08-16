@@ -6,6 +6,7 @@ if(LibXml2_FOUND)
 else(LibXml2_FOUND)
     message(STATUS "Failed to find LibXml2, going to make it from scratch.")
     include(FetchContent)
+    set(LIBXML2_SHARED_LIBS OFF CACHE BOOL "LibXml2 shared libraries")
     set(LIBXML2_WITH_FTP OFF CACHE BOOL "LibXml2 FTP support")
     set(LIBXML2_WITH_HTTP OFF CACHE BOOL "LibXml2 HTTP support")
     set(LIBXML2_WITH_ICONV OFF CACHE BOOL "LibXml2 ICONV")
@@ -16,7 +17,7 @@ else(LibXml2_FOUND)
     set(LIBXML2_WITH_TESTS OFF CACHE BOOL "LibXml2 Tests")
     FetchContent_Declare(LibXml2
             GIT_REPOSITORY https://gitlab.gnome.org/GNOME/libxml2
-            GIT_TAG v2.10.3
+            GIT_TAG v2.11.4
             GIT_SHALLOW ON
             GIT_PROGRESS ON
             UPDATE_DISCONNECTED ON
