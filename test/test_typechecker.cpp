@@ -197,3 +197,43 @@ TEST_SUITE("Error positions for unbound parameters")
         CHECK(pos.end != pos.unknown_pos);
     }
 }
+
+TEST_CASE("Ternary operator with clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f() { x = true? c : 1.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Ternary operator with clock and integer")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f() { x = true? c : 1; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Ternary operator with clock and bool")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f() { x = true? c : true; };")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Ternary operator with clock and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f() { x = true? c : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
