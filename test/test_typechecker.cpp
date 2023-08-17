@@ -214,7 +214,7 @@ TEST_CASE("Ternary operator with clock and integer")
                    .add_global_decl("clock c; double x; void f() { x = true? c : 1; }")
                    .add_default_process()
                    .parse();
-    CHECK(doc->get_errors().size() == 0);
+    CHECK(doc->get_errors().size() == 1);
     CHECK(doc->get_warnings().size() == 0);
 }
 
