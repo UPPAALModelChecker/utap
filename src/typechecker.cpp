@@ -1517,11 +1517,12 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
 */
 bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
 {
-    if (t1.is_integral() && t2.is_integral()) {
+    if (t1.is_integral() && t2.is_integral())
         return true;
-    } else {
-        return areEquivalent(t1, t2);
-    }
+    if (t1.is_double() && t2.is_clock() || t1.is_clock() && t2.is_double())
+        return true;
+
+    return areEquivalent(t1, t2);
 }
 
 /**
