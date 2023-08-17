@@ -69,7 +69,7 @@ private:
 
     expression_t checkInitialiser(type_t type, expression_t init);
     bool areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init = false) const;
-    bool areInlineIfCompatible(type_t thenArg, type_t elseArg) const;
+    bool areInlineIfCompatible(type_t result_type, type_t thenArg, type_t elseArg) const;
     bool areEqCompatible(type_t t1, type_t t2) const;
     bool areEquivalent(type_t, type_t) const;
     bool isLValue(expression_t) const;

@@ -1515,11 +1515,11 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
     same size and the subtypes must be compatible. In case of records,
     they must have the same type name.
 */
-bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
+bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2) const
 {
     if (t1.is_integral() && t2.is_integral())
         return true;
-    if (t1.is_double() && t2.is_clock() || t1.is_clock() && t2.is_double())
+    if (result_type.is_double() && (t1.is_double() && t2.is_clock() || t1.is_clock() && t2.is_double()))
         return true;
 
     return areEquivalent(t1, t2);
@@ -2085,11 +2085,11 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr, "$First_argument_of_inline_if_must_be_an_integer");
             return false;
         }
-        if (!areInlineIfCompatible(expr[1].get_type(), expr[2].get_type())) {
+        if (!areInlineIfCompatible(expr.get_type(), expr[1].get_type(), expr[2].get_type())) {
             handleError(expr, "$Incompatible_arguments_to_inline_if");
             return false;
         }
-        type = expr[1].get_type();
+        type = expr.get_type();
         break;
 
     case COMMA:
