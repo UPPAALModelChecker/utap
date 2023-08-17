@@ -543,7 +543,11 @@ void ExpressionBuilder::expr_inline_if()
     expression_t t = fragments[1];
     expression_t e = fragments[0];
     fragments.pop(3);
-    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position, t.get_type()));
+
+    // Handle special case where clock is implicitly converted to double
+    type_t type = t.get_type().is_clock() && e.get_type().is_double() ? e.get_type() : t.get_type();
+
+    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position, type));
 }
 
 void ExpressionBuilder::expr_comma()
