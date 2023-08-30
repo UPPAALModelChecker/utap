@@ -266,3 +266,14 @@ TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
     auto sims = templ.get_simregions();
     CHECK(sims.size() == 3);
 }
+
+TEST_CASE("Pre increment precedence bug")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i[2];")
+                   .add_global_decl("void f(){ ++i[0]; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK(doc->get_errors().size() == 0);
+}

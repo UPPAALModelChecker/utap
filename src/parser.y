@@ -316,8 +316,8 @@ const char* utap_msg(const char *msg)
 %left T_MULT T_DIV T_MOD
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
-%left '(' ')' '[' ']' '.' '\''
 %right T_INCREMENT T_DECREMENT
+%left '(' ')' '[' ']' '.' '\''
 
 
 %union {

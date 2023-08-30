@@ -815,7 +815,7 @@ int expression_t::get_precedence(kind_t kind)
     case PRE_INCREMENT:
     case PRE_DECREMENT:
     case UNARY_MINUS:
-    case NOT: return 90;
+    case NOT: return 107;
 
     case FRACTION: return 14;
     case INLINE_IF: return 15;
