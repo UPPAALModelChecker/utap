@@ -224,7 +224,7 @@ TEST_CASE("Ternary operator with clock and integer")
                    .add_global_decl("clock c; double x; void f() { x = true? c : 1; }")
                    .add_default_process()
                    .parse();
-    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
     CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
 }
 
@@ -265,6 +265,51 @@ TEST_CASE("Ternary operator with constant double and clock")
                    .add_global_decl("const double VAL = 2;")
                    .add_global_decl("clock c;")
                    .add_global_decl("double x; void f() { x = true? -VAL : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with boolean and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c;")
+                   .add_global_decl("double x; void f() { x = true? true : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x; } s;")
+                   .add_global_decl("double x; void f() { x = true? s : 0.5; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x; } s;")
+                   .add_global_decl("double x; void f() { x = true? s : 0.5; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and struct")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("typedef struct { int x; } S;")
+                   .add_global_decl("S s; S x = {5}; S y = {2};")
+                   .add_global_decl("void f() { s = true? x : y; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
