@@ -75,8 +75,9 @@ TEST_CASE("Expression")
         REQUIRE(exp_t::get_precedence(FUN_CALL) == exp_t::get_precedence(FUN_CALL_EXT));
         REQUIRE(exp_t::get_precedence(FUN_CALL) >= exp_t::get_precedence(ARRAY));
         REQUIRE(exp_t::get_precedence(ARRAY) >= exp_t::get_precedence(DOT));
+        REQUIRE(exp_t::get_precedence(ARRAY) > exp_t::get_precedence(NOT));
         REQUIRE(exp_t::get_precedence(DOT) >= exp_t::get_precedence(RATE));
-        REQUIRE(exp_t::get_precedence(RATE) > exp_t::get_precedence(PRE_INCREMENT));
+        REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(NOT));
         REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(PRE_DECREMENT));
         REQUIRE(exp_t::get_precedence(PRE_INCREMENT) >= exp_t::get_precedence(UNARY_MINUS));
         REQUIRE(exp_t::get_precedence(UNARY_MINUS) >= exp_t::get_precedence(NOT));
