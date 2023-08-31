@@ -201,7 +201,7 @@ TEST_SUITE("Error positions for unbound parameters")
 TEST_CASE("Ternary operator with clock and double")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f() { x = true? c : 1.0; }")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : 1.0; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
@@ -211,7 +211,7 @@ TEST_CASE("Ternary operator with clock and double")
 TEST_CASE("Ternary operator with double and clock")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f() { x = true? 1.0 : c; }")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? 1.0 : c; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
@@ -221,7 +221,7 @@ TEST_CASE("Ternary operator with double and clock")
 TEST_CASE("Ternary operator with clock and integer")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f() { x = true? c : 1; }")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : 1; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
@@ -231,7 +231,7 @@ TEST_CASE("Ternary operator with clock and integer")
 TEST_CASE("Ternary operator with clock and bool")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f() { x = true? c : true; };")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : true; };")
                    .add_default_process()
                    .parse();
     CHECK(doc->get_errors().size() == 1);
@@ -241,7 +241,7 @@ TEST_CASE("Ternary operator with clock and bool")
 TEST_CASE("Ternary operator with clock and clock")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f() { x = true? c : c; }")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : c; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
@@ -252,7 +252,7 @@ TEST_CASE("Ternary operator with constant double")
 {
     auto doc = document_fixture{}
                    .add_global_decl("const double VAL = 2;")
-                   .add_global_decl("double x; void f() { x = true? -VAL : VAL; }")
+                   .add_global_decl("double x; void f(bool b) { x = b ? -VAL : VAL; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
@@ -264,7 +264,7 @@ TEST_CASE("Ternary operator with constant double and clock")
     auto doc = document_fixture{}
                    .add_global_decl("const double VAL = 2;")
                    .add_global_decl("clock c;")
-                   .add_global_decl("double x; void f() { x = true? -VAL : c; }")
+                   .add_global_decl("double x; void f(bool b) { x = b ? -VAL : c; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
