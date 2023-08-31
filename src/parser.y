@@ -1207,7 +1207,7 @@ Expression:
         | '(' error ')' {
           CALL(@1, @3, expr_false());
         }
-        | Expression T_INCREMENT {
+        | Expression T_INCREMENT %prec '[' {
           CALL(@1, @2, expr_post_increment());
         }
         | T_INCREMENT Expression {
