@@ -460,7 +460,7 @@ void ExpressionBuilder::expr_unary(kind_t unaryop)  // 1 expr
     case MINUS:
         unaryop = UNARY_MINUS;
         /* Fall through! */
-    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position);
+    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position, fragments[0].get_type());
     }
 }
 
