@@ -300,6 +300,17 @@ TEST_CASE("pre post increment precedence")
     CHECK(doc->get_errors().size() == 1);
 }
 
+TEST_CASE("Double pre increment with forced precedence")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i = 0;")
+                   .add_global_decl("void f(){ (++i)++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
 TEST_CASE("Double pre increment precedence")
 {
     auto doc = document_fixture{}
