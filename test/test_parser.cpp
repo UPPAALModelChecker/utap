@@ -278,6 +278,17 @@ TEST_CASE("Pre increment precedence bug")
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
+TEST_CASE("Post increment precedence bug")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i[2];")
+                   .add_global_decl("void f(){ i[0]++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
 TEST_CASE("Double post increment precedence")
 {
     auto doc = document_fixture{}
@@ -316,6 +327,28 @@ TEST_CASE("Double pre increment precedence")
     auto doc = document_fixture{}
                    .add_global_decl("int i = 0;")
                    .add_global_decl("void f(){ ++++i; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Increment with array subscripting and dot accessing")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x, y; } axy[2];")
+                   .add_global_decl("void f(){ ++axy[0].x; axy[0].x++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Increment with multiple array subscripting and dot accessing")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int ai[2]; } aai[2];")
+                   .add_global_decl("void f(){ ++aai[0].ai[0]; aai[0].ai[0]++; }")
                    .add_default_process()
                    .parse();
 
