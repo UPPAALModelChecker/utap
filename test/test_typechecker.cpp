@@ -198,47 +198,6 @@ TEST_SUITE("Error positions for unbound parameters")
     }
 }
 
-TEST_CASE("Ternary operator with reference to integer array")
-{
-    auto doc = document_fixture{}
-                   .add_global_decl("int x[2]; int y[2]; int z[2];")
-                   .add_global_decl("void f(bool b) { z = (b?x:y); }")
-                   .add_default_process()
-                   .parse();
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
-    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
-}
-
-TEST_CASE("Assign clock to terneray operator using double array")
-{
-    auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x[2]; void f(bool b) { (b?x[0]:x[1]) = c; }")
-                   .add_default_process()
-                   .parse();
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
-    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
-}
-
-TEST_CASE("Ternary operator with arrays clock and double")
-{
-    auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x[2]; void f(bool b) { x[0] = b ? c : x[1]; }")
-                   .add_default_process()
-                   .parse();
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
-    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
-}
-
-TEST_CASE("Ternary operator with struct clock and double")
-{
-    auto doc = document_fixture{}
-                   .add_global_decl("struct{ clock c; double x; }z; void f(bool b) { z.x = b ? z.c : 1.0; }")
-                   .add_default_process()
-                   .parse();
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
-    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
-}
-
 TEST_CASE("Ternary operator with clock and double")
 {
     auto doc = document_fixture{}
@@ -356,6 +315,48 @@ TEST_CASE("Ternary operator with struct and struct")
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
     CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
 }
+
+TEST_CASE("Ternary operator with reference to integer array")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int x[2]; int y[2]; int z[2];")
+                   .add_global_decl("void f(bool b) { z = (b?x:y); }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with arrays clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x[2]; void f(bool b) { x[0] = b ? c : x[1]; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct{ clock c; double x; }z; void f(bool b) { z.x = b ? z.c : 1.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Terneray operator returning c++ reference to doubles with assignment")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x[2]; void f(bool b) { (b?x[0]:x[1]) = c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
 TEST_CASE("Double in struct")
 {
     auto doc = document_fixture{}.add_default_process().add_global_decl("struct { double x; } my_struct;").parse();
