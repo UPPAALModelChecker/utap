@@ -266,3 +266,244 @@ TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
     auto sims = templ.get_simregions();
     CHECK(sims.size() == 3);
 }
+
+TEST_CASE("Struct int,int initialization")
+{
+    auto doc =
+        document_fixture{}.add_default_process().add_global_decl("const struct { int x; int y; } s = {1, 1};").parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Struct int,double initialization")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("const struct { int x; double y; } s = {1, 1.0};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Struct double,double initialization")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("const struct { double x; double y; } s = {1.0, 1};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Nested struct int,double initialization")
+{
+    auto doc =
+        document_fixture{}
+            .add_default_process()
+            .add_global_decl("typedef struct { int x; double y; } S; struct { S s1; S s2; } s = {{5,5.5},{2,2.25}};")
+            .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Meta struct")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("meta struct { int x; double y; } s = {1, 1.0};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Struct meta field")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("meta struct { int x; meta double y; } s = {1, 1.0};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Initializing doubles in struct with ints")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("meta struct { double x; meta double y; } s = {1, 1};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Initializing ints with double value")
+{
+    auto doc =
+        document_fixture{}.add_default_process().add_global_decl("struct { int x; int y; } s = {1.1, 1.2};").parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 2);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Meta field in non meta struct")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Meta field in non meta struct")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Nested structs")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x; struct { int y; double d;} data; } s = {1, {5, 5.0}};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Structs with arrays")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x[2]; double y[2]; } s = {{1,1}, {5.0, 5.0}};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK(errors.size() == 0);
+    CHECK(doc->get_warnings().size() == 0);
+}
+
+TEST_CASE("Array of structs")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x; double y;} s[2] = {{1,5.0}, {1,2.5}};")
+                   .parse();
+    REQUIRE(doc);
+    auto& errors = doc->get_errors();
+    CHECK_MESSAGE(errors.size() == 0, errors.at(0).msg);
+    CHECK(doc->get_warnings().size() == 0); 
+}
+
+TEST_CASE("Pre increment precedence bug")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i[2];")
+                   .add_global_decl("void f(){ ++i[0]; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Post increment precedence bug")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i[2];")
+                   .add_global_decl("void f(){ i[0]++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Double post increment precedence")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i = 0;")
+                   .add_global_decl("void f(){ i++++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK(doc->get_errors().size() == 1);
+}
+
+TEST_CASE("pre post increment precedence")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i = 0;")
+                   .add_global_decl("void f(){ ++i++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK(doc->get_errors().size() == 1);
+}
+
+TEST_CASE("Double pre increment with forced precedence")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i = 0;")
+                   .add_global_decl("void f(){ (++i)++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Double pre increment precedence")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int i = 0;")
+                   .add_global_decl("void f(){ ++++i; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Increment with array subscripting and dot accessing")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x, y; } axy[2];")
+                   .add_global_decl("void f(){ ++axy[0].x; axy[0].x++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Increment with multiple array subscripting and dot accessing")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int ai[2]; } aai[2];")
+                   .add_global_decl("void f(){ ++aai[0].ai[0]; aai[0].ai[0]++; }")
+                   .add_default_process()
+                   .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}

@@ -316,8 +316,8 @@ const char* utap_msg(const char *msg)
 %left T_MULT T_DIV T_MOD
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
-%left '(' ')' '[' ']' '.' '\''
 %right T_INCREMENT T_DECREMENT
+%left '(' ')' '[' ']' '.' '\''
 
 
 %union {
@@ -1207,7 +1207,7 @@ Expression:
         | '(' error ')' {
           CALL(@1, @3, expr_false());
         }
-        | Expression T_INCREMENT {
+        | Expression T_INCREMENT %prec '[' {
           CALL(@1, @2, expr_post_increment());
         }
         | T_INCREMENT Expression {
