@@ -19,10 +19,12 @@ for target in "$@" ; do
         prepare_libxml2
         BUILD="$LIBS/build-${LIBXML2}"
         echo -e "${BW}${target}: Configuring ${LIBXML2}${NC}"
-        cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
+        cmake -S "$SOURCE/$LIBXML2" -B "$BUILD" \
+          -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
           -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
           -DBUILD_SHARED_LIBS=OFF -DLIBXML2_WITH_FTP=OFF -DLIBXML2_WITH_HTTP=OFF \
-          -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF
+          -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF -DLIBXML2_WITH_ZLIB=OFF \
+          -DLIBXML2_WITH_THREADS=OFF -DLIBXML2_WITH_TESTS=OFF
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
         cmake --build "$BUILD"
         echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
