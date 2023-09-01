@@ -197,3 +197,45 @@ TEST_SUITE("Error positions for unbound parameters")
         CHECK(pos.end != pos.unknown_pos);
     }
 }
+
+TEST_CASE("Double in struct")
+{
+    auto doc = document_fixture{}.add_default_process().add_global_decl("struct { double x; } my_struct;").parse();
+    auto warns = doc->get_warnings();
+    CHECK(warns.size() == 0);
+    auto errs = doc->get_errors();
+    CHECK(errs.size() == 0);
+}
+
+TEST_CASE("Clock in struct")
+{
+    auto doc = document_fixture{}.add_default_process().add_global_decl("struct { clock x; } my_struct;").parse();
+    auto warns = doc->get_warnings();
+    CHECK(warns.size() == 0);
+    auto errs = doc->get_errors();
+    CHECK(errs.size() == 0);
+}
+
+TEST_CASE("Nested structs")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { struct { clock x; } nested; } my_struct;")
+                   .parse();
+    auto warns = doc->get_warnings();
+    CHECK(warns.size() == 0);
+    auto errs = doc->get_errors();
+    CHECK(errs.size() == 0);
+}
+
+TEST_CASE("Nested structs")
+{
+    auto doc = document_fixture{}
+                   .add_default_process()
+                   .add_global_decl("struct { int x; double y; } my_struct = {1.0, 1.0};")
+                   .parse();
+    auto warns = doc->get_warnings();
+    CHECK(warns.size() == 0);
+    auto errs = doc->get_errors();
+    CHECK(errs.size() == 1);
+}
