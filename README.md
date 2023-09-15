@@ -1,4 +1,4 @@
-# libutap, version 2.0.0
+# libutap, version 2.0.2
 
 # Mini HOWTO
 Gerd Behrmann
@@ -151,7 +151,7 @@ else(utap_FOUND)
   FetchContent_Declare(
     UTAP
     GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
-    GIT_TAG main      # fetches main branch, can be a version tag like v2.0.0
+    GIT_TAG main      # fetches main branch, can be a version tag like v2.0.2
     GIT_SHALLOW TRUE  # get only the last commit version
     GIT_PROGRESS TRUE # show progress of download
     FIND_PACKAGE_ARGS NAMES UTAP
