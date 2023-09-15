@@ -1515,13 +1515,12 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
     same size and the subtypes must be compatible. In case of records,
     they must have the same type name.
 */
-bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
+bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2) const
 {
-    if (t1.is_integral() && t2.is_integral()) {
+    if (areAssignmentCompatible(result_type, t1) && areAssignmentCompatible(result_type, t1))
         return true;
-    } else {
-        return areEquivalent(t1, t2);
-    }
+
+    return areEquivalent(t1, t2);
 }
 
 /**
@@ -1529,7 +1528,7 @@ bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
  * equivalent. However, CONST, SYSTEM_META, and REF are ignored. Scalar sets
  * are checked using named equivalence.
  */
-bool TypeChecker::areEquivalent(type_t a, type_t b) const
+bool TypeChecker::areEquivalent(type_t a, type_t b)
 {
     if (a.is_integer() && b.is_integer()) {
         return !a.is(RANGE) || !b.is(RANGE) ||
@@ -2084,11 +2083,11 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr, "$First_argument_of_inline_if_must_be_an_integer");
             return false;
         }
-        if (!areInlineIfCompatible(expr[1].get_type(), expr[2].get_type())) {
+        if (!areInlineIfCompatible(expr.get_type(), expr[1].get_type(), expr[2].get_type())) {
             handleError(expr, "$Incompatible_arguments_to_inline_if");
             return false;
         }
-        type = expr[1].get_type();
+        type = expr.get_type();
         break;
 
     case COMMA:

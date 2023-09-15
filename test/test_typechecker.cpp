@@ -81,7 +81,7 @@ TEST_SUITE("Quantifier forall")
         df.add_system_decl("bool b[3] = {1,1,1};");
         df.add_system_decl("bool x = forall(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        CHECK(doc->get_warnings().size() == 0);
+        CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
         const auto errors = doc->get_errors();
         REQUIRE(errors.size() == 1);
         CHECK(errors[0].msg == "$Must_be_computable_at_compile_time");
@@ -196,6 +196,165 @@ TEST_SUITE("Error positions for unbound parameters")
         CHECK(pos.start != pos.unknown_pos);
         CHECK(pos.end != pos.unknown_pos);
     }
+}
+
+TEST_CASE("Ternary operator with clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : 1.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with double and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? 1.0 : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with clock and integer")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : 1; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with clock and bool")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : true; };")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with clock and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with constant double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("const double VAL = 2;")
+                   .add_global_decl("double x; void f(bool b) { x = b ? -VAL : VAL; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with constant double and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("const double VAL = 2;")
+                   .add_global_decl("clock c;")
+                   .add_global_decl("double x; void f(bool b) { x = b ? -VAL : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with boolean and clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c;")
+                   .add_global_decl("double x; void f(bool b) { x = b? true : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x; } s;")
+                   .add_global_decl("double x; void f(bool b) { x = b? s : 0.5; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct { int x; } s;")
+                   .add_global_decl("double x; void f(bool b) { x = b? s : 0.5; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct and struct")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("typedef struct { int x; } S;")
+                   .add_global_decl("S s; S x = {5}; S y = {2};")
+                   .add_global_decl("void f(bool b) { s = b? x : y; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with reference to integer array")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int x[2]; int y[2]; int z[2];")
+                   .add_global_decl("void f(bool b) { z = (b?x:y); }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with arrays clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x[2]; void f(bool b) { x[0] = b ? c : x[1]; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with struct clock and double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("struct{ clock c; double x; }z; void f(bool b) { z.x = b ? z.c : 1.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Terneray operator returning c++ reference to doubles with assignment")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x[2]; void f(bool b) { (b?x[0]:x[1]) = c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
 }
 
 TEST_CASE("Double in struct")

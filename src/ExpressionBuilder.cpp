@@ -21,6 +21,8 @@
 
 #include "utap/ExpressionBuilder.hpp"
 
+#include "utap/typechecker.h"
+
 #include <sstream>
 #include <string>
 #include <vector>
@@ -460,7 +462,7 @@ void ExpressionBuilder::expr_unary(kind_t unaryop)  // 1 expr
     case MINUS:
         unaryop = UNARY_MINUS;
         /* Fall through! */
-    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position);
+    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position, fragments[0].get_type());
     }
 }
 
@@ -543,7 +545,25 @@ void ExpressionBuilder::expr_inline_if()
     expression_t t = fragments[1];
     expression_t e = fragments[0];
     fragments.pop(3);
-    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position, t.get_type()));
+
+    // Find the common type of expression t and e
+    type_t t1 = t.get_type();
+    type_t t2 = e.get_type();
+    type_t common_type;
+    if (t1.is_record())
+        common_type = t1;
+    else if (t2.is_record())
+        common_type = t2;
+    else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
+        common_type = type_t{DOUBLE, {}, 0};
+    else if (TypeChecker::areEquivalent(t1, t2))
+        common_type = t1;
+    else
+        handle_error(TypeException{"$Incompatible_arguments_to_inline_if"});
+
+    type_t type = t.get_type().is_clock() && e.get_type().is_double() ? e.get_type() : t.get_type();
+
+    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position, common_type));
 }
 
 void ExpressionBuilder::expr_comma()
