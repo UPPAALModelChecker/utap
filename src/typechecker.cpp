@@ -1523,6 +1523,20 @@ bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2
     return areEquivalent(t1, t2);
 }
 
+type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
+{
+    if (t1.is_record())
+        return t1;
+    else if (t2.is_record())
+        return t2;
+    else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
+        return type_t{DOUBLE, {}, 0};
+    else if (TypeChecker::areEquivalent(t1, t2))
+        return t1;
+    else
+        return type_t{};
+}
+
 /**
  * Returns true iff \a a and \a b are structurally
  * equivalent. However, CONST, SYSTEM_META, and REF are ignored. Scalar sets
@@ -2083,11 +2097,12 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr, "$First_argument_of_inline_if_must_be_an_integer");
             return false;
         }
-        if (!areInlineIfCompatible(expr.get_type(), expr[1].get_type(), expr[2].get_type())) {
+
+        type = getInlineIfCommonType(expr[1].get_type(), expr[2].get_type());
+        if (!areInlineIfCompatible(type, expr[1].get_type(), expr[2].get_type())) {
             handleError(expr, "$Incompatible_arguments_to_inline_if");
             return false;
         }
-        type = expr.get_type();
         break;
 
     case COMMA:
