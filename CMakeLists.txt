@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(UTAP VERSION 2.0.2 LANGUAGES CXX C)
+project(UTAP VERSION 2.0.3 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
