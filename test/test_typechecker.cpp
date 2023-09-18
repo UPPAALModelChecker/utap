@@ -337,6 +337,62 @@ TEST_CASE("Ternary operator with arrays clock and double")
     CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
 }
 
+TEST_CASE("Ternary operator with int and int expression 1")
+{
+    auto doc =
+        document_fixture{}.add_global_decl("int x; void f(bool b) { x = b ? 0 : 1+1; }").add_default_process().parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with int and int expression 2")
+{
+    auto doc =
+        document_fixture{}.add_global_decl("int x; void f(bool b) { x = b ? 1+1 : 0; }").add_default_process().parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with int expressions")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int x; void f(bool b) { x = b ? 1+1 : 1+1; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with int expressions")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int x; void f(bool b) { x = b ? 1+1 : 1.0+1.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with int expressions and clocks")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("int x; clock c; void f(bool b) { x = b ? 1+1 : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK(doc->get_errors().size() == 1);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with double expressions and clocks")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock x; clock c; void f(bool b) { x = b ? 1+1 : c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
 TEST_CASE("Ternary operator with struct clock and double")
 {
     auto doc = document_fixture{}
@@ -347,10 +403,30 @@ TEST_CASE("Ternary operator with struct clock and double")
     CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
 }
 
-TEST_CASE("Terneray operator returning c++ reference to doubles with assignment")
+TEST_CASE("Ternary operator returning c++ reference to doubles with assignment")
 {
     auto doc = document_fixture{}
                    .add_global_decl("clock c; double x[2]; void f(bool b) { (b?x[0]:x[1]) = c; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with two conversions into clock")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { c = b ? 1 : x+2.0; }")
+                   .add_default_process()
+                   .parse();
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
+    CHECK_MESSAGE(doc->get_warnings().size() == 0, doc->get_warnings()[0].msg);
+}
+
+TEST_CASE("Ternary operator with two conversions into double")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? 1 : c+2.0; }")
                    .add_default_process()
                    .parse();
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors()[0].msg);
