@@ -1529,10 +1529,14 @@ type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
         return t1;
     else if (t2.is_record())
         return t2;
+    else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
+        return type_t{DOUBLE, {}, 0};
     else if (TypeChecker::areAssignmentCompatible(t1, t2))
         return t1;
     else if (TypeChecker::areAssignmentCompatible(t2, t1))
         return t2;
+    else if (TypeChecker::areEquivalent(t2, t1))
+        return t1;
     else
         return type_t{};
 }
