@@ -8,10 +8,10 @@ SOURCE="$LOCAL/source"
 BW="\e[1;97m" # bold white
 NC="\e[0m"    # no color
 
-LIBXML2=libxml2-2.11.4
+LIBXML2=libxml2-2.11.5
 LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
-LIBXML2_SHA256=737e1d7f8ab3f139729ca13a2494fd17bf30ddb4b7a427cf336252cab57f57f7
+LIBXML2_SHA256=3727b078c360ec69fa869de14bd6f75d7ee8d36987b071e6928d4720a28df3a6
 
 DOCTEST=doctest-2.4.11
 DOCTEST_Z="${DOCTEST}.tar.gz"
