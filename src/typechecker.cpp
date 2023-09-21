@@ -1057,11 +1057,12 @@ void TypeChecker::visitProperty(expression_t expr)
                 }
             }
             */
-        } else if (auto k = expr.get_kind(); k != SUP_VAR && k != INF_VAR && k != SCENARIO && k != PROBA_MIN_BOX &&
-                                             k != PROBA_MIN_DIAMOND && k != PROBA_BOX && k != PROBA_DIAMOND &&
-                                             k != PROBA_EXP && k != PROBA_CMP && k != SIMULATE && k != SIMULATEREACH &&
-                                             k != MITL_FORMULA && k != MIN_EXP &&  // ALREADY CHECKED IN PARSE
-                                             k != MAX_EXP)                         // ALREADY CHECKED IN PARSE
+        } else if (auto k = expr.get_kind(); k != SUP_VAR && k != INF_VAR && k != BOUNDS_VAR && k != SCENARIO &&
+                                             k != PROBA_MIN_BOX && k != PROBA_MIN_DIAMOND && k != PROBA_BOX &&
+                                             k != PROBA_DIAMOND && k != PROBA_EXP && k != PROBA_CMP && k != SIMULATE &&
+                                             k != SIMULATEREACH && k != MITL_FORMULA &&
+                                             k != MIN_EXP &&  // ALREADY CHECKED IN PARSE
+                                             k != MAX_EXP)    // ALREADY CHECKED IN PARSE
         {
             for (uint32_t i = 0; i < expr.get_size(); i++) {
                 /* No nesting except for constraints */
@@ -2307,6 +2308,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case SUP_VAR:
     case INF_VAR:
+    case BOUNDS_VAR:
         if (!is_integral(expr[0]) && !is_constraint(expr[0])) {
             handleError(expr[0], "$Boolean_expected");
             return false;

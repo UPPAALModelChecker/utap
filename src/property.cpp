@@ -170,6 +170,7 @@ static bool symbolicProperty(const expression_t& expr)
     case CONTROL_TOPT_DEF2:
     case SUP_VAR:
     case INF_VAR:
+    case BOUNDS_VAR:
     case SCENARIO:
     case SCENARIO2: return true;
     default: return false;
@@ -195,6 +196,7 @@ void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
         break;
     case SUP_VAR: properties.back().type = quant_t::supremum; break;
     case INF_VAR: properties.back().type = quant_t::infimum; break;
+    case BOUNDS_VAR: properties.back().type = quant_t::bounds; break;
     case PROBA_MIN_BOX:
         properties.back().type = quant_t::probaMinBox;
         prob = true;

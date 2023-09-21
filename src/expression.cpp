@@ -356,6 +356,7 @@ size_t expression_t::get_size() const
     case SUM:
     case SUP_VAR:
     case INF_VAR:
+    case BOUNDS_VAR:
     case FRACTION:
     case FMOD_F:
     case FMAX_F:
@@ -868,7 +869,8 @@ int expression_t::get_precedence(kind_t kind)
     case CONTROL_TOPT_DEF1:
     case CONTROL_TOPT_DEF2:
     case SUP_VAR:
-    case INF_VAR: return 3;
+    case INF_VAR:
+    case BOUNDS_VAR: return 3;
 
     case SYNC: return 0;
 
@@ -1586,6 +1588,12 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case INF_VAR:
         os << "inf{";
+        get(0).print(os, old) << "}: ";
+        get(1).print(os, old);
+        break;
+
+    case BOUNDS_VAR:
+        os << "bounds{";
         get(0).print(os, old) << "}: ";
         get(1).print(os, old);
         break;
