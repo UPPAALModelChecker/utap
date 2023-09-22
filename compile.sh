@@ -18,8 +18,8 @@ export CTEST_OUTPUT_ON_FAILURE=1
 for target in "$@" ; do
     BUILD="build-${target}-release"
     if [ -d "${LOCAL}/${target}" ]; then
-      PREFIX="-DCMAKE_PREFIX_PATH=${LOCAL}/${target}"
-      INSTALL_PREFIX="-DCMAKE_INSTALL_PREFIX=${LOCAL}/${target}"
+      PREFIX="${LOCAL}/${target}"
+      INSTALL_PREFIX="${LOCAL}/${target}"
     else
       PREFIX=""
       INSTALL_PREFIX=""
@@ -27,7 +27,8 @@ for target in "$@" ; do
     # "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
     echo -e "${BW}${target}: Configuring UTAP${NC}"
     cmake -S . -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
-      "${PREFIX}" "${INSTALL_PREFIX}" -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_PREFIX_PATH="$PREFIX" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" \
+          -DCMAKE_BUILD_TYPE=Release -DFIND_FATAL=ON
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD"
     echo -e "${BW}${target}: Testing UTAP${NC}"

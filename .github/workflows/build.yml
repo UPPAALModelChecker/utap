@@ -1,130 +1,132 @@
+---
 name: Build and Test
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main ]
     paths:
-    - '**.h'
-    - '**.c'
-    - '**.hpp'
-    - '**.cpp'
-    - '**.y'
-    - '**.l'
-    - '**.sh'
-    - '**.cmake'
-    - '**CMakeLists.txt'
+      - '**.h'
+      - '**.c'
+      - '**.hpp'
+      - '**.cpp'
+      - '**.y'
+      - '**.l'
+      - '**.sh'
+      - '**.cmake'
+      - '**CMakeLists.txt'
   pull_request:
     branches: [ main ]
     paths:
-    - '**.h'
-    - '**.c'
-    - '**.hpp'
-    - '**.cpp'
-    - '**.y'
-    - '**.l'
-    - '**.sh'
-    - '**.cmake'
-    - '**.xml'
-    - '**CMakeLists.txt'
+      - '**.h'
+      - '**.c'
+      - '**.hpp'
+      - '**.cpp'
+      - '**.y'
+      - '**.l'
+      - '**.sh'
+      - '**.cmake'
+      - '**.xml'
+      - '**CMakeLists.txt'
 
 jobs:
-  format:
+  formatting:
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
     steps:
-    - uses: actions/checkout@v3
-    - name: Get clang-format-11
-      run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get -qy update
-          sudo apt-get -qy install clang-format-11
-    - name: Format
-      run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format-11 -n -Werror {} \;
+      - uses: actions/checkout@v3
+      - name: Get clang-format-11
+        run: |
+          export
+          sudo apt-get -qqy update
+          sudo apt-get -qqy install clang-format-11
+      - name: Formatting
+        run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format-11 -n -Werror {} \;
 
   build-linux64:
-    needs: [ format ]
+    needs: [ formatting ]
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      BUILD_DIR: build-linux64-gcc10
+      CTEST_OUTPUT_ON_FAILURE: 1
+      CMAKE_BUILD_TYPE: Debug
+      CMAKE_GENERATOR: Ninja
     steps:
-    - uses: actions/checkout@v3
-    - name: Set default environment variables
-      run: |
-          echo "DEBIAN_FRONTEND=noninteractive" >> "$GITHUB_ENV"
-          echo "BUILD_DIR=build-linux64-gcc10" >> "$GITHUB_ENV"
-          echo "CROSSCOMPILING_EMULATOR=wine" >> "$GITHUB_ENV"
-          echo "CTEST_OUTPUT_ON_FAILURE=1" >> "$GITHUB_ENV"
-    - name: Get Ubuntu dependencies
-      run: |
+      - uses: actions/checkout@v3
+      - name: Get Ubuntu dependencies
+        run: |
           sudo apt-get -qy update
           sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex libc6-dev g++-10
-    - name: Get library dependencies
-      run: ./getlibs/getlibs.sh linux64-gcc10
-    - name: Configure CMake build system
-      run: cmake -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc10.cmake -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10 -DCMAKE_BUILD_TYPE=Debug -DUBSAN=ON -DASAN=ON -B $BUILD_DIR -S . -G Ninja
-    - name: Build
-      run: cmake --build $BUILD_DIR
-    - name: Test
-      run: (cd $BUILD_DIR ; ctest)
+      - name: Get library dependencies
+        run: ./getlibs/getlibs.sh linux64-gcc10
+      - name: Configure CMake build system
+        run: cmake -B "$BUILD_DIR" -S . -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc10.cmake -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10 -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+      - name: Build
+        run: cmake --build $BUILD_DIR --config Debug
+      - name: Test
+        run: ctest --test-dir "$BUILD_DIR" -C Debug
 
   build-win64:
-    needs: [ format ]
+    needs: [ formatting ]
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      BUILD_DIR: build-win64
+      CTEST_OUTPUT_ON_FAILURE: 1
+      CROSSCOMPILING_EMULATOR: wine
+      WINARCH: win64
+      CMAKE_BUILD_TYPE: Debug
+      CMAKE_GENERATOR: Ninja
     steps:
-    - uses: actions/checkout@v3
-    - name: Set default environment variables
-      run: |
-          echo "DEBIAN_FRONTEND=noninteractive" >> "$GITHUB_ENV"
-          echo "BUILD_DIR=build-win64" >> "$GITHUB_ENV"
-          echo "CROSSCOMPILING_EMULATOR=wine" >> "$GITHUB_ENV"
-          echo "CTEST_OUTPUT_ON_FAILURE=1" >> "$GITHUB_ENV"
-    - name: Get Ubuntu dependencies
-      run: |
-          sudo apt-get -qy update
-          sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine wine64
-          sudo apt-get -qy install wine-binfmt
+      - uses: actions/checkout@v3
+      - name: Get Ubuntu dependencies
+        run: |
+          sudo apt-get -qqy update
+          sudo apt-get -qqy install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine
+          sudo apt-get -qqy install wine-binfmt
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-    - name: Get library dependencies
-      run: ./getlibs/getlibs.sh win64
-    - name: Configure CMake build system
-      run: cmake -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/win64.cmake -DCMAKE_PREFIX_PATH=$PWD/local/win64 -DCMAKE_BUILD_TYPE=Debug -B $BUILD_DIR -S . -G Ninja
-    - name: Build
-      run: cmake --build $BUILD_DIR
-    - name: Test
-      run: (cd $BUILD_DIR ; ctest)
+      - name: Get library dependencies
+        run: ./getlibs/getlibs.sh win64
+      - name: Configure CMake build system
+        run: cmake  -B "$BUILD_DIR" -S . -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/win64.cmake -DCMAKE_PREFIX_PATH=$PWD/local/win64 -DSSP=ON
+      - name: Build
+        run: cmake --build "$BUILD_DIR" --config Debug
+      - name: Test
+        run: ctest --test-dir "$BUILD_DIR" -C Debug
 
   build-macos:
-    needs: [ format ]
+    needs: [ formatting ]
     strategy:
       fail-fast: false
     runs-on: macos-11
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      BUILD_DIR: build-darwin
+      CTEST_OUTPUT_ON_FAILURE: 1
+      CMAKE_BUILD_TYPE: Debug
+      CMAKE_GENERATOR: Ninja
     steps:
-    - uses: actions/checkout@v3
-    - uses: maxim-lobanov/setup-xcode@v1
-      with:
-        xcode-version: '13.2.1'
-    - name: Get Home Brew dependencies
-      run: brew install -q cmake ninja bison libxml2 doctest
-    - name: Set environment variables
-      run: |
-        echo "BUILD_DIR=build-darwin" >> "$GITHUB_ENV"
-        echo "CTEST_OUTPUT_ON_FAILURE=1" >> "$GITHUB_ENV"
-    - name: Configure CMake build system
-      run: |
-        export PATH="/usr/local/bin:$PATH"
-        export PATH="/usr/local/opt/bison/bin:$PATH"
-        export LDFLAGS="-L/usr/local/opt/bison/lib $LDFLAGS"
-        export PKG_CONFIG_PATH="/usr/local/opt/libxml2/lib/pkgconfig"
-        export PATH="/usr/local/opt/libxml2/bin:$PATH"
-        export LDFLAGS="-L/usr/local/opt/libxml2/lib $LDFLAGS"
-        export CPPFLAGS="-I/usr/local/opt/libxml2/include $CPPFLAGS"
-        cmake -DCMAKE_BUILD_TYPE=Debug -DUBSAN=ON -DASAN=ON -B $BUILD_DIR -S . -G Ninja
-    - name: Build
-      run: cmake --build $BUILD_DIR
-    - name: Test
-      run: (cd $BUILD_DIR ; ctest)
+      - uses: actions/checkout@v3
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '13.2.1'
+      - name: Get Home Brew dependencies
+        run: brew install -q cmake ninja gcc@10 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+      - name: Get library dependencies
+        run: ./getlibs/getlibs.sh darwin-brew-gcc10
+      - name: Configure CMake build system
+        run: cmake -B "$BUILD_DIR" -S . -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/darwin-brew-gcc10.cmake -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc10 -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+      - name: Build
+        run: cmake --build "$BUILD_DIR" --config Debug
+      - name: Test
+        run: ctest --test-dir "$BUILD_DIR" -C Debug
 
 #  build-macos-brew-gcc10:
 #     needs: [ format ]
