@@ -36,7 +36,6 @@ using namespace Constants;
 
 using std::vector;
 using std::string;
-using std::map;
 
 inline static bool isMITL(const expression_t& e)
 {
@@ -59,7 +58,7 @@ inline static expression_t toMITLAtom(const expression_t& e) { return expression
 void ExpressionBuilder::ExpressionFragments::pop(uint32_t n)
 {
     assert(n <= size());
-    while (n--)
+    while (n-- > 0)
         pop();
 }
 
@@ -198,7 +197,7 @@ void ExpressionBuilder::type_void()
     typeFragments.push(type);
 }
 
-static void collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
+static void collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
 {
     std::set<symbol_t> symbols;
     expr.collect_possible_reads(symbols);
@@ -208,7 +207,7 @@ static void collectDependencies(std::set<symbol_t>& dependencies, expression_t e
         if (dependencies.find(s) == dependencies.end()) {
             dependencies.insert(s);
             if (auto* data = s.get_data(); data) {
-                variable_t* v = static_cast<variable_t*>(data);
+                auto* v = static_cast<variable_t*>(data);
                 v->init.collect_possible_reads(symbols);
             }
         }
@@ -233,7 +232,7 @@ void ExpressionBuilder::type_scalar(PREFIX prefix)
 
     type = type.create_label(string("#scalarset") + count, position);
 
-    if (currentTemplate) {
+    if (currentTemplate != nullptr) {
         /* Local scalar definitions are local to a particular process
          * - not to the template. Therefore we prefix it with the
          * template name and rename the template name to the process
@@ -977,7 +976,7 @@ void ExpressionBuilder::expr_forall_dynamic_begin(const char* name, const char* 
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
-    if (!templ)
+    if (templ == nullptr)
         throw UnknownDynamicTemplateError(temp);
     // dynamicFrames[name]=templ->frame;
     push_dynamic_frame_of(templ, name);
@@ -1010,9 +1009,8 @@ void ExpressionBuilder::expr_exists_dynamic_begin(const char* name, const char* 
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
-    if (!templ) {
+    if (templ == nullptr)
         throw UnknownDynamicTemplateError(temp);
-    }
     // dynamicFrames [name]=templ->frame;
     push_dynamic_frame_of(templ, name);
 }
@@ -1042,9 +1040,8 @@ void ExpressionBuilder::expr_sum_dynamic_begin(const char* name, const char* tem
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
-    if (!templ) {
+    if (templ == nullptr)
         throw UnknownDynamicTemplateError(temp);
-    }
     // dynamicFrames [name]=templ->frame;
     push_dynamic_frame_of(templ, name);
 }
@@ -1065,9 +1062,8 @@ void ExpressionBuilder::expr_foreach_dynamic_begin(const char* name, const char*
 {
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
-    if (!document.find_dynamic_template(temp)) {
+    if (document.find_dynamic_template(temp) == nullptr)
         throw UnknownDynamicTemplateError(temp);
-    }
     // dynamicFrames [name]=document->find_dynamic_template(temp)->frame;
     push_dynamic_frame_of(document.find_dynamic_template(temp), name);
 }
@@ -1085,7 +1081,7 @@ void ExpressionBuilder::expr_foreach_dynamic_end(const char* name)
     pop_dynamic_frame_of(name);
 }
 
-void ExpressionBuilder::push_dynamic_frame_of(template_t* t, string name)
+void ExpressionBuilder::push_dynamic_frame_of(template_t* t, const string& name)
 {
     if (!t->is_defined) {
         throw TypeException("Template referenced before used");
@@ -1093,4 +1089,4 @@ void ExpressionBuilder::push_dynamic_frame_of(template_t* t, string name)
     dynamicFrames[name] = t->frame;
 }
 
-void ExpressionBuilder::pop_dynamic_frame_of(string name) { dynamicFrames.erase(name); }
+void ExpressionBuilder::pop_dynamic_frame_of(const string& name) { dynamicFrames.erase(name); }

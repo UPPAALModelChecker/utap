@@ -200,13 +200,13 @@ public:
     void add(symbol_t);
 
     /** Add all symbols from the given frame */
-    void add(frame_t);
+    void add(const frame_t&);
 
     /** Move all symbols from this to a given one (leaving this empty). */
     void move_to(frame_t);
 
     /** removes the given symbol*/
-    void remove(symbol_t s);
+    void remove(const symbol_t& s);
 
     /** Resolves a name in this frame or a parent frame. */
     bool resolve(const std::string& name, symbol_t& symbol) const;

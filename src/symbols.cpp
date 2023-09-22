@@ -74,7 +74,7 @@ frame_t symbol_t::get_frame() { return frame_t(data->frame); }
 /* Returns the type of this symbol. */
 type_t symbol_t::get_type() const { return data->type; }
 
-void symbol_t::set_type(type_t type) { data->type = type; }
+void symbol_t::set_type(type_t type) { data->type = std::move(type); }
 
 position_t symbol_t::get_position() const { return data->position; }
 
@@ -135,7 +135,7 @@ frame_t::iterator frame_t::end() { return std::end(data->symbols); }
 /* Adds a symbol of the given name and type to the frame */
 symbol_t frame_t::add_symbol(const string& name, type_t type, position_t position, void* user)
 {
-    auto symbol = symbol_t{this, type, name, position, user};
+    auto symbol = symbol_t{this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
     if (!name.empty()) {
         data->mapping[symbol.get_name()] = data->symbols.size() - 1;
@@ -149,9 +149,10 @@ symbol_t frame_t::add_symbol(const string& name, type_t type, position_t positio
 */
 void frame_t::add(symbol_t symbol)
 {
-    data->symbols.push_back(symbol);
-    if (!symbol.get_name().empty()) {
-        data->mapping[symbol.get_name()] = data->symbols.size() - 1;
+    data->symbols.push_back(std::move(symbol));
+    const auto& s = data->symbols.back();
+    if (!s.get_name().empty()) {
+        data->mapping[s.get_name()] = data->symbols.size() - 1;
     }
 }
 
@@ -159,9 +160,9 @@ void frame_t::add(symbol_t symbol)
     be in two frames at the same time, but the symbol will only "point
     back" to the first frame it was added to.
 */
-void frame_t::add(frame_t frame)
+void frame_t::add(const frame_t& frame)
 {
-    for (auto& symbol : frame)
+    for (const auto& symbol : frame)
         add(symbol);
 }
 
@@ -171,8 +172,7 @@ void frame_t::add(frame_t frame)
 */
 void frame_t::move_to(frame_t frame)
 {
-    for (uint32_t i = 0; i < data->symbols.size(); i++) {
-        symbol_t symbol = data->symbols[i];
+    for (const auto& symbol : data->symbols) {
         frame.add(symbol);
         symbol.data->frame = frame.data.get();
     }
@@ -181,13 +181,12 @@ void frame_t::move_to(frame_t frame)
 }
 
 /** removes the given symbol*/
-void frame_t::remove(symbol_t s)
+void frame_t::remove(const symbol_t& s)
 {
     vector<symbol_t> symbols = data->symbols;
     data->symbols.clear();
     data->mapping.clear();
-    for (uint32_t i = 0; i < symbols.size(); i++) {
-        symbol_t symbol = symbols[i];
+    for (const auto& symbol : symbols) {
         if (symbol != s) {
             add(symbol);
             symbol.data->frame = data.get();

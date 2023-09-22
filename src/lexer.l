@@ -70,13 +70,13 @@ idchr        [a-zA-Z0-9_$#]
 
 \n+        	{
     tracker.newline(ch, yyleng);
-    if ((syntax & syntax_t::PROPERTY) != 0)
+    if ((syntax & syntax_t::PROPERTY) != syntax_t::NONE)
         return '\n';
 }
 
 (\r\n)+     {
     tracker.newline(ch, yyleng / 2);
-    if ((syntax & syntax_t::PROPERTY) != 0)
+    if ((syntax & syntax_t::PROPERTY) != syntax_t::NONE)
         return '\n';
 }
 
@@ -133,14 +133,14 @@ idchr        [a-zA-Z0-9_$#]
 "<="        { return T_LEQ; }
 ">="        { return T_GEQ; }
 "=<"        {
-    if (syntax & syntax_t::OLD) {
+    if ((syntax & syntax_t::OLD) != syntax_t::NONE) {
         return T_LEQ;
     }
     utap_error("$Unknown_symbol");
     return T_ERROR;
 }
 "=>"        {
-    if (syntax & syntax_t::OLD) {
+    if ((syntax & syntax_t::OLD) != syntax_t::NONE) {
         return T_GEQ;
     }
     utap_error("$Unknown_symbol");
@@ -181,12 +181,12 @@ idchr        [a-zA-Z0-9_$#]
 		auto s = keyword.syntax;
 #ifndef ENABLE_PROB
         // Remove all PROB keywords if pro is not enabled.
-		if (s & syntax_t::PROB) {
+		if ((s & syntax_t::PROB) != syntax_t::NONE) {
             s = syntax_t::NONE;
         }
 #endif
-		if (syntax & s) {
-             if (keyword.token == T_CONST && (syntax & syntax_t::OLD)) {
+		if ((syntax & s) != syntax_t::NONE) {
+             if (keyword.token == T_CONST && ((syntax & syntax_t::OLD) != syntax_t::NONE)) {
                   return T_OLDCONST;
              }
              return keyword.token;

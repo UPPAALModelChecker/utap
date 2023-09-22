@@ -478,7 +478,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_t part, std::string xpath);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_t part, const std::string& xpath);
 
 /**
  * Parse a buffer in the XML format, reporting the document to the given

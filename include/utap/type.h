@@ -345,7 +345,7 @@ public:
      * the type (expressions that occur as ranges either on
      * array sizes, scalars or integers) with \a expr.
      */
-    type_t subst(symbol_t symbol, expression_t expr) const;
+    type_t subst(const symbol_t& symbol, const expression_t& expr) const;
     /**
      * Creates a new type by adding a prefix to it. The prefix
      * could be anything and it is the responsibility of the
@@ -358,7 +358,7 @@ public:
 
     /**
      */
-    static type_t create_range(type_t, expression_t, expression_t, position_t = position_t());
+    static type_t create_range(type_t, const expression_t&, const expression_t&, position_t = position_t());
 
     /** Create a primitive type. */
     static type_t create_primitive(Constants::kind_t, position_t = position_t());
@@ -373,7 +373,7 @@ public:
     static type_t create_process(frame_t, position_t = position_t());
 
     /** Creates a new processset type. */
-    static type_t create_process_set(type_t instance, position_t = position_t());
+    static type_t create_process_set(const type_t& instance, position_t = position_t());
 
     /** Creates a new record type */
     static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = position_t());

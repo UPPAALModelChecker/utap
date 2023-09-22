@@ -26,6 +26,7 @@ option(FIND_FATAL "Stop upon find_package errors" OFF)
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
+include(cmake/clang-tidy.cmake)
 
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
@@ -36,6 +37,11 @@ add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
 include(cmake/libxml2.cmake)
+
+if (UTAP_WITH_TESTS)
+    include(cmake/doctest.cmake)
+    enable_testing()
+endif(UTAP_WITH_TESTS)
 
 if(UTAP_STATIC)
     #set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
@@ -50,10 +56,8 @@ endif()
 add_subdirectory(src)
 
 if (UTAP_WITH_TESTS)
-    include(cmake/doctest.cmake)
-    enable_testing()
-endif(UTAP_WITH_TESTS)
-add_subdirectory(test)
+    add_subdirectory(test)
+endif (UTAP_WITH_TESTS)
 
 target_include_directories(UTAP
     PRIVATE

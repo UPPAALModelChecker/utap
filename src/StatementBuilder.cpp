@@ -47,19 +47,19 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
     this->libpaths.insert(this->libpaths.begin(), "");
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
+void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
 {
-    std::set<symbol_t> symbols;
+    auto symbols = std::set<symbol_t>{};
     expr.collect_possible_reads(symbols);
     while (!symbols.empty()) {
         symbol_t s = *symbols.begin();
         symbols.erase(s);
         if (dependencies.find(s) == dependencies.end()) {
             dependencies.insert(s);
-            if (auto d = s.get_data(); d) {
+            if (auto* d = s.get_data(); d) {
                 if (auto t = s.get_type(); !(t.is_function() || t.is_function_external())) {
                     // assume is its variable, which is not always true
-                    variable_t* v = static_cast<variable_t*>(d);
+                    auto* v = static_cast<variable_t*>(d);
                     v->init.collect_possible_reads(symbols);
                 } else {
                     // TODO; fixme.
@@ -69,7 +69,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
     }
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, type_t type)
+void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const type_t& type)
 {
     if (type.get_kind() == RANGE) {
         auto [lower, upper] = type.get_range();
@@ -111,7 +111,7 @@ void StatementBuilder::type_array_of_type(size_t n)
      * not be able to compute the offset of a process in a set of
      * processes.
      */
-    if (currentTemplate) {
+    if (currentTemplate != nullptr) {
         collectDependencies(currentTemplate->restricted, size);
     }
 
@@ -151,7 +151,7 @@ void StatementBuilder::struct_field(const char* name)
     }
 
     fields.push_back(type);
-    labels.push_back(name);
+    labels.emplace_back(name);
 
     /* Check the base type. We should check this in the type
      * checker. The problem is that we do not maintain the position of
@@ -203,7 +203,7 @@ static bool initialisable(type_t type)
     }
 }
 
-static bool mustInitialise(type_t type)
+static bool mustInitialise(const type_t& type)
 {
     const auto k = type.get_kind();
     assert(k != FUNCTION);
@@ -254,7 +254,7 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
         handle_error(TypeException{"$Constants_must_have_an_initialiser"});
     }
 
-    if (currentFun && !initialisable(type)) {
+    if (currentFun != nullptr && !initialisable(type)) {
         handle_error(TypeException{"$Type_is_not_allowed_in_functions"});
     }
 
@@ -420,7 +420,7 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
             success = true;
             break;
         } catch (const std::runtime_error& ex) {
-            errors.push_back(ex.what());
+            errors.emplace_back(ex.what());
             continue;
         }
     }
@@ -575,7 +575,7 @@ void StatementBuilder::expr_statement()
 
 void StatementBuilder::return_statement(bool args)
 {  // 1 expr if argument is true
-    if (!currentFun) {
+    if (currentFun == nullptr) {
         handle_error(TypeException{"$Cannot_return_outside_of_function_declaration"});
     } else {
         /* Only functions with non-void return type are allowed to have

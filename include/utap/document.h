@@ -187,7 +187,7 @@ struct declarations_t : stringify_t<declarations_t>
     std::list<gantt_t> ganttChart;
 
     /** Add function declaration. */
-    bool add_function(type_t type, std::string name, position_t, function_t*&);
+    bool add_function(type_t type, const std::string& name, position_t, function_t*&);
     /** The following methods are used to write the declarations in an XML file */
     std::string str(bool global) const;
     std::ostream& print(std::ostream&, bool global = false) const;
@@ -535,14 +535,14 @@ public:
     variable_t* add_variable(declarations_t*, type_t type, const std::string&, expression_t initial, position_t);
     void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
 
-    template_t& add_template(const std::string& name, frame_t params, position_t, bool isTA = true,
+    template_t& add_template(const std::string& name, const frame_t& params, position_t, bool isTA = true,
                              const std::string& type = "", const std::string& mode = "");
-    template_t& add_dynamic_template(const std::string& name, frame_t params, position_t pos);
+    template_t& add_dynamic_template(const std::string& name, const frame_t& params, position_t pos);
 
-    instance_t& add_instance(const std::string& name, instance_t& instance, frame_t params,
+    instance_t& add_instance(const std::string& name, instance_t& instance, const frame_t& params,
                              const std::vector<expression_t>& arguments, position_t);
 
-    instance_t& add_LSC_instance(const std::string& name, instance_t& instance, frame_t params,
+    instance_t& add_LSC_instance(const std::string& name, instance_t& instance, const frame_t& params,
                                  const std::vector<expression_t>& arguments, position_t);
     void remove_process(instance_t& instance);  // LSC
 
@@ -555,10 +555,10 @@ public:
     void add_gantt(declarations_t*, gantt_t);  // copies gantt_t and moves it
     void accept(DocumentVisitor&);
 
-    void set_before_update(expression_t);
-    expression_t get_before_update();
-    void set_after_update(expression_t);
-    expression_t get_after_update();
+    void set_before_update(expression_t e) { before_update = std::move(e); }
+    expression_t& get_before_update() { return before_update; }
+    void set_after_update(expression_t e) { after_update = std::move(e); }
+    expression_t& get_after_update() { return after_update; }
 
     void add_query(query_t query);  // creates a copy and moves it
     bool queries_empty() const;

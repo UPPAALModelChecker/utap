@@ -274,7 +274,7 @@ type_t type_t::rename(const std::string& from, const std::string& to) const
     return type;
 }
 
-type_t type_t::subst(symbol_t symbol, expression_t expr) const
+type_t type_t::subst(const symbol_t& symbol, const expression_t& expr) const
 {
     auto type = type_t{get_kind(), get_position(), size()};
     for (size_t i = 0; i < size(); i++) {
@@ -321,7 +321,7 @@ bool type_t::is_mutable() const
     }
 }
 
-type_t type_t::create_range(type_t type, expression_t lower, expression_t upper, position_t pos)
+type_t type_t::create_range(type_t type, const expression_t& lower, const expression_t& upper, position_t pos)
 {
     auto t = type_t{RANGE, pos, 3};
     t.data->children[0].child = std::move(type);
@@ -348,7 +348,7 @@ type_t type_t::create_function(type_t ret, const std::vector<type_t>& parameters
 {
     assert(parameters.size() == labels.size());
     auto type = type_t{FUNCTION, pos, parameters.size() + 1};
-    type.data->children[0].child = ret;
+    type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
         type.data->children[i + 1].label = labels[i];
@@ -361,7 +361,7 @@ type_t type_t::create_external_function(type_t ret, const std::vector<type_t>& p
 {
     assert(parameters.size() == labels.size());
     auto type = type_t{FUNCTION_EXTERNAL, pos, parameters.size() + 1};
-    type.data->children[0].child = ret;
+    type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
         type.data->children[i + 1].label = labels[i];
@@ -372,16 +372,16 @@ type_t type_t::create_external_function(type_t ret, const std::vector<type_t>& p
 type_t type_t::create_array(type_t sub, type_t size, position_t pos)
 {
     auto type = type_t{ARRAY, pos, 2};
-    type.data->children[0].child = sub;
-    type.data->children[1].child = size;
+    type.data->children[0].child = std::move(sub);
+    type.data->children[1].child = std::move(size);
     return type;
 }
 
 type_t type_t::create_typedef(std::string label, type_t type, position_t pos)
 {
     auto t = type_t{TYPEDEF, pos, 1};
-    t.data->children[0].label = label;
-    t.data->children[0].child = type;
+    t.data->children[0].label = std::move(label);
+    t.data->children[0].child = std::move(type);
     return t;
 }
 
@@ -415,7 +415,7 @@ type_t type_t::create_process(frame_t frame, position_t pos)
     return type;
 }
 
-type_t type_t::create_process_set(type_t instance, position_t pos)
+type_t type_t::create_process_set(const type_t& instance, position_t pos)
 {
     auto type = type_t{PROCESS_SET, pos, instance.size()};
     for (size_t i = 0; i < instance.size(); ++i) {
@@ -438,7 +438,7 @@ type_t type_t::create_label(string label, position_t pos) const
 {
     type_t type(LABEL, pos, 1);
     type.data->children[0].child = *this;
-    type.data->children[0].label = label;
+    type.data->children[0].label = std::move(label);
     return type;
 }
 

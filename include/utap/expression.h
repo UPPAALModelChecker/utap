@@ -90,11 +90,11 @@ public:
 
     /** Makes a deep clone of the expression and replaces the symbol
      * "from" with the symbol "to". */
-    expression_t clone_deeper(symbol_t from, symbol_t to) const;
+    expression_t clone_deeper(const symbol_t& from, const symbol_t& to) const;
 
     /** Makes a deep clone of the expression and replaces each symbol
      * with a symbol from the given frame(s), with the same name */
-    expression_t clone_deeper(frame_t frame, frame_t select = {}) const;
+    expression_t clone_deeper(const frame_t& frame, const frame_t& select = {}) const;
 
     /** Returns the kind of the expression. */
     Constants::kind_t get_kind() const;
@@ -206,13 +206,13 @@ public:
 
     /** Less-than operator. Makes it possible to put expression_t
         objects into an STL set. */
-    bool operator<(const expression_t) const;
+    bool operator<(const expression_t&) const;
 
     /** Equality operator. Returns true if the two references point
         to the same expression object. */
-    bool operator==(const expression_t) const;
+    bool operator==(const expression_t&) const;
 
-    expression_t subst(symbol_t, expression_t) const;
+    expression_t subst(const symbol_t&, expression_t) const;
 
     /**
      * Precedence of expression type, higher precedence goes before low precedence
@@ -228,7 +228,7 @@ public:
     static expression_t create_string(StringIndex, position_t = {});
 
     /** Create an IDENTIFIER expression */
-    static expression_t create_identifier(symbol_t, position_t = {});
+    static expression_t create_identifier(const symbol_t&, position_t = {});
 
     /** Create a unary expression */
     static expression_t create_unary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
@@ -257,10 +257,10 @@ public:
     // true if empty or equal to 1.
     bool is_true() const;
     int get_precedence() const;
-    friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.str(); }
+    friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return e.print(o); }
 
 private:
-    std::ostream& print_bound_type(std::ostream& os, expression_t e) const;
+    std::ostream& print_bound_type(std::ostream& os, const expression_t& e) const;
 };
 
 }  // namespace UTAP

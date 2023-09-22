@@ -45,7 +45,7 @@ public:
     void visitVariable(variable_t&) override;
     void visitInstance(instance_t&) override;
     void add_symbol(symbol_t);
-    bool contains(symbol_t) const;
+    bool contains(const symbol_t&) const;
 };
 
 /**
@@ -58,35 +58,35 @@ class TypeChecker : public DocumentVisitor, public AbstractStatementVisitor
 {
 private:
     Document& document;
-    CompileTimeComputableValues compileTimeComputableValues;
+    mutable CompileTimeComputableValues compileTimeComputableValues;
     function_t* function; /**< Current function being type checked. */
     bool refinementWarnings;
 
     template <class T>
-    void handleError(T, const std::string&);
+    void handleError(T, const std::string&) const;
     template <class T>
-    void handleWarning(T, const std::string&);
+    void handleWarning(T, const std::string&) const;
 
-    expression_t checkInitialiser(type_t type, expression_t init);
-    bool areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init = false) const;
-    bool areInlineIfCompatible(type_t result_type, type_t thenArg, type_t elseArg) const;
+    expression_t checkInitialiser(const type_t& type, const expression_t& init);
+    bool areAssignmentCompatible(const type_t& lvalue, const type_t& rvalue, bool init = false) const;
+    bool areInlineIfCompatible(const type_t& result_type, const type_t& thenArg, const type_t& elseArg) const;
     type_t getInlineIfCommonType(type_t t1, type_t t2) const;
-    bool areEqCompatible(type_t t1, type_t t2) const;
-    bool isLValue(expression_t) const;
-    bool isModifiableLValue(expression_t) const;
-    bool isUniqueReference(expression_t expr) const;
-    bool isParameterCompatible(type_t param, expression_t arg);
-    bool checkParameterCompatible(type_t param, expression_t arg);
-    void checkIgnoredValue(expression_t expr);
-    bool checkAssignmentExpression(expression_t);
-    bool checkConditionalExpressionInFunction(expression_t);
-    void checkObservationConstraints(expression_t);
+    bool areEqCompatible(const type_t& t1, const type_t& t2) const;
+    bool isLValue(const expression_t&) const;
+    bool isModifiableLValue(const expression_t&) const;
+    bool isUniqueReference(const expression_t& expr) const;
+    bool isParameterCompatible(const type_t& param, const expression_t& arg) const;
+    bool checkParameterCompatible(const type_t& param, const expression_t& arg) const;
+    void checkIgnoredValue(const expression_t& expr) const;
+    bool checkAssignmentExpression(expression_t&);
+    bool checkConditionalExpressionInFunction(const expression_t&);
+    void checkObservationConstraints(const expression_t&);
 
-    bool isCompileTimeComputable(expression_t expr) const;
-    void checkType(type_t, bool initialisable = false, bool inStruct = false);
+    bool isCompileTimeComputable(const expression_t& expr) const;
+    void checkType(const type_t&, bool initialisable = false, bool inStruct = false) const;
 
 public:
-    static bool areEquivalent(type_t, type_t);
+    static bool areEquivalent(const type_t&, const type_t&);
     explicit TypeChecker(Document& doc, bool refinement = false);
     void visitTemplateAfter(template_t&) override;
     bool visitTemplateBefore(template_t&) override;
@@ -95,10 +95,10 @@ public:
     void visitLocation(location_t&) override;
     void visitEdge(edge_t&) override;
     void visitInstance(instance_t&) override;
-    virtual void visitProperty(expression_t);  // FIXME: does not override?!
+    virtual void visitProperty(expression_t&);  // FIXME: does not override?!
     void visitFunction(function_t&) override;
     void visitProgressMeasure(progress_t&) override;
-    virtual void visitHybridClock(expression_t);  // FIXME: does not override?!
+    virtual void visitHybridClock(expression_t&);  // FIXME: does not override?!
     void visitIODecl(iodecl_t&) override;
     void visitGanttChart(gantt_t&) override;
     void visitProcess(instance_t&) override;
@@ -119,8 +119,8 @@ public:
 
     bool checkDynamicExpressions(Statement* stat);
     /** Type check an expression */
-    bool checkExpression(expression_t);
-    bool checkSpawnParameterCompatible(type_t param, expression_t arg);
+    bool checkExpression(expression_t&) const;
+    bool checkSpawnParameterCompatible(const type_t& param, const expression_t& arg) const;
 
 private:
     int syncUsed;  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
@@ -130,15 +130,15 @@ private:
         1) consistent semantic checks by code reuse,
         2) meaningful names to the otherwise anonymous expressions.
      */
-    bool checkNrOfRuns(const expression_t& expr);
-    bool checkBoundTypeOrBoundedExpr(const expression_t& expr);
-    bool checkBound(const expression_t& expr);
-    bool checkPredicate(const expression_t& expr);
-    bool checkProbBound(const expression_t& expr);
-    bool checkUntilCond(Constants::kind_t kind, const expression_t& expr);
-    bool checkMonitoredExpr(const expression_t& expr);
-    bool checkPathQuant(const expression_t& expr);
-    bool checkAggregationOp(const expression_t& expr);
+    bool checkNrOfRuns(const expression_t& expr) const;
+    bool checkBoundTypeOrBoundedExpr(const expression_t& expr) const;
+    bool checkBound(const expression_t& expr) const;
+    bool checkPredicate(const expression_t& expr) const;
+    bool checkProbBound(const expression_t& expr) const;
+    bool checkUntilCond(Constants::kind_t kind, const expression_t& expr) const;
+    bool checkMonitoredExpr(const expression_t& expr) const;
+    bool checkPathQuant(const expression_t& expr) const;
+    bool checkAggregationOp(const expression_t& expr) const;
 };
 }  // namespace UTAP
 

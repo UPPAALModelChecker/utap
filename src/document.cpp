@@ -41,14 +41,7 @@ using namespace UTAP;
 using namespace Constants;
 
 using std::list;
-using std::stack;
 using std::vector;
-using std::map;
-using std::pair;
-using std::make_pair;
-using std::min;
-using std::max;
-using std::set;
 using std::string;
 using std::ostream;
 using std::deque;
@@ -114,7 +107,7 @@ std::ostream& function_t::print(std::ostream& os) const
             type.get(i).print_declaration(os << ", ") << ' ' << type.get_label(i);
     }
     os << ")\n{\n";  // open function body
-    for (auto& variable : variables)
+    for (const auto& variable : variables)
         variable.print(os << "    ") << ";\n";
     os << body->str(INDENT);
     return os << "}";
@@ -135,11 +128,11 @@ std::ostream& variable_t::print(std::ostream& os) const
     return os;
 }
 
-bool declarations_t::add_function(type_t type, string name, position_t pos, function_t*& fun)
+bool declarations_t::add_function(type_t type, const string& name, position_t pos, function_t*& fun)
 {
     bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
-    fun->uid = frame.add_symbol(name, type, pos, fun);  // Add symbol
+    fun->uid = frame.add_symbol(name, std::move(type), pos, fun);  // Add symbol
     return !duplicate;
 }
 
@@ -179,7 +172,7 @@ std::ostream& declarations_t::print_constants(std::ostream& os) const
 std::ostream& declarations_t::print_typedefs(std::ostream& os) const
 {
     bool first = true;
-    for (auto& symbol : frame) {
+    for (const auto& symbol : frame) {
         if (symbol.get_type().get_kind() == TYPEDEF) {
             if (first) {
                 os << "// type definitions\n";
@@ -273,11 +266,10 @@ location_t& template_t::add_location(const string& name, expression_t inv, expre
     auto& loc = locations.emplace_back();
     loc.uid = frame.add_symbol(name, type_t::create_primitive(LOCATION), pos, &loc);
     loc.nr = locations.size() - 1;
-    loc.invariant = inv;
-    loc.exp_rate = er;
-    if (duplicate) {
+    loc.invariant = std::move(inv);
+    loc.exp_rate = std::move(er);
+    if (duplicate)
         throw DuplicateDefinitionError(name);
-    }
     return loc;
 }
 
@@ -445,7 +437,7 @@ const vector<simregion_t> template_t::get_simregions()
             }
         }
         s.nr = simregions.size();
-        simregions.push_back(std::move(s));
+        simregions.push_back(s);
     }
 
     /**
@@ -539,7 +531,7 @@ bool template_t::get_update(vector<instance_line_t*>& instances, int y, update_t
 void instance_line_t::add_parameters(instance_t& inst, frame_t params, const vector<expression_t>& arguments1)
 {
     unbound = params.get_size();
-    parameters = params;
+    parameters = std::move(params);
     parameters.add(inst.parameters);
     mapping = inst.mapping;
     arguments = arguments1.size();
@@ -778,7 +770,7 @@ library_t& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(const string& name, frame_t params, position_t position, const bool is_TA,
+template_t& Document::add_template(const string& name, const frame_t& params, position_t position, const bool is_TA,
                                    const string& typeLSC, const string& mode)
 {
     type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
@@ -798,7 +790,7 @@ template_t& Document::add_template(const string& name, frame_t params, position_
     return templ;
 }
 
-template_t& Document::add_dynamic_template(const std::string& name, frame_t params, position_t pos)
+template_t& Document::add_dynamic_template(const std::string& name, const frame_t& params, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     dyn_templates.emplace_back();
@@ -853,7 +845,7 @@ template_t* Document::find_dynamic_template(const std::string& name)
     return &(*it);
 }
 
-instance_t& Document::add_instance(const string& name, instance_t& inst, frame_t params,
+instance_t& Document::add_instance(const string& name, instance_t& inst, const frame_t& params,
                                    const vector<expression_t>& arguments, position_t pos)
 {
     type_t type = type_t::create_instance(params);
@@ -870,7 +862,7 @@ instance_t& Document::add_instance(const string& name, instance_t& inst, frame_t
     return instance;
 }
 
-instance_t& Document::add_LSC_instance(const string& name, instance_t& inst, frame_t params,
+instance_t& Document::add_LSC_instance(const string& name, instance_t& inst, const frame_t& params,
                                        const vector<expression_t>& arguments, position_t pos)
 {
     type_t type = type_t::create_LSC_instance(params);
@@ -923,16 +915,16 @@ void Document::set_options(const options_t& options) { model_options = options; 
 variable_t* Document::add_variable(declarations_t* context, type_t type, const string& name, expression_t initial,
                                    position_t pos)
 {
-    variable_t* var = add_variable(context->variables, context->frame, type, name, pos);
-    var->init = initial;
+    variable_t* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
+    var->init = std::move(initial);
     return var;
 }
 
 variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type, const string& name,
                                                expression_t initial, position_t pos)
 {
-    variable_t* var = add_variable(function->variables, frame, type, name, pos);
-    var->init = initial;
+    variable_t* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
+    var->init = std::move(initial);
     return var;
 }
 
@@ -944,7 +936,7 @@ variable_t* Document::add_variable(list<variable_t>& variables, frame_t frame, t
     // Add variable
     variable_t& var = variables.emplace_back();
     // Add symbol
-    var.uid = frame.add_symbol(name, type, pos, &var);
+    var.uid = frame.add_symbol(name, std::move(type), pos, &var);
     if (duplicate)
         throw DuplicateDefinitionError(name);
     return &var;
@@ -965,7 +957,7 @@ void Document::copy_functions_from_to(const template_t* from, template_t* to) co
 
 void Document::add_progress_measure(declarations_t* context, expression_t guard, expression_t measure)
 {
-    context->progress.emplace_back(guard, measure);
+    context->progress.emplace_back(std::move(guard), std::move(measure));
 }
 
 static void visit(DocumentVisitor& visitor, frame_t frame)
@@ -1052,19 +1044,11 @@ void Document::accept(DocumentVisitor& visitor)
     visitor.visitDocAfter(*this);
 }
 
-void Document::set_before_update(expression_t e) { before_update = e; }
-
-expression_t Document::get_before_update() { return before_update; }
-
-void Document::set_after_update(expression_t e) { after_update = e; }
-
-expression_t Document::get_after_update() { return after_update; }
-
 void Document::begin_chan_priority(expression_t chan)
 {
     hasPriorities |= true;
     chan_priority_t priorities;
-    priorities.head = chan;
+    priorities.head = std::move(chan);
     chan_priorities.push_back(priorities);
 }
 
@@ -1072,7 +1056,7 @@ void Document::add_chan_priority(char separator, expression_t chan)
 {
     assert(separator == ',' || separator == '<');
     chan_priority_t::tail_t& tail = chan_priorities.back().tail;
-    tail.push_back(chan_priority_t::entry(separator, chan));
+    tail.push_back(chan_priority_t::entry(separator, std::move(chan)));
 }
 
 void Document::set_proc_priority(const string& name, int priority)

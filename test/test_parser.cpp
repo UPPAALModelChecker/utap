@@ -26,9 +26,9 @@ TEST_CASE("Double Serialization Test")
 {
     auto doc = read_document("if_statement.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
-    auto& warnings = doc->get_warnings();
+    const auto& warnings = doc->get_warnings();
     CHECK(warnings.size() == 0);
 }
 
@@ -36,9 +36,9 @@ TEST_CASE("Power expressions")
 {
     auto doc = read_document("powers.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
-    auto& warnings = doc->get_warnings();
+    const auto& warnings = doc->get_warnings();
     CHECK(warnings.size() == 0);
 }
 
@@ -46,8 +46,8 @@ TEST_CASE("External functions")
 {
     auto doc = read_document("external_fn.xml");
     REQUIRE(doc);
-    auto& errs = doc->get_errors();
-    auto& warns = doc->get_warnings();
+    const auto& errs = doc->get_errors();
+    const auto& warns = doc->get_warnings();
     REQUIRE(errs.size() == 3);  // "libbad" not found (x2), "absent" undefined.
     CHECK(warns.size() == 0);
 }
@@ -56,8 +56,8 @@ TEST_CASE("Error location")
 {
     auto doc = read_document("smc_non-deterministic_input2.xml");
     REQUIRE(doc);
-    auto& errs = doc->get_errors();
-    auto& warns = doc->get_warnings();
+    const auto& errs = doc->get_errors();
+    const auto& warns = doc->get_warnings();
     REQUIRE(errs.size() == 0);
     CHECK(warns.size() == 0);
     const auto& templates = doc->get_templates();
@@ -259,7 +259,7 @@ TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
 {
     auto doc = read_document("lsc_example.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
 
     auto& templ = doc->get_templates().back();
@@ -272,7 +272,7 @@ TEST_CASE("Struct int,int initialization")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("const struct { int x; int y; } s = {1, 1};").parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -284,7 +284,7 @@ TEST_CASE("Struct int,double initialization")
                    .add_global_decl("const struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -296,7 +296,7 @@ TEST_CASE("Struct double,double initialization")
                    .add_global_decl("const struct { double x; double y; } s = {1.0, 1};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -309,7 +309,7 @@ TEST_CASE("Nested struct int,double initialization")
             .add_global_decl("typedef struct { int x; double y; } S; struct { S s1; S s2; } s = {{5,5.5},{2,2.25}};")
             .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -321,7 +321,7 @@ TEST_CASE("Meta struct")
                    .add_global_decl("meta struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -333,7 +333,7 @@ TEST_CASE("Struct meta field")
                    .add_global_decl("meta struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -345,7 +345,7 @@ TEST_CASE("Initializing doubles in struct with ints")
                    .add_global_decl("meta struct { double x; meta double y; } s = {1, 1};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -355,7 +355,7 @@ TEST_CASE("Initializing ints with double value")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("struct { int x; int y; } s = {1.1, 1.2};").parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 2);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -367,7 +367,7 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -379,7 +379,7 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -391,7 +391,7 @@ TEST_CASE("Nested structs")
                    .add_global_decl("struct { int x; struct { int y; double d;} data; } s = {1, {5, 5.0}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -403,7 +403,7 @@ TEST_CASE("Structs with arrays")
                    .add_global_decl("struct { int x[2]; double y[2]; } s = {{1,1}, {5.0, 5.0}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK(errors.size() == 0);
     CHECK(doc->get_warnings().size() == 0);
 }
@@ -415,9 +415,9 @@ TEST_CASE("Array of structs")
                    .add_global_decl("struct { int x; double y;} s[2] = {{1,5.0}, {1,2.5}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
+    const auto& errors = doc->get_errors();
     CHECK_MESSAGE(errors.size() == 0, errors.at(0).msg);
-    CHECK(doc->get_warnings().size() == 0); 
+    CHECK(doc->get_warnings().size() == 0);
 }
 
 TEST_CASE("Pre increment precedence bug")

@@ -21,6 +21,8 @@
 
 #include "utap/DocumentBuilder.hpp"
 
+#include "print.hpp"
+
 #include <stdexcept>
 #include <vector>
 #include <cassert>
@@ -30,10 +32,6 @@ using namespace UTAP;
 using namespace Constants;
 
 using std::vector;
-using std::pair;
-using std::make_pair;
-using std::min;
-using std::max;
 using std::string;
 
 DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::path> paths):
@@ -45,7 +43,7 @@ DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::pat
  */
 variable_t* DocumentBuilder::addVariable(type_t type, const std::string& name, expression_t init, position_t pos)
 {
-    if (currentFun) {
+    if (currentFun != nullptr) {
         return document.add_variable_to_function(currentFun, frames.top(), type, name, init, pos);
     } else {
         return document.add_variable(getCurrentDeclarationBlock(), type, name, init, pos);
@@ -59,7 +57,7 @@ bool DocumentBuilder::addFunction(type_t type, const std::string& name, position
 
 declarations_t* DocumentBuilder::getCurrentDeclarationBlock()
 {
-    return (currentTemplate ? currentTemplate : &document.get_globals());
+    return (currentTemplate != nullptr ? currentTemplate : &document.get_globals());
 }
 
 void DocumentBuilder::addSelectSymbolToFrame(const std::string& id, frame_t& frame, position_t pos)
@@ -140,7 +138,7 @@ void DocumentBuilder::decl_progress(bool hasGuard)
 void DocumentBuilder::proc_begin(const char* name, const bool isTA, const string& type, const string& mode)
 {
     currentTemplate = document.find_dynamic_template(name);
-    if (currentTemplate) {
+    if (currentTemplate != nullptr) {
         /* check if parameters match */
         if (currentTemplate->parameters.get_size() != params.get_size()) {
             handle_error(TypeException{"Inconsistent parameters"});
@@ -257,7 +255,7 @@ void DocumentBuilder::proc_select(const char* id) { addSelectSymbolToFrame(id, c
 
 void DocumentBuilder::proc_guard()
 {
-    if (!currentEdge) {
+    if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
@@ -268,7 +266,7 @@ void DocumentBuilder::proc_guard()
 
 void DocumentBuilder::proc_sync(synchronisation_t type)
 {
-    if (!currentEdge) {
+    if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
@@ -279,7 +277,7 @@ void DocumentBuilder::proc_sync(synchronisation_t type)
 
 void DocumentBuilder::proc_update()
 {
-    if (!currentEdge) {
+    if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
@@ -290,7 +288,7 @@ void DocumentBuilder::proc_update()
 
 void DocumentBuilder::proc_prob()
 {
-    if (!currentEdge) {
+    if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
@@ -340,7 +338,7 @@ void DocumentBuilder::instantiation_end(const char* name, size_t parameters, con
      */
     symbol_t id;
     if (resolve(templ_name, id) && (id.get_type().get_kind() == INSTANCE || id.get_type().get_kind() == LSC_INSTANCE)) {
-        instance_t* old_instance = static_cast<instance_t*>(id.get_data());
+        auto* old_instance = static_cast<instance_t*>(id.get_data());
 
         /* Check number of arguments. If too many arguments, pop the
          * rest.
@@ -351,17 +349,15 @@ void DocumentBuilder::instantiation_end(const char* name, size_t parameters, con
         } else if (arguments > expected) {
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
-            /* Collect arguments from expression stack.
-             */
-            vector<expression_t> exprs(arguments);
-            while (arguments) {
+            // Collect arguments from expression stack.
+            auto exprs = vector<expression_t>(arguments);
+            while (arguments > 0) {
                 arguments--;
-                exprs[arguments] = fragments[0];
+                exprs[arguments] = std::move(fragments[0]);
                 fragments.pop();
             }
 
-            /* Create template composition.
-             */
+            // Create template composition.
             instance_t& new_instance = (id.get_type().get_kind() == INSTANCE)
                                            ? document.add_instance(name, *old_instance, params, exprs, position)
                                            : document.add_LSC_instance(name, *old_instance, params, exprs, position);
@@ -474,7 +470,7 @@ void DocumentBuilder::instance_name(const char* name, bool templ)
         }
     } else {
         if (resolve(string(name), uid) && (uid.get_type().get_kind() == INSTANCE)) {
-            template_t* t = static_cast<template_t*>(uid.get_data());
+            auto* t = static_cast<template_t*>(uid.get_data());
             if (t->parameters.get_size() > 0) {
                 handle_error(TypeException{"$Wrong_number_of_arguments_in_instance_line_name"});
             }
@@ -496,8 +492,8 @@ void DocumentBuilder::instance_name_begin(const char* name)
 
 void DocumentBuilder::instance_name_end(const char* name, size_t arguments)
 {
-    std::string i_name = std::string(name);
-    vector<expression_t>::const_iterator itr;
+    auto i_name = std::ostringstream{};
+    i_name << name;
     /* Parameters are at the top of the frame stack.
      */
     frame_t params = frames.top();
@@ -509,36 +505,26 @@ void DocumentBuilder::instance_name_end(const char* name, size_t arguments)
      */
     symbol_t id;
     if (resolve(name, id) && id.get_type().get_kind() == INSTANCE) {
-        instance_t* old_instance = static_cast<instance_t*>(id.get_data());
+        auto* old_instance = static_cast<instance_t*>(id.get_data());
 
         /* Check number of arguments. If too many arguments, pop the
          * rest.
          */
-        size_t expected = id.get_type().size();
+        auto expected = id.get_type().size();
         if (arguments < expected) {
             handle_error(TypeException{"$Too_few_arguments"});
         } else if (arguments > expected) {
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
-            /* Collect arguments from expression stack.
-             */
-            vector<expression_t> exprs(arguments);
-            while (arguments) {
-                arguments--;
-                exprs[arguments] = fragments[0];
+            // Collect arguments from expression stack.
+            auto exprs = vector<expression_t>(arguments);
+            while (arguments-- > 0) {
+                exprs[arguments] = std::move(fragments[0]);
                 fragments.pop();
             }
-            i_name += '(';
-            for (itr = exprs.begin(); itr != exprs.end(); ++itr) {
-                if (itr != exprs.begin() && exprs.size() > 1) {
-                    i_name += ',';
-                }
-                i_name += itr->str();
-            }
-            i_name += ')';
-            instance_name(i_name.c_str());  // std::cout << "instance line name: " << i_name << std::endl;
-            /* Create template composition.
-             */
+            i_name << '(' << infix(exprs, ",") << ')';
+            instance_name(i_name.str().c_str());
+            // Create template composition.
             currentInstanceLine->add_parameters(*old_instance, params, exprs);
 
             /* Propagate information about restricted variables. The
@@ -575,7 +561,7 @@ void DocumentBuilder::proc_message(const char* from, const char* to, const int l
 
 void DocumentBuilder::proc_message(synchronisation_t type)  // Label
 {
-    if (currentMessage)
+    if (currentMessage != nullptr)
         currentMessage->label = expression_t::create_sync(fragments[0], type, position);
     fragments.pop();
 }
@@ -610,7 +596,7 @@ void DocumentBuilder::proc_condition(const vector<string>& anchors, const int lo
 
 void DocumentBuilder::proc_condition()
 {
-    if (currentCondition)
+    if (currentCondition != nullptr)
         currentCondition->label = fragments[0];
     fragments.pop();
 }
@@ -632,7 +618,7 @@ void DocumentBuilder::proc_LSC_update(const char* anchor, const int loc, const b
 
 void DocumentBuilder::proc_LSC_update()  // Label
 {
-    if (currentUpdate)
+    if (currentUpdate != nullptr)
         currentUpdate->label = fragments[0];
     fragments.pop();
 }
@@ -663,16 +649,16 @@ void DocumentBuilder::decl_dynamic_template(const std::string& name)
 void DocumentBuilder::query_begin() { currentQuery = std::make_unique<query_t>(); }
 void DocumentBuilder::query_formula(const char* formula, const char* location)
 {
-    if (formula) {
+    if (formula != nullptr) {
         currentQuery->formula = formula;
     }
-    if (location) {
+    if (location != nullptr) {
         currentQuery->location = location;
     }
 }
 void DocumentBuilder::query_comment(const char* comment)
 {
-    if (comment) {
+    if (comment != nullptr) {
         currentQuery->comment = comment;
     }
 }
@@ -695,27 +681,28 @@ void DocumentBuilder::expectation_end()
 
 void DocumentBuilder::expectation_value(const char* res, const char* type, const char* value)
 {
+    using namespace std::string_view_literals;
     expectation_type _type;
-    if (!type) {
+    if (type == nullptr) {
         _type = expectation_type::_ErrorValue;
-    } else if (strcmp(type, "probability") == 0) {
+    } else if (type == "probability"sv) {
         _type = expectation_type::Probability;
-    } else if (strcmp(type, "symbolic")) {
+    } else if (type == "symbolic"sv) {
         _type = expectation_type::Symbolic;
-    } else if (strcmp(type, "value")) {
+    } else if (type == "value"sv) {
         _type = expectation_type::NumericValue;
     } else {
         _type = expectation_type::_ErrorValue;
     }
     if (res == nullptr) {
         currentExpectation->status = query_status_t::Unknown;
-    } else if (strcmp(res, "success") == 0) {
+    } else if (res == "success"sv) {
         currentExpectation->status = query_status_t::True;
-    } else if (strcmp(res, "failure")) {
+    } else if (res == "failure"sv) {
         currentExpectation->status = query_status_t::False;
-    } else if (strcmp(res, "maybe_true") == 0) {
+    } else if (res == "maybe_true"sv) {
         currentExpectation->status = query_status_t::MaybeTrue;
-    } else if (strcmp(res, "maybe_false") == 0) {
+    } else if (res == "maybe_false"sv) {
         currentExpectation->status = query_status_t::MaybeFalse;
     } else {
         currentExpectation->status = query_status_t::Unknown;

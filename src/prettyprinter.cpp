@@ -195,7 +195,7 @@ void PrettyPrinter::decl_init_list(uint32_t num)
 {
     string s = st.back();
     st.pop_back();
-    while (--num) {
+    while (--num > 0) {
         s = st.back() + ", " + s;
         st.pop_back();
     }
@@ -219,7 +219,7 @@ void PrettyPrinter::expr_nary(kind_t kind, uint32_t num)
 
     string s = st.back();
     st.pop_back();
-    while (--num) {
+    while (--num > 0) {
         s = st.back() + opString + s;
         st.pop_back();
     }
@@ -228,7 +228,7 @@ void PrettyPrinter::expr_nary(kind_t kind, uint32_t num)
 
 void PrettyPrinter::decl_field_init(const char* name)
 {
-    if (name && strlen(name)) {
+    if (name != nullptr && strlen(name) > 0) {
         st.back() = string(name) + ": " + st.back();
     }
 }
@@ -322,7 +322,7 @@ void PrettyPrinter::for_end()  // 3 expr, 1 stat
     st.pop_back();
     string expr1 = st.back();
     st.pop_back();
-    ostringstream* s = (ostringstream*)o.top();
+    auto* s = static_cast<ostringstream*>(o.top());
     o.pop();
 
     level--;
@@ -334,14 +334,14 @@ void PrettyPrinter::for_end()  // 3 expr, 1 stat
 void PrettyPrinter::while_begin()
 {
     level++;
-    o.push(new ostringstream());
+    o.push(new ostringstream{});
 }
 
 void PrettyPrinter::while_end()  // 1 expr, 1 stat
 {
     string expr = st.back();
     st.pop_back();
-    ostringstream* s = (ostringstream*)o.top();
+    auto* s = static_cast<ostringstream*>(o.top());
     o.pop();
 
     level--;
@@ -370,9 +370,9 @@ void PrettyPrinter::if_then()
 
 void PrettyPrinter::if_end(bool hasElse)  // 1 expr, 1 or 2 statements
 {
-    auto e = static_cast<ostringstream*>(o.top());
+    auto* e = static_cast<ostringstream*>(o.top());
     o.pop();  // ELSE
-    auto t = static_cast<ostringstream*>(o.top());
+    auto* t = static_cast<ostringstream*>(o.top());
     o.pop();  // THEN
     auto c = st.back();
     st.pop_back();  // COND
@@ -421,7 +421,7 @@ void PrettyPrinter::return_statement(bool hasValue)
 
 void PrettyPrinter::proc_begin(const char* id, const bool isTA, const string& type, const string& mode)
 {
-    *o.top() << "process " << (id ? id : "") << templateset << '(' << param << ")" << endl << "{" << endl;
+    *o.top() << "process " << ((id != nullptr) ? id : "") << templateset << '(' << param << ")" << endl << "{" << endl;
     param.clear();
     templateset = "";
 
@@ -626,7 +626,7 @@ void PrettyPrinter::proc_end()
     *o.top() << '}' << endl << endl;
 }
 
-void PrettyPrinter::expr_identifier(const char* id) { st.push_back(id); }
+void PrettyPrinter::expr_identifier(const char* id) { st.emplace_back(id); }
 
 void PrettyPrinter::expr_nat(int32_t n)
 {
@@ -634,12 +634,12 @@ void PrettyPrinter::expr_nat(int32_t n)
     if (20 <= snprintf(s, 20, "%d", n)) {
         fprintf(stderr, "Error: the integer number was truncated\n");
     }
-    st.push_back(s);
+    st.emplace_back(s);
 }
 
-void PrettyPrinter::expr_true() { st.push_back("true"); }
+void PrettyPrinter::expr_true() { st.emplace_back("true"); }
 
-void PrettyPrinter::expr_false() { st.push_back("false"); }
+void PrettyPrinter::expr_false() { st.emplace_back("false"); }
 
 void PrettyPrinter::expr_double(double d)
 {
@@ -662,7 +662,7 @@ void PrettyPrinter::expr_call_begin() { st.back() += "("; }
 void PrettyPrinter::expr_call_end(uint32_t n)
 {
     string s = ")";
-    while (n--) {
+    while (n-- > 0) {
         s = st.back() + s;
         st.pop_back();
         if (n > 0) {
@@ -785,7 +785,7 @@ void PrettyPrinter::expr_assignment(kind_t op)
     string lhs = st.back();
     st.pop_back();
 
-    st.push_back(string());
+    st.emplace_back();
     switch (op) {
     case ASSIGN: st.back() = '(' + lhs + " = " + rhs + ')'; break;
     case ASS_PLUS: st.back() = '(' + lhs + " += " + rhs + ')'; break;
@@ -807,7 +807,7 @@ void PrettyPrinter::expr_unary(kind_t op)
     string exp = st.back();
     st.pop_back();
 
-    st.push_back(string());
+    st.emplace_back();
     switch (op) {
     case MINUS: st.back() = '-' + exp; break;
     case NOT: st.back() = '!' + exp; break;
@@ -827,7 +827,7 @@ void PrettyPrinter::expr_binary(kind_t op)
     string exp1 = st.back();
     st.pop_back();
 
-    st.push_back(string());
+    st.emplace_back();
     switch (op) {
     case PO_CONTROL: st.back() = exp1 + " control: " + exp2; break;
     case CONTROL_TOPT_DEF1: st.back() = "control_t*(" + exp1 + "): " + exp2; break;
@@ -871,7 +871,7 @@ void PrettyPrinter::expr_ternary(kind_t op, bool firstMissing)
         st.pop_back();
     }
 
-    st.push_back(string());
+    st.emplace_back();
     switch (op) {
     case CONTROL_TOPT: st.back() = "control_t*(" + exp1 + "," + exp2 + "): " + exp3; break;
     case SMC_CONTROL: st.back() = "control[" + exp1 + "<=" + exp2 + "]: " + exp3; break;
@@ -888,7 +888,7 @@ void PrettyPrinter::expr_inline_if()
     string expr1 = st.back();
     st.pop_back();
 
-    st.push_back(string());
+    st.emplace_back();
     st.back() = expr1 + " ? " + expr2 + " : " + expr3;
 }
 
@@ -899,7 +899,7 @@ void PrettyPrinter::expr_comma()
     string expr1 = st.back();
     st.pop_back();
 
-    st.push_back(string());
+    st.emplace_back();
     st.back() = expr1 + ", " + expr2;
 }
 
@@ -907,7 +907,7 @@ void PrettyPrinter::expr_dot(const char* field) { st.back() = st.back() + "." + 
 
 void PrettyPrinter::expr_location() { st.back() = st.back() + ".location"; }
 
-void PrettyPrinter::expr_deadlock() { st.push_back("deadlock"); }
+void PrettyPrinter::expr_deadlock() { st.emplace_back("deadlock"); }
 
 void PrettyPrinter::expr_forall_begin(const char* name)
 {
@@ -976,7 +976,7 @@ void PrettyPrinter::instantiation_begin(const char* id, size_t, const char* temp
 void PrettyPrinter::instantiation_end(const char* id, size_t parameters, const char* templ, size_t arguments)
 {
     stack<string> s;
-    while (arguments--) {
+    while (arguments-- > 0) {
         s.push(st.back());
         st.pop_back();
     }
@@ -1117,12 +1117,12 @@ void PrettyPrinter::expr_simulate(int nbExpr, bool hasReach, int nbOfAcceptingRu
 void PrettyPrinter::query_begin() { *o.top() << "\n/** Query begin: */" << endl; }
 void PrettyPrinter::query_formula(const char* formula, const char* location)
 {
-    if (formula)
+    if (formula != nullptr)
         *o.top() << "/* Formula: " << formula << " */" << endl;
 }
 void PrettyPrinter::query_comment(const char* comment)
 {
-    if (comment)
+    if (comment != nullptr)
         *o.top() << "/* Comment: " << comment << " */" << endl;
 }
 void PrettyPrinter::query_end() { *o.top() << "/** Query end. */" << endl; }

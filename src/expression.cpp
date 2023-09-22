@@ -35,12 +35,8 @@
 using namespace UTAP;
 using namespace Constants;
 
-using std::make_pair;
-using std::map;
-using std::max;
 using std::min;
 using std::ostream;
-using std::pair;
 using std::set;
 using std::vector;
 
@@ -87,7 +83,7 @@ expression_t expression_t::clone_deeper() const
     return expr;
 }
 
-expression_t expression_t::clone_deeper(symbol_t from, symbol_t to) const
+expression_t expression_t::clone_deeper(const symbol_t& from, const symbol_t& to) const
 {
     auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
@@ -102,7 +98,7 @@ expression_t expression_t::clone_deeper(symbol_t from, symbol_t to) const
     return expr;
 }
 
-expression_t expression_t::clone_deeper(frame_t frame, frame_t select) const
+expression_t expression_t::clone_deeper(const frame_t& frame, const frame_t& select) const
 {
     auto expr = expression_t{data->kind, data->position};
     expr.data->value = data->value;
@@ -127,7 +123,7 @@ expression_t expression_t::clone_deeper(frame_t frame, frame_t select) const
     return expr;
 }
 
-expression_t expression_t::subst(symbol_t symbol, expression_t expr) const
+expression_t expression_t::subst(const symbol_t& symbol, expression_t expr) const
 {
     if (empty()) {
         return *this;
@@ -430,7 +426,7 @@ size_t expression_t::get_size() const
 
     case IDENTIFIER:
     case CONSTANT:
-    case DEADLOCK: assert(data->sub.size() == 0); return 0;
+    case DEADLOCK: assert(data->sub.empty()); return 0;
 
     case LOAD_STRAT:
     case INLINE_IF:
@@ -483,7 +479,7 @@ size_t expression_t::get_size() const
     case MITL_CONJ: assert(data->sub.size() == 2); return 2;
     case MITL_UNTIL:
     case MITL_RELEASE: assert(data->sub.size() == 4); return 4;
-    case EXIT: assert(data->sub.size() == 0); return 0;
+    case EXIT: assert(data->sub.empty()); return 0;
     case NUMOF: assert(data->sub.size() == 1); return 1;
     case EXISTS_DYNAMIC:
     case FORALL_DYNAMIC:
@@ -505,14 +501,14 @@ type_t expression_t::get_type() const
 void expression_t::set_type(type_t type)
 {
     assert(data);
-    data->type = type;
+    data->type = std::move(type);
 }
 
 int32_t expression_t::get_value() const
 {
     assert(data && data->kind == CONSTANT && (data->type.is_integral() || data->kind == VAR_INDEX));
     int32_t value = std::get<int32_t>(data->value);
-    return data->type.is_integer() ? value : (value ? 1 : 0);
+    return data->type.is_integer() ? value : (value != 0 ? 1 : 0);
 }
 
 int32_t expression_t::get_record_label_index() const
@@ -639,6 +635,7 @@ const symbol_t& expression_t::get_symbol() { return ((const expression_t*)this)-
 
 const symbol_t& expression_t::get_symbol() const
 {
+    static auto blank = symbol_t{};
     assert(data);
 
     switch (get_kind()) {
@@ -674,9 +671,7 @@ const symbol_t& expression_t::get_symbol() const
 
     case SCENARIO: return get(0).get_symbol();
 
-    default:
-        assert(false);
-        // return symbol_t();
+    default: return blank;
     }
 }
 
@@ -984,7 +979,7 @@ static void ensure(char*& str, char*& end, int& size, int len)
 
 static void append(char*& str, char*& end, int& size, const char* s)
 {
-    while (end < str + size && *s) {
+    while (end < str + size && *s != '\0') {
         *(end++) = *(s++);
     }
 
@@ -996,7 +991,7 @@ static void append(char*& str, char*& end, int& size, const char* s)
     }
 }
 
-std::ostream& expression_t::print_bound_type(std::ostream& os, expression_t e) const
+std::ostream& expression_t::print_bound_type(std::ostream& os, const expression_t& e) const
 {
     if (e.get_kind() == CONSTANT) {
         assert(e.get_type().is(Constants::INT));  // Encoding used here.
@@ -1135,7 +1130,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "E[";
         print_bound_type(os, get(0));
         get(1).print(os, old) << "; ";
-        get(2).print(os, old) << "] (" << (get(4).get_value() ? "max: " : "min: ");
+        get(2).print(os, old) << "] (" << (get(4).get_value() != 0 ? "max: " : "min: ");
         get(3).print(os, old) << ")";
         break;
 
@@ -1269,7 +1264,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
             os << std::get<int32_t>(data->value);
         } else {
             assert(get_type().is(Constants::BOOL));
-            os << (std::get<int32_t>(data->value) ? "true" : "false");
+            os << (std::get<int32_t>(data->value) != 0 ? "true" : "false");
         }
         break;
 
@@ -1715,12 +1710,12 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     return os;
 }
 
-bool expression_t::operator<(const expression_t e) const
+bool expression_t::operator<(const expression_t& e) const
 {
     return data != nullptr && e.data != nullptr && data < e.data;
 }
 
-bool expression_t::operator==(const expression_t e) const { return data == e.data; }
+bool expression_t::operator==(const expression_t& e) const { return data == e.data; }
 
 /** Returns a string representation of the expression. The string
     returned must be deallocated with delete[]. Returns empty is the
@@ -1766,7 +1761,8 @@ void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
     case FUN_CALL_EXT:
         // Add all symbols which are changed by the function
         symbol = get(0).get_symbol();
-        if ((symbol.get_type().is_function() || symbol.get_type().is_function_external()) && symbol.get_data()) {
+        if ((symbol.get_type().is_function() || symbol.get_type().is_function_external()) &&
+            symbol.get_data() != nullptr) {
             fun = (function_t*)symbol.get_data();
 
             symbols.insert(fun->changes.begin(), fun->changes.end());
@@ -1801,7 +1797,7 @@ void expression_t::collect_possible_reads(set<symbol_t>& symbols, bool collectRa
         auto symbol = get(0).get_symbol();
         if (auto type = symbol.get_type(); type.is_function() || type.is_function_external()) {
             if (auto* data = symbol.get_data(); data) {
-                auto fun = static_cast<function_t*>(data);
+                auto* fun = static_cast<function_t*>(data);
                 symbols.insert(fun->depends.begin(), fun->depends.end());
             }
         }
@@ -1875,7 +1871,7 @@ expression_t expression_t::create_string(StringIndex str, position_t pos)
     return expr;
 }
 
-expression_t expression_t::create_identifier(symbol_t symbol, position_t pos)
+expression_t expression_t::create_identifier(const symbol_t& symbol, position_t pos)
 {
     auto expr = expression_t{IDENTIFIER, pos};
     expr.data->symbol = symbol;
@@ -1892,15 +1888,15 @@ expression_t expression_t::create_nary(kind_t kind, vector<expression_t> sub, po
     auto expr = expression_t{kind, pos};
     expr.data->value = static_cast<int32_t>(sub.size());
     expr.data->sub = std::move(sub);
-    expr.data->type = type;
+    expr.data->type = std::move(type);
     return expr;
 }
 
 expression_t expression_t::create_unary(kind_t kind, expression_t sub, position_t pos, type_t type)
 {
     auto expr = expression_t{kind, pos};
-    expr.data->sub.push_back(sub);
-    expr.data->type = type;
+    expr.data->sub.push_back(std::move(sub));
+    expr.data->type = std::move(type);
     return expr;
 }
 
@@ -1909,9 +1905,9 @@ expression_t expression_t::create_binary(kind_t kind, expression_t left, express
 {
     auto expr = expression_t{kind, pos};
     expr.data->sub.reserve(2);
-    expr.data->sub.push_back(left);
-    expr.data->sub.push_back(right);
-    expr.data->type = type;
+    expr.data->sub.push_back(std::move(left));
+    expr.data->sub.push_back(std::move(right));
+    expr.data->type = std::move(type);
     return expr;
 }
 
@@ -1920,10 +1916,10 @@ expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expressi
 {
     auto expr = expression_t{kind, pos};
     expr.data->sub.reserve(3);
-    expr.data->sub.push_back(e1);
-    expr.data->sub.push_back(e2);
-    expr.data->sub.push_back(e3);
-    expr.data->type = type;
+    expr.data->sub.push_back(std::move(e1));
+    expr.data->sub.push_back(std::move(e2));
+    expr.data->sub.push_back(std::move(e3));
+    expr.data->type = std::move(type);
     return expr;
 }
 
@@ -1931,8 +1927,8 @@ expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t po
 {
     auto expr = expression_t{DOT, pos};
     expr.data->value = idx;
-    expr.data->sub.push_back(e);
-    expr.data->type = type;
+    expr.data->sub.push_back(std::move(e));
+    expr.data->type = std::move(type);
     return expr;
 }
 

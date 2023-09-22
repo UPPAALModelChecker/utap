@@ -33,11 +33,11 @@ using namespace Constants;
 /* The following are simple helper functions for testing the type of
  * expressions.
  */
-static bool isCost(expression_t expr) { return expr.get_type().is(COST); }
+static bool isCost(const expression_t& expr) { return expr.get_type().is(COST); }
 
-static bool is_void(expression_t expr) { return expr.get_type().is_void(); }
+static bool is_void(const expression_t& expr) { return expr.get_type().is_void(); }
 
-static bool is_double(expression_t expr) { return expr.get_type().is_double(); }
+static bool is_double(const expression_t& expr) { return expr.get_type().is_double(); }
 
 /*
 static bool is_string(expression_t expr)
@@ -50,35 +50,35 @@ static bool is_string(expression_t expr)
 //     return expr.get_type().is_scalar();
 // }
 
-static bool is_integer(expression_t expr) { return expr.get_type().is_integer(); }
+static bool is_integer(const expression_t& expr) { return expr.get_type().is_integer(); }
 
-static bool isBound(expression_t expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
+static bool isBound(const expression_t& expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
 
-static bool is_integral(expression_t expr) { return expr.get_type().is_integral(); }
+static bool is_integral(const expression_t& expr) { return expr.get_type().is_integral(); }
 
-static bool is_clock(expression_t expr) { return expr.get_type().is_clock(); }
+static bool is_clock(const expression_t& expr) { return expr.get_type().is_clock(); }
 
-static bool is_diff(expression_t expr) { return expr.get_type().is_diff(); }
+static bool is_diff(const expression_t& expr) { return expr.get_type().is_diff(); }
 
-static bool is_double_value(expression_t expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
+static bool is_double_value(const expression_t& expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
 
-static bool is_number(expression_t expr) { return is_double_value(expr) || is_integral(expr); }
+static bool is_number(const expression_t& expr) { return is_double_value(expr) || is_integral(expr); }
 
-static bool is_const_integer(expression_t expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
+static bool is_const_integer(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
 
-static bool is_const_double(expression_t expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
+static bool is_const_double(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
 
-static bool is_invariant(expression_t expr) { return expr.get_type().is_invariant(); }
+static bool is_invariant(const expression_t& expr) { return expr.get_type().is_invariant(); }
 
-static bool is_guard(expression_t expr) { return expr.get_type().is_guard(); }
+static bool is_guard(const expression_t& expr) { return expr.get_type().is_guard(); }
 
-static bool is_probability(expression_t expr) { return expr.get_type().is_probability(); }
+static bool is_probability(const expression_t& expr) { return expr.get_type().is_probability(); }
 
-static bool is_constraint(expression_t expr) { return expr.get_type().is_constraint(); }
+static bool is_constraint(const expression_t& expr) { return expr.get_type().is_constraint(); }
 
-static bool is_formula(expression_t expr) { return expr.get_type().is_formula(); }
+static bool is_formula(const expression_t& expr) { return expr.get_type().is_formula(); }
 
-static bool is_formula_list(expression_t expr)
+static bool is_formula_list(const expression_t& expr)
 {
     if (expr.get_kind() != LIST) {
         return false;
@@ -93,7 +93,7 @@ static bool is_formula_list(expression_t expr)
     return true;
 }
 
-static bool hasStrictLowerBound(expression_t expr)
+static bool hasStrictLowerBound(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictLowerBound(expr[i])) {
@@ -119,7 +119,7 @@ static bool hasStrictLowerBound(expression_t expr)
     return false;
 }
 
-static bool hasStrictUpperBound(expression_t expr)
+static bool hasStrictUpperBound(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictUpperBound(expr[i])) {
@@ -149,14 +149,14 @@ static bool hasStrictUpperBound(expression_t expr)
  * Returns true iff type is a valid invariant. A valid invariant is
  * either an invariant expression or an integer expression.
  */
-static bool isInvariantWR(expression_t expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
+static bool isInvariantWR(const expression_t& expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
 
 /**
  * Returns true if values of this type can be assigned. This is the
  * case for integers, booleans, clocks, cost, scalars and arrays and
  * records of these. E.g. channels and processes are not assignable.
  */
-static bool isAssignable(type_t type)
+static bool isAssignable(const type_t& type)
 {
     switch (type.get_kind()) {
     case Constants::INT:
@@ -200,9 +200,9 @@ void CompileTimeComputableValues::visitInstance(instance_t& temp)
     }
 }
 
-void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(symbol); }
+void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(std::move(symbol)); }
 
-bool CompileTimeComputableValues::contains(symbol_t symbol) const
+bool CompileTimeComputableValues::contains(const symbol_t& symbol) const
 {
     return (variables.find(symbol) != variables.end());
 }
@@ -218,10 +218,10 @@ public:
     bool hasStrictInvariant{false}, hasClockRates{false};
     size_t countCostRates{0};
 
-    void decompose(expression_t, bool inforall = false);
+    void decompose(const expression_t&, bool inforall = false);
 };
 
-void RateDecomposer::decompose(expression_t expr, bool inforall)
+void RateDecomposer::decompose(const expression_t& expr, bool inforall)
 {
     assert(isInvariantWR(expr));
 
@@ -289,13 +289,13 @@ TypeChecker::TypeChecker(Document& document, bool refinement): document{document
 }
 
 template <class T>
-void TypeChecker::handleWarning(T expr, const std::string& msg)
+void TypeChecker::handleWarning(T expr, const std::string& msg) const
 {
     document.add_warning(expr.get_position(), msg, "(typechecking)");
 }
 
 template <class T>
-void TypeChecker::handleError(T expr, const std::string& msg)
+void TypeChecker::handleError(T expr, const std::string& msg) const
 {
     document.add_error(expr.get_position(), msg, "(typechecking)");
 }
@@ -310,7 +310,7 @@ void TypeChecker::handleError(T expr, const std::string& msg)
  * this function accepts modifications of local variables as a
  * side-effect.
  */
-void TypeChecker::checkIgnoredValue(expression_t expr)
+void TypeChecker::checkIgnoredValue(const expression_t& expr) const
 {
     if (!expr.changes_any_variable()) {
         handleWarning(expr, "$Expression_does_not_have_any_effect");
@@ -319,7 +319,7 @@ void TypeChecker::checkIgnoredValue(expression_t expr)
     }
 }
 
-bool TypeChecker::isCompileTimeComputable(expression_t expr) const
+bool TypeChecker::isCompileTimeComputable(const expression_t& expr) const
 {
     /* An expression is compile time computable if all identifers it
      * could possibly access during an evaluation are compile time
@@ -351,7 +351,7 @@ bool TypeChecker::isCompileTimeComputable(expression_t expr) const
  * If \a initialisable is true, then this method also checks that \a
  * type is initialisable.
  */
-void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
+void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruct) const
 {
     expression_t l, u;
     type_t size;
@@ -466,7 +466,7 @@ void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
 
 void TypeChecker::visitDocAfter(Document& doc)
 {
-    for (const chan_priority_t& i : doc.get_chan_priorities()) {
+    for (chan_priority_t& i : doc.get_chan_priorities()) {
         bool i_default = (i.head == expression_t());
         if (!i_default && checkExpression(i.head)) {
             expression_t expr = i.head;
@@ -491,7 +491,7 @@ void TypeChecker::visitDocAfter(Document& doc)
             }
         }
 
-        for (const chan_priority_t::entry& j : i.tail) {
+        for (chan_priority_t::entry& j : i.tail) {
             bool j_default = (j.second == expression_t());
             if (!j_default && checkExpression(j.second)) {
                 expression_t expr = j.second;
@@ -519,7 +519,7 @@ void TypeChecker::visitDocAfter(Document& doc)
     }
 }
 
-void TypeChecker::visitHybridClock(expression_t e)
+void TypeChecker::visitHybridClock(expression_t& e)
 {
     if (checkExpression(e)) {
         if (!is_clock(e)) {
@@ -534,7 +534,7 @@ void TypeChecker::visitHybridClock(expression_t e)
 
 void TypeChecker::visitIODecl(iodecl_t& iodecl)
 {
-    for (const auto& e : iodecl.param) {
+    for (auto& e : iodecl.param) {
         if (checkExpression(e)) {
             if (!is_integer(e)) {
                 handleError(e, "$Integer_expected");
@@ -617,7 +617,7 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
     }
 }
 
-bool isDefaultInt(type_t type)
+bool isDefaultInt(const type_t& type)
 {
     if (type.is_integral()) {
         auto range = type.get_range();
@@ -696,7 +696,7 @@ void TypeChecker::visitLocation(location_t& loc)
         }
     }
     if (!loc.exp_rate.empty()) {
-        const auto& expr = loc.exp_rate;
+        auto& expr = loc.exp_rate;
         if (checkExpression(expr)) {
             if (!is_integral(expr) && expr.get_kind() != FRACTION && !expr.get_type().is_double()) {
                 handleError(expr, "$Number_expected");
@@ -918,29 +918,22 @@ void TypeChecker::visitProgressMeasure(progress_t& progress)
 
 void TypeChecker::visitGanttChart(gantt_t& gc)
 {
-    size_t n = gc.parameters.get_size();
-    for (size_t i = 0; i < n; ++i) {
-        checkType(gc.parameters[i].get_type());
-    }
+    for (auto& p : gc.parameters)
+        checkType(p.get_type());
 
-    std::list<ganttmap_t>::const_iterator first, end = gc.mapping.end();
-    for (first = gc.mapping.begin(); first != end; ++first) {
-        n = (*first).parameters.get_size();
-        for (size_t i = 0; i < n; ++i) {
-            checkType((*first).parameters[i].get_type());
-        }
+    for (auto& gm : gc.mapping) {
+        for (auto& p : gm.parameters)
+            checkType(p.get_type());
 
-        const expression_t& p = (*first).predicate;
+        expression_t& p = gm.predicate;
         checkExpression(p);
-        if (!is_integral(p) && !is_constraint(p)) {
+        if (!is_integral(p) && !is_constraint(p))
             handleError(p, "$Boolean_expected");
-        }
 
-        const expression_t& m = (*first).mapping;
+        expression_t& m = gm.mapping;
         checkExpression(m);
-        if (!is_integral(m)) {
+        if (!is_integral(m))
             handleError(m, "$Integer_expected");
-        }
     }
 }
 
@@ -990,7 +983,7 @@ void TypeChecker::visitInstance(instance_t& instance)
     }
 }
 
-static bool isGameProperty(expression_t expr)
+static bool isGameProperty(const expression_t& expr)
 {
     switch (expr.get_kind()) {
     case CONTROL:
@@ -1004,7 +997,7 @@ static bool isGameProperty(expression_t expr)
     }
 }
 
-static bool hasMITLInQuantifiedSub(expression_t expr)
+static bool hasMITLInQuantifiedSub(const expression_t& expr)
 {
     bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
     if (!hasIt) {
@@ -1015,7 +1008,7 @@ static bool hasMITLInQuantifiedSub(expression_t expr)
     return hasIt;
 }
 
-static bool hasSpawnOrExit(expression_t expr)
+static bool hasSpawnOrExit(const expression_t& expr)
 {
     bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
     if (!hasIt) {
@@ -1026,7 +1019,7 @@ static bool hasSpawnOrExit(expression_t expr)
     return hasIt;
 }
 
-void TypeChecker::visitProperty(expression_t expr)
+void TypeChecker::visitProperty(expression_t& expr)
 {
     if (checkExpression(expr)) {
         if (expr.changes_any_variable()) {
@@ -1099,7 +1092,7 @@ void TypeChecker::visitProperty(expression_t expr)
  *
  *  - expression in the label field of an update (LSC)
  */
-bool TypeChecker::checkAssignmentExpression(expression_t expr)
+bool TypeChecker::checkAssignmentExpression(expression_t& expr)
 {
     if (!checkExpression(expr)) {
         return false;
@@ -1118,7 +1111,7 @@ bool TypeChecker::checkAssignmentExpression(expression_t expr)
 }
 
 /** Checks that the expression can be used as a condition (e.g. for if). */
-bool TypeChecker::checkConditionalExpressionInFunction(expression_t expr)
+bool TypeChecker::checkConditionalExpressionInFunction(const expression_t& expr)
 {
     if (!(is_integral(expr) || is_constraint(expr))) {
         handleError(expr, "$Boolean_expected");
@@ -1127,7 +1120,7 @@ bool TypeChecker::checkConditionalExpressionInFunction(expression_t expr)
     return true;
 }
 
-void TypeChecker::checkObservationConstraints(expression_t expr)
+void TypeChecker::checkObservationConstraints(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         checkObservationConstraints(expr[i]);
@@ -1176,7 +1169,7 @@ void TypeChecker::checkObservationConstraints(expression_t expr)
     }
 }
 
-static bool validReturnType(type_t type)
+static bool validReturnType(const type_t& type)
 {
     frame_t frame;
 
@@ -1320,7 +1313,7 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
         symbol_t symbol = frame[i];
         checkType(symbol.get_type());
         if (auto* d = symbol.get_data(); d) {
-            variable_t* var = static_cast<variable_t*>(d);
+            auto* var = static_cast<variable_t*>(d);
             if (!var->init.empty() && checkExpression(var->init)) {
                 if (var->init.changes_any_variable()) {
                     /* This is stronger than C. However side-effects in
@@ -1375,22 +1368,20 @@ int32_t TypeChecker::visitReturnStatement(ReturnStatement* stat)
  * is 1, and in all other cases 2. An argument to a channel parameter
  * must have at least the same capability as the parameter.
  */
-static int channelCapability(type_t type)
+static int channelCapability(const type_t& type)
 {
     assert(type.is_channel());
-    if (type.is(URGENT)) {
+    if (type.is(URGENT))
         return 0;
-    }
-    if (type.is(BROADCAST)) {
+    if (type.is(BROADCAST))
         return 1;
-    }
     return 2;
 }
 
 /**
  * Returns true if two scalar types are name-equivalent.
  */
-static bool isSameScalarType(type_t t1, type_t t2)
+static bool isSameScalarType(const type_t& t1, const type_t& t2)
 {
     if (t1.get_kind() == REF || t1.get_kind() == CONSTANT || t1.get_kind() == SYSTEM_META) {
         return isSameScalarType(t1[0], t2);
@@ -1411,7 +1402,7 @@ static bool isSameScalarType(type_t t1, type_t t2)
 /**
  * Returns true iff argument type is compatible with parameter type.
  */
-bool TypeChecker::isParameterCompatible(type_t paramType, expression_t arg)
+bool TypeChecker::isParameterCompatible(const type_t& paramType, const expression_t& arg) const
 {
     bool ref = paramType.is(REF);
     bool constant = paramType.is_constant();
@@ -1435,7 +1426,7 @@ bool TypeChecker::isParameterCompatible(type_t paramType, expression_t arg)
 /**
  * Checks whether argument type is compatible with parameter type.
  */
-bool TypeChecker::checkParameterCompatible(type_t paramType, expression_t arg)
+bool TypeChecker::checkParameterCompatible(const type_t& paramType, const expression_t& arg) const
 {
     if (!isParameterCompatible(paramType, arg)) {
         handleError(arg, "$Incompatible_argument");
@@ -1451,7 +1442,7 @@ bool TypeChecker::checkParameterCompatible(type_t paramType, expression_t arg)
  * returned. REVISIT: Can a record initialiser have side-effects? Then
  * such reordering is not valid.
  */
-expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
+expression_t TypeChecker::checkInitialiser(const type_t& type, const expression_t& init)
 {
     if (areAssignmentCompatible(type, init.get_type(), true)) {
         return init;
@@ -1497,8 +1488,8 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
         }
 
         // Check that all fields do have an initialiser.
-        for (size_t i = 0; i < result.size(); i++) {
-            if (result[i].empty()) {
+        for (const auto& res : result) {
+            if (res.empty()) {
                 handleError(init, "$Incomplete_initialiser");
                 break;
             }
@@ -1516,7 +1507,7 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
     same size and the subtypes must be compatible. In case of records,
     they must have the same type name.
 */
-bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2) const
+bool TypeChecker::areInlineIfCompatible(const type_t& result_type, const type_t& t1, const type_t& t2) const
 {
     if (areAssignmentCompatible(result_type, t1) && areAssignmentCompatible(result_type, t1))
         return true;
@@ -1547,7 +1538,7 @@ type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
  * equivalent. However, CONST, SYSTEM_META, and REF are ignored. Scalar sets
  * are checked using named equivalence.
  */
-bool TypeChecker::areEquivalent(type_t a, type_t b)
+bool TypeChecker::areEquivalent(const type_t& a, const type_t& b)
 {
     if (a.is_integer() && b.is_integer()) {
         return !a.is(RANGE) || !b.is(RANGE) ||
@@ -1597,7 +1588,7 @@ bool TypeChecker::areEquivalent(type_t a, type_t b)
     actually a left-hand side value. In case of integers, it does not
     check the range of the expressions.
 */
-bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init) const
+bool TypeChecker::areAssignmentCompatible(const type_t& lvalue, const type_t& rvalue, bool init) const
 {
     if (init ? ((lvalue.is_clock() && (rvalue.is_double() || rvalue.is_integral())) ||
                 (lvalue.is_double() && (rvalue.is_integral() || rvalue.is_double())))
@@ -1623,7 +1614,7 @@ bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue, bool ini
  * then false is returned.
  * REVISIT: This should be updated.
  */
-bool TypeChecker::areEqCompatible(type_t t1, type_t t2) const
+bool TypeChecker::areEqCompatible(const type_t& t1, const type_t& t2) const
 {
     if (t1.is_integral() && t2.is_integral()) {
         return true;
@@ -1646,7 +1637,7 @@ bool TypeChecker::areEqCompatible(type_t t1, type_t t2) const
     out-of-range errors or warnings. Returns true if no type errors
     were found, false otherwise.
 */
-bool TypeChecker::checkExpression(expression_t expr)
+bool TypeChecker::checkExpression(expression_t& expr) const
 {
     /* Do not check empty expressions.
      */
@@ -1780,7 +1771,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case SPAWN: {
         template_t* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
-        if (!temp) {
+        if (temp == nullptr) {
             handleError(expr, "It appears your trying to spawn a non-dynamic template");
             return false;
         }
@@ -1805,7 +1796,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case NUMOF: {
         template_t* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
-        if (temp) {
+        if (temp != nullptr) {
             type = type_t::create_primitive(Constants::INT);
         } else {
             handleError(expr, "Not a dynamic template");
@@ -2470,7 +2461,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 /**
  * Returns true if expression evaluates to a modifiable l-value.
  */
-bool TypeChecker::isModifiableLValue(expression_t expr) const
+bool TypeChecker::isModifiableLValue(const expression_t& expr) const
 {
     type_t t, f;
     switch (expr.get_kind()) {
@@ -2520,7 +2511,7 @@ bool TypeChecker::isModifiableLValue(expression_t expr) const
 /**
  * Returns true iff \a expr evaluates to an lvalue.
  */
-bool TypeChecker::isLValue(expression_t expr) const
+bool TypeChecker::isLValue(const expression_t& expr) const
 {
     type_t t, f;
     switch (expr.get_kind()) {
@@ -2561,7 +2552,7 @@ bool TypeChecker::isLValue(expression_t expr) const
     expressions. Thus i[v] is a l-value, but if v is a non-constant
     variable, then it does not result in a unique reference.
 */
-bool TypeChecker::isUniqueReference(expression_t expr) const
+bool TypeChecker::isUniqueReference(const expression_t& expr) const
 {
     switch (expr.get_kind()) {
     case IDENTIFIER: return true;
@@ -2622,11 +2613,8 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
                          const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_buffer(buffer, &builder, newxta);
-
-    if (err) {
+    if (int err = parse_XML_buffer(buffer, &builder, newxta); err != 0)
         return err;
-    }
 
     if (!doc->has_errors()) {
         TypeChecker checker(*doc);
@@ -2641,10 +2629,8 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
 int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_file(file, &builder, newxta);
-    if (err) {
+    if (int err = parse_XML_file(file, &builder, newxta); err != 0)
         return err;
-    }
 
     if (!doc->has_errors()) {
         TypeChecker checker(*doc);
@@ -2657,10 +2643,8 @@ int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::
 int32_t parse_XML_fd(int fd, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_fd(fd, &builder, newxta);
-    if (err) {
+    if (int err = parse_XML_fd(fd, &builder, newxta); err != 0)
         return err;
-    }
 
     if (!doc->has_errors()) {
         TypeChecker checker(*doc);
@@ -2695,7 +2679,7 @@ bool TypeChecker::visitTemplateBefore(template_t& t)
     return true;
 }
 
-bool TypeChecker::checkSpawnParameterCompatible(type_t param, expression_t arg)
+bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expression_t& arg) const
 {
     return checkParameterCompatible(param, arg);
 }
@@ -2713,7 +2697,7 @@ bool TypeChecker::checkDynamicExpressions(Statement* stat)
     return ok;
 }
 
-bool TypeChecker::checkNrOfRuns(const expression_t& runs)
+bool TypeChecker::checkNrOfRuns(const expression_t& runs) const
 {
     if (!isCompileTimeComputable(runs)) {
         handleError(runs, "$Must_be_computable_at_compile_time");
@@ -2726,7 +2710,7 @@ bool TypeChecker::checkNrOfRuns(const expression_t& runs)
     return true;
 }
 
-bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExpr)
+bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExpr) const
 {
     if (!is_const_integer(boundTypeOrExpr) && !is_clock(boundTypeOrExpr)) {
         handleError(boundTypeOrExpr, "$Clock_expected");
@@ -2735,7 +2719,7 @@ bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExp
     return true;
 }
 
-bool TypeChecker::checkBound(const expression_t& bound)
+bool TypeChecker::checkBound(const expression_t& bound) const
 {
     if (!isCompileTimeComputable(bound)) {
         handleError(bound, "$Must_be_computable_at_compile_time");
@@ -2748,7 +2732,7 @@ bool TypeChecker::checkBound(const expression_t& bound)
     return true;
 }
 
-bool TypeChecker::checkPredicate(const expression_t& predicate)
+bool TypeChecker::checkPredicate(const expression_t& predicate) const
 {
     if (!is_integral(predicate) && !is_constraint(predicate)) {  // check reachability expression is a boolean
         handleError(predicate, "$Boolean_expected");
@@ -2761,7 +2745,7 @@ bool TypeChecker::checkPredicate(const expression_t& predicate)
     return true;
 }
 
-bool TypeChecker::checkProbBound(const expression_t& probBound)
+bool TypeChecker::checkProbBound(const expression_t& probBound) const
 {
     if (!is_const_double(probBound)) {
         handleError(probBound, "Floating point number expected as probability bound");
@@ -2770,7 +2754,7 @@ bool TypeChecker::checkProbBound(const expression_t& probBound)
     return true;
 }
 
-bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond)
+bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond) const
 {
     bool ok = true;
     if (kind == PROBA_DIAMOND && !is_integral(untilCond) && !is_constraint(untilCond)) {
@@ -2784,7 +2768,7 @@ bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond)
     return ok;
 }
 
-bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
+bool TypeChecker::checkMonitoredExpr(const expression_t& expr) const
 {
     if (!is_integral(expr) && !is_clock(expr) && !is_double_value(expr) &&
         !expr.get_type().is(Constants::DOUBLE_INV_GUARD) && !is_constraint(expr)) {
@@ -2798,7 +2782,7 @@ bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
     return true;
 }
 
-bool TypeChecker::checkPathQuant(const expression_t& expr)
+bool TypeChecker::checkPathQuant(const expression_t& expr) const
 {
     if (!is_const_integer(expr)) {
         handleError(expr, "Bug: bad path quantifier");
@@ -2807,7 +2791,7 @@ bool TypeChecker::checkPathQuant(const expression_t& expr)
     return true;
 }
 
-bool TypeChecker::checkAggregationOp(const expression_t& expr)
+bool TypeChecker::checkAggregationOp(const expression_t& expr) const
 {
     if (!is_const_integer(expr)) {
         handleError(expr, "Bug: bad aggregation operator expression");
