@@ -21,6 +21,7 @@ endif(WIN32)
 
 option(UTAP_WITH_TESTS "UTAP Unit Tests" ${UTAP_WITH_TESTS_DEFAULT})
 option(UTAP_STATIC "UTAP Static Linking" ${UTAP_STATIC_DEFAULT})
+option(FIND_FATAL "Stop upon find_package errors" OFF)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 include(cmake/stdcpp.cmake)
