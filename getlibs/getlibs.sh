@@ -13,7 +13,7 @@ fi
 
 missing_tools=""
 for tool in wget tar sha256sum cmake ; do
-    if [ -z "(command -v $tool)" ] ; then
+    if [ -z "$(command -v $tool)" ] ; then
         echo "Could not find $tool"
         missing_tools="${missing_tools:+$missing_tools} $tools"
     fi
