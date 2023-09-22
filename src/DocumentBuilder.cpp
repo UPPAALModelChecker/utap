@@ -23,10 +23,10 @@
 
 #include "print.hpp"
 
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 #include <cassert>
-#include <cstring>
 
 using namespace UTAP;
 using namespace Constants;
