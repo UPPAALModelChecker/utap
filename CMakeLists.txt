@@ -44,7 +44,7 @@ if(UTAP_STATIC)
 endif(UTAP_STATIC)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Werror=vla)
+    add_compile_options(-Wpedantic -Wall -Wextra -Werror=vla -Wno-unused-parameter)
 endif()
 
 add_subdirectory(src)

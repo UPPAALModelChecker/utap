@@ -393,9 +393,9 @@ const vector<simregion_t> template_t::get_simregions()
 {
     // cout <<"=======LSC: get_simregions=======\n";
     // Copy the numbers of messages, conditions and updates from the scenario
-    deque<int> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
-    deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
-    deque<int> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
+    deque<uint32_t> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
+    deque<uint32_t> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
+    deque<uint32_t> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
 
     auto simregions = vector<simregion_t>{};
     simregions.reserve(m_nr.size());

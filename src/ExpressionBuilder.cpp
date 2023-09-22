@@ -830,7 +830,7 @@ void ExpressionBuilder::expr_simulate(int nbExpr, bool hasReach, int numberOfAcc
     args.push_back(runs);
     args.push_back(boundTypeOrBoundedExpr);
     args.push_back(bound);
-    for (auto i = 0u; i < nbExpr; ++i)
+    for (auto i = 0; i < nbExpr; ++i)
         args.push_back(fragments[offset - 1 - i]);  // recover the original order
 
     if (hasReach) {

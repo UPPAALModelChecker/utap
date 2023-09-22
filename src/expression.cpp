@@ -1498,7 +1498,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old);
         os << ")[";
         if (get(0).get_kind() == Constants::CONSTANT) {
-            if (bool is_step_bound = (get(0).get_value() == 0))
+            if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
             get(0).print(os, old);
@@ -1522,7 +1522,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old);
         os << ")[";
         if (get(0).get_kind() == Constants::CONSTANT) {
-            if (bool is_step_bound = (get(0).get_value() == 0))
+            if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
             get(0).print(os, old);

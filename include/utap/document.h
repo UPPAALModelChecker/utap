@@ -206,7 +206,7 @@ struct LSC_element_t
     int location{-1};
     bool is_in_prechart{false};
     explicit LSC_element_t(uint32_t nr): nr{nr} {}
-    int get_nr() const { return nr; }
+    uint32_t get_nr() const { return nr; }
 };
 
 /** Information about a message. Messages have a source (src) and a
