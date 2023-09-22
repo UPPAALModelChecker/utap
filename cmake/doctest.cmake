@@ -6,6 +6,9 @@ else(doctest_FOUND)
   message(STATUS "Failed to find doctest, going to make it from scratch.")
   include(FetchContent)
   set(DOCTEST_WITH_TESTS OFF CACHE BOOL "doctest tests")
+  set(DOCTEST_WITH_MAIN_IN_STATIC_LIB ON CACHE BOOL "static lib (cmake target) with a default main entry point")
+  set(DOCTEST_NO_INSTALL ON CACHE BOOL "Skip the installation process")
+  set(DOCTEST_USE_STD_HEADERS OFF CACHE BOOL "Use std headers")
   FetchContent_Declare(doctest
     GIT_REPOSITORY git@github.com:doctest/doctest.git
     GIT_TAG v2.4.11

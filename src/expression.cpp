@@ -635,9 +635,9 @@ bool expression_t::equal(const expression_t& e) const
    case of inline if, the symbol referenced by the 'true' part is
    returned.
 */
-symbol_t expression_t::get_symbol() { return ((const expression_t*)this)->get_symbol(); }
+const symbol_t& expression_t::get_symbol() { return ((const expression_t*)this)->get_symbol(); }
 
-const symbol_t expression_t::get_symbol() const
+const symbol_t& expression_t::get_symbol() const
 {
     assert(data);
 
@@ -674,7 +674,9 @@ const symbol_t expression_t::get_symbol() const
 
     case SCENARIO: return get(0).get_symbol();
 
-    default: return symbol_t();
+    default:
+        assert(false);
+        // return symbol_t();
     }
 }
 

@@ -319,7 +319,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
 {
     expression_t e;
     type_t type;
-    instance_t* instance;
+    const instance_t* instance;
 
     /* n+1'th element from the top is the identifier.
      */
@@ -352,7 +352,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
         if (expr.size() - 1 != id.get_type().size()) {
             handle_error(TypeException{"$Wrong_number_of_arguments"});
         }
-        instance = static_cast<instance_t*>(id.get_symbol().get_data());
+        instance = static_cast<const instance_t*>(id.get_symbol().get_data());
 
         /* Process set lookups are represented as expressions indexing
          * into an array. To satisfy the type checker, we create a

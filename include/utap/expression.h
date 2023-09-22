@@ -166,7 +166,7 @@ public:
      *  (s.f).get_symbol() returns 's'
      *  (i<1?j:k).get_symbol() returns 'j'
      */
-    symbol_t get_symbol();
+    const symbol_t& get_symbol();
 
     /**
      * Returns the set of symbols this expression might resolve
@@ -182,7 +182,7 @@ public:
 
     /** Returns the symbol this expression evaluates to. Notice
         that not all expression evaluate to a symbol. */
-    const symbol_t get_symbol() const;
+    const symbol_t& get_symbol() const;
 
     /** Returns true if this expression is a reference to a
         symbol in the given set. */
