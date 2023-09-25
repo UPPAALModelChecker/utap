@@ -51,10 +51,10 @@ enum class syntax_t : unsigned int {
     OLD_GUIDING = OLD | GUIDING
 };
 
-constexpr std::underlying_type_t<syntax_t> operator&(const syntax_t& s1, const syntax_t& s2)
+constexpr syntax_t operator&(const syntax_t& s1, const syntax_t& s2)
 {
     using T = std::underlying_type_t<syntax_t>;
-    return (static_cast<T>(s1) & static_cast<T>(s2));
+    return syntax_t{static_cast<T>(s1) & static_cast<T>(s2)};
 }
 
 namespace UTAP {

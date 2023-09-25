@@ -26,7 +26,6 @@
 #include <stdexcept>
 
 using std::string;
-using std::vector;
 
 using namespace UTAP;
 

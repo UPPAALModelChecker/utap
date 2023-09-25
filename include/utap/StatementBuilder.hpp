@@ -61,8 +61,8 @@ protected:
     virtual variable_t* addVariable(type_t type, const std::string& name, expression_t init, position_t pos) = 0;
     virtual bool addFunction(type_t type, const std::string& name, position_t pos) = 0;
 
-    static void collectDependencies(std::set<symbol_t>&, expression_t);
-    static void collectDependencies(std::set<symbol_t>&, type_t);
+    static void collectDependencies(std::set<symbol_t>&, const expression_t&);
+    static void collectDependencies(std::set<symbol_t>&, const type_t&);
 
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});

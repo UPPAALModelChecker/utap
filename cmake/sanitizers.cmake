@@ -4,6 +4,7 @@
 option(SSP "Stack Smashing Protector" OFF) # Available on Windows too
 option(UBSAN "Undefined Behavior Sanitizer" OFF)
 option(ASAN "Address Sanitizer" OFF)
+option(LSAN "Leak Sanitizer" OFF)
 option(TSAN "Thread Sanitizer" OFF)
 
 if (SSP)
@@ -12,7 +13,7 @@ if (SSP)
     message(STATUS "Enable Stack Smashing Protector")
 endif(SSP)
 
-if (ASAN OR UBSAN OR TSAN)
+if (ASAN OR UBSAN OR LSAN OR TSAN)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fno-omit-frame-pointer)
 endif()
@@ -28,6 +29,12 @@ if (ASAN)
     add_link_options(-fsanitize=address)
     message(STATUS "Enabled Address Sanitizer")
 endif(ASAN)
+
+if (LSAN)
+    add_compile_options(-fsanitize=leak)
+    add_link_options(-fsanitize=leak)
+    message(STATUS "Enabled Leak Sanitizer")
+endif(LSAN)
 
 if (TSAN)
     add_compile_options(-fsanitize=thread)

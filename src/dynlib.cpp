@@ -54,11 +54,11 @@ inline library_t::state_t::state_t(const char* name): handle{dlopen(name, RTLD_N
 
 inline library_t::state_t::~state_t() noexcept
 {
-    if (handle) {
+    if (handle != nullptr) {
         auto res [[maybe_unused]] = dlclose(handle);
         handle = nullptr;
 #ifndef NDEBUG
-        if (res)
+        if (res != 0)
             std::cerr << dlerror() << std::endl;
 #endif
     }
@@ -66,8 +66,8 @@ inline library_t::state_t::~state_t() noexcept
 
 void* library_t::get_symbol(const char* name)
 {
-    auto res = dlsym(pImpl->handle, name);
-    if (!res)
+    auto* res = dlsym(pImpl->handle, name);
+    if (res == nullptr)
         throw std::runtime_error(dlerror());
     return res;
 }

@@ -31,7 +31,7 @@ int32_t EmptyStatement::accept(StatementVisitor* visitor) { return visitor->visi
 
 bool EmptyStatement::returns() { return false; }
 
-string EmptyStatement::str(const string& prefix) const { return ""; }
+string EmptyStatement::str(const string&) const { return ""; }
 
 int32_t ExprStatement::accept(StatementVisitor* visitor) { return visitor->visitExprStatement(this); }
 
@@ -213,7 +213,7 @@ bool ReturnStatement::returns() { return true; }
 
 string ReturnStatement::str(const string& prefix) const { return prefix + "return " + value.str() + ";"; }
 
-int32_t AbstractStatementVisitor::visitStatement(Statement* stat) { return 0; }
+int32_t AbstractStatementVisitor::visitStatement(Statement*) { return 0; }
 
 int32_t AbstractStatementVisitor::visitEmptyStatement(EmptyStatement* stat) { return visitStatement(stat); }
 
