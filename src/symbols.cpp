@@ -96,11 +96,10 @@ std::ostream& operator<<(std::ostream& o, const UTAP::symbol_t& t) { return o <<
 
 struct frame_t::frame_data : public std::enable_shared_from_this<frame_t::frame_data>
 {
-    // bool hasParent;                // True if there is a parent
-    frame_data* parent;            // The parent frame data
-    vector<symbol_t> symbols;      // The symbols in the frame
-    map<string, int32_t> mapping;  // Mapping from names to indices
-    explicit frame_data(frame_data* p): parent{p} {}
+    std::shared_ptr<frame_data> parent;  // The parent frame data
+    vector<symbol_t> symbols;            // The symbols in the frame
+    map<string, int32_t> mapping;        // Mapping from names to indices
+    explicit frame_data(std::shared_ptr<frame_data> p): parent{p} {}
     bool has_parent() const { return parent != nullptr; }
 };
 
@@ -231,7 +230,7 @@ frame_t frame_t::get_parent() const
 {
     if (!data->has_parent())
         throw NoParentException();
-    return frame_t{data->parent};
+    return frame_t{data->parent.get()};
 }
 
 /* Returns true if this frame has a parent */
@@ -247,7 +246,7 @@ frame_t frame_t::create()
 /* Creates and returns new frame with the given parent */
 frame_t frame_t::create(const frame_t& parent)
 {
-    auto data = std::make_shared<frame_data>(parent.data.get());
+    auto data = std::make_shared<frame_data>(parent.data);
     return frame_t{data.get()};
 }
 

@@ -136,6 +136,9 @@ public:
     /** Returns the \a i'th label. */
     const std::string& get_label(uint32_t) const;
 
+    /** Returns the position of i'th field in struct */
+    const position_t& get_field_position(uint32_t) const;
+
     /** Returns the expression associated with the type. */
     expression_t get_expression() const;
 
@@ -376,7 +379,8 @@ public:
     static type_t create_process_set(type_t instance, position_t = position_t());
 
     /** Creates a new record type */
-    static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = position_t());
+    static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&,
+                                const std::vector<position_t>&, position_t = position_t());
 
     /** Creates a new function type */
     static type_t create_function(type_t, const std::vector<type_t>&, const std::vector<std::string>&,

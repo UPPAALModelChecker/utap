@@ -135,6 +135,7 @@ struct function_t : stringify_t<function_t>
     std::unique_ptr<BlockStatement> body{nullptr}; /**< Pointer to the block. */
     function_t() = default;
     std::ostream& print(std::ostream& os) const; /**< textual representation, used to write the XML file */
+    position_t body_position;
 };
 
 struct progress_t
@@ -511,6 +512,8 @@ public:
 
     /** Returns the global declarations of the document. */
     declarations_t& get_globals() { return global; }
+    frame_t get_builtin_decls() { return global.frame.get_parent(); }
+    declarations_t& get_system_declarations() { return system_declarations; }
 
     /** Returns the templates of the document. */
     std::list<template_t>& get_templates() { return templates; }
@@ -521,6 +524,9 @@ public:
     /** Returns the processes of the document. */
     std::list<instance_t>& get_processes() { return processes; }
 
+    /** Returns the instances of the document. */
+    const std::list<instance_t>& get_instances() const { return instances; }
+
     options_t& get_options();
     void set_options(const options_t& options);
 
@@ -529,10 +535,12 @@ public:
 
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
+    const position_index_t::line_t& find_first_position(uint32_t position) const;
 
     variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,
                                          position_t);
-    variable_t* add_variable(declarations_t*, type_t type, const std::string&, expression_t initial, position_t);
+    variable_t* add_variable(declarations_t*, frame_t, type_t type, const std::string&, expression_t initial,
+                             position_t);
     void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
 
     template_t& add_template(const std::string& name, frame_t params, position_t, bool isTA = true,
@@ -640,6 +648,7 @@ protected:
 
     // Global declarations
     declarations_t global;
+    declarations_t system_declarations;
 
     expression_t before_update;
     expression_t after_update;

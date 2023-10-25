@@ -758,7 +758,8 @@ std::ostream& chan_priority_t::print(std::ostream& os) const
 
 Document::Document()
 {
-    global.frame = frame_t::create();
+    global.frame = frame_t::create(frame_t::create());
+    system_declarations.frame = frame_t::create(global.frame);
 #ifdef ENABLE_CORA
     addVariable(&global, type_t::create_primitive(COST), "cost", expression_t());
 #endif
@@ -920,10 +921,10 @@ options_t& Document::get_options() { return model_options; }
 void Document::set_options(const options_t& options) { model_options = options; }
 
 // Add a regular variable
-variable_t* Document::add_variable(declarations_t* context, type_t type, const string& name, expression_t initial,
-                                   position_t pos)
+variable_t* Document::add_variable(declarations_t* context, frame_t frame, type_t type, const string& name,
+                                   expression_t initial, position_t pos)
 {
-    variable_t* var = add_variable(context->variables, context->frame, type, name, pos);
+    variable_t* var = add_variable(context->variables, frame, type, name, pos);
     var->init = initial;
     return var;
 }
@@ -1020,7 +1021,9 @@ void visitTemplate(template_t& t, DocumentVisitor& visitor)
 void Document::accept(DocumentVisitor& visitor)
 {
     visitor.visitDocBefore(*this);
+    visit(visitor, global.frame.get_parent());
     visit(visitor, global.frame);
+    visit(visitor, system_declarations.frame);
     for (auto& templ : templates)
         visitTemplate(templ, visitor);
     for (auto& templ : dyn_templates)
@@ -1039,14 +1042,14 @@ void Document::accept(DocumentVisitor& visitor)
         }
     }
 
-    for (auto&& decl : global.iodecl)
+    for (auto&& decl : system_declarations.iodecl)
         visitor.visitIODecl(decl);
 
     // Maybe not ideal place for this:
-    for (auto&& progress : global.progress)
+    for (auto&& progress : system_declarations.progress)
         visitor.visitProgressMeasure(progress);
 
-    for (auto&& gantt : global.ganttChart)
+    for (auto&& gantt : system_declarations.ganttChart)
         visitor.visitGanttChart(gantt);
 
     visitor.visitDocAfter(*this);
@@ -1096,6 +1099,11 @@ void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, s
 const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
 
 void Document::add_channel(bool is_broadcast) { hasNonBroadcastChan |= !is_broadcast; }
+
+const position_index_t::line_t& Document::find_first_position(uint32_t position) const
+{
+    return positions.find_first_line(position);
+}
 
 void Document::add_error(position_t position, std::string msg, std::string context)
 {

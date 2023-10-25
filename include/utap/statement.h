@@ -135,10 +135,9 @@ public:
 
 protected:
     std::vector<std::unique_ptr<Statement>> stats;
-    frame_t frame;
 
 public:
-    explicit BlockStatement(frame_t frame): frame{std::move(frame)} {}
+    explicit BlockStatement(frame_t frame) { this->frame = std::move(frame); }
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
 

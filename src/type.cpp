@@ -37,6 +37,7 @@ struct child_t
 {
     string label;
     type_t child;
+    position_t position;
 };
 
 struct type_t::type_data
@@ -82,6 +83,12 @@ const std::string& type_t::get_label(uint32_t i) const
 {
     assert(i < size());
     return data->children[i].label;
+}
+
+const position_t& type_t::get_field_position(uint32_t i) const
+{
+    assert(i < size());
+    return data->children[i].position;
 }
 
 std::optional<uint32_t> type_t::find_index_of(const std::string& label) const
@@ -332,13 +339,15 @@ type_t type_t::create_range(type_t type, expression_t lower, expression_t upper,
     return t;
 }
 
-type_t type_t::create_record(const vector<type_t>& types, const vector<string>& labels, position_t pos)
+type_t type_t::create_record(const vector<type_t>& types, const vector<string>& labels,
+                             const std::vector<position_t>& positions, position_t pos)
 {
     assert(types.size() == labels.size());
     auto type = type_t{RECORD, pos, types.size()};
     for (size_t i = 0; i < types.size(); i++) {
         type.data->children[i].child = types[i];
         type.data->children[i].label = labels[i];
+        type.data->children[i].position = positions[i];
     }
     return type;
 }
