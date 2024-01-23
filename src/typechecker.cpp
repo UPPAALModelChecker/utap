@@ -2596,14 +2596,20 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
     }
 }
 
+static void static_analysis(Document& doc){
+    if(!doc.has_errors()){
+        TypeChecker checker(doc);
+        doc.accept(checker);
+        FeatureChecker fchecker(doc);
+        doc.set_supported_methods(fchecker.get_supported_methods());
+    }
+}
+
 bool parse_XTA(FILE* file, Document* doc, bool newxta)
 {
     DocumentBuilder builder(*doc);
     parse_XTA(file, &builder, newxta);
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
     return !doc->has_errors();
 }
 
@@ -2611,10 +2617,7 @@ bool parse_XTA(const char* buffer, Document* doc, bool newxta)
 {
     DocumentBuilder builder(*doc);
     parse_XTA(buffer, &builder, newxta);
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
     return !doc->has_errors();
 }
 
@@ -2628,12 +2631,7 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
         return err;
     }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-        FeatureChecker fchecker(*doc);
-        doc->set_supported_methods(fchecker.get_supported_methods());
-    }
+    static_analysis(*doc);
 
     return 0;
 }
@@ -2646,10 +2644,7 @@ int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::
         return err;
     }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
 
     return 0;
 }
@@ -2662,10 +2657,7 @@ int32_t parse_XML_fd(int fd, Document* doc, bool newxta, const std::vector<std::
         return err;
     }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
 
     return 0;
 }
