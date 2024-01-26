@@ -175,3 +175,13 @@ TEST_CASE("Clock uninitialized")
     CHECK(checker.get_supported_methods().symbolic);
     CHECK(checker.get_supported_methods().stochastic);
 }
+
+TEST_CASE("Channel priorities disable concrete simulator and smc")
+{
+    auto doc = std::make_unique<UTAP::Document>();
+    parse_XML_buffer(read_content("channel_priorities.xml").c_str(), doc.get(), true);
+    auto checker = UTAP::FeatureChecker{*doc};
+    CHECK(checker.get_supported_methods().symbolic);
+    CHECK(!checker.get_supported_methods().stochastic);
+    CHECK(!checker.get_supported_methods().concrete);
+}
