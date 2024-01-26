@@ -2596,8 +2596,9 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
     }
 }
 
-static void static_analysis(Document& doc){
-    if(!doc.has_errors()){
+static void static_analysis(Document& doc)
+{
+    if (!doc.has_errors()) {
         TypeChecker checker(doc);
         doc.accept(checker);
         FeatureChecker fchecker(doc);
