@@ -74,10 +74,10 @@ void* library_t::get_symbol(const char* name)
 
 #elif defined(_WIN32) || defined(__MINGW32__)
 
-static std::string get_error_message(const char* msg, DWORD err)
+static std::string get_error_message(const std::string& msg, DWORD err)
 {
     auto ss = std::ostringstream{};
-    ss << msg << " 0x" << std::hex << err;
+    ss << msg << ": error " << err;
     LPTSTR lpMessage = nullptr;
     DWORD sz =
         FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -95,12 +95,13 @@ inline library_t::state_t::state_t(const char* name): handle{LoadLibrary(TEXT(na
         auto err = GetLastError();
         auto path = std::filesystem::path{name};
         if (path.extension().string() == dll_extension)
-            throw std::runtime_error(get_error_message("Failed to open dynamic library", err));
+            throw std::runtime_error(get_error_message("Failed to open dynamic library " + path.string(), err));
         else {
             path = name + dll_extension;
             handle = LoadLibrary(TEXT(path.string().c_str()));
             if (handle == nullptr)
-                throw std::runtime_error(get_error_message("Failed to open dynamic library", GetLastError()));
+                throw std::runtime_error(
+                    get_error_message("Failed to open dynamic library " + path.string(), GetLastError()));
         }
     }
 }
