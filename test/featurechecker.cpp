@@ -24,32 +24,42 @@
 
 #include "utap/utap.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <system_error>
 
 int main(int argc, char** argv)
 {
-    const auto& command = argv[0];  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic) Pretty hard to avoid
+    const auto command = std::filesystem::path{argv[0]}.filename().string();
     if (argc != 2) {
-        std::cout
-            << "UPPAAL feature checker - Check which features are supported by the UPPAAL Model Checker for a given TA"
-            << std::endl;
-        std::cout << "Usage: " << command << " [filename]" << std::endl;
+        std::cerr << command << " checks which features are supported by UPPAAL for a given model\n"
+                  << "Usage: " << command << " [model-file-path]" << std::endl;
         return 1;
     }
-    const auto& filename = argv[1];  // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic) Pretty hard to avoid
-    std::ifstream ifs(filename);
-    std::string content((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+    for (auto i = 1u; i < argc; ++i) {
+        auto path = std::filesystem::path{argv[i]};
+        try {
+            if (!exists(path))
+                throw std::system_error{ENOENT, std::system_category(), path.string()};
+            auto ifs = std::ifstream{};
+            ifs.exceptions(std::ifstream::failbit | std::ifstream::badbit | std::ifstream::eofbit);
+            ifs.open(path);
+            auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
 
-    auto document = std::make_unique<UTAP::Document>();
-    parse_XML_buffer(content.c_str(), document.get(), true);
-    UTAP::FeatureChecker checker(*document);
-    const auto& type = checker.get_supported_methods();
+            auto document = std::make_unique<UTAP::Document>();
+            parse_XML_buffer(content.c_str(), document.get(), true);
+            auto checker = UTAP::FeatureChecker{*document};
+            const auto& type = checker.get_supported_methods();
 
-    std::cout << "UTAP feature checker" << std::endl;
-    std::cout << "Checking file: " << filename << std::endl;
+            std::cout << "UTAP feature checker" << std::endl;
+            std::cout << "Checking file: " << path << std::endl;
 
-    std::cout << "Supports symbolic: " << type.symbolic << std::endl;
-    std::cout << "Supports concrete: " << type.concrete << std::endl;
-    std::cout << "Supports stochastic: " << type.stochastic << std::endl;
+            std::cout << "Supports symbolic: " << type.symbolic << std::endl;
+            std::cout << "Supports concrete: " << type.concrete << std::endl;
+            std::cout << "Supports stochastic: " << type.stochastic << std::endl;
+        } catch (std::exception& ex) {
+            std::cerr << "Failed to process " << path << ":\n" << ex.what() << std::endl;
+        }
+    }
 }
