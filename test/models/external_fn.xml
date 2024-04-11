@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
 <nta>
 	<declaration>import "libexternal_fn" {
     int square(int a);
     int multiply(int a, int b);
     double square_root(double c);
     double power(double c, int a);
-    double calc_sum(int n, const double d[3]);
+    double calc_sum(int n, const double&amp; d[3]);
     int length(const string&amp; s);
+    bool fast_double(double&amp; d[3], int count);
+    void set_number(int a);
+    int get_number();    
 };
 
 import "libbad" {
     int absent(int a);
 };
+
 
 const int a = 3, b = 7;
 const double c = 11;
@@ -25,12 +29,29 @@ const double c_r2 = square_root(square_root(c));
 double c2 = power(c_r2, 4);
 double d_s = calc_sum(3, d);
 int l = length("123");
+
+double dd[3] = d;
+
+void __ON_CONSTRUCT__() {
+    set_number(2);
+}
+
+int number = get_number();
 </declaration>
 	<template>
 		<name x="5" y="5">P</name>
-		<location id="id0" x="0" y="0">
+		<location id="id0" x="187" y="0">
 		</location>
-		<init ref="id0"/>
+		<location id="id1" x="0" y="0">
+			<urgent/>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="18" y="0">fast_double(dd, 3),
+set_number(17)</label>
+		</transition>
 	</template>
 	<system>system P;
 </system>
