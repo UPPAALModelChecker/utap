@@ -67,7 +67,7 @@ jobs:
           sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex g++-10
       - name: Restore Libs
         id: restore-libs
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: local/linux64-gcc10
           key: libs-linux64-${{ hashFiles('getlibs/**') }}
@@ -86,11 +86,11 @@ jobs:
           path: local/linux64-gcc10
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10
+        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc10.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
       - name: Build
-        run: cmake --build "$BUILD_DIR" --config Debug
+        run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
-        run: ctest --test-dir "$BUILD_DIR" -C Debug
+        run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
 
   windows-x86_64:
     needs: [ formatting ]
@@ -127,7 +127,7 @@ jobs:
 
       - name: Restore Libs
         id: restore-libs
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: local/win64
           key: libs-win64-${{ hashFiles('getlibs/**') }}
@@ -146,7 +146,7 @@ jobs:
           path: local/win64
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake  -B "$BUILD_DIR" -S . -DSSP=ON -DCMAKE_PREFIX_PATH=$PWD/local/win64
+        run: cmake  -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/win64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/win64.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
@@ -173,7 +173,7 @@ jobs:
         run: brew install -q cmake ninja gcc@10 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
       - name: Restore Libs
         id: restore-libs
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: local/darwin-brew-gcc10
           key: libs-darwin-brew-gcc10-${{ hashFiles('getlibs/**') }}
@@ -192,7 +192,7 @@ jobs:
           path: local/darwin-brew-gcc10
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc10
+        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc10 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/darwin-brew-gcc10.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
