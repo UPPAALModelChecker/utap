@@ -23,8 +23,8 @@
 #ifndef UTAP_INTERMEDIATE_HH
 #define UTAP_INTERMEDIATE_HH
 
-#include "utap/dynlib.h"
 #include "utap/expression.h"
+#include "utap/library.hpp"
 #include "utap/position.h"
 #include "utap/symbols.h"
 
@@ -650,14 +650,14 @@ protected:
                              position_t);
 
     std::string location;
-    std::vector<library_t> libraries;
+    std::vector<Library> libraries;
     InternedStrings strings;
     SupportedMethods supported_methods{};
 
 public:
-    void add(library_t&& lib);
+    void add(Library&& lib);
     /** Returns the last successfully loaded library, or throws std::runtime_error. */
-    library_t& last_library();
+    Library& last_library();
     void add_error(position_t, std::string msg, std::string ctx = "");
     void add_warning(position_t, const std::string& msg, const std::string& ctx = "");
     bool has_errors() const { return !errors.empty(); }

@@ -112,7 +112,6 @@ jobs:
           sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
-
       - name: Setup Wine
         run: |
           sudo apt-get -qq install wine-binfmt
@@ -151,7 +150,7 @@ jobs:
       fail-fast: false
     runs-on: macos-11
     env:
-      BUILD_DIR: build-darwin
+      BUILD_DIR: build-darwin-brew-gcc10
       CTEST_OUTPUT_ON_FAILURE: 1
       CMAKE_BUILD_TYPE: Debug
       CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin-brew-gcc10.cmake
@@ -186,3 +185,56 @@ jobs:
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
         run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
+
+#  build-nix:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v3
+#    - uses: cachix/install-nix-action@v15
+#      with:
+#        nix_path: nixpkgs=channel:nixos-unstable
+#    - name: Build and test
+#      run: nix build
+#  build-nix-mac:
+#    runs-on: macos-latest
+#    steps:
+#    - uses: actions/checkout@v3
+#    - uses: cachix/install-nix-action@v15
+#      with:
+#        nix_path: nixpkgs=channel:nixos-unstable
+#    - name: Build and test
+#      run: nix build
+#  build-nix-cross:
+#    runs-on: ubuntu-latest
+#    steps:
+#    - uses: actions/checkout@v3
+#    - uses: cachix/install-nix-action@v15
+#      with:
+#        nix_path: nixpkgs=channel:nixos-unstable
+#    - name: Build and test
+#      run: nix build .\#utapWindows.x86_64-linux
+#   build-linux64:
+#     needs: [ format ]
+#     strategy:
+#       fail-fast: false
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Set default environment variables
+#       run: |
+#           echo "DEBIAN_FRONTEND=noninteractive" >> "$GITHUB_ENV"
+#           echo "BUILD_DIR=build-linux64-gcc10" >> "$GITHUB_ENV"
+#           echo "CROSSCOMPILING_EMULATOR=wine" >> "$GITHUB_ENV"
+#           echo "CTEST_OUTPUT_ON_FAILURE=1" >> "$GITHUB_ENV"
+#     - name: Get Ubuntu dependencies
+#       run: |
+#           sudo apt-get -qy update
+#           sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex libc6-dev g++-10
+#     - name: Get library dependencies
+#       run: ./getlibs/getlibs.sh linux64-gcc10
+#     - name: Configure CMake build system
+#       run: cmake -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc10.cmake -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10 -DCMAKE_BUILD_TYPE=Debug -DUBSAN=ON -DASAN=ON -B $BUILD_DIR -S . -G Ninja
+#     - name: Build
+#       run: cmake --build $BUILD_DIR
+#     - name: Test
+#       run: (cd $BUILD_DIR ; ctest)

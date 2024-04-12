@@ -756,9 +756,9 @@ Document::Document()
 #endif
 }
 
-void Document::add(library_t&& lib) { libraries.push_back(std::move(lib)); }
+void Document::add(Library&& lib) { libraries.push_back(std::move(lib)); }
 
-library_t& Document::last_library()
+Library& Document::last_library()
 {
     if (libraries.empty())
         throw std::runtime_error("$No_library_loaded");
