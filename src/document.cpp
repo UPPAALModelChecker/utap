@@ -1056,7 +1056,7 @@ void Document::add_chan_priority(char separator, expression_t chan)
 {
     assert(separator == ',' || separator == '<');
     chan_priority_t::tail_t& tail = chan_priorities.back().tail;
-    tail.push_back(chan_priority_t::entry(separator, std::move(chan)));
+    tail.emplace_back(separator, std::move(chan));
 }
 
 void Document::set_proc_priority(const string& name, int priority)

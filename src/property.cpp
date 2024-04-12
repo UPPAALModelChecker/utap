@@ -443,7 +443,7 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
         // if (document->has_stop_watch(())
         //    throw UTAP::TypeException("$Stop_watches_are_not_yet_supported_in_TIGA");
     }
-};
+}
 
 void TigaPropertyBuilder::strategy_declaration(const char* id)
 {

@@ -667,7 +667,7 @@ void DocumentBuilder::query_options(const char* key, const char* value)
     if (key == nullptr) {
         handle_error(TypeException{"options tag found without attribute 'key'"});
     }
-    currentQuery->options.push_back(option_t{key, value == nullptr ? "" : value});
+    currentQuery->options.emplace_back(key, value == nullptr ? "" : value);
 }
 
 void DocumentBuilder::expectation_begin() { currentExpectation = new expectation_t; }

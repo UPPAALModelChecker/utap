@@ -102,7 +102,7 @@ void PrettyPrinter::type_channel(PREFIX prefix) { type.push(string(prefix_labels
 
 void PrettyPrinter::type_clock(PREFIX prefix) { type.push(string(prefix_labels[prefix]) + "clock"); }
 
-void PrettyPrinter::type_void() { type.push("void"); }
+void PrettyPrinter::type_void() { type.emplace("void"); }
 
 void PrettyPrinter::type_scalar(PREFIX prefix)
 {
