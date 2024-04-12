@@ -312,10 +312,11 @@ void TypeChecker::handleError(T expr, const std::string& msg)
  */
 void TypeChecker::checkIgnoredValue(expression_t expr)
 {
-    if (!expr.changes_any_variable()) {
-        handleWarning(expr, "$Expression_does_not_have_any_effect");
-    } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable()) {
-        handleWarning(expr[1], "$Expression_does_not_have_any_effect");
+    static const auto message = "$Expression_does_not_have_any_effect";
+    if (!expr.changes_any_variable() && expr.get_kind() != FUN_CALL_EXT) {
+        handleWarning(expr, message);
+    } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable() && expr[1].get_kind() != FUN_CALL_EXT) {
+        handleWarning(expr[1], message);
     }
 }
 
@@ -1110,7 +1111,7 @@ bool TypeChecker::checkAssignmentExpression(expression_t expr)
         return false;
     }
 
-    if (expr.get_kind() != CONSTANT || expr.get_value() != 1) {
+    if (expr.get_kind() != FUN_CALL_EXT && (expr.get_kind() != CONSTANT || expr.get_value() != 1)) {
         checkIgnoredValue(expr);
     }
 
@@ -2599,9 +2600,9 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
 static void static_analysis(Document& doc)
 {
     if (!doc.has_errors()) {
-        TypeChecker checker(doc);
+        auto checker = TypeChecker{doc};
         doc.accept(checker);
-        FeatureChecker fchecker(doc);
+        auto fchecker = FeatureChecker{doc};
         doc.set_supported_methods(fchecker.get_supported_methods());
     }
 }
@@ -2628,9 +2629,8 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
     auto builder = DocumentBuilder{*doc, paths};
     int err = parse_XML_buffer(buffer, &builder, newxta);
 
-    if (err) {
+    if (err)
         return err;
-    }
 
     static_analysis(*doc);
 
