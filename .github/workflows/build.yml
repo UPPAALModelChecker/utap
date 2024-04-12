@@ -50,6 +50,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     env:
+      CCACHE_DIR: ${{ github.workspace }}/CCACHE
       BUILD_DIR: build-linux64-gcc10
       CTEST_OUTPUT_ON_FAILURE: 1
       CMAKE_BUILD_TYPE: Debug
@@ -64,7 +65,28 @@ jobs:
           echo 'DPkg::Use-Pty "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           echo 'DPkg::Progress-Fancy "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           sudo apt-get -qq update
-          sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex g++-10
+          sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex ccache g++-10
+
+      - name: Compute CCache keys
+        id: linux64-keys
+        run: |
+          key2=ccache-linux64-
+          key1="${key2}$(date +%W)"
+          echo "key1=${key1}" >> $GITHUB_OUTPUT
+          echo "key2=${key2}" >> $GITHUB_OUTPUT
+
+      - name: Restore CCache
+        id: ccache-restore
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.linux64-keys.outputs.key1 }}
+          restore-keys: ${{ steps.linux64-keys.outputs.key2 }}
+      - name: CCache limits and stats
+        run: |
+          ccache -M120M
+          ccache --show-stats
+
       - name: Restore Libs
         id: restore-libs
         uses: actions/cache/restore@v4
@@ -74,10 +96,7 @@ jobs:
           restore-keys: libs-linux64-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: |
-             echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
-             echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
-             ./getlibs/getlibs.sh linux64-gcc10
+        run: ./getlibs/getlibs.sh linux64-gcc10
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
@@ -91,6 +110,8 @@ jobs:
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
         run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
+      - name: CCache Statistics
+        run: ccache --show-stats
 
   windows-x86_64:
     needs: [ formatting ]
@@ -98,6 +119,7 @@ jobs:
       fail-fast: false
     runs-on: ubuntu-latest
     env:
+      CCACHE_DIR: ${{ github.workspace }}/CCACHE
       BUILD_DIR: build-win64
       CTEST_OUTPUT_ON_FAILURE: 1
       CROSSCOMPILING_EMULATOR: wine
@@ -113,7 +135,7 @@ jobs:
           echo 'DPkg::Use-Pty "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           echo 'DPkg::Progress-Fancy "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           sudo apt-get -qq update
-          sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex g++-mingw-w64-x86-64-posix wine
+          sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex ccache g++-mingw-w64-x86-64-posix wine
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
       - name: Setup Wine
@@ -124,6 +146,26 @@ jobs:
           echo "WINARCH=win64" >> $GITHUB_ENV
           echo "WINEDEBUG=fixme-all,-all" >> $GITHUB_ENV
           echo "WINEPATH=\"$(./winepath-for x86_64-w64-mingw32)\"" >> $GITHUB_ENV
+
+      - name: Compute CCache keys
+        id: win64-keys
+        run: |
+          key2=ccache-win64-
+          key1="${key2}$(date +%W)"
+          echo "key1=${key1}" >> $GITHUB_OUTPUT
+          echo "key2=${key2}" >> $GITHUB_OUTPUT
+
+      - name: Restore CCache
+        id: ccache-restore
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.win64-keys.outputs.key1 }}
+          restore-keys: ${{ steps.win64-keys.outputs.key2 }}
+      - name: CCache limits and stats
+        run: |
+          ccache -M120M
+          ccache --show-stats
 
       - name: Restore Libs
         id: restore-libs
@@ -151,6 +193,8 @@ jobs:
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
         run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
+      - name: CCache Statistics
+        run: ccache --show-stats
 
   darwin-brew-gcc10:
     needs: [ formatting ]
@@ -158,6 +202,7 @@ jobs:
       fail-fast: false
     runs-on: macos-11
     env:
+      CCACHE_DIR: ${{ github.workspace }}/CCACHE
       BUILD_DIR: build-darwin-brew-gcc10
       CTEST_OUTPUT_ON_FAILURE: 1
       CMAKE_BUILD_TYPE: Debug
@@ -170,7 +215,27 @@ jobs:
         with:
           xcode-version: '13.2.1'
       - name: Get Home Brew dependencies
-        run: brew install -q cmake ninja gcc@10 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+        run: brew install -q cmake ninja ccache gcc@10 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+
+      - name: Compute CCache keys
+        id: darwin-keys
+        run: |
+          key2=ccache-darwin-brew-gcc10-
+          key1="${key2}$(date +%W)"
+          echo "key1=${key1}" >> $GITHUB_OUTPUT
+          echo "key2=${key2}" >> $GITHUB_OUTPUT
+      - name: Restore CCache
+        id: ccache-restore
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.darwin-keys.outputs.key1 }}
+          restore-keys: ${{ steps.darwin-keys.outputs.key2 }}
+      - name: CCache Limits and Stats
+        run: |
+          ccache -M120M
+          ccache --show-stats
+
       - name: Restore Libs
         id: restore-libs
         uses: actions/cache/restore@v4
@@ -180,10 +245,7 @@ jobs:
           restore-keys: libs-darwin-brew-gcc10
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: |
-             echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
-             echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
-             ./getlibs/getlibs.sh darwin-brew-gcc10
+        run: ./getlibs/getlibs.sh darwin-brew-gcc10
       - name: Store Libs Cache
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
@@ -197,6 +259,8 @@ jobs:
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
         run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
+      - name: CCache Statistics
+        run: ccache --show-stats
 
 #  build-nix:
 #    runs-on: ubuntu-latest
