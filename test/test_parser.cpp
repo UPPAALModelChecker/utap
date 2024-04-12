@@ -42,13 +42,43 @@ TEST_CASE("Power expressions")
     CHECK(warnings.size() == 0);
 }
 
+struct Contains
+{
+    std::string_view text;
+};
+
+bool operator==(std::string_view text, const Contains& sub) { return text.find(sub.text) != std::string_view::npos; }
+bool operator!=(std::string_view text, const Contains& sub) { return !(text == sub); }
+std::ostream& operator<<(std::ostream& os, const Contains& sub) { return os << sub.text; }
+
 TEST_CASE("External functions")
 {
+    using namespace UTAP;
     auto doc = read_document("external_fn.xml");
     REQUIRE(doc);
     auto& errs = doc->get_errors();
+    REQUIRE(errs.size() == 3);
+    if constexpr (is(OS::Linux)) {
+        CHECK(errs[0].msg == Contains{"libbad.so: cannot open shared object file: No such file or directory"});
+        CHECK(errs[0].msg == Contains{"libbad.so: cannot open shared object file: No such file or directory"});
+        CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
+    } else if constexpr (is(OS::Windows)) {
+        CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
+        CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
+        CHECK(errs[2].msg == Contains{"Failed to find symbol: error 127: Procedure not found."});
+    } else if constexpr (is(OS::macOS)) {
+        CHECK(errs[0].msg == Contains{"libbad.dylib: cannot open shared object file: No such file or directory"});
+        CHECK(errs[0].msg == Contains{"libbad.dylib: cannot open shared object file: No such file or directory"});
+        CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
+    } else {
+        REQUIRE_MESSAGE(false, "OS is not supported");
+    }
     auto& warns = doc->get_warnings();
-    REQUIRE(errs.size() == 3);  // "libbad" not found (x2), "absent" undefined.
+    CHECK(warns.size() == 0);
+    // TypeChecker is not run when errors are present, so we do it on our own:
+    auto checker = UTAP::TypeChecker{*doc};
+    doc->accept(checker);
+    REQUIRE(errs.size() == 3);  // no new errors
     CHECK(warns.size() == 0);
 }
 
@@ -417,7 +447,7 @@ TEST_CASE("Array of structs")
     REQUIRE(doc);
     auto& errors = doc->get_errors();
     CHECK_MESSAGE(errors.size() == 0, errors.at(0).msg);
-    CHECK(doc->get_warnings().size() == 0); 
+    CHECK(doc->get_warnings().size() == 0);
 }
 
 TEST_CASE("Pre increment precedence bug")

@@ -53,3 +53,14 @@ C_PUBLIC double calc_sum(int count, const double arr[])
     return res;
 }
 C_PUBLIC unsigned int length(const char* str) { return std::strlen(str); }
+
+C_PUBLIC bool fast_double(double arr[], int count)
+{
+    for (auto i = 0; i < count; ++i)
+        arr[i] *= 2;
+    return count % 2 == 0;
+}
+
+static int number = 42;
+C_PUBLIC void set_number(int a) { number = a; }
+C_PUBLIC int get_number() { return number; }
