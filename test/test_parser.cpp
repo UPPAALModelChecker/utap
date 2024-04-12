@@ -51,32 +51,22 @@ bool operator==(std::string_view text, const Contains& sub) { return text.find(s
 bool operator!=(std::string_view text, const Contains& sub) { return !(text == sub); }
 std::ostream& operator<<(std::ostream& os, const Contains& sub) { return os << sub.text; }
 
-enum class OS { Windows, macOS, Linux };
-#ifdef _WIN32
-constexpr auto target_os = OS::Windows;
-#elif __linux__
-constexpr auto target_os = OS::Linux;
-#elif __APPLE__
-constexpr auto target_os = OS::macOS;
-#else
-#error "Unsupported target operating system"
-#endif
-
 TEST_CASE("External functions")
 {
+    using namespace UTAP;
     auto doc = read_document("external_fn.xml");
     REQUIRE(doc);
     auto& errs = doc->get_errors();
     REQUIRE(errs.size() == 3);
-    if constexpr (target_os == OS::Linux) {
+    if constexpr (is(OS::Linux)) {
         CHECK(errs[0].msg == Contains{"libbad.so: cannot open shared object file: No such file or directory"});
         CHECK(errs[0].msg == Contains{"libbad.so: cannot open shared object file: No such file or directory"});
         CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
-    } else if constexpr (target_os == OS::Windows) {
+    } else if constexpr (is(OS::Windows)) {
         CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
         CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
         CHECK(errs[2].msg == Contains{"Failed to find symbol: error 127: Procedure not found."});
-    } else if constexpr (target_os == OS::macOS) {
+    } else if constexpr (is(OS::macOS)) {
         CHECK(errs[0].msg == Contains{"libbad.dylib: cannot open shared object file: No such file or directory"});
         CHECK(errs[0].msg == Contains{"libbad.dylib: cannot open shared object file: No such file or directory"});
         CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
