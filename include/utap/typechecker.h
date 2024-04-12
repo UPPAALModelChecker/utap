@@ -69,9 +69,9 @@ private:
 
     expression_t checkInitialiser(type_t type, expression_t init);
     bool areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init = false) const;
-    bool areInlineIfCompatible(type_t thenArg, type_t elseArg) const;
+    bool areInlineIfCompatible(type_t result_type, type_t thenArg, type_t elseArg) const;
+    type_t getInlineIfCommonType(type_t t1, type_t t2) const;
     bool areEqCompatible(type_t t1, type_t t2) const;
-    bool areEquivalent(type_t, type_t) const;
     bool isLValue(expression_t) const;
     bool isModifiableLValue(expression_t) const;
     bool isUniqueReference(expression_t expr) const;
@@ -86,6 +86,7 @@ private:
     void checkType(type_t, bool initialisable = false, bool inStruct = false);
 
 public:
+    static bool areEquivalent(type_t, type_t);
     explicit TypeChecker(Document& doc, bool refinement = false);
     void visitTemplateAfter(template_t&) override;
     bool visitTemplateBefore(template_t&) override;

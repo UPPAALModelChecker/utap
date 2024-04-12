@@ -21,6 +21,8 @@
 
 #include "utap/ExpressionBuilder.hpp"
 
+#include "utap/typechecker.h"
+
 #include <sstream>
 #include <string>
 #include <vector>
@@ -464,7 +466,7 @@ void ExpressionBuilder::expr_unary(kind_t unaryop)  // 1 expr
     case MINUS:
         unaryop = UNARY_MINUS;
         /* Fall through! */
-    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position);
+    default: fragments[0] = expression_t::create_unary(unaryop, fragments[0], position, fragments[0].get_type());
     }
 }
 
@@ -547,7 +549,8 @@ void ExpressionBuilder::expr_inline_if()
     expression_t t = fragments[1];
     expression_t e = fragments[0];
     fragments.pop(3);
-    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position, t.get_type()));
+
+    fragments.push(expression_t::create_ternary(INLINE_IF, c, t, e, position));
 }
 
 void ExpressionBuilder::expr_comma()

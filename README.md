@@ -1,4 +1,4 @@
-# libutap, version 2.0.0
+# libutap
 
 # Mini HOWTO
 Gerd Behrmann
@@ -133,7 +133,7 @@ g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
 ### Use Case with CMake
 Add the following `CMakeLists.txt` build script:
 ```cmake
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 project(Example CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -141,7 +141,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(UTAP 1.1.6 QUIET)
+find_package(UTAP 2.1.0 QUIET)
 
 if (utap_FOUND)
   message(STATUS "Found UTAP preinstalled.")
@@ -151,7 +151,7 @@ else(utap_FOUND)
   FetchContent_Declare(
     UTAP
     GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
-    GIT_TAG main      # fetches main branch, can be a version tag like v2.0.0
+    GIT_TAG v2.1.0      # fetches version 2.1.0, alternatively try 'main' branch
     GIT_SHALLOW TRUE  # get only the last commit version
     GIT_PROGRESS TRUE # show progress of download
     FIND_PACKAGE_ARGS NAMES UTAP

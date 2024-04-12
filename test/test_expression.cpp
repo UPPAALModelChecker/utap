@@ -75,8 +75,9 @@ TEST_CASE("Expression")
         REQUIRE(exp_t::get_precedence(FUN_CALL) == exp_t::get_precedence(FUN_CALL_EXT));
         REQUIRE(exp_t::get_precedence(FUN_CALL) >= exp_t::get_precedence(ARRAY));
         REQUIRE(exp_t::get_precedence(ARRAY) >= exp_t::get_precedence(DOT));
+        REQUIRE(exp_t::get_precedence(ARRAY) > exp_t::get_precedence(NOT));
         REQUIRE(exp_t::get_precedence(DOT) >= exp_t::get_precedence(RATE));
-        REQUIRE(exp_t::get_precedence(RATE) > exp_t::get_precedence(PRE_INCREMENT));
+        REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(NOT));
         REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(PRE_DECREMENT));
         REQUIRE(exp_t::get_precedence(PRE_INCREMENT) >= exp_t::get_precedence(UNARY_MINUS));
         REQUIRE(exp_t::get_precedence(UNARY_MINUS) >= exp_t::get_precedence(NOT));
@@ -152,7 +153,7 @@ TEST_CASE("Expression")
             MINUS, PLUS, MULT, DIV, MOD, BIT_AND, BIT_OR, BIT_XOR, BIT_LSHIFT, BIT_RSHIFT,
             AND, OR, XOR, POW, LT, LE, EQ, NEQ, GE, GT, MIN, MAX, ARRAY, COMMA,
             ASSIGN, ASS_PLUS, ASS_MINUS, ASS_DIV, ASS_MOD, ASS_MULT, ASS_AND, ASS_OR, ASS_XOR,
-            ASS_LSHIFT, ASS_RSHIFT, FORALL, EXISTS, SUM, SUP_VAR, INF_VAR, FRACTION,
+            ASS_LSHIFT, ASS_RSHIFT, FORALL, EXISTS, SUM, SUP_VAR, INF_VAR, BOUNDS_VAR, FRACTION,
             FMOD_F, FMAX_F, FMIN_F, FDIM_F, POW_F, HYPOT_F, ATAN2_F, LDEXP_F, NEXT_AFTER_F, COPY_SIGN_F,
             RANDOM_ARCSINE_F, RANDOM_BETA_F, RANDOM_GAMMA_F, RANDOM_NORMAL_F, RANDOM_WEIBULL_F,
         };  // clang-format on

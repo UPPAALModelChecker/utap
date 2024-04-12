@@ -312,10 +312,11 @@ void TypeChecker::handleError(T expr, const std::string& msg)
  */
 void TypeChecker::checkIgnoredValue(expression_t expr)
 {
-    if (!expr.changes_any_variable()) {
-        handleWarning(expr, "$Expression_does_not_have_any_effect");
-    } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable()) {
-        handleWarning(expr[1], "$Expression_does_not_have_any_effect");
+    static const auto message = "$Expression_does_not_have_any_effect";
+    if (!expr.changes_any_variable() && expr.get_kind() != FUN_CALL_EXT) {
+        handleWarning(expr, message);
+    } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable() && expr[1].get_kind() != FUN_CALL_EXT) {
+        handleWarning(expr[1], message);
     }
 }
 
@@ -448,12 +449,12 @@ void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
             checkType(type.get_sub(i), true, true);
         }
         break;
-
     case Constants::STRING:
-    case Constants::DOUBLE:
         if (inStruct) {
             handleError(type, "$This_type_cannot_be_declared_inside_a_struct");
         }
+    case Constants::CLOCK:
+    case Constants::DOUBLE:
     case Constants::INT:
     case Constants::BOOL: break;
 
@@ -1057,11 +1058,12 @@ void TypeChecker::visitProperty(expression_t expr)
                 }
             }
             */
-        } else if (auto k = expr.get_kind(); k != SUP_VAR && k != INF_VAR && k != SCENARIO && k != PROBA_MIN_BOX &&
-                                             k != PROBA_MIN_DIAMOND && k != PROBA_BOX && k != PROBA_DIAMOND &&
-                                             k != PROBA_EXP && k != PROBA_CMP && k != SIMULATE && k != SIMULATEREACH &&
-                                             k != MITL_FORMULA && k != MIN_EXP &&  // ALREADY CHECKED IN PARSE
-                                             k != MAX_EXP)                         // ALREADY CHECKED IN PARSE
+        } else if (auto k = expr.get_kind(); k != SUP_VAR && k != INF_VAR && k != BOUNDS_VAR && k != SCENARIO &&
+                                             k != PROBA_MIN_BOX && k != PROBA_MIN_DIAMOND && k != PROBA_BOX &&
+                                             k != PROBA_DIAMOND && k != PROBA_EXP && k != PROBA_CMP && k != SIMULATE &&
+                                             k != SIMULATEREACH && k != MITL_FORMULA &&
+                                             k != MIN_EXP &&  // ALREADY CHECKED IN PARSE
+                                             k != MAX_EXP)    // ALREADY CHECKED IN PARSE
         {
             for (uint32_t i = 0; i < expr.get_size(); i++) {
                 /* No nesting except for constraints */
@@ -1109,7 +1111,7 @@ bool TypeChecker::checkAssignmentExpression(expression_t expr)
         return false;
     }
 
-    if (expr.get_kind() != CONSTANT || expr.get_value() != 1) {
+    if (expr.get_kind() != FUN_CALL_EXT && (expr.get_kind() != CONSTANT || expr.get_value() != 1)) {
         checkIgnoredValue(expr);
     }
 
@@ -1515,13 +1517,30 @@ expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
     same size and the subtypes must be compatible. In case of records,
     they must have the same type name.
 */
-bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
+bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2) const
 {
-    if (t1.is_integral() && t2.is_integral()) {
+    if (areAssignmentCompatible(result_type, t1) && areAssignmentCompatible(result_type, t1))
         return true;
-    } else {
-        return areEquivalent(t1, t2);
-    }
+
+    return areEquivalent(t1, t2);
+}
+
+type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
+{
+    if (t1.is_record())
+        return t1;
+    else if (t2.is_record())
+        return t2;
+    else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
+        return type_t{DOUBLE, {}, 0};
+    else if (TypeChecker::areAssignmentCompatible(t1, t2))
+        return t1;
+    else if (TypeChecker::areAssignmentCompatible(t2, t1))
+        return t2;
+    else if (TypeChecker::areEquivalent(t2, t1))
+        return t1;
+    else
+        return type_t{};
 }
 
 /**
@@ -1529,7 +1548,7 @@ bool TypeChecker::areInlineIfCompatible(type_t t1, type_t t2) const
  * equivalent. However, CONST, SYSTEM_META, and REF are ignored. Scalar sets
  * are checked using named equivalence.
  */
-bool TypeChecker::areEquivalent(type_t a, type_t b) const
+bool TypeChecker::areEquivalent(type_t a, type_t b)
 {
     if (a.is_integer() && b.is_integer()) {
         return !a.is(RANGE) || !b.is(RANGE) ||
@@ -2084,11 +2103,12 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr, "$First_argument_of_inline_if_must_be_an_integer");
             return false;
         }
-        if (!areInlineIfCompatible(expr[1].get_type(), expr[2].get_type())) {
+
+        type = getInlineIfCommonType(expr[1].get_type(), expr[2].get_type());
+        if (!areInlineIfCompatible(type, expr[1].get_type(), expr[2].get_type())) {
             handleError(expr, "$Incompatible_arguments_to_inline_if");
             return false;
         }
-        type = expr[1].get_type();
         break;
 
     case COMMA:
@@ -2289,6 +2309,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case SUP_VAR:
     case INF_VAR:
+    case BOUNDS_VAR:
         if (!is_integral(expr[0]) && !is_constraint(expr[0])) {
             handleError(expr[0], "$Boolean_expected");
             return false;
@@ -2576,14 +2597,21 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
     }
 }
 
+static void static_analysis(Document& doc)
+{
+    if (!doc.has_errors()) {
+        auto checker = TypeChecker{doc};
+        doc.accept(checker);
+        auto fchecker = FeatureChecker{doc};
+        doc.set_supported_methods(fchecker.get_supported_methods());
+    }
+}
+
 bool parse_XTA(FILE* file, Document* doc, bool newxta)
 {
     DocumentBuilder builder(*doc);
     parse_XTA(file, &builder, newxta);
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
     return !doc->has_errors();
 }
 
@@ -2591,10 +2619,7 @@ bool parse_XTA(const char* buffer, Document* doc, bool newxta)
 {
     DocumentBuilder builder(*doc);
     parse_XTA(buffer, &builder, newxta);
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
     return !doc->has_errors();
 }
 
@@ -2604,16 +2629,10 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
     auto builder = DocumentBuilder{*doc, paths};
     int err = parse_XML_buffer(buffer, &builder, newxta);
 
-    if (err) {
+    if (err)
         return err;
-    }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-        FeatureChecker fchecker(*doc);
-        doc->set_supported_methods(fchecker.get_supported_methods());
-    }
+    static_analysis(*doc);
 
     return 0;
 }
@@ -2626,10 +2645,7 @@ int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::
         return err;
     }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
 
     return 0;
 }
@@ -2642,10 +2658,7 @@ int32_t parse_XML_fd(int fd, Document* doc, bool newxta, const std::vector<std::
         return err;
     }
 
-    if (!doc->has_errors()) {
-        TypeChecker checker(*doc);
-        doc->accept(checker);
-    }
+    static_analysis(*doc);
 
     return 0;
 }

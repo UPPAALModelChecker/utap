@@ -182,10 +182,11 @@ enum kind_t {
     LOAD_STRAT,
 
     /*******************************************************
-     * Get supremum or infimum of variables/clocks
+     * Get supremum, infimum or (generalized) bounds for variable/clock values
      */
     SUP_VAR,
     INF_VAR,
+    BOUNDS_VAR,
 
     /*******************************************************
      * Verify a LSC scenario

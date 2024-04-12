@@ -214,6 +214,9 @@ public:
 
     expression_t subst(symbol_t, expression_t) const;
 
+    /**
+     * Precedence of expression type, higher precedence goes before low precedence
+     */
     static int get_precedence(Constants::kind_t);
 
     /** Create a CONSTANT expression. */

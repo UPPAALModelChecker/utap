@@ -162,7 +162,7 @@ void StatementBuilder::struct_field(const char* name)
      * the type check phase.
      */
     type_t base = type.strip_array();
-    if (!base.is_record() && !base.is_scalar() && !base.is_integral()) {
+    if (!base.is_record() && !base.is_scalar() && !base.is_integral() && !base.is_double() && !base.is_clock()) {
         handle_error(TypeException{"$Invalid_type_in_structure"});
     }
 }
@@ -184,13 +184,13 @@ void StatementBuilder::decl_typedef(const char* name)
     frames.top().add_symbol(name, type, position);
 }
 
-static bool initRec(type_t type, int thisTypeOnly)
+static bool initialisable(type_t type)
 {
     type = type.strip();
     switch (type.get_kind()) {
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
-            if (!initRec(type[i], thisTypeOnly)) {
+            if (!initialisable(type[i])) {
                 return false;
             }
         }
@@ -200,13 +200,11 @@ static bool initRec(type_t type, int thisTypeOnly)
         if (type.get_array_size().is_scalar()) {
             return false;
         }
-        return initRec(type.get_sub(), thisTypeOnly);
+        return initialisable(type.get_sub());
     case STRING: return true;
-    default: return thisTypeOnly == 0 ? type.is_integral() : (thisTypeOnly == 1 ? type.is_clock() : type.is_double());
+    default: return type.is_integral() || type.is_clock() || type.is_double();
     }
 }
-
-static bool initialisable(type_t type) { return initRec(type, 0) || initRec(type, 1) || initRec(type, 2); }
 
 static bool mustInitialise(type_t type)
 {
@@ -432,7 +430,7 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
     for (const auto& dir : libpaths) {
         auto path = dir / name;
         try {
-            document.add(library_t{path.string().c_str()});
+            document.add(Library{path.string().c_str()});
             success = true;
             break;
         } catch (const std::runtime_error& ex) {
