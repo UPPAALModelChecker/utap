@@ -65,24 +65,28 @@ jobs:
           echo 'DPkg::Progress-Fancy "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           sudo apt-get -qq update
           sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex g++-10
-      - name: Restore Libs Cache
-        id: cache-libs-restore
+      - name: Restore Libs
+        id: restore-libs
         uses: actions/cache@v4
         with:
-          path: local/linux64
-          key: getlibs-linux64-${{ hashFiles('getlibs/**') }}
+          path: local/linux64-gcc10
+          key: libs-linux64-${{ hashFiles('getlibs/**') }}
+          restore-keys: libs-linux64-
       - name: Get library dependencies
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        run: ./getlibs/getlibs.sh linux64-gcc10
-      - name: Store Libs Cache
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        id: cache-libs-save
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        run: |
+             echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
+             echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
+             ./getlibs/getlibs.sh linux64-gcc10
+      - name: Save Libs
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/linux64
-          key: ${{ steps.cache-libs-restore.outputs.cache-primary-key }}
+          path: local/linux64-gcc10
+          key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc10
       - name: Build
         run: cmake --build "$BUILD_DIR" --config Debug
       - name: Test
@@ -121,25 +125,28 @@ jobs:
           echo "WINEDEBUG=fixme-all,-all" >> $GITHUB_ENV
           echo "WINEPATH=\"$(./winepath-for x86_64-w64-mingw32)\"" >> $GITHUB_ENV
 
-      - name: Restore Libs Cache
-        id: cache-libs-restore
+      - name: Restore Libs
+        id: restore-libs
         uses: actions/cache@v4
         with:
           path: local/win64
-          key: getlibs-win64-${{ hashFiles('getlibs/**') }}
-          restore-keys: getlibs-win64-${{ hashFiles('getlibs/**') }} getlibs-win64
+          key: libs-win64-${{ hashFiles('getlibs/**') }}
+          restore-keys: libs-win64-
       - name: Get library dependencies
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        run: ./getlibs/getlibs.sh win64
-      - name: Store Libs Cache
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        id: cache-libs-save
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        run: |
+             echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
+             echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
+             ./getlibs/getlibs.sh win64
+      - name: Save Libs
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        id: save-libs
         uses: actions/cache/save@v4
         with:
           path: local/win64
-          key: ${{ steps.cache-libs-restore.outputs.cache-primary-key }}
+          key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake  -B "$BUILD_DIR" -S . -DSSP=ON
+        run: cmake  -B "$BUILD_DIR" -S . -DSSP=ON -DCMAKE_PREFIX_PATH=$PWD/local/win64
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
@@ -164,25 +171,28 @@ jobs:
           xcode-version: '13.2.1'
       - name: Get Home Brew dependencies
         run: brew install -q cmake ninja gcc@10 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
-      - name: Restore Libs Cache
-        id: cache-libs-restore
+      - name: Restore Libs
+        id: restore-libs
         uses: actions/cache@v4
         with:
           path: local/darwin-brew-gcc10
-          key: getlibs-darwin-brew-gcc10-${{ hashFiles('getlibs/**') }}
-          restore-keys: getlibs-darwin-brew-gcc10-${{ hashFiles('getlibs/**') }} getlibs-darwin-brew-gcc10
+          key: libs-darwin-brew-gcc10-${{ hashFiles('getlibs/**') }}
+          restore-keys: libs-darwin-brew-gcc10
       - name: Get library dependencies
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        run: ./getlibs/getlibs.sh darwin-brew-gcc10
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        run: |
+             echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
+             echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
+             ./getlibs/getlibs.sh darwin-brew-gcc10
       - name: Store Libs Cache
-        if: steps.cache-libs-restore.outputs.cache-hit != 'true'
-        id: cache-libs-save
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        id: save-libs
         uses: actions/cache/save@v4
         with:
           path: local/darwin-brew-gcc10
-          key: ${{ steps.cache-libs-restore.outputs.cache-primary-key }}
+          key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+        run: cmake -B "$BUILD_DIR" -S . -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc10
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
