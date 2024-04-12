@@ -232,6 +232,7 @@ public:
      * Function declarations
      */
     virtual void decl_parameter(const char* name, bool ref) = 0;
+    virtual void func_type() = 0;
     virtual void decl_func_begin(const char* name) = 0;
     virtual void decl_func_end() = 0;  // 1 block
     virtual void dynamic_load_lib(const char* name) = 0;
@@ -443,6 +444,13 @@ public:
     virtual void query_results_begin() = 0;
     virtual void query_results_end() = 0;
     virtual void query_end() = 0;
+
+    // Called after built in declarations have been parsed
+    virtual void builtin_decl_end() = 0;
+
+    // Before and after system declarations are parsed
+    virtual void system_decl_begin() = 0;
+    virtual void system_decl_end() = 0;
 };
 
 /** Error/warning messages with some arguments */

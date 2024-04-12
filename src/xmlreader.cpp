@@ -1187,6 +1187,8 @@ bool XMLReader::instantiation()
 void XMLReader::system()
 {
     if (begin(tag_t::SYSTEM, false)) {
+        parser->system_decl_begin();
+
         const auto* text = (const xmlChar*)"";
         read();
         auto nodeType = getNodeType();
@@ -1203,6 +1205,7 @@ void XMLReader::system()
             return;
         }
         parse(text, S_SYSTEM);
+        parser->system_decl_end();
         close(tag_t::SYSTEM);
     } else {
         std::string s = (nta) ? path.str(tag_t::NTA) : path.str(tag_t::PROJECT);
@@ -1326,8 +1329,10 @@ void XMLReader::project()
     if (!begin(tag_t::NTA) && !begin(tag_t::PROJECT))
         throw TypeException{"$Missing_nta_or_project_tag"};
     nta = begin(tag_t::NTA);  // "nta" or "project"?
-    if (newxta)
+    if (newxta) {
         parse((const xmlChar*)utap_builtin_declarations(), S_DECLARATION);
+        parser->builtin_decl_end();
+    }
     read();
     declaration();
     while (templ())

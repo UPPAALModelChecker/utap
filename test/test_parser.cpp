@@ -22,24 +22,26 @@
 
 #include <doctest/doctest.h>
 
+using namespace std::string_literals;
+
 TEST_CASE("Double Serialization Test")
 {
     auto doc = read_document("if_statement.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    auto& warnings = doc->get_warnings();
-    CHECK(warnings.size() == 0);
+    auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Power expressions")
 {
     auto doc = read_document("powers.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    auto& warnings = doc->get_warnings();
-    CHECK(warnings.size() == 0);
+    auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 struct Contains
@@ -74,12 +76,12 @@ TEST_CASE("External functions")
         REQUIRE_MESSAGE(false, "OS is not supported");
     }
     auto& warns = doc->get_warnings();
-    CHECK(warns.size() == 0);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
     // TypeChecker is not run when errors are present, so we do it on our own:
     auto checker = UTAP::TypeChecker{*doc};
     doc->accept(checker);
     REQUIRE(errs.size() == 3);  // no new errors
-    CHECK(warns.size() == 0);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Error location")
@@ -88,8 +90,8 @@ TEST_CASE("Error location")
     REQUIRE(doc);
     auto& errs = doc->get_errors();
     auto& warns = doc->get_warnings();
-    REQUIRE(errs.size() == 0);
-    CHECK(warns.size() == 0);
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
     const auto& templates = doc->get_templates();
     REQUIRE(templates.size() > 0);
     const auto& edges = templates.front().edges;
@@ -144,55 +146,61 @@ TEST_CASE("Parsing implicit goals for learning queries")
 {
     using UTAP::Constants::kind_t;
     auto doc = read_document("simpleSystem.xml");
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
     auto builder = std::make_unique<QueryBuilder>(*doc);
 
     SUBCASE("Implicit time goal time priced")
     {
         auto res = parseProperty("minPr[<=20]", builder.get());
         CHECK(res == -1);
+        REQUIRE(errs.size() == 1);
     }
 
     SUBCASE("Implicit step goal time priced")
     {
-        REQUIRE(doc->get_errors().size() == 0);
         auto res = parseProperty("minE(c)[#<=20]", builder.get());
         CHECK(res == -1);
+        REQUIRE(errs.size() == 1);
     }
 
     SUBCASE("Implicit constraint goal expr priced")
     {
         auto res = parseProperty("minE(c)[c<=25]", builder.get());
         CHECK(res == -1);
+        REQUIRE(errs.size() == 1);
     }
 
     SUBCASE("Implicit time goal expr priced")
     {
         auto res = parseProperty("minE(c)[<=20]", builder.get());
         CHECK(res == -1);
+        REQUIRE(errs.size() == 1);
     }
 
     SUBCASE("Implicit step goal expr priced")
     {
         auto res = parseProperty("minE(c)[#<=20]", builder.get());
         CHECK(res == -1);
+        REQUIRE(errs.size() == 1);
     }
 
     SUBCASE("Explicit goal expr priced")
     {
-        REQUIRE(doc->get_errors().size() == 0);
         auto res = parseProperty("minE(c)[<=20] :<> true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
         builder->typecheck();
-        REQUIRE(doc->get_errors().size() == 0);
+        REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
     }
 
     SUBCASE("Explicit constraint goal expr priced")
     {
-        REQUIRE(doc->get_errors().size() == 0);
         auto res = parseProperty("minE(c)[<=20] :<> c>=5", builder.get());
         REQUIRE(res == 0);
+        REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
         builder->typecheck();
-        REQUIRE(doc->get_errors().size() == 0);
+        REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
     }
 }
 
@@ -289,8 +297,8 @@ TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
 {
     auto doc = read_document("lsc_example.xml");
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
 
     auto& templ = doc->get_templates().back();
     auto sims = templ.get_simregions();
@@ -302,9 +310,10 @@ TEST_CASE("Struct int,int initialization")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("const struct { int x; int y; } s = {1, 1};").parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct int,double initialization")
@@ -314,9 +323,10 @@ TEST_CASE("Struct int,double initialization")
                    .add_global_decl("const struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct double,double initialization")
@@ -326,9 +336,10 @@ TEST_CASE("Struct double,double initialization")
                    .add_global_decl("const struct { double x; double y; } s = {1.0, 1};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Nested struct int,double initialization")
@@ -339,9 +350,10 @@ TEST_CASE("Nested struct int,double initialization")
             .add_global_decl("typedef struct { int x; double y; } S; struct { S s1; S s2; } s = {{5,5.5},{2,2.25}};")
             .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta struct")
@@ -351,9 +363,10 @@ TEST_CASE("Meta struct")
                    .add_global_decl("meta struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct meta field")
@@ -363,9 +376,10 @@ TEST_CASE("Struct meta field")
                    .add_global_decl("meta struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializing doubles in struct with ints")
@@ -375,9 +389,10 @@ TEST_CASE("Initializing doubles in struct with ints")
                    .add_global_decl("meta struct { double x; meta double y; } s = {1, 1};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializing ints with double value")
@@ -385,9 +400,10 @@ TEST_CASE("Initializing ints with double value")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("struct { int x; int y; } s = {1.1, 1.2};").parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 2);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE(errs.size() == 2);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta field in non meta struct")
@@ -397,9 +413,10 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta field in non meta struct")
@@ -409,9 +426,10 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Nested structs")
@@ -421,9 +439,10 @@ TEST_CASE("Nested structs")
                    .add_global_decl("struct { int x; struct { int y; double d;} data; } s = {1, {5, 5.0}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Structs with arrays")
@@ -433,9 +452,10 @@ TEST_CASE("Structs with arrays")
                    .add_global_decl("struct { int x[2]; double y[2]; } s = {{1,1}, {5.0, 5.0}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Array of structs")
@@ -445,9 +465,10 @@ TEST_CASE("Array of structs")
                    .add_global_decl("struct { int x; double y;} s[2] = {{1,5.0}, {1,2.5}};")
                    .parse();
     REQUIRE(doc);
-    auto& errors = doc->get_errors();
-    CHECK_MESSAGE(errors.size() == 0, errors.at(0).msg);
-    CHECK(doc->get_warnings().size() == 0);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Pre increment precedence bug")
@@ -457,8 +478,8 @@ TEST_CASE("Pre increment precedence bug")
                    .add_global_decl("void f(){ ++i[0]; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
 }
 
 TEST_CASE("Post increment precedence bug")
@@ -469,7 +490,8 @@ TEST_CASE("Post increment precedence bug")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
 }
 
 TEST_CASE("Double post increment precedence")
@@ -480,7 +502,8 @@ TEST_CASE("Double post increment precedence")
                    .add_default_process()
                    .parse();
 
-    CHECK(doc->get_errors().size() == 1);
+    auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.size() == 1, (errs.empty() ? "expecting 1 error"s : errs.front().msg));
 }
 
 TEST_CASE("pre post increment precedence")
@@ -502,7 +525,10 @@ TEST_CASE("Double pre increment with forced precedence")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Double pre increment precedence")
@@ -513,7 +539,10 @@ TEST_CASE("Double pre increment precedence")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Increment with array subscripting and dot accessing")
@@ -524,7 +553,10 @@ TEST_CASE("Increment with array subscripting and dot accessing")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Increment with multiple array subscripting and dot accessing")
@@ -535,5 +567,8 @@ TEST_CASE("Increment with multiple array subscripting and dot accessing")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+    auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto& warns = doc->get_warnings();
+    REQUIRE_MESSAGE(warns.empty(), warns.front().msg);
 }

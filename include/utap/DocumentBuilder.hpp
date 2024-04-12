@@ -99,6 +99,8 @@ protected:
     // Method for handling types
     //
 
+    std::stack<declarations_t*> declarations;
+
     declarations_t* getCurrentDeclarationBlock();
 
     variable_t* addVariable(type_t type, const std::string& name, expression_t init, position_t pos) override;
@@ -170,6 +172,9 @@ public:
     void query_results_begin() override;
     void query_results_end() override;
     void query_end() override;
+
+    void system_decl_begin() override;
+    void system_decl_end() override;
 };
 }  // namespace UTAP
 #endif

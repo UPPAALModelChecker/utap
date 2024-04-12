@@ -529,19 +529,20 @@ AfterUpdateDecl: T_AFTER '{' ExprList '}' { CALL(@3, @3, after_update()); };
 FunctionDecl:
         /* Notice that StatementList will catch all errors. Hence we
          * should be able to guarantee, that once declFuncBegin() has
-         * been called, we will also call declFuncEnd().
+         * been called, we will also call decl_func_end().
 	 * Correction: No it won't.
 	 * int f() { if (cond) { return 0; }
-	 * will generate an error, not call declFuncEnd, and the builder
+	 * will generate an error, not call decl_func_end, and the builder
 	 * will be left in an inconsistent state. EndBlock fixes that.
      *
      * Correction^2: It did not fix it. Discussion continued at
      * StatementBuilder::declFuncBegin definition
          */
         Type Id OptionalParameterList '{' {
-          CALL(@1, @2, decl_func_begin($2));
+          CALL(@1, @2, func_type());
+          CALL(@2, @2, decl_func_begin($2));
         } BlockLocalDeclList StatementList EndBlock {
-          CALL(@8, @8, decl_func_end());
+          CALL(@4, @8, decl_func_end());
         }
         ;
         
@@ -584,10 +585,10 @@ ParameterList:
 
 Parameter:
           Type '&' NonTypeId ArrayDecl {
-          CALL(@1, @4, decl_parameter($3, true));
+          CALL(@1, @3, decl_parameter($3, true));
         }
         | Type NonTypeId ArrayDecl {
-          CALL(@1, @3, decl_parameter($2, false));
+          CALL(@1, @2, decl_parameter($2, false));
         }
         ;
 
@@ -607,7 +608,7 @@ DeclId:
         Id {
             CALL(@1, @1, type_duplicate());
         } ArrayDecl VarInit {
-            CALL(@1, @4, decl_var($1, $4));
+            CALL(@1, @1, decl_var($1, $4));
         }
         ;
 
@@ -781,7 +782,7 @@ FieldDeclId:
         Id {
             CALL(@1, @1, type_duplicate());
         } ArrayDecl {
-            CALL(@1, @3, struct_field($1));
+            CALL(@1, @1, struct_field($1));
         }
         ;
 
@@ -1519,7 +1520,7 @@ OldConstDeclId:
         NonTypeId {
           CALL(@1, @1, type_duplicate());
         } ArrayDecl Initializer {
-          CALL(@1, @4, decl_var($1, true));
+          CALL(@1, @1, decl_var($1, true));
         }
         ;
 
@@ -2151,17 +2152,25 @@ return
 ;
 }
 
+#include <iostream>
+
 int32_t parse_XTA(const char *str, ParserBuilder *builder, bool newxta)
 {
-    if (newxta)
+    if (newxta){
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        builder->builtin_decl_end();  
+    }
+
     return parse_XTA(str, builder, newxta, S_XTA, "");
 }
 
 int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
 {
-    if (newxta)
+    if (newxta){
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        builder->builtin_decl_end();  
+    }
+
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
     int res = parse_XTA(builder, newxta, S_XTA, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);

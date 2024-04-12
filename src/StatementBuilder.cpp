@@ -127,13 +127,15 @@ void StatementBuilder::type_array_of_type(size_t n)
  */
 void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
 {
-    vector<type_t> f(fields.end() - n, fields.end());
-    vector<string> l(labels.end() - n, labels.end());
+    auto f = vector<type_t>(fields.end() - n, fields.end());
+    auto l = vector<string>(labels.end() - n, labels.end());
+    auto p = vector<position_t>(positions.end() - n, positions.end());
 
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
+    positions.erase(positions.end() - n, positions.end());
 
-    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, position)));
+    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, p, position)));
 }
 
 /**
@@ -152,6 +154,7 @@ void StatementBuilder::struct_field(const char* name)
 
     fields.push_back(type);
     labels.push_back(name);
+    positions.push_back(position);
 
     /* Check the base type. We should check this in the type
      * checker. The problem is that we do not maintain the position of
@@ -259,7 +262,7 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
     }
 
     // Add variable to document
-    addVariable(type, name, init, position_t());
+    addVariable(type, name, init, position);
 }
 
 // Array and struct initialisers are represented as expressions having
@@ -308,15 +311,18 @@ void StatementBuilder::decl_init_list(uint32_t num)
     // Compute new type (each field has a label type, see decl_field_init())
     vector<type_t> types;
     vector<string> labels;
+    vector<position_t> positions;
     for (uint32_t i = 0; i < num; i++) {
         type_t type = fields[i].get_type();
         types.push_back(type[0]);
         labels.push_back(type.get_label(0));
         fields[i].set_type(type[0]);
+        positions.push_back(fields[i].get_position());
     }
 
     // Create list expression
-    fragments.push(expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
+    fragments.push(
+        expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, positions, position)));
 }
 
 /********************************************************************
@@ -334,9 +340,8 @@ void StatementBuilder::decl_parameter(const char* name, bool ref)
     params.add_symbol(name, type, position);
 }
 
-void StatementBuilder::decl_func_begin(const char* name)
+void StatementBuilder::func_type()
 {
-    // assert(currentFun == nullptr); // the parser should recover cleanly, but it does not
     if (currentFun != nullptr) {
         /* If currentFun != nullptr, we are in an error state. This error
          * state arises when a parsing error happens in the middle of a
@@ -351,7 +356,6 @@ void StatementBuilder::decl_func_begin(const char* name)
     }
 
     type_t return_type = typeFragments[0];
-    typeFragments.pop();
 
     vector<type_t> types;
     vector<string> labels;
@@ -359,8 +363,16 @@ void StatementBuilder::decl_func_begin(const char* name)
         types.push_back(params[i].get_type());
         labels.push_back(params[i].get_name());
     }
-    type_t type = type_t::create_function(return_type, types, labels, position);
-    if (!addFunction(type, name, {})) {
+
+    typeFragments[0] = type_t::create_function(return_type, types, labels, position);
+}
+
+void StatementBuilder::decl_func_begin(const char* name)
+{
+    type_t type = typeFragments[0];
+    typeFragments.pop();
+
+    if (!addFunction(type, name, position)) {
         handle_error(DuplicateDefinitionError(name));
     }
 
@@ -392,6 +404,8 @@ void StatementBuilder::decl_func_end()
     if (!currentFun->uid.get_type()[0].is_void() && !currentFun->body->returns()) {
         handle_error(TypeException{"$Return_statement_expected"});
     }
+
+    currentFun->body_position = position;
 
     /* Restore global frame.
      */

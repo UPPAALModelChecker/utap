@@ -55,6 +55,9 @@ protected:
     /** The labels of a struct. */
     std::vector<std::string> labels;
 
+    /** The positions of a struct. */
+    std::vector<position_t> positions;
+
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 
@@ -65,7 +68,7 @@ protected:
     static void collectDependencies(std::set<symbol_t>&, type_t);
 
 public:
-    explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
+    StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
     StatementBuilder(const StatementBuilder&) = delete;
 
     BlockStatement& get_block();
@@ -79,6 +82,7 @@ public:
     void decl_init_list(uint32_t num) override;
     void decl_field_init(const char* name) override;
     void decl_parameter(const char* name, bool) override;
+    void func_type() override;
     void decl_func_begin(const char* name) override;
     void decl_func_end() override;
     void dynamic_load_lib(const char* name) override;
