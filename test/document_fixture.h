@@ -156,7 +156,7 @@ class QueryFixture
 
 public:
     QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
-    auto get_errors() const { return doc->get_errors(); }
+    auto& get_errors() const { return doc->get_errors(); }
     const UTAP::PropInfo& parse_query(const char* query)
     {
         auto result = parseProperty(query, &query_builder);
