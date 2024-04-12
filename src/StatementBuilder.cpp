@@ -127,9 +127,9 @@ void StatementBuilder::type_array_of_type(size_t n)
  */
 void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
 {
-    vector<type_t> f{fields.end() - n, fields.end()};
-    vector<string> l{labels.end() - n, labels.end()};
-    vector<position_t> p{positions.end() - n, positions.end()};
+    auto f = vector<type_t>(fields.end() - n, fields.end());
+    auto l = vector<string>(labels.end() - n, labels.end());
+    auto p = vector<position_t>(positions.end() - n, positions.end());
 
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());

@@ -78,7 +78,7 @@ public:
 
 private:
     std::vector<line_t> lines;
-    int find_index(uint32_t position) const;
+    uint32_t find_index(uint32_t position) const;
 
 public:
     /** Add information about a line to the container. */

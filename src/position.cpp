@@ -38,7 +38,7 @@ void position_index_t::add(uint32_t position, uint32_t offset, uint32_t line, st
     lines.emplace_back(position, offset, line, std::move(path));
 }
 
-int position_index_t::find_index(uint32_t position) const
+uint32_t position_index_t::find_index(uint32_t position) const
 {
     uint32_t first = 0;
     uint32_t last = lines.size();
