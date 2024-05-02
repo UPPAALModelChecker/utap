@@ -416,7 +416,7 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
     for (const auto& dir : libpaths) {
         auto path = dir / name;
         try {
-            document.add(Library{path.string().c_str()});
+            document.add(Library{path.string()});
             success = true;
             break;
         } catch (const std::runtime_error& ex) {

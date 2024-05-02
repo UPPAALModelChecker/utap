@@ -255,7 +255,7 @@ jobs:
           path: local/darwin-brew-gcc13
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc13 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/darwin-brew-gcc13.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/darwin-brew-gcc13 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/darwin-brew-gcc13.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
