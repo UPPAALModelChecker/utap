@@ -35,7 +35,7 @@ FeatureChecker::FeatureChecker(Document& document)
     visitFrame(document.get_globals().frame);
     if (document.has_dynamic_templates())
         supported_methods.symbolic = false;
-    if (document.has_priority_declaration()){
+    if (document.has_priority_declaration()) {
         supported_methods.stochastic = false;
         supported_methods.concrete = false;
     }

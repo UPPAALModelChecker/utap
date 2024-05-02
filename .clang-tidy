@@ -1,0 +1,4 @@
+Checks: '-*,cppcoreguidelines-macro-usage,hicpp-deprecated-headers,modernize-deprecated-headers,hicpp-use-override,hicpp-use-emplace,modernize-use-emplace,hicpp-use-auto,readability-container-size-empty,readability-implicit-bool-conversion,readability-redundant-smartptr-get,readability-qualified-auto,performance-unnecessary-value-param,modernize-make-unique,modernize-make-shared,misc-unused-using-decls,performance-move-const-arg,modernize-use-using,modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert,misc-unused-using-decls,misc-static-assert,misc-redundant-expression,modernize-use-bool-literals,readability-delete-null-pointer,readability-redundant-member-init'
+WarningsAsErrors: '-*'
+HeaderFilterRegex: ''
+FormatStyle: .clang-format

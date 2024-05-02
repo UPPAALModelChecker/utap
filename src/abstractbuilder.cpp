@@ -242,7 +242,7 @@ void AbstractBuilder::parse(const char*) { UNSUPPORTED; }
 // end LSC
 
 void AbstractBuilder::done() {}
-void AbstractBuilder::handle_expect(const char* text){};
+void AbstractBuilder::handle_expect(const char* text) {}
 void AbstractBuilder::property() { UNSUPPORTED; }
 
 void AbstractBuilder::strategy_declaration(const char*) { UNSUPPORTED; }

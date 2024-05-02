@@ -218,8 +218,8 @@ public:
     void expr_sum_dynamic_end(const char* name) override;
     void expr_foreach_dynamic_begin(const char*, const char*) override;
     void expr_foreach_dynamic_end(const char* name) override;
-    void push_dynamic_frame_of(template_t* t, std::string name);  // no override
-    void pop_dynamic_frame_of(std::string name);
+    void push_dynamic_frame_of(template_t* t, const std::string& name);  // no override
+    void pop_dynamic_frame_of(const std::string& name);
 };
 }  // namespace UTAP
 

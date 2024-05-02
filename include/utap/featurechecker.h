@@ -47,6 +47,6 @@ public:
     bool isRateDisallowedInSymbolic(const expression_t& e);
 };
 
-};  // namespace UTAP
+}  // namespace UTAP
 
 #endif /* UTAP_FEATURECHECKER_HH */

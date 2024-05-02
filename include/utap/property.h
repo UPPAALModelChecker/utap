@@ -211,7 +211,7 @@ protected:
                                   UTAP::position_t pos) override;
     bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override;
 
-    void typeCheck(UTAP::expression_t expr);
+    void typeCheck(UTAP::expression_t& expr);
     bool allowProcessReferences() override;
 
     virtual void typeProperty(UTAP::expression_t);
