@@ -38,7 +38,7 @@ using std::istringstream;
 using std::list;
 using std::string;
 
-void PropertyBuilder::typeCheck(expression_t expr) { tc.visitProperty(std::move(expr)); }
+void PropertyBuilder::typeCheck(const expression_t& expr) { tc.visitProperty(expr); }
 
 void PropertyBuilder::clear() { properties.clear(); }
 

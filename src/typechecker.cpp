@@ -22,63 +22,91 @@
 #include "utap/typechecker.h"
 
 #include "utap/DocumentBuilder.hpp"
+#include "utap/ExpressionBuilder.hpp"
+#include "utap/builder.h"
+#include "utap/common.h"
+#include "utap/document.h"
+#include "utap/expression.h"
 #include "utap/featurechecker.h"
+#include "utap/symbols.h"
 #include "utap/utap.h"
 
+#include <algorithm>
+#include <filesystem>
+#include <set>
+#include <tuple>
+#include <vector>
 #include <cassert>
+#include <cstddef>  // size_t
+#include <cstdint>  // uint32_t
+#include <cstdio>
+
+#include <bits/basic_string.h>
 
 using namespace UTAP;
 using namespace Constants;
 
-/* The following are simple helper functions for testing the type of
- * expressions.
- */
-static bool isCost(expression_t expr) { return expr.get_type().is(COST); }
+using namespace std::string_literals;
 
-static bool is_void(expression_t expr) { return expr.get_type().is_void(); }
+namespace {  // anonymous namespace is preferred over `static` (C++ standard)
 
-static bool is_double(expression_t expr) { return expr.get_type().is_double(); }
+/// The following are simple helper functions for testing the type of expressions.
+bool is_cost(const expression_t& expr) { return expr.get_type().is(COST); }
+
+bool is_void(const expression_t& expr) { return expr.get_type().is_void(); }
+
+bool is_double(const expression_t& expr) { return expr.get_type().is_double(); }
 
 /*
-static bool is_string(expression_t expr)
+bool is_string(expression_t expr)
 {
     return expr.get_type().is_string();
 }
 */
-// static bool is_scalar(expression_t expr)
+// bool is_scalar(expression_t expr)
 // {
 //     return expr.get_type().is_scalar();
 // }
 
-static bool is_integer(expression_t expr) { return expr.get_type().is_integer(); }
+bool is_integer(const expression_t& expr) { return expr.get_type().is_integer(); }
 
-static bool isBound(expression_t expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
+bool is_const_integer(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
 
-static bool is_integral(expression_t expr) { return expr.get_type().is_integral(); }
+bool is_default_int(const type_t& type)
+{
+    if (type.is_integral()) {
+        auto range = type.get_range();
+        return (is_const_integer(range.first) && is_const_integer(range.second)) &&
+               range.first.get_value() == defaultIntMin && range.second.get_value() == defaultIntMax;
+    }
+    return false;
+}
 
-static bool is_clock(expression_t expr) { return expr.get_type().is_clock(); }
+bool is_bound(const expression_t& expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
 
-static bool is_diff(expression_t expr) { return expr.get_type().is_diff(); }
+bool is_integral(const expression_t& expr) { return expr.get_type().is_integral(); }
 
-static bool is_double_value(expression_t expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
+bool is_clock(const expression_t& expr) { return expr.get_type().is_clock(); }
 
-static bool is_number(expression_t expr) { return is_double_value(expr) || is_integral(expr); }
+bool is_diff(const expression_t& expr) { return expr.get_type().is_diff(); }
 
-static bool is_const_integer(expression_t expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
+bool is_double_value(const expression_t& expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
 
-static bool is_const_double(expression_t expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
+bool is_number(const expression_t& expr) { return is_double_value(expr) || is_integral(expr); }
 
-static bool is_invariant(expression_t expr) { return expr.get_type().is_invariant(); }
+bool is_const_double(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
 
-static bool is_guard(expression_t expr) { return expr.get_type().is_guard(); }
+bool is_invariant(const expression_t& expr) { return expr.get_type().is_invariant(); }
 
-static bool is_probability(expression_t expr) { return expr.get_type().is_probability(); }
+bool is_guard(const expression_t& expr) { return expr.get_type().is_guard(); }
 
-static bool is_constraint(expression_t expr) { return expr.get_type().is_constraint(); }
+bool is_probability(const expression_t& expr) { return expr.get_type().is_probability(); }
 
-static bool is_formula(expression_t expr) { return expr.get_type().is_formula(); }
+bool is_constraint(const expression_t& expr) { return expr.get_type().is_constraint(); }
 
-static bool is_formula_list(expression_t expr)
+bool is_formula(const expression_t& expr) { return expr.get_type().is_formula(); }
+
+bool is_formula_list(const expression_t& expr)
 {
     if (expr.get_kind() != LIST) {
         return false;
@@ -93,7 +121,7 @@ static bool is_formula_list(expression_t expr)
     return true;
 }
 
-static bool hasStrictLowerBound(expression_t expr)
+bool hasStrictLowerBound(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictLowerBound(expr[i])) {
@@ -119,7 +147,7 @@ static bool hasStrictLowerBound(expression_t expr)
     return false;
 }
 
-static bool hasStrictUpperBound(expression_t expr)
+bool hasStrictUpperBound(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictUpperBound(expr[i])) {
@@ -149,14 +177,14 @@ static bool hasStrictUpperBound(expression_t expr)
  * Returns true iff type is a valid invariant. A valid invariant is
  * either an invariant expression or an integer expression.
  */
-static bool isInvariantWR(expression_t expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
+bool is_invariant_wr(const expression_t& expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
 
 /**
  * Returns true if values of this type can be assigned. This is the
  * case for integers, booleans, clocks, cost, scalars and arrays and
  * records of these. E.g. channels and processes are not assignable.
  */
-static bool isAssignable(type_t type)
+bool is_assignable(const type_t& type)
 {
     switch (type.get_kind()) {
     case Constants::INT:
@@ -167,19 +195,374 @@ static bool isAssignable(type_t type)
     case Constants::COST:
     case Constants::SCALAR: return true;
 
-    case ARRAY: return isAssignable(type[0]);
+    case ARRAY: return is_assignable(type[0]);
 
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
-            if (!isAssignable(type[i])) {
+            if (!is_assignable(type[i])) {
                 return false;
             }
         }
         return true;
 
-    default: return type.size() > 0 && isAssignable(type[0]);
+    default: return type.size() > 0 && is_assignable(type[0]);
     }
 }
+
+using Error = TypeChecker::TypeError;
+
+Error expression_has_no_effect(const expression_t& expr) { return {expr, "$Expression_does_not_have_any_effect"}; }
+
+Error urgent_only_for_locations_and_channels(const type_t& type)
+{
+    return {type, "$Prefix_urgent_only_allowed_for_locations_and_channels"};
+}
+
+Error broadcast_only_for_channels(const type_t& type) { return {type, "$Prefix_broadcast_only_allowed_for_channels"}; }
+
+Error committed_only_for_locations(const type_t& type)
+{
+    return {type, "$Prefix_committed_only_allowed_for_locations"};
+}
+
+Error hybrid_only_for_clocks(const type_t& type) { return {type, "$Prefix_hybrid_only_allowed_for_clocks"}; }
+
+Error const_not_allowed_for_clocks(const type_t& type) { return {type, "$Prefix_const_not_allowed_for_clocks"}; }
+
+Error meta_not_allowed_for_clocks(const type_t& type) { return {type, "$Prefix_meta_not_allowed_for_clocks"}; }
+
+Error reference_is_not_allowed(const type_t& type) { return {type, "$Reference_to_this_type_is_not_allowed"}; }
+
+Error range_is_not_allowed(const type_t& type) { return {type, "$Range_over_this_type_is_not_allowed"}; }
+
+Error must_be_computable_at_compile_time(const expression_t& expr)
+{
+    return {expr, "$Must_be_computable_at_compile_time"};
+}
+
+Error must_be_false(const expression_t& expr) { return {expr, "$Must_be_false"}; }
+
+Error invalid_array_size(const type_t& type) { return {type, "$Invalid_array_size"}; }
+
+Error invalid_return_type(const type_t& type) { return {type, "$Invalid_return_type"}; }
+
+Error cannot_be_inside_struct(const type_t& type) { return {type, "$Type_cannot_be_declared_inside_a_struct"}; }
+
+Error cannot_be_const_or_meta(const type_t& type) { return {type, "$Type_cannot_be_declared_const_or_meta"}; }
+
+Error must_be_side_effect_free(const expression_t& expr) { return {expr, "$Expression_must_be_side-effect_free"}; }
+
+Error must_be_valid_formula(const expression_t& expr) { return {expr, "$Property_must_be_a_valid_formula"}; }
+
+Error progress_guard_must_evaluate_to_boolean(const expression_t& expr)
+{
+    return {expr, "$Progress_guard_must_evaluate_to_a_boolean_value"};
+}
+
+Error progress_measure_must_evaluate_to_integer(const expression_t& expr)
+{
+    return {expr, "$Progress_measure_must_evaluate_to_a_integer_value"};
+}
+
+Error boolean_expected(const expression_t& expr) { return {expr, "$Boolean_expected"}; }
+
+Error integer_expected(const expression_t& expr) { return {expr, "$Integer_expected"}; }
+
+Error integer_or_clock_expected(const expression_t& expr) { return {expr, "$Integer_or_clock_expected"}; }
+
+Error array_expected(const expression_t& expr) { return {expr, "$Array_expected"}; }
+
+Error floating_point_expected(const expression_t& expr) { return {expr, "$Floating_point_expected"}; }
+
+Error loadStrategy_and_saveStrategy_expect_string(const expression_t& expr)
+{
+    return {expr, "$loadStrategy_and_saveStrategy_expect_a_string"};
+}
+
+Error incompatible_argument(const expression_t& expr) { return {expr, "$Incompatible_argument"}; }
+
+Error incompatible_arguments_to_inline_if(const expression_t& expr)
+{
+    return {expr, "$Incompatible_arguments_to_inline_if"};
+}
+
+Error incompatible_type_for_comma(const expression_t& expr)
+{
+    return {expr, "$Incompatible_type_for_comma_expression"};
+}
+
+Error channel_expected(const expression_t& expr) { return {expr, "$Channel_expected"}; }
+
+Error clock_expected(const expression_t& expr) { return {expr, "$Clock_expected"}; }
+
+Error scalar_or_integer_expected(const type_t& type) { return {type, "$Scalar_set_or_integer_expected"}; }
+
+Error range_expected(const type_t& type) { return {type, "$Range_expected"}; }
+
+Error csp_and_io_cannot_be_mixed(const expression_t& expr)
+{
+    return {expr, "$CSP_and_IO_synchronisations_cannot_be_mixed"};
+}
+
+Error csp_sync_is_incompatible_with_refinement_checking(const expression_t& expr)
+{
+    return {expr, "$CSP_synchronisations_are_incompatible_with_refinement_checking"};
+}
+
+Error free_param_must_be_int_or_scalar(const symbol_t& symbol)
+{
+    return {symbol, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar", symbol.get_type().str()};
+}
+
+Error free_param_must_not_be_used_in_array_or_select(const symbol_t& symbol)
+{
+    return {symbol,
+            "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
+            "an_array_declaration_or_select_expression",
+            symbol.get_name()};
+}
+
+Error dynamic_constructions_cannot_initialize(const expression_t& expr)
+{
+    return {expr, "Dynamic constructions cannot be used as initialisers"};
+}
+
+Error cannot_be_used_as_invariant(const expression_t& expr)
+{
+    return {expr, "$Expression_of_type "s + expr.get_type().str() + " $cannot_be_used_as_an_invariant"};
+}
+
+Error cannot_be_used_as_guard(const expression_t& expr)
+{
+    return {expr, "$Expression_of_type "s + expr.get_type().str() + " $cannot_be_used_as_a_guard"};
+}
+
+Error cannot_be_used_as_probability(const expression_t& expr)
+{
+    return {expr, "$Expression_of_type " + expr.get_type().str() + " $cannot_be_used_as_a_probability"};
+}
+
+Error cannot_be_used_as_condition(const expression_t& expr)
+{
+    return {expr, "$Expression_of_type " + expr.get_type().str() + " $cannot_be_used_as_a_condition"};
+}
+
+Error field_name_not_allowed_in_array_init(const expression_t& expr)
+{
+    return {expr, "$Field_name_not_allowed_in_array_initialiser"};
+}
+
+Error unknown_field_name(const expression_t& expr) { return {expr, "$Unknown_field_name"}; }
+
+Error too_many_elements_in_initializer(const expression_t& expr) { return {expr, "$Too_many_elements_in_initialiser"}; }
+
+Error multiple_initializers_for_field(const expression_t& expr) { return {expr, "$Multiple_initialisers_for_field"}; }
+
+Error incomplete_initializer(const expression_t& expr) { return {expr, "$Incomplete_initialiser"}; }
+
+Error invalid_initializer(const expression_t& expr) { return {expr, "$Invalid_initialiser"}; }
+
+Error invalid_sum(const expression_t& expr)
+{
+    return {expr, "$Sum_can_only_be_over_integer,_double,_invariant_or_guard_expressions"};
+}
+
+Error cannot_spawn_a_non_dynamic_template(const expression_t& expr)
+{
+    return {expr, "$Cannot_spawn_a_non-dynamic_template"};
+}
+
+Error wrong_number_of_arguments(const expression_t& expr) { return {expr, "$Wrong_number_of_arguments"}; }
+
+Error bug_wrong_number_of_args(const expression_t& expr) { return {expr, "$Bug:_wrong_number_of_arguments"}; }
+
+Error bug_bad_path_quantifier(const expression_t& expr) { return {expr, "$Bug:_bad_path_quantifier"}; }
+
+Error bug_bad_aggregation_expression(const expression_t& expr)
+{
+    return {expr, "$Bug:_bad_aggregation_operator_expression"};
+}
+
+Error bug_bad_aggregation_value(const expression_t& expr) { return {expr, "$Bug:_bad_aggregation_operator_value"}; }
+
+Error unknown_type(const expression_t& expr) { return {expr, "$Unknown_type_of_the_expression"}; }
+
+Error explicit_number_of_runs_is_not_supported_here(const expression_t& expr)
+{
+    return {expr, "$Explicit_number_of_runs_is_not_supported_here"};
+}
+
+Error template_only_declared_and_undefined(const expression_t& expr)
+{
+    return {expr, "$Template_is_only_declared_and_not_defined"};
+}
+
+Error not_dynamic_template(const expression_t& expr) { return {expr, "$Not_a_dynamic_template"}; }
+
+Error exit_only_in_dynamic_template(const expression_t& expr)
+{
+    return {expr, "$Exit_can_only_be_used_in_dynamic_templates"};
+}
+
+Error incompatible_type(const expression_t& expr) { return {expr, "$Incompatible_type"}; }
+
+Error incompatible_types(const expression_t& expr) { return {expr, "$Incompatible_types"}; }
+
+Error dynamic_constructs_supported_only_on_edges(const expression_t& expr)
+{
+    return {expr, "$Dynamic_constructs_supported_only_on_edges"};
+}
+
+Error lvalue_expected(const expression_t& expr) { return {expr, "$Left_hand_side_value_expected"}; }
+
+Error use_regular_assignment_on_non_integer(const expression_t& expr)
+{
+    return {expr, "$Non-integer_types_must_use_regular_assignment_operator"};
+}
+
+Error increment_only_integers_and_cost(const expression_t& expr)
+{
+    return {expr, "$Increment_can_only_be_used_for_integers_and_cost_variables"};
+}
+
+Error only_one_cost_rate_is_allowed(const expression_t& expr) { return {expr, "$Only_one_cost_rate_is_allowed"}; }
+
+Error strict_invariant(const expression_t& expr) { return {expr, "$Strict_invariant"}; }
+
+Error number_expected(const expression_t& expr) { return {expr, "$Number_expected"}; }
+
+Error first_argument_of_inline_if_must_be_integer(const expression_t& expr)
+{
+    return {expr, "$First_argument_of_inline_if_must_be_an_integer"};
+}
+
+Error deprecated_reset(const symbol_t& symbol)
+{
+    return {symbol, "Deprecated __RESET__ annotation: use \"{ integers } -> { floats }\" in learning query.",
+            symbol.get_name()};
+}
+
+Error clock_guards_not_allowed_on_urgent_edges(const expression_t& expr)
+{
+    return {expr, "$Clock_guards_are_not_allowed_on_urgent_edges"};
+}
+
+Error input_edges_must_be_deterministic(const expression_t& expr)
+{
+    return {expr, "SMC requires input edges to be deterministic"};
+}
+
+Error may_need_guard_involving_target_invariant(const expression_t& expr)
+{
+    return {expr, "$It_may_be_needed_to_add_a_guard_involving_the_target_invariant"};
+}
+
+Error strict_bounds_on_urgent_edges(const expression_t& expr)
+{
+    return {expr, "$Strict_bounds_on_urgent_edges_may_not_make_sense"};
+}
+
+Error outputs_should_be_uncontrollable(const expression_t& expr)
+{
+    return {expr, "$Outputs_should_be_uncontrollable_for_refinement_checking"};
+}
+
+Error inputs_should_be_controllable(const expression_t& expr)
+{
+    return {expr, "$Inputs_should_be_controllable_for_refinement_checking"};
+}
+
+Error nested_path_quntifiers_not_supported(const expression_t& expr)
+{
+    return {expr, "$Nested_path_quantifiers_are_not_supported"};
+}
+
+Error mitl_inside_forall_or_exists_in_non_mitl(const expression_t& expr)
+{
+    return {expr, "$Unsupported_MITL_inside_forall_or_exists_in_non_MITL_property"};
+}
+
+Error invalid_assignment(const expression_t& expr) { return {expr, "$Invalid_assignment_expression"}; }
+
+Error clock_lower_and_upper_bounds(const expression_t& expr)
+{
+    return {expr, "$Clock_lower_bound_must_be_weak_and_upper_bound_strict"};
+}
+
+Error clock_difference_is_not_supported(const expression_t& expr)
+{
+    return {expr, "$Clock_differences_are_not_supported"};
+}
+
+static bool isGameProperty(const expression_t& expr)
+{
+    switch (expr.get_kind()) {
+    case CONTROL:
+    case SMC_CONTROL:
+    case EF_CONTROL:
+    case CONTROL_TOPT:
+    case PO_CONTROL:
+    case CONTROL_TOPT_DEF1:
+    case CONTROL_TOPT_DEF2: return true;
+    default: return false;
+    }
+}
+
+bool hasMITLInQuantifiedSub(const expression_t& expr)
+{
+    bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
+    if (!hasIt) {
+        for (uint32_t i = 0; i < expr.get_size(); i++) {
+            hasIt |= hasMITLInQuantifiedSub(expr.get(i));
+        }
+    }
+    return hasIt;
+}
+
+bool hasSpawnOrExit(const expression_t& expr)
+{
+    bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
+    if (!hasIt) {
+        for (uint32_t i = 0; i < expr.get_size(); i++) {
+            hasIt |= hasSpawnOrExit(expr.get(i));
+        }
+    }
+    return hasIt;
+}
+
+bool validReturnType(const type_t& type)
+{
+    switch (type.get_kind()) {
+    case Constants::RECORD:
+        for (size_t i = 0; i < type.size(); i++) {
+            if (!validReturnType(type[i])) {
+                return false;
+            }
+        }
+        return true;
+
+    case Constants::RANGE:
+    case Constants::LABEL: return validReturnType(type[0]);
+
+    case Constants::INT:
+    case Constants::BOOL:
+    case Constants::SCALAR:
+    case Constants::DOUBLE: return true;
+
+    default: return false;
+    }
+}
+
+void static_analysis(Document& doc)
+{
+    if (!doc.has_errors()) {
+        auto checker = TypeChecker{doc};
+        doc.accept(checker);
+        auto fchecker = FeatureChecker{doc};
+        doc.set_supported_methods(fchecker.get_supported_methods());
+    }
+}
+}  // anonymous namespace
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -193,16 +576,16 @@ void CompileTimeComputableValues::visitVariable(variable_t& variable)
 void CompileTimeComputableValues::visitInstance(instance_t& temp)
 {
     for (const auto& param : temp.parameters) {
-        type_t type = param.get_type();
+        const type_t& type = param.get_type();
         if (!type.is(REF) && type.is_constant() && !type.is_double()) {
             variables.insert(param);
         }
     }
 }
 
-void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(symbol); }
+void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(std::move(symbol)); }
 
-bool CompileTimeComputableValues::contains(symbol_t symbol) const
+bool CompileTimeComputableValues::contains(const symbol_t& symbol) const
 {
     return (variables.find(symbol) != variables.end());
 }
@@ -218,12 +601,12 @@ public:
     bool hasStrictInvariant{false}, hasClockRates{false};
     size_t countCostRates{0};
 
-    void decompose(expression_t, bool inforall = false);
+    void decompose(const expression_t& expr, bool inforall = false);
 };
 
-void RateDecomposer::decompose(expression_t expr, bool inforall)
+void RateDecomposer::decompose(const expression_t& expr, bool inforall)
 {
-    assert(isInvariantWR(expr));
+    assert(is_invariant_wr(expr));
 
     if (is_invariant(expr)) {
         if (expr.get_kind() == Constants::LT) {
@@ -239,7 +622,8 @@ void RateDecomposer::decompose(expression_t expr, bool inforall)
         decompose(expr[0], inforall);
         decompose(expr[1], inforall);
     } else if (expr.get_kind() == EQ) {
-        expression_t left, right;
+        expression_t left;
+        expression_t right;
         assert((expr[0].get_type().get_kind() == RATE) ^ (expr[1].get_type().get_kind() == RATE));
 
         if (expr[0].get_type().get_kind() == RATE) {
@@ -250,7 +634,7 @@ void RateDecomposer::decompose(expression_t expr, bool inforall)
             right = expr[0];
         }
 
-        if (isCost(left)) {
+        if (is_cost(left)) {
             costRate = right;
             countCostRates++;
         } else {
@@ -276,28 +660,22 @@ void RateDecomposer::decompose(expression_t expr, bool inforall)
 
 ///////////////////////////////////////////////////////////////////////////
 
-TypeChecker::TypeChecker(Document& document, bool refinement): document{document}, syncUsed(0)
+TypeChecker::TypeChecker(Document& document, bool refinement): document{document}, refinementWarnings{refinement}
 {
     document.accept(compileTimeComputableValues);
 
     checkExpression(document.get_before_update());
     checkExpression(document.get_after_update());
-
-    function = nullptr;
-    refinementWarnings = refinement;
-    temp = nullptr;
 }
 
-template <class T>
-void TypeChecker::handleWarning(T expr, const std::string& msg)
+void TypeChecker::handleWarning(TypeError warning)
 {
-    document.add_warning(expr.get_position(), msg, "(typechecking)");
+    document.add_warning(warning.position, std::move(warning.message), std::move(warning.context));
 }
 
-template <class T>
-void TypeChecker::handleError(T expr, const std::string& msg)
+void TypeChecker::handleError(TypeError error)
 {
-    document.add_error(expr.get_position(), msg, "(typechecking)");
+    document.add_error(error.position, std::move(error.message), std::move(error.context));
 }
 
 /**
@@ -310,17 +688,16 @@ void TypeChecker::handleError(T expr, const std::string& msg)
  * this function accepts modifications of local variables as a
  * side-effect.
  */
-void TypeChecker::checkIgnoredValue(expression_t expr)
+void TypeChecker::checkIgnoredValue(const expression_t& expr)
 {
-    static const auto message = "$Expression_does_not_have_any_effect";
     if (!expr.changes_any_variable() && expr.get_kind() != FUN_CALL_EXT) {
-        handleWarning(expr, message);
+        handleWarning(expression_has_no_effect(expr));
     } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable() && expr[1].get_kind() != FUN_CALL_EXT) {
-        handleWarning(expr[1], message);
+        handleWarning(expression_has_no_effect(expr[1]));
     }
 }
 
-bool TypeChecker::isCompileTimeComputable(expression_t expr) const
+bool TypeChecker::isCompileTimeComputable(const expression_t& expr) const
 {
     /* An expression is compile time computable if all identifers it
      * could possibly access during an evaluation are compile time
@@ -331,7 +708,7 @@ bool TypeChecker::isCompileTimeComputable(expression_t expr) const
      * would increase the class of models we accept while also getting
      * rid of the compileTimeComputableValues object.
      */
-    std::set<symbol_t> reads;
+    auto reads = std::set<symbol_t>{};
     expr.collect_possible_reads(reads, true);
     return std::all_of(reads.begin(), reads.end(), [this](const symbol_t& s) {
         return s != symbol_t{} && (s.get_type().is_function() || s.get_type().is_function_external() ||
@@ -352,95 +729,83 @@ bool TypeChecker::isCompileTimeComputable(expression_t expr) const
  * If \a initialisable is true, then this method also checks that \a
  * type is initialisable.
  */
-void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
+void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruct)
 {
-    expression_t l, u;
+    expression_t l;
+    expression_t u;
     type_t size;
-    frame_t frame;
 
     switch (type.get_kind()) {
     case LABEL: checkType(type[0], initialisable, inStruct); break;
 
     case URGENT:
-        if (!type.is_location() && !type.is_channel()) {
-            handleError(type, "$Prefix_urgent_only_allowed_for_locations_and_channels");
-        }
+        if (!type.is_location() && !type.is_channel())
+            handleError(urgent_only_for_locations_and_channels(type));
         checkType(type[0], initialisable, inStruct);
         break;
 
     case BROADCAST:
-        if (!type.is_channel()) {
-            handleError(type, "$Prefix_broadcast_only_allowed_for_channels");
-        }
+        if (!type.is_channel())
+            handleError(broadcast_only_for_channels(type));
         checkType(type[0], initialisable, inStruct);
         break;
 
     case COMMITTED:
-        if (!type.is_location()) {
-            handleError(type, "$Prefix_committed_only_allowed_for_locations");
-        }
+        if (!type.is_location())
+            handleError(committed_only_for_locations(type));
         checkType(type[0], initialisable, inStruct);
         break;
 
     case HYBRID:
-        if (!type.is_clock() && !(type.is_array() && type.strip_array().is_clock())) {
-            handleError(type, "$Prefix_hybrid_only_allowed_for_clocks");
-        }
+        if (!type.is_clock() && !(type.is_array() && type.strip_array().is_clock()))
+            handleError(hybrid_only_for_clocks(type));
         checkType(type[0], initialisable, inStruct);
         break;
 
     case CONSTANT:
-        if (type.is_clock()) {
-            handleError(type, "$Prefix_const_not_allowed_for_clocks");
-        }
+        if (type.is_clock())
+            handleError(const_not_allowed_for_clocks(type));
         checkType(type[0], true, inStruct);
         break;
 
     case SYSTEM_META:
-        if (type.is_clock()) {
-            handleError(type, "$Prefix_meta_not_allowed_for_clocks");
-        }
+        if (type.is_clock())
+            handleError(meta_not_allowed_for_clocks(type));
         checkType(type[0], true, inStruct);
         break;
 
     case REF:
         if (!type.is_integral() && !type.is_array() && !type.is_record() && !type.is_channel() && !type.is_clock() &&
-            !type.is_scalar() && !type.is_double() && !type.is_string()) {
-            handleError(type, "$Reference_to_this_type_not_allowed");
-        }
+            !type.is_scalar() && !type.is_double() && !type.is_string())
+            handleError(reference_is_not_allowed(type));
         checkType(type[0], initialisable, inStruct);
         break;
 
     case RANGE:
         if (!type.is_integer() && !type.is_scalar()) {
-            handleError(type, "$Range_over_this_type_not_allowed");
+            handleError(range_is_not_allowed(type));
         }
         std::tie(l, u) = type.get_range();
         if (checkExpression(l)) {
-            if (!is_integer(l)) {
-                handleError(l, "$Integer_expected");
-            }
-            if (!isCompileTimeComputable(l)) {
-                handleError(l, "$Must_be_computable_at_compile_time");
-            }
+            if (!is_integer(l))
+                handleError(integer_expected(l));
+            if (!isCompileTimeComputable(l))
+                handleError(must_be_computable_at_compile_time(l));
         }
         if (checkExpression(u)) {
-            if (!is_integer(u)) {
-                handleError(u, "$Integer_expected");
-            }
-            if (!isCompileTimeComputable(u)) {
-                handleError(u, "$Must_be_computable_at_compile_time");
-            }
+            if (!is_integer(u))
+                handleError(integer_expected(u));
+            if (!isCompileTimeComputable(u))
+                handleError(must_be_computable_at_compile_time(u));
         }
         break;
 
     case ARRAY:
         size = type.get_array_size();
-        if (!size.is(RANGE)) {
-            handleError(type, "$Invalid_array_size");
-        } else {
+        if (!size.is(RANGE))
+            handleError(invalid_array_size(type));
+        else
             checkType(size);
-        }
         checkType(type[0], initialisable, inStruct);
         break;
 
@@ -450,25 +815,23 @@ void TypeChecker::checkType(type_t type, bool initialisable, bool inStruct)
         }
         break;
     case Constants::STRING:
-        if (inStruct) {
-            handleError(type, "$This_type_cannot_be_declared_inside_a_struct");
-        }
+        if (inStruct)
+            handleError(cannot_be_inside_struct(type));
     case Constants::CLOCK:
     case Constants::DOUBLE:
     case Constants::INT:
     case Constants::BOOL: break;
 
     default:
-        if (initialisable) {
-            handleError(type, "$This_type_cannot_be_declared_const_or_meta");
-        }
+        if (initialisable)
+            handleError(cannot_be_const_or_meta(type));
     }
 }
 
 void TypeChecker::visitDocAfter(Document& doc)
 {
-    for (const chan_priority_t& i : doc.get_chan_priorities()) {
-        bool i_default = (i.head == expression_t());
+    for (chan_priority_t& i : doc.get_chan_priorities()) {
+        const bool i_default = (i.head == expression_t());
         if (!i_default && checkExpression(i.head)) {
             expression_t expr = i.head;
             type_t channel = expr.get_type();
@@ -478,41 +841,37 @@ void TypeChecker::visitDocAfter(Document& doc)
                 channel = channel.get_sub();
             }
             if (!channel.is_channel()) {
-                handleError(expr, "$Channel_expected");
+                handleError(channel_expected(expr));
             }
 
             // Check index expressions
             while (expr.get_kind() == ARRAY) {
-                if (!isCompileTimeComputable(expr[1])) {
-                    handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (i.head.changes_any_variable()) {
-                    handleError(expr[1], "$Index_must_be_side-effect_free");
-                }
+                if (!isCompileTimeComputable(expr[1]))
+                    handleError(must_be_computable_at_compile_time(expr[1]));
+                else if (i.head.changes_any_variable())
+                    handleError(must_be_side_effect_free(expr[1]));
                 expr = expr[0];
             }
         }
 
-        for (const chan_priority_t::entry& j : i.tail) {
-            bool j_default = (j.second == expression_t());
+        for (chan_priority_t::entry& j : i.tail) {
+            const bool j_default = (j.second == expression_t());
             if (!j_default && checkExpression(j.second)) {
                 expression_t expr = j.second;
                 type_t channel = expr.get_type();
 
                 // Check that chanElement is a channel, or an array of channels.
-                while (channel.is_array()) {
+                while (channel.is_array())
                     channel = channel.get_sub();
-                }
-                if (!channel.is_channel()) {
-                    handleError(expr, "$Channel_expected");
-                }
+                if (!channel.is_channel())
+                    handleError(channel_expected(expr));
 
                 // Check index expressions
                 while (expr.get_kind() == ARRAY) {
-                    if (!isCompileTimeComputable(expr[1])) {
-                        handleError(expr[1], "$Must_be_computable_at_compile_time");
-                    } else if (j.second.changes_any_variable()) {
-                        handleError(expr[1], "$Index_must_be_side-effect_free");
-                    }
+                    if (!isCompileTimeComputable(expr[1]))
+                        handleError(must_be_computable_at_compile_time(expr[1]));
+                    else if (j.second.changes_any_variable())
+                        handleError(must_be_side_effect_free(expr[1]));
                     expr = expr[0];
                 }
             }
@@ -520,14 +879,13 @@ void TypeChecker::visitDocAfter(Document& doc)
     }
 }
 
-void TypeChecker::visitHybridClock(expression_t e)
+void TypeChecker::visitHybridClock(expression_t& e)
 {
     if (checkExpression(e)) {
         if (!is_clock(e)) {
-            handleError(e, "$Clock_expected");
-        } else if (e.changes_any_variable()) {
-            handleError(e, "$Index_must_be_side-effect_free");
-        }
+            handleError(clock_expected(e));
+        } else if (e.changes_any_variable())
+            handleError(must_be_side_effect_free(e));
         // Should be a check to identify the clock at compile time.
         // Problematic now. Same issue for inf & sup.
     }
@@ -535,15 +893,14 @@ void TypeChecker::visitHybridClock(expression_t e)
 
 void TypeChecker::visitIODecl(iodecl_t& iodecl)
 {
-    for (const auto& e : iodecl.param) {
+    for (auto& e : iodecl.param) {
         if (checkExpression(e)) {
-            if (!is_integer(e)) {
-                handleError(e, "$Integer_expected");
-            } else if (!isCompileTimeComputable(e)) {
-                handleError(e, "$Must_be_computable_at_compile_time");
-            } else if (e.changes_any_variable()) {
-                handleError(e, "$Index_must_be_side-effect_free");
-            }
+            if (!is_integer(e))
+                handleError(integer_expected(e));
+            else if (!isCompileTimeComputable(e))
+                handleError(must_be_computable_at_compile_time(e));
+            else if (e.changes_any_variable())
+                handleError(must_be_side_effect_free(e));
         }
     }
 
@@ -563,9 +920,8 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
             syncUsed = -1;
         }
     }
-    if (syncUsed == -1) {
-        handleError(iodecl.csp.front(), "$CSP_and_IO_synchronisations_cannot_be_mixed");
-    }
+    if (syncUsed == -1)
+        handleError(csp_and_io_cannot_be_mixed(iodecl.csp.front()));
 
     document.set_sync_used(syncUsed);
 
@@ -574,20 +930,17 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
             type_t channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
-            while (channel.is_array()) {
+            while (channel.is_array())
                 channel = channel.get_sub();
-            }
-            if (!channel.is_channel()) {
-                handleError(expr, "$Channel_expected");
-            }
+            if (!channel.is_channel())
+                handleError(channel_expected(expr));
 
             // Check index expressions
             while (expr.get_kind() == ARRAY) {
-                if (!isCompileTimeComputable(expr[1])) {
-                    handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (expr.changes_any_variable()) {
-                    handleError(expr[1], "$Index_must_be_side-effect_free");
-                }
+                if (!isCompileTimeComputable(expr[1]))
+                    handleError(must_be_computable_at_compile_time(expr[1]));
+                else if (expr.changes_any_variable())
+                    handleError(must_be_side_effect_free(expr[1]));
                 expr = expr[0];
             }
         }
@@ -598,51 +951,35 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
             type_t channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
-            while (channel.is_array()) {
+            while (channel.is_array())
                 channel = channel.get_sub();
-            }
-            if (!channel.is_channel()) {
-                handleError(expr, "$Channel_expected");
-            }
+            if (!channel.is_channel())
+                handleError(channel_expected(expr));
 
             // Check index expressions
             while (expr.get_kind() == ARRAY) {
-                if (!isCompileTimeComputable(expr[1])) {
-                    handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (expr.changes_any_variable()) {
-                    handleError(expr[1], "$Index_must_be_side-effect_free");
-                }
+                if (!isCompileTimeComputable(expr[1]))
+                    handleError(must_be_computable_at_compile_time(expr[1]));
+                else if (expr.changes_any_variable())
+                    handleError(must_be_side_effect_free(expr[1]));
                 expr = expr[0];
             }
         }
     }
 }
 
-bool isDefaultInt(type_t type)
-{
-    if (type.is_integral()) {
-        auto range = type.get_range();
-        return (is_const_integer(range.first) && is_const_integer(range.second)) &&
-               range.first.get_value() == defaultIntMin && range.second.get_value() == defaultIntMax;
-    }
-    return false;
-}
-
 void TypeChecker::visitProcess(instance_t& process)
 {
     for (size_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
-        symbol_t parameter = process.parameters[i];
-        type_t type = parameter.get_type();
-        if (!(type.is_scalar() || type.is_range()) || type.is(REF) || isDefaultInt(type)) {
-            handleError(process.uid, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
-        }
+        const symbol_t& parameter = process.parameters[i];
+        const type_t& type = parameter.get_type();
+        if (!(type.is_scalar() || type.is_range()) || type.is(REF) || is_default_int(type))
+            handleError(free_param_must_be_int_or_scalar(parameter));
         /* Unbound parameters must not be used either directly or indirectly in any array size declarations.
          * I.e. they must not be restricted. */
-        if (process.restricted.find(parameter) != process.restricted.end()) {
-            handleError(process.uid, "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
-                                     "an_array_declaration_or_select_expression");
-        }
+        if (process.restricted.find(parameter) != process.restricted.end())
+            handleError(free_param_must_not_be_used_in_array_or_select(parameter));
     }
 }
 
@@ -652,15 +989,14 @@ void TypeChecker::visitVariable(variable_t& variable)
 
     checkType(variable.uid.get_type());
     if (variable.init.is_dynamic() || variable.init.has_dynamic_sub()) {
-        handleError(variable.init, "Dynamic constructions cannot be used as initialisers");
+        handleError(dynamic_constructions_cannot_initialize(variable.init));
     } else if (!variable.init.empty() && checkExpression(variable.init)) {
-        if (!isCompileTimeComputable(variable.init)) {
-            handleError(variable.init, "$Must_be_computable_at_compile_time");
-        } else if (variable.init.changes_any_variable()) {
-            handleError(variable.init, "$Initialiser_must_be_side-effect_free");
-        } else {
-            variable.init = checkInitialiser(variable.uid.get_type(), variable.init);
-        }
+        if (!isCompileTimeComputable(variable.init))
+            handleError(must_be_computable_at_compile_time(variable.init));
+        else if (variable.init.changes_any_variable())
+            handleError(must_be_side_effect_free(variable.init));
+        else
+            checkInitialiser(variable.uid.get_type(), variable.init);
     }
 }
 
@@ -671,43 +1007,37 @@ void TypeChecker::visitLocation(location_t& loc)
     if (!loc.invariant.empty()) {
         auto& inv = loc.invariant;
         if (checkExpression(inv)) {
-            if (!isInvariantWR(inv)) {
-                std::string s = "$Expression_of_type ";
-                s += inv.get_type().str();
-                s += " $cannot_be_used_as_an_invariant";
-                handleError(inv, s);
-            } else if (inv.changes_any_variable()) {
-                handleError(inv, "$Invariant_must_be_side-effect_free");
-            } else {
-                RateDecomposer decomposer;
+            if (!is_invariant_wr(inv))
+                handleError(cannot_be_used_as_invariant(inv));
+            else if (inv.changes_any_variable())
+                handleError(must_be_side_effect_free(inv));
+            else {
+                auto decomposer = RateDecomposer{};
                 decomposer.decompose(inv);
                 inv = decomposer.invariant;
                 loc.cost_rate = decomposer.costRate;
                 if (decomposer.countCostRates > 1) {
-                    handleError(inv, "$Only_one_cost_rate_is_allowed");
+                    handleError(only_one_cost_rate_is_allowed(inv));
                 }
                 if (decomposer.hasClockRates) {
                     document.record_stop_watch();
                 }
                 if (decomposer.hasStrictInvariant) {
                     document.record_strict_invariant();
-                    handleWarning(inv, "$Strict_invariant");
+                    handleWarning(strict_invariant(inv));
                 }
             }
         }
     }
     if (!loc.exp_rate.empty()) {
-        const auto& expr = loc.exp_rate;
-        if (checkExpression(expr)) {
+        if (auto& expr = loc.exp_rate; checkExpression(expr)) {
             if (!is_integral(expr) && expr.get_kind() != FRACTION && !expr.get_type().is_double()) {
-                handleError(expr, "$Number_expected");
+                handleError(number_expected(expr));
             }
         }
     }
-    if (loc.uid.get_name() == "__RESET__") {
-        handleWarning(loc.uid,
-                      "Deprecated __RESET__ annotation: use \"{ integers } -> { floats }\" in learning query.");
-    }
+    if (loc.uid.get_name() == "__RESET__")
+        handleWarning(deprecated_reset(loc.uid));
 }
 
 void TypeChecker::visitEdge(edge_t& edge)
@@ -724,14 +1054,10 @@ void TypeChecker::visitEdge(edge_t& edge)
     bool strictBound = false;
     if (!edge.guard.empty()) {
         if (checkExpression(edge.guard)) {
-            if (!is_guard(edge.guard)) {
-                std::string s = "$Expression_of_type ";
-                s += edge.guard.get_type().str();
-                s += " $cannot_be_used_as_a_guard";
-                handleError(edge.guard, s);
-            } else if (edge.guard.changes_any_variable()) {
-                handleError(edge.guard, "$Guard_must_be_side-effect_free");
-            }
+            if (!is_guard(edge.guard))
+                handleError(cannot_be_used_as_guard(edge.guard));
+            else if (edge.guard.changes_any_variable())
+                handleError(must_be_side_effect_free(edge.guard));
             if (hasStrictLowerBound(edge.guard)) {
                 if (edge.control) {
                     document.record_strict_lower_bound_on_controllable_edges();
@@ -747,19 +1073,19 @@ void TypeChecker::visitEdge(edge_t& edge)
     // sync
     if (!edge.sync.empty()) {
         if (checkExpression(edge.sync)) {
-            type_t channel = edge.sync.get(0).get_type();
-            if (!channel.is_channel()) {
-                handleError(edge.sync.get(0), "$Channel_expected");
-            } else if (edge.sync.changes_any_variable()) {
-                handleError(edge.sync, "$Synchronisation_must_be_side-effect_free");
-            } else {
-                bool hasClockGuard = !edge.guard.empty() && !is_integral(edge.guard);
-                bool isUrgent = channel.is(URGENT);
-                bool receivesBroadcast = channel.is(BROADCAST) && edge.sync.get_sync() == SYNC_QUE;
+            const type_t& channel = edge.sync.get(0).get_type();
+            if (!channel.is_channel())
+                handleError(channel_expected(edge.sync.get(0)));
+            else if (edge.sync.changes_any_variable())
+                handleError(must_be_side_effect_free(edge.sync));
+            else {
+                const bool hasClockGuard = !edge.guard.empty() && !is_integral(edge.guard);
+                const bool isUrgent = channel.is(URGENT);
+                const bool receivesBroadcast = channel.is(BROADCAST) && edge.sync.get_sync() == SYNC_QUE;
 
                 if (isUrgent && hasClockGuard) {
                     document.set_urgent_transition();
-                    handleWarning(edge.sync, "$Clock_guards_are_not_allowed_on_urgent_edges");
+                    handleWarning(clock_guards_not_allowed_on_urgent_edges(edge.sync));
                 } else if (receivesBroadcast && hasClockGuard) {
                     document.clock_guard_recv_broadcast();
                     /*
@@ -770,18 +1096,16 @@ void TypeChecker::visitEdge(edge_t& edge)
                     */
                 }
                 if (receivesBroadcast && edge.guard.is_true()) {
-                    if (edge.dst == nullptr) {  // dst is null at least in a case of branchpoint
-                        handleWarning(edge.sync, "SMC requires input edges to be deterministic");
-                    }
+                    if (edge.dst == nullptr)  // dst is null at least in a case of branchpoint
+                        handleWarning(input_edges_must_be_deterministic(edge.sync));
 #ifndef NDEBUG
                     else if (!edge.dst->invariant.is_true()) {
-                        // This case is not handled correctly by the engine and it is expensive to
-                        // fix.
-                        handleWarning(edge.sync, "$It_may_be_needed_to_add_a_guard_involving_the_target_invariant");
+                        // not handled correctly by the engine and it is expensive to fix.
+                        handleWarning(may_need_guard_involving_target_invariant(edge.sync));
                     }
                     /*
                       The warning above gives too many false alarms and is therefore disabled.
-                      In particular it does not consider the common idiom of clock reset (i.e. guard
+                      In particular, it does not consider the common idiom of clock reset (i.e. guard
                       is irrelevant). Details: the above case may lead to violation of target
                       invariant if unchecked, however the invariant *is* being checked in the engine
                       and halts with "violates model sanity with transition" + proper diagnostics
@@ -789,9 +1113,8 @@ void TypeChecker::visitEdge(edge_t& edge)
                     */
 #endif /* NDEBUG */
                 }
-                if (isUrgent && strictBound) {
-                    handleWarning(edge.guard, "$Strict_bounds_on_urgent_edges_may_not_make_sense");
-                }
+                if (isUrgent && strictBound)
+                    handleWarning(strict_bounds_on_urgent_edges(edge.guard));
             }
 
             switch (syncUsed) {
@@ -824,21 +1147,20 @@ void TypeChecker::visitEdge(edge_t& edge)
                 // nothing
                 ;
             }
-            if (syncUsed == -1) {
-                handleError(edge.sync, "$CSP_and_IO_synchronisations_cannot_be_mixed");
-            }
+            if (syncUsed == -1)
+                handleError(csp_and_io_cannot_be_mixed(edge.sync));
 
             if (refinementWarnings) {
-                if (edge.sync.get_sync() == SYNC_BANG) {
-                    if (edge.control) {
-                        handleWarning(edge.sync, "$Outputs_should_be_uncontrollable_for_refinement_checking");
-                    }
-                } else if (edge.sync.get_sync() == SYNC_QUE) {
-                    if (!edge.control) {
-                        handleWarning(edge.sync, "$Inputs_should_be_controllable_for_refinement_checking");
-                    }
-                } else {
-                    handleWarning(edge.sync, "$CSP_synchronisations_are_incompatible_with_refinement_checking");
+                switch (edge.sync.get_sync()) {
+                case SYNC_BANG:
+                    if (edge.control)
+                        handleWarning(outputs_should_be_uncontrollable(edge.sync));
+                    break;
+                case SYNC_QUE:
+                    if (!edge.control)
+                        handleWarning(inputs_should_be_controllable(edge.sync));
+                    break;
+                default: handleWarning(csp_sync_is_incompatible_with_refinement_checking(edge.sync));
                 }
             }
         }
@@ -850,14 +1172,10 @@ void TypeChecker::visitEdge(edge_t& edge)
     // probability
     if (!edge.prob.empty()) {
         if (checkExpression(edge.prob)) {
-            if (!is_probability(edge.prob)) {
-                std::string s = "$Expression_of_type ";
-                s += edge.prob.get_type().str();
-                s += " $cannot_be_used_as_a_probability";
-                handleError(edge.prob, s);
-            } else if (edge.prob.changes_any_variable()) {
-                handleError(edge.prob, "$Probability_must_be_side-effect_free");
-            }
+            if (!is_probability(edge.prob))
+                handleError(cannot_be_used_as_probability(edge.prob));
+            else if (edge.prob.changes_any_variable())
+                handleError(must_be_side_effect_free(edge.prob));
         }
     }
 }
@@ -870,12 +1188,11 @@ void TypeChecker::visitMessage(message_t& message)
 
     if (!message.label.empty()) {
         if (checkExpression(message.label)) {
-            type_t channel = message.label.get(0).get_type();
-            if (!channel.is_channel()) {
-                handleError(message.label.get(0), "$Channel_expected");
-            } else if (message.label.changes_any_variable()) {
-                handleError(message.label, "$Message_must_be_side-effect_free");
-            }
+            const type_t& channel = message.label.get(0).get_type();
+            if (!channel.is_channel())
+                handleError(channel_expected(message.label.get(0)));
+            else if (message.label.changes_any_variable())
+                handleError(must_be_side_effect_free(message.label));
         }
     }
 }
@@ -884,14 +1201,10 @@ void TypeChecker::visitCondition(condition_t& condition)
     DocumentVisitor::visitCondition(condition);
     if (!condition.label.empty()) {
         if (checkExpression(condition.label)) {
-            if (!is_guard(condition.label)) {
-                std::string s = "$Expression_of_type ";
-                s += condition.label.get_type().str();
-                s += " $cannot_be_used_as_a_condition";
-                handleError(condition.label, s);
-            } else if (condition.label.changes_any_variable()) {
-                handleError(condition.label, "$Condition_must_be_side-effect_free");
-            }
+            if (!is_guard(condition.label))
+                handleError(cannot_be_used_as_condition(condition.label));
+            else if (condition.label.changes_any_variable())
+                handleError(must_be_side_effect_free(condition.label));
         }
     }
 }
@@ -907,41 +1220,25 @@ void TypeChecker::visitProgressMeasure(progress_t& progress)
 {
     checkExpression(progress.guard);
     checkExpression(progress.measure);
-
-    if (!progress.guard.empty() && !is_integral(progress.guard)) {
-        handleError(progress.guard, "$Progress_guard_must_evaluate_to_a_boolean");
-    }
-
-    if (!is_integral(progress.measure)) {
-        handleError(progress.measure, "$Progress_measure_must_evaluate_to_a_value");
-    }
+    if (!progress.guard.empty() && !is_integral(progress.guard))
+        handleError(progress_guard_must_evaluate_to_boolean(progress.guard));
+    if (!is_integral(progress.measure))
+        handleError(progress_measure_must_evaluate_to_integer(progress.measure));
 }
 
 void TypeChecker::visitGanttChart(gantt_t& gc)
 {
-    size_t n = gc.parameters.get_size();
-    for (size_t i = 0; i < n; ++i) {
-        checkType(gc.parameters[i].get_type());
-    }
-
-    std::list<ganttmap_t>::const_iterator first, end = gc.mapping.end();
-    for (first = gc.mapping.begin(); first != end; ++first) {
-        n = (*first).parameters.get_size();
-        for (size_t i = 0; i < n; ++i) {
-            checkType((*first).parameters[i].get_type());
-        }
-
-        const expression_t& p = (*first).predicate;
-        checkExpression(p);
-        if (!is_integral(p) && !is_constraint(p)) {
-            handleError(p, "$Boolean_expected");
-        }
-
-        const expression_t& m = (*first).mapping;
-        checkExpression(m);
-        if (!is_integral(m)) {
-            handleError(m, "$Integer_expected");
-        }
+    for (auto& param : gc.parameters)
+        checkType(param.get_type());
+    for (auto& map : gc.mapping) {
+        for (auto& param : map.parameters)
+            checkType(param.get_type());
+        checkExpression(map.predicate);
+        if (!is_integral(map.predicate) && !is_constraint(map.predicate))
+            handleError(boolean_expected(map.predicate));
+        checkExpression(map.mapping);
+        if (!is_integral(map.mapping))
+            handleError(integer_expected(map.mapping));
     }
 }
 
@@ -949,17 +1246,14 @@ void TypeChecker::visitInstance(instance_t& instance)
 {
     DocumentVisitor::visitInstance(instance);
 
-    /* Check the parameters of the instance.
-     */
-    type_t type = instance.uid.get_type();
-    for (size_t i = 0; i < type.size(); i++) {
+    // Check the parameters of the instance.
+    const type_t& type = instance.uid.get_type();
+    for (uint32_t i = 0; i < type.size(); i++)
         checkType(type[i]);
-    }
 
-    /* Check arguments.
-     */
-    for (size_t i = type.size(); i < type.size() + instance.arguments; i++) {
-        symbol_t parameter = instance.parameters[i];
+    // Check arguments.
+    for (uint32_t i = type.size(); i < type.size() + instance.arguments; i++) {
+        const symbol_t& parameter = instance.parameters[i];
         expression_t argument = instance.mapping[parameter];
 
         if (!checkExpression(argument)) {
@@ -968,7 +1262,7 @@ void TypeChecker::visitInstance(instance_t& instance)
 
         // For template instantiation, the argument must be side-effect free
         if (argument.changes_any_variable()) {
-            handleError(argument, "$Argument_must_be_side-effect_free");
+            handleError(must_be_side_effect_free(argument));
             continue;
         }
 
@@ -976,14 +1270,14 @@ void TypeChecker::visitInstance(instance_t& instance)
         // - Value parameter with computable argument
         // - Constant reference with computable argument
         // - Reference parameter with unique lhs argument
-        // If non of the cases are true, then we generate an error
-        bool ref = parameter.get_type().is(REF);
-        bool constant = parameter.get_type().is_constant();
-        bool computable = isCompileTimeComputable(argument);
+        // If none of the cases are true, then we generate an error
+        const bool ref = parameter.get_type().is(REF);
+        const bool constant = parameter.get_type().is_constant();
+        const bool computable = isCompileTimeComputable(argument);
 
         if ((!ref && !computable) || (ref && !constant && !isUniqueReference(argument)) ||
             (ref && constant && !computable)) {
-            handleError(argument, "$Incompatible_argument");
+            handleError(incompatible_argument(argument));
             continue;
         }
 
@@ -991,57 +1285,19 @@ void TypeChecker::visitInstance(instance_t& instance)
     }
 }
 
-static bool isGameProperty(expression_t expr)
-{
-    switch (expr.get_kind()) {
-    case CONTROL:
-    case SMC_CONTROL:
-    case EF_CONTROL:
-    case CONTROL_TOPT:
-    case PO_CONTROL:
-    case CONTROL_TOPT_DEF1:
-    case CONTROL_TOPT_DEF2: return true;
-    default: return false;
-    }
-}
-
-static bool hasMITLInQuantifiedSub(expression_t expr)
-{
-    bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
-    if (!hasIt) {
-        for (uint32_t i = 0; i < expr.get_size(); i++) {
-            hasIt |= hasMITLInQuantifiedSub(expr.get(i));
-        }
-    }
-    return hasIt;
-}
-
-static bool hasSpawnOrExit(expression_t expr)
-{
-    bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
-    if (!hasIt) {
-        for (uint32_t i = 0; i < expr.get_size(); i++) {
-            hasIt |= hasSpawnOrExit(expr.get(i));
-        }
-    }
-    return hasIt;
-}
-
 void TypeChecker::visitProperty(expression_t expr)
 {
     if (checkExpression(expr)) {
         if (expr.changes_any_variable()) {
-            handleError(expr, "$Property_must_be_side-effect_free");
+            handleError(must_be_side_effect_free(expr));
         }
         if (expr.get_kind() == LOAD_STRAT || expr.get_kind() == SAVE_STRAT) {
-            if (!expr.get(0).get_type().is_string()) {
-                handleError(expr, "$loadStrategy_and_saveStrategy_expect_a_string");
-            }
+            if (!expr.get(0).get_type().is_string())
+                handleError(loadStrategy_and_saveStrategy_expect_string(expr));
             return;
         }
-        if (!is_formula(expr)) {
-            handleError(expr, "$Property_must_be_a_valid_formula");
-        }
+        if (!is_formula(expr))
+            handleError(must_be_valid_formula(expr));
         if (isGameProperty(expr)) {
             /*
             for (uint32_t i = 0; i < expr.get_size(); i++)
@@ -1066,10 +1322,9 @@ void TypeChecker::visitProperty(expression_t expr)
                                              k != MAX_EXP)    // ALREADY CHECKED IN PARSE
         {
             for (uint32_t i = 0; i < expr.get_size(); i++) {
-                /* No nesting except for constraints */
-                if (!is_constraint(expr[i])) {
-                    handleError(expr[i], "$Nesting_of_path_quantifiers_is_not_allowed");
-                }
+                // No nesting except for constraints
+                if (!is_constraint(expr[i]))
+                    handleError(nested_path_quntifiers_not_supported(expr[i]));
             }
         }
         if (expr.get_kind() == PO_CONTROL) {
@@ -1078,9 +1333,8 @@ void TypeChecker::visitProperty(expression_t expr)
              */
             checkObservationConstraints(expr);
         }
-        if (hasMITLInQuantifiedSub(expr) && expr.get_kind() != MITL_FORMULA) {
-            handleError(expr, "MITL inside forall or exists in non-MITL property");
-        }
+        if (hasMITLInQuantifiedSub(expr) && expr.get_kind() != MITL_FORMULA)
+            handleError(mitl_inside_forall_or_exists_in_non_mitl(expr));
     }
 }
 
@@ -1100,14 +1354,14 @@ void TypeChecker::visitProperty(expression_t expr)
  *
  *  - expression in the label field of an update (LSC)
  */
-bool TypeChecker::checkAssignmentExpression(expression_t expr)
+bool TypeChecker::checkAssignmentExpression(expression_t& expr)
 {
     if (!checkExpression(expr)) {
         return false;
     }
 
-    if (!isAssignable(expr.get_type()) && !is_void(expr)) {
-        handleError(expr, "$Invalid_assignment_expression");
+    if (!is_assignable(expr.get_type()) && !is_void(expr)) {
+        handleError(invalid_assignment(expr));
         return false;
     }
 
@@ -1119,16 +1373,16 @@ bool TypeChecker::checkAssignmentExpression(expression_t expr)
 }
 
 /** Checks that the expression can be used as a condition (e.g. for if). */
-bool TypeChecker::checkConditionalExpressionInFunction(expression_t expr)
+bool TypeChecker::checkConditionalExpressionInFunction(const expression_t& expr)
 {
     if (!(is_integral(expr) || is_constraint(expr))) {
-        handleError(expr, "$Boolean_expected");
+        handleError(boolean_expected(expr));
         return false;
     }
     return true;
 }
 
-void TypeChecker::checkObservationConstraints(expression_t expr)
+void TypeChecker::checkObservationConstraints(const expression_t& expr)
 {
     for (size_t i = 0; i < expr.get_size(); ++i) {
         checkObservationConstraints(expr[i]);
@@ -1155,9 +1409,9 @@ void TypeChecker::checkObservationConstraints(expression_t expr)
     default:;
     }
 
-    if (invalid) {
-        handleError(expr, "$Clock_lower_bound_must_be_weak_and_upper_bound_strict");
-    } else {
+    if (invalid)
+        handleError(clock_lower_and_upper_bounds(expr));
+    else {
         switch (expr.get_kind())  // No clock differences.
         {
         case LT:
@@ -1168,37 +1422,12 @@ void TypeChecker::checkObservationConstraints(expression_t expr)
         case NEQ:
             if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_diff(expr[0]) && is_integer(expr[1])) ||
                 (is_integer(expr[0]) && is_diff(expr[1]))) {
-                handleError(expr, "$Clock_differences_are_not_supported");
+                handleError(clock_difference_is_not_supported(expr));
             }
             break;
 
         default:;
         }
-    }
-}
-
-static bool validReturnType(type_t type)
-{
-    frame_t frame;
-
-    switch (type.get_kind()) {
-    case Constants::RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
-            if (!validReturnType(type[i])) {
-                return false;
-            }
-        }
-        return true;
-
-    case Constants::RANGE:
-    case Constants::LABEL: return validReturnType(type[0]);
-
-    case Constants::INT:
-    case Constants::BOOL:
-    case Constants::SCALAR:
-    case Constants::DOUBLE: return true;
-
-    default: return false;
     }
 }
 
@@ -1208,11 +1437,10 @@ void TypeChecker::visitFunction(function_t& fun)
     /* Check that the return type is consistent and is a valid return
      * type.
      */
-    type_t return_type = fun.uid.get_type()[0];
+    const type_t& return_type = fun.uid.get_type()[0];
     checkType(return_type);
-    if (!return_type.is_void() && !validReturnType(return_type)) {
-        handleError(return_type, "$Invalid_return_type");
-    }
+    if (!return_type.is_void() && !validReturnType(return_type))
+        handleError(invalid_return_type(return_type));
 
     /* Type check the function body: Type checking return statements
      * requires access to the return type, hence we store a pointer to
@@ -1231,24 +1459,24 @@ void TypeChecker::visitFunction(function_t& fun)
      * nor parameters are considered to be changed or accessed by a
      * function.
      */
-    CollectChangesVisitor visitor(fun.changes);
+    auto visitor = CollectChangesVisitor{fun.changes};
     fun.body->accept(&visitor);
 
-    CollectDependenciesVisitor visitor2(fun.depends);
+    auto visitor2 = CollectDependenciesVisitor{fun.depends};
     fun.body->accept(&visitor2);
 
     for (const auto& var : fun.variables) {
         fun.changes.erase(var.uid);
         fun.depends.erase(var.uid);
     }
-    size_t parameters = fun.uid.get_type().size() - 1;
+    const uint32_t parameters = fun.uid.get_type().size() - 1;
     for (uint32_t i = 0; i < parameters; i++) {
         fun.changes.erase(fun.body->get_frame()[i]);
         fun.depends.erase(fun.body->get_frame()[i]);
     }
 }
 
-int32_t TypeChecker::visitEmptyStatement(EmptyStatement* stat) { return 0; }
+int32_t TypeChecker::visitEmptyStatement(EmptyStatement*) { return 0; }
 
 int32_t TypeChecker::visitExprStatement(ExprStatement* stat)
 {
@@ -1258,9 +1486,8 @@ int32_t TypeChecker::visitExprStatement(ExprStatement* stat)
 
 int32_t TypeChecker::visitAssertStatement(AssertStatement* stat)
 {
-    if (checkExpression(stat->expr) && stat->expr.changes_any_variable()) {
-        handleError(stat->expr, "$Assertion_must_be_side-effect_free");
-    }
+    if (checkExpression(stat->expr) && stat->expr.changes_any_variable())
+        handleError(must_be_side_effect_free(stat->expr));
     return 0;
 }
 
@@ -1279,16 +1506,15 @@ int32_t TypeChecker::visitForStatement(ForStatement* stat)
 
 int32_t TypeChecker::visitIterationStatement(IterationStatement* stat)
 {
-    type_t type = stat->symbol.get_type();
+    const type_t& type = stat->symbol.get_type();
     checkType(type);
 
     /* We only support iteration over scalars and integers.
      */
-    if (!type.is_scalar() && !type.is_integer()) {
-        handleError(type, "$Scalar_set_or_integer_expected");
-    } else if (!type.is(RANGE)) {
-        handleError(type, "$Range_expected");
-    }
+    if (!type.is_scalar() && !type.is_integer())
+        handleError(scalar_or_integer_expected(type));
+    else if (!type.is(RANGE))
+        handleError(range_expected(type));
 
     return stat->stat->accept(this);
 }
@@ -1311,8 +1537,6 @@ int32_t TypeChecker::visitDoWhileStatement(DoWhileStatement* stat)
 
 int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
 {
-    BlockStatement::iterator i;
-
     /* Check type and initialiser of local variables (parameters are
      * also considered local variables).
      */
@@ -1320,8 +1544,8 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
         symbol_t symbol = frame[i];
         checkType(symbol.get_type());
-        if (auto* d = symbol.get_data(); d) {
-            variable_t* var = static_cast<variable_t*>(d);
+        if (auto* d = symbol.get_data(); d != nullptr) {
+            auto* var = static_cast<variable_t*>(d);
             if (!var->init.empty() && checkExpression(var->init)) {
                 if (var->init.changes_any_variable()) {
                     /* This is stronger than C. However side-effects in
@@ -1329,7 +1553,7 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
                      * order may be different from the order in the input
                      * file.
                      */
-                    handleError(var->init, "$Initialiser_must_be_side-effect_free");
+                    handleError(must_be_side_effect_free(var->init));
                 } else {
                     var->init = checkInitialiser(symbol.get_type(), var->init);
                 }
@@ -1364,60 +1588,21 @@ int32_t TypeChecker::visitReturnStatement(ReturnStatement* stat)
         /* The only valid return types are integers and records. For these
          * two types, the type rules are the same as for parameters.
          */
-        type_t return_type = function->uid.get_type()[0];
+        const type_t& return_type = function->uid.get_type()[0];
         checkParameterCompatible(return_type, stat->value);
     }
     return 0;
 }
 
 /**
- * Returns a value indicating the capabilities of a channel. For
- * urgent channels this is 0, for non-urgent broadcast channels this
- * is 1, and in all other cases 2. An argument to a channel parameter
- * must have at least the same capability as the parameter.
- */
-static int channelCapability(type_t type)
-{
-    assert(type.is_channel());
-    if (type.is(URGENT)) {
-        return 0;
-    }
-    if (type.is(BROADCAST)) {
-        return 1;
-    }
-    return 2;
-}
-
-/**
- * Returns true if two scalar types are name-equivalent.
- */
-static bool isSameScalarType(type_t t1, type_t t2)
-{
-    if (t1.get_kind() == REF || t1.get_kind() == CONSTANT || t1.get_kind() == SYSTEM_META) {
-        return isSameScalarType(t1[0], t2);
-    } else if (t2.get_kind() == EF || t2.get_kind() == CONSTANT || t2.get_kind() == SYSTEM_META) {
-        return isSameScalarType(t1, t2[0]);
-    } else if (t1.get_kind() == LABEL && t2.get_kind() == LABEL) {
-        return t1.get_label(0) == t2.get_label(0) && isSameScalarType(t1[0], t2[0]);
-    } else if (t1.get_kind() == SCALAR && t2.get_kind() == SCALAR) {
-        return true;
-    } else if (t1.get_kind() == RANGE && t2.get_kind() == RANGE) {
-        return isSameScalarType(t1[0], t2[0]) && t1.get_range().first.equal(t2.get_range().first) &&
-               t1.get_range().second.equal(t2.get_range().second);
-    } else {
-        return false;
-    }
-}
-
-/**
  * Returns true iff argument type is compatible with parameter type.
  */
-bool TypeChecker::isParameterCompatible(type_t paramType, expression_t arg)
+bool TypeChecker::isParameterCompatible(const type_t& paramType, const expression_t& arg)
 {
-    bool ref = paramType.is(REF);
-    bool constant = paramType.is_constant();
-    bool lvalue = isModifiableLValue(arg);
-    type_t argType = arg.get_type();
+    const bool ref = paramType.is(REF);
+    const bool constant = paramType.is_constant();
+    const bool lvalue = isModifiableLValue(arg);
+    const type_t& argType = arg.get_type();
     // For non-const reference parameters, we require a modifiable
     // lvalue argument
     if (ref && !constant && !lvalue) {
@@ -1425,21 +1610,21 @@ bool TypeChecker::isParameterCompatible(type_t paramType, expression_t arg)
     }
 
     if (paramType.is_channel() && argType.is_channel()) {
-        return channelCapability(argType) >= channelCapability(paramType);
+        return argType.channel_capability() >= paramType.channel_capability();
     } else if (ref && lvalue) {
-        return areEquivalent(argType, paramType);
+        return argType.is_equivalent(paramType);
     } else {
-        return areAssignmentCompatible(paramType, argType);
+        return paramType.is_assignment_compatible(argType);
     }
 }
 
 /**
  * Checks whether argument type is compatible with parameter type.
  */
-bool TypeChecker::checkParameterCompatible(type_t paramType, expression_t arg)
+bool TypeChecker::checkParameterCompatible(const type_t& paramType, const expression_t& arg)
 {
     if (!isParameterCompatible(paramType, arg)) {
-        handleError(arg, "$Incompatible_argument");
+        handleError(incompatible_argument(arg));
         return false;
     }
     return true;
@@ -1452,80 +1637,60 @@ bool TypeChecker::checkParameterCompatible(type_t paramType, expression_t arg)
  * returned. REVISIT: Can a record initialiser have side-effects? Then
  * such reordering is not valid.
  */
-expression_t TypeChecker::checkInitialiser(type_t type, expression_t init)
+expression_t TypeChecker::checkInitialiser(const type_t& type, const expression_t& init)
 {
-    if (areAssignmentCompatible(type, init.get_type(), true)) {
+    if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
     } else if (type.is_array() && init.get_kind() == LIST) {
-        type_t subtype = type.get_sub();
-        std::vector<expression_t> result(init.get_size(), expression_t());
+        auto subtype = type.get_sub();
+        auto result = std::vector<expression_t>(init.get_size());
         for (uint32_t i = 0; i < init.get_type().size(); i++) {
-            if (!init.get_type().get_label(i).empty()) {
-                handleError(init[i], "$Field_name_not_allowed_in_array_initialiser");
-            }
-            result[i] = checkInitialiser(subtype, init[i]);
+            if (!init.get_type().get_label(i).empty())
+                handleError(field_name_not_allowed_in_array_init(init[i]));
+            checkInitialiser(subtype, init[i]);
         }
         return expression_t::create_nary(LIST, result, init.get_position(), type);
     } else if (type.is_record() && init.get_kind() == LIST) {
         /* In order to access the record labels we have to strip any
          * prefixes and labels from the record type.
          */
-        std::vector<expression_t> result(type.get_record_size(), expression_t());
-        uint32_t current = 0;
+        auto result = std::vector<expression_t>(type.get_record_size());
+        auto current = uint32_t{0};
         for (uint32_t i = 0; i < init.get_type().size(); ++i, ++current) {
-            std::string label = init.get_type().get_label(i);
+            const std::string& label = init.get_type().get_label(i);
             if (!label.empty()) {
                 auto index = type.find_index_of(label);
                 if (!index) {
-                    handleError(init[i], "$Unknown_field");
+                    handleError(unknown_field_name(init[i]));
                     break;
                 } else {
                     current = *index;
                 }
             }
-
             if (current >= type.get_record_size()) {
-                handleError(init[i], "$Too_many_elements_in_initialiser");
+                handleError(too_many_elements_in_initializer(init[i]));
                 break;
             }
-
             if (!result[current].empty()) {
-                handleError(init[i], "$Multiple_initialisers_for_field");
+                handleError(multiple_initializers_for_field(init[i]));
                 continue;
             }
-
             result[current] = checkInitialiser(type.get_sub(current), init[i]);
         }
-
-        // Check that all fields do have an initialiser.
-        for (size_t i = 0; i < result.size(); i++) {
-            if (result[i].empty()) {
-                handleError(init, "$Incomplete_initialiser");
+        // Check that all fields do have an initializer.
+        for (const auto& res : result) {
+            if (res.empty()) {
+                handleError(incomplete_initializer(init));
                 break;
             }
         }
-
         return expression_t::create_nary(LIST, result, init.get_position(), type);
     }
-    handleError(init, "$Invalid_initialiser");
+    handleError(invalid_initializer(init));
     return init;
 }
 
-/** Returns true if arguments of an inline if are compatible. The
-    'then' and 'else' arguments are compatible if and only if they
-    have the same base type. In case of arrays, they must have the
-    same size and the subtypes must be compatible. In case of records,
-    they must have the same type name.
-*/
-bool TypeChecker::areInlineIfCompatible(type_t result_type, type_t t1, type_t t2) const
-{
-    if (areAssignmentCompatible(result_type, t1) && areAssignmentCompatible(result_type, t1))
-        return true;
-
-    return areEquivalent(t1, t2);
-}
-
-type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
+type_t TypeChecker::getInlineIfCommonType(const type_t& t1, const type_t& t2) const
 {
     if (t1.is_record())
         return t1;
@@ -1533,106 +1698,14 @@ type_t TypeChecker::getInlineIfCommonType(type_t t1, type_t t2) const
         return t2;
     else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
         return type_t{DOUBLE, {}, 0};
-    else if (TypeChecker::areAssignmentCompatible(t1, t2))
+    else if (t1.is_assignment_compatible(t2))
         return t1;
-    else if (TypeChecker::areAssignmentCompatible(t2, t1))
+    else if (t2.is_assignment_compatible(t1))
         return t2;
-    else if (TypeChecker::areEquivalent(t2, t1))
+    else if (t2.is_equivalent(t1))
         return t1;
     else
         return type_t{};
-}
-
-/**
- * Returns true iff \a a and \a b are structurally
- * equivalent. However, CONST, SYSTEM_META, and REF are ignored. Scalar sets
- * are checked using named equivalence.
- */
-bool TypeChecker::areEquivalent(type_t a, type_t b)
-{
-    if (a.is_integer() && b.is_integer()) {
-        return !a.is(RANGE) || !b.is(RANGE) ||
-               (a.get_range().first.equal(b.get_range().first) && a.get_range().second.equal(b.get_range().second));
-    } else if (a.isBoolean() && b.isBoolean()) {
-        return true;
-    } else if (a.is_clock() && b.is_clock()) {
-        return true;
-    } else if (a.is_channel() && b.is_channel()) {
-        return channelCapability(a) == channelCapability(b);
-    } else if (a.is_record() && b.is_record()) {
-        size_t aSize = a.get_record_size();
-        size_t bSize = b.get_record_size();
-        if (aSize == bSize) {
-            for (size_t i = 0; i < aSize; i++) {
-                if (a.get_record_label(i) != b.get_record_label(i) || !areEquivalent(a.get_sub(i), b.get_sub(i))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    } else if (a.is_array() && b.is_array()) {
-        type_t asize = a.get_array_size();
-        type_t bsize = b.get_array_size();
-
-        if (asize.is_integer() && bsize.is_integer()) {
-            return asize.get_range().first.equal(bsize.get_range().first) &&
-                   asize.get_range().second.equal(bsize.get_range().second) && areEquivalent(a.get_sub(), b.get_sub());
-        } else if (asize.is_scalar() && bsize.is_scalar()) {
-            return isSameScalarType(asize, bsize) && areEquivalent(a.get_sub(), b.get_sub());
-        }
-        return false;
-    } else if (a.is_scalar() && b.is_scalar()) {
-        return isSameScalarType(a, b);
-    } else if (a.is_double() && b.is_double()) {
-        return true;
-    } else if (a.is_string() && b.is_string()) {
-        return true;
-    }
-
-    return false;
-}
-
-/** Returns true if lvalue and rvalue are assignment compatible.  This
-    is the case when an expression of type rvalue can be assigned to
-    an expression of type lvalue. It does not check whether lvalue is
-    actually a left-hand side value. In case of integers, it does not
-    check the range of the expressions.
-*/
-bool TypeChecker::areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init) const
-{
-    if (init ? ((lvalue.is_clock() && (rvalue.is_double() || rvalue.is_integral())) ||
-                (lvalue.is_double() && (rvalue.is_integral() || rvalue.is_double())))
-             : ((lvalue.is_clock() || lvalue.is_double()) &&
-                (rvalue.is_integral() || rvalue.is_double() || rvalue.is_clock()))) {
-        return true;
-    } else if (lvalue.is_integral() && rvalue.is_integral()) {
-        return true;
-    }
-    return areEquivalent(lvalue, rvalue);
-}
-
-/**
- * Returns true if two types are compatible for comparison using the
- * equality operator.
- *
- * Two types are compatible if they are structurally
- * equivalent. However for scalar we use name equivalence.  Prefixes
- * like CONST, SYSTEM_META, URGENT, COMMITTED, BROADCAST, REF and TYPENAME
- * are ignored.
- *
- * Clocks are not handled by this method: If t1 or t2 are clock-types,
- * then false is returned.
- * REVISIT: This should be updated.
- */
-bool TypeChecker::areEqCompatible(type_t t1, type_t t2) const
-{
-    if (t1.is_integral() && t2.is_integral()) {
-        return true;
-    } else if (t1.is(PROCESS_VAR) && t2.is(PROCESS_VAR)) {
-        return true;
-    } else {
-        return areEquivalent(t1, t2);
-    }
 }
 
 /** Type check and checkExpression the expression. This function performs
@@ -1647,7 +1720,7 @@ bool TypeChecker::areEqCompatible(type_t t1, type_t t2) const
     out-of-range errors or warnings. Returns true if no type errors
     were found, false otherwise.
 */
-bool TypeChecker::checkExpression(expression_t expr)
+bool TypeChecker::checkExpression(expression_t& expr)
 {
     /* Do not check empty expressions.
      */
@@ -1669,7 +1742,10 @@ bool TypeChecker::checkExpression(expression_t expr)
     /* CheckExpression the expression. This depends on the kind of expression
      * we are dealing with.
      */
-    type_t type, arg1, arg2, arg3;
+    type_t type;
+    // type_t arg1;
+    // type_t arg2;
+    // type_t arg3;
     switch (expr.get_kind()) {
         // It is possible to have DOT expressions as data.x
         // with data being an array of struct. The type checker
@@ -1696,14 +1772,13 @@ bool TypeChecker::checkExpression(expression_t expr)
         } else if (is_invariant(expr[2]) || is_guard(expr[2])) {
             type = type_t::create_primitive(Constants::DOUBLE_INV_GUARD);
         } else {
-            handleError(expr, "A sum can only  be made over integer, double, invariant or guard expressions.");
+            handleError(invalid_sum(expr));
             return false;
         }
         break;
     case FRACTION:
-        if (is_integral(expr[0]) && is_integral(expr[1])) {
+        if (is_integral(expr[0]) && is_integral(expr[1]))
             type = type_t::create_primitive(Constants::FRACTION);
-        }
         break;
 
     case PLUS:
@@ -1742,7 +1817,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             type = type_t::create_primitive(Constants::BOOL);
         } else if (is_invariant(expr[0]) && is_invariant(expr[1])) {
             type = type_t::create_primitive(INVARIANT);
-        } else if (isInvariantWR(expr[0]) && isInvariantWR(expr[1])) {
+        } else if (is_invariant_wr(expr[0]) && is_invariant_wr(expr[1])) {
             type = type_t::create_primitive(INVARIANT_WR);
         } else if (is_guard(expr[0]) && is_guard(expr[1])) {
             type = type_t::create_primitive(GUARD);
@@ -1760,9 +1835,9 @@ bool TypeChecker::checkExpression(expression_t expr)
             type = type_t::create_primitive(INVARIANT);
         } else if (is_invariant(expr[0]) && is_integral(expr[1])) {
             type = type_t::create_primitive(INVARIANT);
-        } else if (is_integral(expr[0]) && isInvariantWR(expr[1])) {
+        } else if (is_integral(expr[0]) && is_invariant_wr(expr[1])) {
             type = type_t::create_primitive(INVARIANT_WR);
-        } else if (isInvariantWR(expr[0]) && is_integral(expr[1])) {
+        } else if (is_invariant_wr(expr[0]) && is_integral(expr[1])) {
             type = type_t::create_primitive(INVARIANT_WR);
         } else if (is_integral(expr[0]) && is_guard(expr[1])) {
             type = type_t::create_primitive(GUARD);
@@ -1781,12 +1856,12 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case SPAWN: {
         template_t* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
-        if (!temp) {
-            handleError(expr, "It appears your trying to spawn a non-dynamic template");
+        if (temp == nullptr) {
+            handleError(cannot_spawn_a_non_dynamic_template(expr));
             return false;
         }
         if (temp->parameters.get_size() != expr.get_size() - 1) {
-            handleError(expr, "Wrong number of arguments");
+            handleError(wrong_number_of_arguments(expr));
             return false;
         }
         for (size_t i = 0; i < temp->parameters.get_size(); i++) {
@@ -1797,7 +1872,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
         /* check that spawn is only made for templates with definitions*/
         if (!temp->is_defined) {
-            handleError(expr, "Template is only declared - not defined");
+            handleError(template_only_declared_and_undefined(expr));
             return false;
         }
         type = type_t::create_primitive(Constants::INT);
@@ -1805,11 +1880,10 @@ bool TypeChecker::checkExpression(expression_t expr)
     }
 
     case NUMOF: {
-        template_t* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
-        if (temp) {
+        if (document.find_dynamic_template(expr[0].get_symbol().get_name()) != nullptr) {
             type = type_t::create_primitive(Constants::INT);
         } else {
-            handleError(expr, "Not a dynamic template");
+            handleError(not_dynamic_template(expr));
             return false;
         }
         break;
@@ -1818,7 +1892,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case EXIT: {
         assert(temp);
         if (!temp->dynamic) {
-            handleError(expr, "Exit can only be used in templates declared as dynamic");
+            handleError(exit_only_in_dynamic_template(expr));
             return false;
         }
 
@@ -1831,9 +1905,9 @@ bool TypeChecker::checkExpression(expression_t expr)
     case LE:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
             type = type_t::create_primitive(Constants::BOOL);
-        } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && isBound(expr[1])) ||
-                   (is_clock(expr[1]) && isBound(expr[0])) || (is_diff(expr[0]) && isBound(expr[1])) ||
-                   (isBound(expr[0]) && is_diff(expr[1]))) {
+        } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_bound(expr[1])) ||
+                   (is_clock(expr[1]) && is_bound(expr[0])) || (is_diff(expr[0]) && is_bound(expr[1])) ||
+                   (is_bound(expr[0]) && is_diff(expr[1]))) {
             type = type_t::create_primitive(INVARIANT);
         } else if (is_number(expr[0]) && is_clock(expr[1])) {
             type = type_t::create_primitive(GUARD);
@@ -1851,7 +1925,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             (is_number(expr[0]) && is_clock(expr[1])) || (is_diff(expr[0]) && is_number(expr[1])) ||
             (is_number(expr[0]) && is_diff(expr[1]))) {
             type = type_t::create_primitive(GUARD);
-        } else if (areEqCompatible(expr[0].get_type(), expr[1].get_type())) {
+        } else if (expr[0].get_type().is_equality_compatible(expr[1].get_type())) {
             type = type_t::create_primitive(Constants::BOOL);
         } else if ((expr[0].get_type().is(RATE) && (is_integral(expr[1]) || is_double_value(expr[1]))) ||
                    ((is_integral(expr[0]) || is_double_value(expr[0])) && expr[1].get_type().is(RATE))) {
@@ -1862,7 +1936,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case NEQ:
-        if (areEqCompatible(expr[0].get_type(), expr[1].get_type())) {
+        if (expr[0].get_type().is_equality_compatible(expr[1].get_type())) {
             type = type_t::create_primitive(Constants::BOOL);
         } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_integer(expr[1])) ||
                    (is_integer(expr[0]) && is_clock(expr[1])) || (is_diff(expr[0]) && is_integer(expr[1])) ||
@@ -1930,28 +2004,27 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case RATE:
-        if (isCost(expr[0]) || is_clock(expr[0])) {
+        if (is_cost(expr[0]) || is_clock(expr[0])) {
             type = type_t::create_primitive(RATE);
         }
         break;
 
     case ASSIGN:
-        if (!areAssignmentCompatible(expr[0].get_type(), expr[1].get_type())) {
-            handleError(expr, "$Incompatible_types");
+        if (!expr[0].get_type().is_assignment_compatible(expr[1].get_type())) {
+            handleError(incompatible_types(expr));
             return false;
         } else if (!isModifiableLValue(expr[0])) {
-            handleError(expr[0], "$Left_hand_side_value_expected");
+            handleError(lvalue_expected(expr[0]));
             return false;
         }
         type = expr[0].get_type();
         break;
 
     case ASS_PLUS:
-        if ((!is_integer(expr[0]) && !isCost(expr[0])) || !is_integral(expr[1])) {
-            handleError(expr, "$Increment_operator_can_only_be_used_for_integers_and_cost_variables");
-        } else if (!isModifiableLValue(expr[0])) {
-            handleError(expr[0], "$Left_hand_side_value_expected");
-        }
+        if ((!is_integer(expr[0]) && !is_cost(expr[0])) || !is_integral(expr[1]))
+            handleError(increment_only_integers_and_cost(expr));
+        else if (!isModifiableLValue(expr[0]))
+            handleError(lvalue_expected(expr[0]));
         type = expr[0].get_type();
         break;
 
@@ -1965,10 +2038,10 @@ bool TypeChecker::checkExpression(expression_t expr)
     case ASS_LSHIFT:
     case ASS_RSHIFT:
         if (!is_integral(expr[0]) || !is_integral(expr[1])) {
-            handleError(expr, "$Non-integer_types_must_use_regular_assignment_operator");
+            handleError(use_regular_assignment_on_non_integer(expr));
             return false;
         } else if (!isModifiableLValue(expr[0])) {
-            handleError(expr[0], "$Left_hand_side_value_expected");
+            handleError(lvalue_expected(expr[0]));
             return false;
         }
         type = expr[0].get_type();
@@ -1979,10 +2052,10 @@ bool TypeChecker::checkExpression(expression_t expr)
     case POST_DECREMENT:
     case PRE_DECREMENT:
         if (!isModifiableLValue(expr[0])) {
-            handleError(expr[0], "$Left_hand_side_value_expected");
+            handleError(lvalue_expected(expr[0]));
             return false;
         } else if (!is_integer(expr[0])) {
-            handleError(expr, "$Integer_expected");
+            handleError(integer_expected(expr));
             return false;
         }
         type = type_t::create_primitive(Constants::INT);
@@ -1991,7 +2064,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case FMA_F:
     case RANDOM_TRI_F:
         if (!is_number(expr[2])) {
-            handleError(expr[2], "$Number_expected");
+            handleError(number_expected(expr[2]));
             return false;
         }  // fall-through to check the second argument:
         [[fallthrough]];
@@ -2010,7 +2083,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case RANDOM_NORMAL_F:
     case RANDOM_WEIBULL_F:
         if (!is_number(expr[1])) {
-            handleError(expr[1], "$Number_expected");
+            handleError(number_expected(expr[1]));
             return false;
         }  // fall-through to check the first argument:
         [[fallthrough]];
@@ -2049,7 +2122,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case RANDOM_F:
     case RANDOM_POISSON_F:
         if (!is_number(expr[0])) {
-            handleError(expr[0], "$Number_expected");
+            handleError(number_expected(expr[0]));
             return false;
         }
         type = type_t::create_primitive(Constants::DOUBLE);
@@ -2057,11 +2130,11 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case LDEXP_F:
         if (!is_integral(expr[1])) {
-            handleError(expr[1], "$Integer_expected");
+            handleError(integer_expected(expr[1]));
             return false;
         }
         if (!is_number(expr[0])) {
-            handleError(expr[0], "$Number_expected");
+            handleError(number_expected(expr[0]));
             return false;
         }
         type = type_t::create_primitive(Constants::DOUBLE);
@@ -2070,7 +2143,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case ABS_F:
     case FP_CLASSIFY_F:
         if (!is_integral(expr[0])) {
-            handleError(expr[0], "$Integer_expected");
+            handleError(integer_expected(expr[0]));
             return false;
         }
         type = type_t::create_primitive(Constants::INT);
@@ -2079,7 +2152,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case ILOGB_F:
     case FINT_F:
         if (!is_number(expr[0])) {
-            handleError(expr[0], "$Number_expected");
+            handleError(number_expected(expr[0]));
             return false;
         }
         type = type_t::create_primitive(Constants::INT);
@@ -2092,7 +2165,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     case SIGNBIT_F:
     case IS_UNORDERED_F:
         if (!is_number(expr[0])) {
-            handleError(expr[0], "$Number_expected");
+            handleError(number_expected(expr[0]));
             return false;
         }
         type = type_t::create_primitive(Constants::BOOL);
@@ -2100,24 +2173,24 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case INLINE_IF:
         if (!(is_integral(expr[0]) || is_guard(expr[0]))) {
-            handleError(expr, "$First_argument_of_inline_if_must_be_an_integer");
+            handleError(first_argument_of_inline_if_must_be_integer(expr));
             return false;
         }
 
         type = getInlineIfCommonType(expr[1].get_type(), expr[2].get_type());
-        if (!areInlineIfCompatible(type, expr[1].get_type(), expr[2].get_type())) {
-            handleError(expr, "$Incompatible_arguments_to_inline_if");
+        if (!type.is_inline_if_compatible(expr[1].get_type(), expr[2].get_type())) {
+            handleError(incompatible_arguments_to_inline_if(expr));
             return false;
         }
         break;
 
     case COMMA:
-        if (!isAssignable(expr[0].get_type()) && !is_void(expr[0])) {
-            handleError(expr[0], "$Incompatible_type_for_comma_expression");
+        if (!is_assignable(expr[0].get_type()) && !is_void(expr[0])) {
+            handleError(incompatible_type_for_comma(expr[0]));
             return false;
         }
-        if (!isAssignable(expr[1].get_type()) && !is_void(expr[1])) {
-            handleError(expr[1], "$Incompatible_type_for_comma_expression");
+        if (!is_assignable(expr[1].get_type()) && !is_void(expr[1])) {
+            handleError(incompatible_type_for_comma(expr[1]));
             return false;
         }
         checkIgnoredValue(expr[0]);
@@ -2129,41 +2202,39 @@ bool TypeChecker::checkExpression(expression_t expr)
         checkExpression(expr[0]);
 
         bool result = true;
-        type_t type = expr[0].get_type();
-        size_t parameters = type.size() - 1;
+        const type_t& t = expr[0].get_type();
+        const uint32_t parameters = t.size() - 1;
         for (uint32_t i = 0; i < parameters; i++) {
-            type_t parameter = type[i + 1];
-            expression_t argument = expr[i + 1];
+            const type_t& parameter = t[i + 1];
+            const expression_t& argument = expr[i + 1];
             result &= checkParameterCompatible(parameter, argument);
         }
         return result;
     }
 
-    case ARRAY:
-        arg1 = expr[0].get_type();
-        arg2 = expr[1].get_type();
+    case ARRAY: {
+        const type_t& arg1 = expr[0].get_type();
+        const type_t& arg2 = expr[1].get_type();
 
-        /* The left side must be an array.
-         */
+        // The left side must be an array.
         if (!arg1.is_array()) {
-            handleError(expr[0], "$Array_expected");
+            handleError(array_expected(expr[0]));
             return false;
         }
         type = arg1.get_sub();
 
-        /* Check the type of the index.
-         */
+        // Check the type of the index.
         if (arg1.get_array_size().is_integer() && arg2.is_integral()) {
         } else if (arg1.get_array_size().is_scalar() && arg2.is_scalar()) {
-            if (!isSameScalarType(arg1.get_array_size(), arg2)) {
-                handleError(expr[1], "$Incompatible_type");
+            if (!arg1.get_array_size().is_same_scalar(arg2)) {
+                handleError(incompatible_type(expr[1]));
                 return false;
             }
         } else {
-            handleError(expr[1], "$Incompatible_type");
+            handleError(incompatible_type(expr[1]));
         }
         break;
-
+    }
     case FORALL:
         compileTimeComputableValues.add_symbol(expr[0].get_symbol());
         checkType(expr[0].get_symbol().get_type());
@@ -2172,18 +2243,18 @@ bool TypeChecker::checkExpression(expression_t expr)
             type = type_t::create_primitive(Constants::BOOL);
         } else if (is_invariant(expr[1])) {
             type = type_t::create_primitive(INVARIANT);
-        } else if (isInvariantWR(expr[1])) {
+        } else if (is_invariant_wr(expr[1])) {
             type = type_t::create_primitive(INVARIANT_WR);
         } else if (is_guard(expr[1])) {
             type = type_t::create_primitive(GUARD);
         } else if (is_constraint(expr[1])) {
             type = type_t::create_primitive(CONSTRAINT);
         } else {
-            handleError(expr[1], "$Boolean_expected");
+            handleError(boolean_expected(expr[1]));
         }
 
         if (expr[1].changes_any_variable()) {
-            handleError(expr[1], "$Expression_must_be_side-effect_free");
+            handleError(must_be_side_effect_free(expr[1]));
         }
         break;
 
@@ -2196,11 +2267,11 @@ bool TypeChecker::checkExpression(expression_t expr)
         } else if (is_constraint(expr[1])) {
             type = type_t::create_primitive(CONSTRAINT);
         } else {
-            handleError(expr[1], "$Boolean_expected");
+            handleError(boolean_expected(expr[1]));
         }
 
         if (expr[1].changes_any_variable()) {
-            handleError(expr[1], "$Expression_must_be_side-effect_free");
+            handleError(must_be_side_effect_free(expr[1]));
         }
         break;
 
@@ -2213,11 +2284,11 @@ bool TypeChecker::checkExpression(expression_t expr)
         } else if (is_number(expr[1])) {
             type = type_t::create_primitive(Constants::DOUBLE);
         } else {
-            handleError(expr[1], "$Number_expected");
+            handleError(number_expected(expr[1]));
         }
 
         if (expr[1].changes_any_variable()) {
-            handleError(expr[1], "$Expression_must_be_side-effect_free");
+            handleError(must_be_side_effect_free(expr[1]));
         }
         break;
 
@@ -2257,35 +2328,35 @@ bool TypeChecker::checkExpression(expression_t expr)
     case SIMULATEREACH:
     case SIMULATE: {
         if (!is_const_integer(expr[0])) {
-            handleError(expr[0], "$Integer_expected");
+            handleError(integer_expected(expr[0]));
             return false;
         }
         if (!is_const_integer(expr[1]) && !is_clock(expr[1])) {
-            handleError(expr[1], "$Clock_expected");
+            handleError(clock_expected(expr[1]));
             return false;
         }
         if (!isCompileTimeComputable(expr[2])) {
-            handleError(expr[1], "$Must_be_computable_at_compile_time");
+            handleError(must_be_computable_at_compile_time(expr[1]));
             return false;
         }
         if (!is_integral(expr[2])) {
-            handleError(expr[2], "$Integer_expected");
+            handleError(integer_expected(expr[2]));
             return false;
         }
-        int nb = expr.get_size();
+        uint32_t nb = expr.get_size();
         if (expr.get_kind() == SIMULATEREACH) {
             bool ok = true;
             nb -= 2;
             if (!is_const_integer(expr[nb + 1])) {  // check number of accepting runs is an integer
-                handleError(expr[nb + 1], "$Integer_expected");
+                handleError(integer_expected(expr[nb + 1]));
                 return false;
             }
             if (!is_integral(expr[nb]) && !is_constraint(expr[nb + 1])) {  // check reachability expression is a boolean
-                handleError(expr[nb], "$Boolean_expected");
+                handleError(boolean_expected(expr[nb]));
                 ok = false;
             }
             if (expr[nb].changes_any_variable()) {  // check reachability expression is side effect free
-                handleError(expr[nb], "$Property_must_be_side-effect_free");
+                handleError(must_be_side_effect_free(expr[nb]));
                 ok = false;
             }
             if (!ok)
@@ -2295,11 +2366,11 @@ bool TypeChecker::checkExpression(expression_t expr)
             if (!is_integral(expr[i]) && !is_clock(expr[i]) && !is_double_value(expr[i]) &&
                 !expr[i].get_type().is(Constants::DOUBLE_INV_GUARD) && !is_constraint(expr[i]) &&
                 !expr[i].get_type().is_record() && !expr[i].get_type().is_array()) {
-                handleError(expr[i], "$Integer_or_clock_expected");
+                handleError(integer_or_clock_expected(expr[i]));
                 return false;
             }
             if (expr[i].changes_any_variable()) {
-                handleError(expr[i], "$Property_must_be_side-effect_free");
+                handleError(must_be_side_effect_free(expr[i]));
                 return false;
             }
         }
@@ -2311,18 +2382,18 @@ bool TypeChecker::checkExpression(expression_t expr)
     case INF_VAR:
     case BOUNDS_VAR:
         if (!is_integral(expr[0]) && !is_constraint(expr[0])) {
-            handleError(expr[0], "$Boolean_expected");
+            handleError(boolean_expected(expr[0]));
             return false;
         }
         if (expr[1].get_kind() == LIST) {
             for (uint32_t i = 0; i < expr[1].get_size(); ++i) {
                 if (is_integral(expr[1][i])) {
                     if (expr[1][i].changes_any_variable()) {
-                        handleError(expr[1][i], "$Expression_must_be_side-effect_free");
+                        handleError(must_be_side_effect_free(expr[1][i]));
                         return false;
                     }
                 } else if (!is_clock(expr[1][i])) {
-                    handleError(expr[1][i], "$Type_error");
+                    handleError(clock_expected(expr[1][i]));
                     return false;
                 }
             }
@@ -2344,11 +2415,11 @@ bool TypeChecker::checkExpression(expression_t expr)
     case MAX_EXP:
         // 0 = bound clock, 1 = boundvar, 2 = goal, 3 = price
         if (!is_const_integer(expr[0]) && !is_clock(expr[0])) {
-            handleError(expr[0], "$Clock_expected");
+            handleError(integer_or_clock_expected(expr[0]));
             ok = false;
         }
         if (!isCompileTimeComputable(expr[1])) {
-            handleError(expr[1], "$Must_be_computable_at_compile_time");
+            handleError(must_be_computable_at_compile_time(expr[1]));
             ok = false;
         }
         if (!ok)
@@ -2359,7 +2430,7 @@ bool TypeChecker::checkExpression(expression_t expr)
 
         for (size_t i = 3; i < expr.get_size(); ++i) {
             if (expr[i].changes_any_variable()) {
-                handleError(expr[i], "$Property_must_be_side-effect_free");
+                handleError(must_be_side_effect_free(expr[i]));
                 return false;
             }
         }
@@ -2374,7 +2445,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 type = type_t::create_primitive(FORMULA);
             }
         } else {
-            handleError(expr, "Bug: wrong number of arguments");
+            handleError(bug_wrong_number_of_args(expr));
             return false;
         }
         break;
@@ -2385,7 +2456,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             bool ok = true;
             ok &= checkNrOfRuns(expr[0]);
             if (ok && expr[0].get_value() > 0) {
-                handleError(expr[0], "Explicit number of runs is not supported here");
+                handleError(explicit_number_of_runs_is_not_supported_here(expr[0]));
                 ok = false;
             }
             ok &= checkBoundTypeOrBoundedExpr(expr[1]);
@@ -2396,7 +2467,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 return false;
             type = type_t::create_primitive(FORMULA);
         } else {
-            handleError(expr, "Bug: wrong number of arguments");
+            handleError(bug_wrong_number_of_args(expr));
             return false;
         }
         break;
@@ -2414,7 +2485,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 return false;
             type = type_t::create_primitive(FORMULA);
         } else {
-            handleError(expr, "Bug: wrong number of arguments in Pr[](<>)");
+            handleError(bug_wrong_number_of_args(expr));
             return false;
         }
         break;
@@ -2436,7 +2507,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 return false;
             type = type_t::create_primitive(FORMULA);
         } else {
-            handleError(expr, "Bug: wrong number of arguments in Pr[]() <=> Pr[]()");
+            handleError(bug_wrong_number_of_args(expr));
             return false;
         }
         break;
@@ -2452,7 +2523,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 return false;
             type = type_t::create_primitive(FORMULA);
         } else {
-            handleError(expr, "Bug: wrong number of arguments in E[...]()");
+            handleError(bug_wrong_number_of_args(expr));
             return false;
         }
         break;
@@ -2460,7 +2531,7 @@ bool TypeChecker::checkExpression(expression_t expr)
     }
 
     if (type.unknown()) {
-        handleError(expr, "$Type_error");
+        handleError(unknown_type(expr));
         return false;
     } else {
         expr.set_type(type);
@@ -2471,15 +2542,14 @@ bool TypeChecker::checkExpression(expression_t expr)
 /**
  * Returns true if expression evaluates to a modifiable l-value.
  */
-bool TypeChecker::isModifiableLValue(expression_t expr) const
+bool TypeChecker::isModifiableLValue(const expression_t& expr) const
 {
-    type_t t, f;
     switch (expr.get_kind()) {
     case IDENTIFIER: return expr.get_type().is_mutable();
 
     case DOT:
         /* Processes can only be used in properties, which must be
-         * side-effect anyway. Therefore returning false below is
+         * side-effect anyway. Therefore, returning false below is
          * acceptable for now (REVISIT).
          */
         if (expr[0].get_type().is_process()) {
@@ -2506,7 +2576,7 @@ bool TypeChecker::isModifiableLValue(expression_t expr) const
 
     case INLINE_IF:
         return isModifiableLValue(expr[1]) && isModifiableLValue(expr[2]) &&
-               areEquivalent(expr[1].get_type(), expr[2].get_type());
+               expr[1].get_type().is_equivalent(expr[2].get_type());
 
     case COMMA: return isModifiableLValue(expr[1]);
 
@@ -2521,9 +2591,8 @@ bool TypeChecker::isModifiableLValue(expression_t expr) const
 /**
  * Returns true iff \a expr evaluates to an lvalue.
  */
-bool TypeChecker::isLValue(expression_t expr) const
+bool TypeChecker::isLValue(const expression_t& expr) const
 {
-    type_t t, f;
     switch (expr.get_kind()) {
     case IDENTIFIER:
     case PRE_INCREMENT:
@@ -2544,7 +2613,7 @@ bool TypeChecker::isLValue(expression_t expr) const
     case ARRAY: return isLValue(expr[0]);
 
     case INLINE_IF:
-        return isLValue(expr[1]) && isLValue(expr[2]) && areEquivalent(expr[1].get_type(), expr[2].get_type());
+        return isLValue(expr[1]) && isLValue(expr[2]) && expr[1].get_type().is_equivalent(expr[2].get_type());
 
     case COMMA: return isLValue(expr[1]);
 
@@ -2562,7 +2631,7 @@ bool TypeChecker::isLValue(expression_t expr) const
     expressions. Thus i[v] is a l-value, but if v is a non-constant
     variable, then it does not result in a unique reference.
 */
-bool TypeChecker::isUniqueReference(expression_t expr) const
+bool TypeChecker::isUniqueReference(const expression_t& expr) const
 {
     switch (expr.get_kind()) {
     case IDENTIFIER: return true;
@@ -2597,16 +2666,6 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
     }
 }
 
-static void static_analysis(Document& doc)
-{
-    if (!doc.has_errors()) {
-        auto checker = TypeChecker{doc};
-        doc.accept(checker);
-        auto fchecker = FeatureChecker{doc};
-        doc.set_supported_methods(fchecker.get_supported_methods());
-    }
-}
-
 bool parse_XTA(FILE* file, Document* doc, bool newxta)
 {
     DocumentBuilder builder(*doc);
@@ -2627,49 +2686,37 @@ int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
                          const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_buffer(buffer, &builder, newxta);
-
-    if (err)
+    if (const auto err = parse_XML_buffer(buffer, &builder, newxta); err != 0)
         return err;
-
     static_analysis(*doc);
-
     return 0;
 }
 
 int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_file(file, &builder, newxta);
-    if (err) {
+    if (const auto err = parse_XML_file(file, &builder, newxta); err != 0)
         return err;
-    }
-
     static_analysis(*doc);
-
     return 0;
 }
 
 int32_t parse_XML_fd(int fd, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
 {
     auto builder = DocumentBuilder{*doc, paths};
-    int err = parse_XML_fd(fd, &builder, newxta);
-    if (err) {
+    if (const auto err = parse_XML_fd(fd, &builder, newxta); err != 0)
         return err;
-    }
-
     static_analysis(*doc);
-
     return 0;
 }
 
 expression_t parseExpression(const char* str, Document* doc, bool newxtr)
 {
-    ExpressionBuilder builder{*doc};
+    auto builder = ExpressionBuilder{*doc};
     parse_XTA(str, &builder, newxtr, S_EXPRESSION, "");
     expression_t expr = builder.getExpressions()[0];
     if (!doc->has_errors()) {
-        TypeChecker checker{*doc};
+        auto checker = TypeChecker{*doc};
         checker.checkExpression(expr);
     }
     return expr;
@@ -2688,20 +2735,20 @@ bool TypeChecker::visitTemplateBefore(template_t& t)
     return true;
 }
 
-bool TypeChecker::checkSpawnParameterCompatible(type_t param, expression_t arg)
+bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expression_t& arg)
 {
     return checkParameterCompatible(param, arg);
 }
 
 bool TypeChecker::checkDynamicExpressions(Statement* stat)
 {
-    std::list<expression_t> expr_list;
-    CollectDynamicExpressions e(expr_list);
+    auto expr_list = std::list<expression_t>{};
+    auto e = CollectDynamicExpressions{expr_list};
     stat->accept(&e);
     bool ok = true;
     for (const auto& expr : expr_list) {
         ok = false;
-        handleError(expr, "Dynamic constructs are only allowed on edges!");
+        handleError(dynamic_constructs_supported_only_on_edges(expr));
     }
     return ok;
 }
@@ -2709,11 +2756,11 @@ bool TypeChecker::checkDynamicExpressions(Statement* stat)
 bool TypeChecker::checkNrOfRuns(const expression_t& runs)
 {
     if (!isCompileTimeComputable(runs)) {
-        handleError(runs, "$Must_be_computable_at_compile_time");
+        handleError(must_be_computable_at_compile_time(runs));
         return false;
     }
     if (!is_const_integer(runs)) {
-        handleError(runs, "$Integer_expected");
+        handleError(integer_expected(runs));
         return false;
     }
     return true;
@@ -2722,7 +2769,7 @@ bool TypeChecker::checkNrOfRuns(const expression_t& runs)
 bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExpr)
 {
     if (!is_const_integer(boundTypeOrExpr) && !is_clock(boundTypeOrExpr)) {
-        handleError(boundTypeOrExpr, "$Clock_expected");
+        handleError(clock_expected(boundTypeOrExpr));
         return false;
     }
     return true;
@@ -2731,11 +2778,11 @@ bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExp
 bool TypeChecker::checkBound(const expression_t& bound)
 {
     if (!isCompileTimeComputable(bound)) {
-        handleError(bound, "$Must_be_computable_at_compile_time");
+        handleError(must_be_computable_at_compile_time(bound));
         return false;
     }
     if (!is_integral(bound)) {
-        handleError(bound, "$Integer_expected");
+        handleError(integer_expected(bound));
         return false;
     }
     return true;
@@ -2744,11 +2791,11 @@ bool TypeChecker::checkBound(const expression_t& bound)
 bool TypeChecker::checkPredicate(const expression_t& predicate)
 {
     if (!is_integral(predicate) && !is_constraint(predicate)) {  // check reachability expression is a boolean
-        handleError(predicate, "$Boolean_expected");
+        handleError(boolean_expected(predicate));
         return false;
     }
     if (predicate.changes_any_variable()) {  // check reachability expression is side effect free
-        handleError(predicate, "$Property_must_be_side-effect_free");
+        handleError(must_be_side_effect_free(predicate));
         return false;
     }
     return true;
@@ -2757,7 +2804,7 @@ bool TypeChecker::checkPredicate(const expression_t& predicate)
 bool TypeChecker::checkProbBound(const expression_t& probBound)
 {
     if (!is_const_double(probBound)) {
-        handleError(probBound, "Floating point number expected as probability bound");
+        handleError(floating_point_expected(probBound));
         return false;
     }
     return true;
@@ -2767,11 +2814,11 @@ bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond)
 {
     bool ok = true;
     if (kind == PROBA_DIAMOND && !is_integral(untilCond) && !is_constraint(untilCond)) {
-        handleError(untilCond, "$Boolean_expected");
+        handleError(boolean_expected(untilCond));
         ok = false;
     }
     if (kind == PROBA_BOX && untilCond.get_kind() == Constants::BOOL && untilCond.get_value() != 0) {
-        handleError(untilCond, "Must be false");  // TODO - error message
+        handleError(must_be_false(untilCond));  // TODO - error message
         ok = false;
     }
     return ok;
@@ -2781,11 +2828,11 @@ bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
 {
     if (!is_integral(expr) && !is_clock(expr) && !is_double_value(expr) &&
         !expr.get_type().is(Constants::DOUBLE_INV_GUARD) && !is_constraint(expr)) {
-        handleError(expr, "$Integer_or_clock_expected");
+        handleError(integer_or_clock_expected(expr));
         return false;
     }
     if (expr.changes_any_variable()) {
-        handleError(expr, "$Property_must_be_side-effect_free");
+        handleError(must_be_side_effect_free(expr));
         return false;
     }
     return true;
@@ -2794,7 +2841,7 @@ bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
 bool TypeChecker::checkPathQuant(const expression_t& expr)
 {
     if (!is_const_integer(expr)) {
-        handleError(expr, "Bug: bad path quantifier");
+        handleError(bug_bad_path_quantifier(expr));
         return false;
     }
     return true;
@@ -2803,12 +2850,12 @@ bool TypeChecker::checkPathQuant(const expression_t& expr)
 bool TypeChecker::checkAggregationOp(const expression_t& expr)
 {
     if (!is_const_integer(expr)) {
-        handleError(expr, "Bug: bad aggregation operator expression");
+        handleError(bug_bad_aggregation_expression(expr));
         return false;
     }
     if (expr.get_value() > 1)  // 0="min", 1="max"
     {
-        handleError(expr, "Bug: bad aggregation operator value");
+        handleError(bug_bad_aggregation_value(expr));
         return false;
     }
     return true;

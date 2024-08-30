@@ -68,11 +68,11 @@ inline Library::Impl::Impl(const std::string& name): handle{dlopen(name.c_str(),
 
 inline Library::Impl::~Impl() noexcept
 {
-    if (handle) {
+    if (handle != nullptr) {
         auto res [[maybe_unused]] = dlclose(handle);
         handle = nullptr;
 #ifndef NDEBUG
-        if (res)
+        if (res != 0)
             std::cerr << dlerror() << std::endl;
 #endif
     }
@@ -80,9 +80,9 @@ inline Library::Impl::~Impl() noexcept
 
 void* Library::get_symbol(const std::string& name)
 {
-    auto res = dlsym(pImpl->handle, name.c_str());
-    if (!res)
-        throw std::runtime_error(dlerror());
+    auto* res = dlsym(pImpl->handle, name.c_str());
+    if (res == nullptr)
+        throw std::runtime_error{dlerror()};
     return res;
 }
 

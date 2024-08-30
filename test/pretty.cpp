@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
         if (!std::filesystem::is_regular_file(path))
             throw std::runtime_error("Path is not a regular file: " + path.string());
 
-        UTAP::PrettyPrinter pretty(cout);
+        auto pretty = UTAP::PrettyPrinter{cout};
 
         if (path.extension() == ".xml") {
             parse_XML_file(path.string().c_str(), &pretty, newSyntax);

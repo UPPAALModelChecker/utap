@@ -150,9 +150,9 @@ static bool is_blank(std::string_view str) { return std::all_of(str.cbegin(), st
 
 static inline bool is_blank(const xmlChar* str) { return is_blank((const char*)str); }
 
-static inline bool is_alpha(unsigned char c) { return std::isalpha(c) || c == '_'; }
+static inline bool is_alpha(unsigned char c) { return std::isalpha(c) != 0 || c == '_'; }
 
-static bool is_id_char(unsigned char c) { return std::isalnum(c) || c == '_' || c == '$' || c == '#'; }
+static bool is_id_char(unsigned char c) { return std::isalnum(c) != 0 || c == '_' || c == '$' || c == '#'; }
 
 struct id_expected_error : std::logic_error
 {
@@ -181,23 +181,23 @@ static std::string_view symbol(std::string_view sv)
 {  // TODO: LSC revisit: this is very similar to trimming whitespace
     if (sv.empty())
         throw id_expected_error{};
-    auto first = std::begin(sv);
-    const auto end = std::end(sv);
-    while (first != end && std::isspace(*first))
-        ++first;
-    if (first == end)
+    const auto* it = std::begin(sv);
+    const auto* end = std::end(sv);
+    while (it != end && std::isspace(*it) != 0)
+        ++it;
+    if (it == end)
         throw id_expected_error{};
-    if (!is_alpha(*first))
+    if (!is_alpha(*it))
         throw id_expected_error{};
-    auto last = first;
+    const auto* last = it;
     while (last != end && is_id_char(*last))
         ++last;
-    auto p = last;
-    while (p != end && std::isspace(*p))
+    const auto* p = last;
+    while (p != end && std::isspace(*p) != 0)
         ++p;
     if (p != end)
         throw invalid_id_error{};
-    return std::string_view(first, std::distance(first, last));
+    return std::string_view(it, std::distance(it, last));
 }
 
 /**
@@ -547,7 +547,7 @@ void XMLReader::read()
 
 const std::string& XMLReader::get_name(const char* id) const
 {
-    if (id) {
+    if (id != nullptr) {
         if (auto l = names.find(id); l != names.end())
             return l->second;
     }
@@ -643,23 +643,23 @@ std::string XMLReader::name(bool instanceLine)
 std::string XMLReader::readText(bool instanceLine)
 {
     if (getNodeType() == XML_READER_TYPE_TEXT) {  // text content of a node
-        xmlChar* text = xmlTextReaderValue(reader.get());
-        auto len = text ? std::strlen((const char*)text) : 0;
-        auto text_sv = std::string_view{(const char*)text, len};
+        const char* text = (const char*)xmlTextReaderValue(reader.get());
+        const auto len = text != nullptr ? std::strlen(text) : 0;
+        const auto text_sv = std::string_view{text, len};
         tracker.setPath(parser, path.str());
         tracker.increment(parser, text_sv.size());
         try {
-            std::string_view id = (instanceLine) ? text_sv : symbol(text_sv);
+            auto id = (instanceLine) ? text_sv : symbol(text_sv);
             if (!is_keyword(id, syntax_t::OLD_PROPERTY)) {
                 auto res = std::string{id};
-                xmlFree(text);
+                xmlFree((void*)text);
                 return res;
             }
             parser->handle_error(TypeException{"$Keywords_are_not_allowed_here"});
         } catch (std::logic_error& str) {
             parser->handle_error(TypeException{str.what()});
         }
-        xmlFree(text);
+        xmlFree((void*)text);
     }
     return "";
 }
@@ -981,8 +981,8 @@ bool XMLReader::init()
         /* Get reference attribute. */
         char* ref = getAttribute("ref");
         /* Find location name for the reference. */
-        if (ref) {
-            std::string name = get_name(ref);
+        if (ref != nullptr) {
+            const auto name = get_name(ref);
             try {
                 parser->proc_location_init(name.c_str());
             } catch (TypeException& te) {
@@ -1033,10 +1033,9 @@ std::string XMLReader::anchor()
 std::vector<std::string> XMLReader::anchors()
 {
     std::vector<std::string> res;
-    while (begin(tag_t::ANCHOR, false)) {
+    while (begin(tag_t::ANCHOR, false))
         res.push_back(reference("instanceid"));
-    }
-    if (res.size() == 0)
+    if (res.empty())
         throw TypeException{"Missing anchor element"};
     return res;
 }
@@ -1051,12 +1050,12 @@ bool XMLReader::transition()
             xmlFree(type);
 
             char* id = getAttribute("action");
-            auto actname = std::string{id ? id : "SKIP"};
+            auto actname = std::string{id != nullptr ? id : "SKIP"};
             xmlFree(id);
 
             read();
-            std::string from = source();
-            std::string to = target();
+            auto from = source();
+            auto to = target();
 
             parser->proc_edge_begin(from.c_str(), to.c_str(), control, actname.c_str());
             while (label())
@@ -1273,8 +1272,8 @@ bool XMLReader::comment()
 bool XMLReader::option()
 {
     if (begin(tag_t::OPTION, false)) {
-        auto key = getAttribute("key");
-        auto value = getAttribute("value");
+        char* key = getAttribute("key");
+        char* value = getAttribute("value");
         parser->query_options(key, value);
         xmlFree(key);
         xmlFree(value);
@@ -1289,9 +1288,9 @@ bool XMLReader::expectation()
     if (begin(tag_t::EXPECT, false)) {
         if (!isEmpty()) {
             parser->expectation_begin();
-            auto outcome = getAttribute("outcome");
-            auto type = getAttribute("type");
-            auto value = getAttribute("value");
+            char* outcome = getAttribute("outcome");
+            char* type = getAttribute("type");
+            char* value = getAttribute("value");
             parser->expectation_value(outcome, type, value);
             zero_or_more(tag_t::EXPECT, [this] {
                 if (begin(tag_t::RESOURCE, false)) {
@@ -1345,8 +1344,8 @@ bool XMLReader::model_options()
 {
     while (begin(tag_t::OPTION)) {
         read();
-        auto key = getAttribute("key");
-        auto value = getAttribute("value");
+        char* key = getAttribute("key");
+        char* value = getAttribute("value");
         parser->model_option(key, value);
         close(tag_t::OPTION);
     }
@@ -1409,7 +1408,7 @@ std::string getXMLElement(xmlDocPtr docPtr, const std::string& path)  // used in
             // The first point of the xml node
             xmlNodePtr node = nodeset->nodeTab[0];
             xmlChar* s = xmlNodeListGetString(docPtr, node->xmlChildrenNode, 1);
-            if (s)
+            if (s != nullptr)
                 res = (char*)s;
             xmlFree(s);
         }

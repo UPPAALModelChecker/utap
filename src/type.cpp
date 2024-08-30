@@ -21,21 +21,22 @@
 
 #include "utap/type.h"
 
+#include "utap/common.h"
 #include "utap/expression.h"
 
 #include <algorithm>
 #include <sstream>
+#include <string>
+#include <utility>  // std::pair
 #include <cassert>
-
-using std::string;
-using std::vector;
+#include <cstdint>  // uint32_t
 
 using namespace UTAP;
 using namespace Constants;
 
 struct child_t
 {
-    string label;
+    std::string label;
     type_t child;
 };
 
@@ -60,19 +61,19 @@ bool type_t::operator!=(const type_t& type) const { return data != type.data; }
 
 bool type_t::operator<(const type_t& type) const { return data < type.data; }
 
-size_t type_t::size() const
+uint32_t type_t::size() const
 {
     assert(data);
     return data->children.size();
 }
 
-type_t type_t::operator[](uint32_t i) const
+const type_t& type_t::operator[](uint32_t i) const
 {
     assert(i < size());
     return data->children[i].child;
 }
 
-type_t type_t::get(uint32_t i) const
+const type_t& type_t::get(uint32_t i) const
 {
     assert(i < size());
     return data->children[i].child;
@@ -87,8 +88,8 @@ const std::string& type_t::get_label(uint32_t i) const
 std::optional<uint32_t> type_t::find_index_of(const std::string& label) const
 {
     assert(is_record() || is_process());
-    type_t type = strip();
-    size_t n = type.size();
+    const type_t type = strip();
+    const auto n = type.size();
     for (size_t i = 0; i < n; ++i) {
         if (type.get_label(i) == label) {
             return i;
@@ -187,7 +188,7 @@ type_t type_t::get_sub(uint32_t i) const
     }
 }
 
-type_t type_t::get_array_size() const
+const type_t& type_t::get_array_size() const
 {
     const auto k = get_kind();
     if (is_prefix() || k == REF || k == LABEL) {
@@ -200,8 +201,7 @@ type_t type_t::get_array_size() const
 
 uint32_t type_t::get_record_size() const
 {
-    const auto k = get_kind();
-    if (is_prefix() || k == REF || k == LABEL) {
+    if (const auto k = get_kind(); is_prefix() || k == REF || k == LABEL) {
         return get(0).get_record_size();
     } else {
         assert(k == RECORD);
@@ -209,15 +209,14 @@ uint32_t type_t::get_record_size() const
     }
 }
 
-const string& type_t::get_record_label(size_t i) const
+const std::string& type_t::get_record_label(uint32_t i) const
 {
     static const auto location = std::string{"location"};
-    const auto k = get_kind();
-    if (is_prefix() || k == REF || k == LABEL) {
+    if (const auto k = get_kind(); is_prefix() || k == REF || k == LABEL) {
         return get(0).get_record_label(i);
-    } else if (i == static_cast<size_t>(std::numeric_limits<int32_t>::max())) {  // TODO: create a separate type for
-                                                                                 // location expressions and get rid
-                                                                                 // of magical constants
+    } else if (i == static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
+        // TODO: create a separate type for location expressions
+        // TODO: get rid of magical constants
         return location;
     } else {
         assert(k == RECORD || k == PROCESS);
@@ -235,7 +234,7 @@ std::pair<expression_t, expression_t> type_t::get_range() const
     }
 }
 
-expression_t type_t::get_expression() const
+const expression_t& type_t::get_expression() const
 {
     assert(data);
     return data->expr;
@@ -274,7 +273,7 @@ type_t type_t::rename(const std::string& from, const std::string& to) const
     return type;
 }
 
-type_t type_t::subst(symbol_t symbol, expression_t expr) const
+type_t type_t::subst(const symbol_t& symbol, const expression_t& expr) const
 {
     auto type = type_t{get_kind(), get_position(), size()};
     for (size_t i = 0; i < size(); i++) {
@@ -287,7 +286,7 @@ type_t type_t::subst(symbol_t symbol, expression_t expr) const
     return type;
 }
 
-position_t type_t::get_position() const { return data->position; }
+const position_t& type_t::get_position() const { return data->position; }
 
 bool type_t::is_constant() const
 {
@@ -321,18 +320,119 @@ bool type_t::is_mutable() const
     }
 }
 
+bool type_t::is_equality_compatible(const type_t& other) const
+{
+    if (is_integral() && other.is_integral()) {
+        return true;
+    } else if (is(PROCESS_VAR) && other.is(PROCESS_VAR)) {
+        return true;
+    } else {
+        return is_equivalent(other);
+    }
+}
+
+bool type_t::is_assignment_compatible(const type_t& rhs, bool init) const
+{
+    if (init ? ((is_clock() && (rhs.is_double() || rhs.is_integral())) ||
+                (is_double() && (rhs.is_double() || rhs.is_integral())))
+             : ((is_clock() || is_double()) && (rhs.is_integral() || rhs.is_double() || rhs.is_clock()))) {
+        return true;
+    } else if (is_integral() && rhs.is_integral()) {
+        return true;
+    }
+    return is_equivalent(rhs);
+}
+
+bool type_t::is_inline_if_compatible(const type_t& t1, const type_t& t2) const
+{
+    if (is_assignment_compatible(t1) && is_assignment_compatible(t2))
+        return true;
+    return t1.is_equivalent(t2);
+}
+
+int type_t::channel_capability() const
+{
+    assert(is_channel());
+    if (is(URGENT))
+        return 0;
+    if (is(BROADCAST))
+        return 1;
+    return 2;
+}
+
+/**
+ * Returns true if two scalar types are name-equivalent.
+ */
+bool type_t::is_same_scalar(const type_t& o) const
+{
+    if (get_kind() == REF || get_kind() == CONSTANT || get_kind() == SYSTEM_META) {
+        return (*this)[0].is_same_scalar(o);
+    } else if (o.get_kind() == EF || o.get_kind() == CONSTANT || o.get_kind() == SYSTEM_META) {
+        return is_same_scalar(o[0]);
+    } else if (get_kind() == LABEL && o.get_kind() == LABEL) {
+        return get_label(0) == o.get_label(0) && (*this)[0].is_same_scalar(o[0]);
+    } else if (get_kind() == SCALAR && o.get_kind() == SCALAR) {
+        return true;
+    } else if (get_kind() == RANGE && o.get_kind() == RANGE) {
+        return (*this)[0].is_same_scalar(o[0]) && get_range().first.equal(o.get_range().first) &&
+               get_range().second.equal(o.get_range().second);
+    } else {
+        return false;
+    }
+}
+
+bool type_t::is_equivalent(const type_t& o) const
+{
+    if (is_integer() && o.is_integer()) {
+        return !is(RANGE) || !o.is(RANGE) ||
+               (get_range().first.equal(o.get_range().first) && get_range().second.equal(o.get_range().second));
+    } else if (is_clock() && o.is_clock()) {
+        return true;
+    } else if (is_scalar() && o.is_scalar()) {
+        return is_same_scalar(o);
+    } else if (is_double() && o.is_double()) {
+        return true;
+    } else if (is_boolean() && o.is_boolean()) {
+        return true;
+    } else if (is_channel() && o.is_channel()) {
+        return channel_capability() == o.channel_capability();
+    } else if (is_record() && o.is_record()) {
+        const auto size = get_record_size();
+        if (const auto oSize = o.get_record_size(); size == oSize) {
+            for (uint32_t i = 0; i < size; ++i) {
+                if (get_record_label(i) != o.get_record_label(i) || !get_sub(i).is_equivalent(o.get_sub(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    } else if (is_array() && o.is_array()) {
+        const type_t& size = get_array_size();
+        if (const type_t& oSize = o.get_array_size(); size.is_integer() && oSize.is_integer()) {
+            return size.get_range().first.equal(oSize.get_range().first) &&
+                   size.get_range().second.equal(oSize.get_range().second) && get_sub().is_equivalent(o.get_sub());
+        } else if (size.is_scalar() && oSize.is_scalar()) {
+            return size.is_same_scalar(oSize) && get_sub().is_equivalent(o.get_sub());
+        }
+        return false;
+    } else if (is_string() && o.is_string()) {
+        return true;
+    }
+    return false;
+}
+
 type_t type_t::create_range(type_t type, expression_t lower, expression_t upper, position_t pos)
 {
     auto t = type_t{RANGE, pos, 3};
     t.data->children[0].child = std::move(type);
     t.data->children[1].child = type_t{UNKNOWN, pos, 0};
     t.data->children[2].child = type_t{UNKNOWN, pos, 0};
-    t[1].data->expr = lower;
-    t[2].data->expr = upper;
+    t[1].data->expr = std::move(lower);
+    t[2].data->expr = std::move(upper);
     return t;
 }
 
-type_t type_t::create_record(const vector<type_t>& types, const vector<string>& labels, position_t pos)
+type_t type_t::create_record(const std::vector<type_t>& types, const std::vector<std::string>& labels, position_t pos)
 {
     assert(types.size() == labels.size());
     auto type = type_t{RECORD, pos, types.size()};
@@ -348,7 +448,7 @@ type_t type_t::create_function(type_t ret, const std::vector<type_t>& parameters
 {
     assert(parameters.size() == labels.size());
     auto type = type_t{FUNCTION, pos, parameters.size() + 1};
-    type.data->children[0].child = ret;
+    type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
         type.data->children[i + 1].label = labels[i];
@@ -361,7 +461,7 @@ type_t type_t::create_external_function(type_t ret, const std::vector<type_t>& p
 {
     assert(parameters.size() == labels.size());
     auto type = type_t{FUNCTION_EXTERNAL, pos, parameters.size() + 1};
-    type.data->children[0].child = ret;
+    type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
         type.data->children[i + 1].label = labels[i];
@@ -372,16 +472,16 @@ type_t type_t::create_external_function(type_t ret, const std::vector<type_t>& p
 type_t type_t::create_array(type_t sub, type_t size, position_t pos)
 {
     auto type = type_t{ARRAY, pos, 2};
-    type.data->children[0].child = sub;
-    type.data->children[1].child = size;
+    type.data->children[0].child = std::move(sub);
+    type.data->children[1].child = std::move(size);
     return type;
 }
 
 type_t type_t::create_typedef(std::string label, type_t type, position_t pos)
 {
     auto t = type_t{TYPEDEF, pos, 1};
-    t.data->children[0].label = label;
-    t.data->children[0].child = type;
+    t.data->children[0].label = std::move(label);
+    t.data->children[0].child = std::move(type);
     return t;
 }
 
@@ -415,7 +515,7 @@ type_t type_t::create_process(frame_t frame, position_t pos)
     return type;
 }
 
-type_t type_t::create_process_set(type_t instance, position_t pos)
+type_t type_t::create_process_set(const type_t& instance, position_t pos)
 {
     auto type = type_t{PROCESS_SET, pos, instance.size()};
     for (size_t i = 0; i < instance.size(); ++i) {
@@ -434,11 +534,11 @@ type_t type_t::create_prefix(kind_t kind, position_t pos) const
     return type;
 }
 
-type_t type_t::create_label(string label, position_t pos) const
+type_t type_t::create_label(std::string label, position_t pos) const
 {
     type_t type(LABEL, pos, 1);
     type.data->children[0].child = *this;
-    type.data->children[0].label = label;
+    type.data->children[0].label = std::move(label);
     return type;
 }
 

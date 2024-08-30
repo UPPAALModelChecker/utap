@@ -70,12 +70,12 @@ bool symbol_t::operator!=(const symbol_t& symbol) const { return data != symbol.
 bool symbol_t::operator<(const symbol_t& symbol) const { return data < symbol.data; }
 
 /* Get frame this symbol belongs to */
-frame_t symbol_t::get_frame() { return frame_t(data->frame); }
+frame_t symbol_t::get_frame() const { return frame_t(data->frame); }
 
 /* Returns the type of this symbol. */
-type_t symbol_t::get_type() const { return data->type; }
+const type_t& symbol_t::get_type() const { return data->type; }
 
-void symbol_t::set_type(type_t type) { data->type = type; }
+void symbol_t::set_type(type_t type) { data->type = std::move(type); }
 
 position_t symbol_t::get_position() const { return data->position; }
 
@@ -136,7 +136,7 @@ frame_t::iterator frame_t::end() { return std::end(data->symbols); }
 /* Adds a symbol of the given name and type to the frame */
 symbol_t frame_t::add_symbol(const string& name, type_t type, position_t position, void* user)
 {
-    auto symbol = symbol_t{this, type, name, position, user};
+    auto symbol = symbol_t{this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
     if (!name.empty()) {
         data->mapping[symbol.get_name()] = data->symbols.size() - 1;
@@ -150,19 +150,19 @@ symbol_t frame_t::add_symbol(const string& name, type_t type, position_t positio
 */
 void frame_t::add(symbol_t symbol)
 {
-    data->symbols.push_back(symbol);
-    if (!symbol.get_name().empty()) {
-        data->mapping[symbol.get_name()] = data->symbols.size() - 1;
-    }
+    data->symbols.push_back(std::move(symbol));
+    auto& symb = data->symbols.back();
+    if (!symb.get_name().empty())
+        data->mapping[symb.get_name()] = data->symbols.size() - 1;
 }
 
 /** Add all symbols in the given frame. Notice that the symbols will
     be in two frames at the same time, but the symbol will only "point
     back" to the first frame it was added to.
 */
-void frame_t::add(frame_t frame)
+void frame_t::add(const frame_t& frame)
 {
-    for (auto& symbol : frame)
+    for (const auto& symbol : frame)
         add(symbol);
 }
 
@@ -170,10 +170,10 @@ void frame_t::add(frame_t frame)
     Notice that the symbols will be updated to point to the given frame,
     while this frame will be emptied and ready for recycling.
 */
-void frame_t::move_to(frame_t frame)
+void frame_t::move_to(frame_t& frame)
 {
-    for (uint32_t i = 0; i < data->symbols.size(); i++) {
-        symbol_t symbol = data->symbols[i];
+    // TODO: simplify into move-assignment
+    for (auto&& symbol : data->symbols) {
         frame.add(symbol);
         symbol.data->frame = frame.data.get();
     }
@@ -182,16 +182,16 @@ void frame_t::move_to(frame_t frame)
 }
 
 /** removes the given symbol*/
-void frame_t::remove(symbol_t s)
+void frame_t::remove(const symbol_t& s)
 {
-    vector<symbol_t> symbols = data->symbols;
+    // TODO: simplify
+    vector<symbol_t> symbols = std::move(data->symbols);
     data->symbols.clear();
     data->mapping.clear();
-    for (uint32_t i = 0; i < symbols.size(); i++) {
-        symbol_t symbol = symbols[i];
+    for (auto&& symbol : symbols) {
         if (symbol != s) {
-            add(symbol);
             symbol.data->frame = data.get();
+            add(symbol);
         }
     }
 }

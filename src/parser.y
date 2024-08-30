@@ -38,6 +38,10 @@
   * made. Please report it, this might be corrected.
   */
 
+%code top {
+//NOLINTBEGIN
+}
+
 %code requires {
 
 #include "parser.hpp"
@@ -79,7 +83,7 @@ static int lexer_flex();
 static int utap_lex()
 {
    int old;
-   if (syntax_token) {
+   if (syntax_token != 0) {
 	 old = syntax_token;
 	 syntax_token = 0;
 	 return old;
@@ -317,7 +321,7 @@ const char* utap_msg(const char *msg)
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
 %right T_INCREMENT T_DECREMENT
-%left '(' ')' '[' ']' '.' '\''
+%left '(' ')' '[' ']' '.' T_APOS
 
 
 %union {
@@ -1292,7 +1296,7 @@ Expression:
         | Expression '.' NonTypeId {
           CALL(@1, @3, expr_dot($3));
         }
-        | Expression '\'' {
+        | Expression T_APOS {
             CALL(@1, @2, expr_unary(RATE));
         }
         | T_DEADLOCK {
@@ -1990,6 +1994,8 @@ Property:
 
 #include "lexer.cc"
 
+//NOLINTEND
+
 static void utap_error(const char* msg)
 {
     ch->set_position(yylloc.start, yylloc.end);
@@ -2068,7 +2074,7 @@ static void setStartToken(xta_part_t part, bool newxta)
 }
 
 static int32_t parse_XTA(ParserBuilder *aParserBuilder,
-        		bool newxta, xta_part_t part, std::string xpath)
+        		bool newxta, xta_part_t part, const std::string& xpath)
 {
     // Select syntax
     syntax = newxta ? syntax_t::NEW_GUIDING : syntax_t::OLD_GUIDING;
@@ -2083,12 +2089,12 @@ static int32_t parse_XTA(ParserBuilder *aParserBuilder,
     // Parse string
     int res = 0;
 
-    if (utap_parse())
+    if (utap_parse() != 0)
     {
         res = -1;
     }
 
-    ch = NULL;
+    ch = nullptr;
     return res;
 }
 
@@ -2104,11 +2110,11 @@ static int32_t parseProperty(ParserBuilder *aParserBuilder, const std::string& x
     // Reset position tracking
     tracker.setPath(ch, xpath);
 
-    return utap_parse() ? -1 : 0;
+    return utap_parse() != 0 ? -1 : 0;
 }
 
 int32_t parse_XTA(const char *str, ParserBuilder *builder,
-        	 bool newxta, xta_part_t part, std::string xpath)
+        	 bool newxta, xta_part_t part, const std::string& xpath)
 {
     utap__scan_string(str);
     int32_t res = parse_XTA(builder, newxta, part, xpath);

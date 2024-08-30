@@ -23,9 +23,11 @@
 
 #include <doctest/doctest.h>
 
+#include <vector>
+
 using UTAP::range_t;
 
-TEST_CASE("Range Tests")
+TEST_CASE("range_t")
 {
     constexpr auto d_eps = std::numeric_limits<double>::epsilon();
     constexpr auto d_inf = std::numeric_limits<double>::infinity();
@@ -149,4 +151,16 @@ TEST_CASE("Range Tests")
         static_assert(!(r1 < r2));
         static_assert(!(r1 > r2));
     }
+}
+
+TEST_CASE("range_t container")
+{
+    auto ranges = std::vector<range_t<int>>{};
+    ranges.emplace_back(1, 2);
+    REQUIRE(ranges.size() == 1);
+    ranges.emplace_back(3, 4);
+    REQUIRE(ranges.size() == 2);
+    ranges.emplace(std::begin(ranges), ranges.back());
+    REQUIRE(ranges.size() == 3);
+    CHECK(ranges[0] == ranges[2]);
 }

@@ -45,7 +45,7 @@ public:
     void visitVariable(variable_t&) override;
     void visitInstance(instance_t&) override;
     void add_symbol(symbol_t);
-    bool contains(symbol_t) const;
+    bool contains(const symbol_t&) const;
 };
 
 /**
@@ -56,37 +56,25 @@ public:
  */
 class TypeChecker : public DocumentVisitor, public AbstractStatementVisitor
 {
-private:
-    Document& document;
-    CompileTimeComputableValues compileTimeComputableValues;
-    function_t* function; /**< Current function being type checked. */
-    bool refinementWarnings;
-
-    template <class T>
-    void handleError(T, const std::string&);
-    template <class T>
-    void handleWarning(T, const std::string&);
-
-    expression_t checkInitialiser(type_t type, expression_t init);
-    bool areAssignmentCompatible(type_t lvalue, type_t rvalue, bool init = false) const;
-    bool areInlineIfCompatible(type_t result_type, type_t thenArg, type_t elseArg) const;
-    type_t getInlineIfCommonType(type_t t1, type_t t2) const;
-    bool areEqCompatible(type_t t1, type_t t2) const;
-    bool isLValue(expression_t) const;
-    bool isModifiableLValue(expression_t) const;
-    bool isUniqueReference(expression_t expr) const;
-    bool isParameterCompatible(type_t param, expression_t arg);
-    bool checkParameterCompatible(type_t param, expression_t arg);
-    void checkIgnoredValue(expression_t expr);
-    bool checkAssignmentExpression(expression_t);
-    bool checkConditionalExpressionInFunction(expression_t);
-    void checkObservationConstraints(expression_t);
-
-    bool isCompileTimeComputable(expression_t expr) const;
-    void checkType(type_t, bool initialisable = false, bool inStruct = false);
-
 public:
-    static bool areEquivalent(type_t, type_t);
+    struct TypeError
+    {
+        position_t position;
+        std::string message, context;
+        TypeError(const position_t& position, std::string message, std::string context):
+            position{position}, message{std::move(message)}, context{std::move(context)}
+        {}
+        TypeError(const type_t& type, std::string message):
+            TypeError{type.get_position(), std::move(message), type.str()}
+        {}
+        TypeError(const expression_t& expr, std::string message):
+            TypeError{expr.get_position(), std::move(message), expr.str()}
+        {}
+        TypeError(const symbol_t& symbol, std::string message, std::string context):
+            TypeError{symbol.get_position(), std::move(message), std::move(context)}
+        {}
+    };
+
     explicit TypeChecker(Document& doc, bool refinement = false);
     void visitTemplateAfter(template_t&) override;
     bool visitTemplateBefore(template_t&) override;
@@ -98,7 +86,7 @@ public:
     virtual void visitProperty(expression_t);  // FIXME: does not override?!
     void visitFunction(function_t&) override;
     void visitProgressMeasure(progress_t&) override;
-    virtual void visitHybridClock(expression_t);  // FIXME: does not override?!
+    virtual void visitHybridClock(expression_t&);  // FIXME: does not override?!
     void visitIODecl(iodecl_t&) override;
     void visitGanttChart(gantt_t&) override;
     void visitProcess(instance_t&) override;
@@ -119,12 +107,34 @@ public:
 
     bool checkDynamicExpressions(Statement* stat);
     /** Type check an expression */
-    bool checkExpression(expression_t);
-    bool checkSpawnParameterCompatible(type_t param, expression_t arg);
+    bool checkExpression(expression_t&);
+    bool checkSpawnParameterCompatible(const type_t& param, const expression_t& arg);
 
 private:
-    int syncUsed;  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
-    template_t* temp;
+    int syncUsed{0};  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
+    const template_t* temp{nullptr};
+    Document& document;
+    CompileTimeComputableValues compileTimeComputableValues;
+    function_t* function{nullptr}; /**< Current function being type checked. */
+    bool refinementWarnings;
+
+    void handleError(TypeError error);
+    void handleWarning(TypeError error);
+
+    expression_t checkInitialiser(const type_t& type, const expression_t& init);
+    type_t getInlineIfCommonType(const type_t& t1, const type_t& t2) const;
+    bool isLValue(const expression_t&) const;
+    bool isModifiableLValue(const expression_t&) const;
+    bool isUniqueReference(const expression_t& expr) const;
+    bool isParameterCompatible(const type_t& param, const expression_t& arg);
+    bool checkParameterCompatible(const type_t& param, const expression_t& arg);
+    void checkIgnoredValue(const expression_t& expr);
+    bool checkAssignmentExpression(expression_t&);
+    bool checkConditionalExpressionInFunction(const expression_t&);
+    void checkObservationConstraints(const expression_t&);
+
+    bool isCompileTimeComputable(const expression_t& expr) const;
+    void checkType(const type_t&, bool initialisable = false, bool inStruct = false);
 
     /** check expressions used in (SMC) properties, these functions provide:
         1) consistent semantic checks by code reuse,

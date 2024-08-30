@@ -30,10 +30,6 @@
 #include <cmath>    // M_PI
 #include <cstring>  // strlen
 
-using std::vector;
-using std::list;
-using std::map;
-using std::string;
 using namespace UTAP;
 using namespace UTAP::Constants;
 
@@ -109,17 +105,17 @@ void XMLWriter::writeAttribute(const char* name, const char* value)
 /** Parses optional declaration. */
 void XMLWriter::declaration()
 {
-    string globalDeclarations = doc->get_globals().str(true);
+    std::string globalDeclarations = doc->get_globals().str(true);
     globalDeclarations += "\n";
     globalDeclarations += getChanPriority();
     globalDeclarations += " ";
     writeElement("declaration", globalDeclarations.c_str());
 }
 
-string XMLWriter::getChanPriority() const
+std::string XMLWriter::getChanPriority() const
 {
     const auto& prs = doc->get_chan_priorities();
-    list<chan_priority_t>::const_iterator itr;
+    std::list<chan_priority_t>::const_iterator itr;
     auto str = std::string{};
     if (!prs.empty()) {
         str += "// channel priorities\n";
@@ -133,7 +129,7 @@ string XMLWriter::getChanPriority() const
 
 /* writes a "label" element with the "kind", "x" and "y" attributes
  * an with the "data" content. */
-void XMLWriter::label(const char* kind, string data, int x, int y)
+void XMLWriter::label(const char* kind, std::string data, int x, int y)
 {
     if (data == "1") {
         return;
@@ -289,7 +285,7 @@ void XMLWriter::transition(const edge_t& edge)
 
 void XMLWriter::labels(int x, int y, const edge_t& edge)
 {
-    string str;
+    std::string str;
     if (edge.select.get_size() > 0) {
         str = edge.select[0].get_name() + " : ";
         if (edge.select[0].get_type().size() > 0 && edge.select[0].get_type()[0].size() > 0) {
@@ -315,9 +311,9 @@ void XMLWriter::taTempl(const template_t& templ)
         return;
     }
     selfLoops.clear();
-    string name = templ.uid.get_name();
-    string parameters = templ.parameters_str();
-    string declarations = templ.str(false);
+    std::string name = templ.uid.get_name();
+    std::string parameters = templ.parameters_str();
+    std::string declarations = templ.str(false);
 
     startElement("template");
     writeElement("name", name.c_str());
@@ -325,22 +321,22 @@ void XMLWriter::taTempl(const template_t& templ)
     writeElement("declaration", declarations.c_str());
 
     // locations
-    for (auto& loc : templ.locations) {
+    for (const auto& loc : templ.locations) {
         location(loc);
         selfLoops[loc.nr] = 0;
     }
     // initial location
     init(templ);
     // transitions
-    for (auto& e : templ.edges)
+    for (const auto& e : templ.edges)
         transition(e);
     endElement();  // end of the "template" tag
 }
 
 void XMLWriter::system_instantiation()
 {  // TODO proc priority
-    string str = "";
-    string proc = "";
+    std::string str = "";
+    std::string proc = "";
     for (const instance_t& p : doc->get_processes()) {
         if (p.uid.get_name() != p.templ->uid.get_name())
             str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
@@ -406,8 +402,8 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
         return nullptr;
 
     handler = xmlFindCharEncodingHandler(encoding);
-    if (!handler) {
-        printf("ConvertInput: no encoding handler found for '%s'\n", encoding ? encoding : "");
+    if (handler == nullptr) {
+        printf("ConvertInput: no encoding handler found for '%s'\n", encoding != nullptr ? encoding : "");
         return nullptr;
     }
 
@@ -418,7 +414,7 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
     if (out != nullptr) {
         temp = size - 1;
         ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
-        if ((ret < 0) || (temp - size + 1)) {
+        if ((ret < 0) || (temp - size + 1 != 0)) {
             if (ret < 0) {
                 printf("ConvertInput: conversion wasn't successful.\n");
             } else {

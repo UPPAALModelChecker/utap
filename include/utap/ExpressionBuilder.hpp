@@ -29,10 +29,68 @@
 #include <vector>
 #include <cassert>
 
-#define defaultIntMin -0x8000
-#define defaultIntMax 0x7FFF
-
 namespace UTAP {
+
+constexpr auto defaultIntMin = -0x8000;
+constexpr auto defaultIntMax = 0x7FFF;
+
+template <typename T>
+class FragmentStack
+{
+private:
+    std::vector<T> data;
+
+public:
+    T& operator[](int idx) { return data[data.size() - idx - 1]; }
+    const T& operator[](int idx) const { return data[data.size() - idx - 1]; }
+    T& top()
+    {
+        assert(!data.empty());
+        return data.back();
+    }
+    const T& top() const
+    {
+        assert(!data.empty());
+        return data.back();
+    }
+    void push(T e) { data.push_back(std::move(e)); }
+    T pop()
+    {
+        assert(!data.empty());
+        auto res = std::move(data.back());
+        data.pop_back();
+        return res;
+    }
+    void pop(size_t n)
+    {
+        assert(n <= size());
+        while (n-- > 0)
+            data.pop_back();
+    }
+    size_t size() const { return data.size(); }
+    void duplicate()
+    {
+        assert(!data.empty());
+        data.push_back(data.back());
+    }
+};
+
+template <typename T>
+T pop_top(std::stack<T>& stack)
+{
+    auto res = std::move(stack.top());
+    stack.pop();
+    return res;
+}
+
+template <typename T>
+T pop_back(std::vector<T>& vec)
+{
+    auto res = std::move(vec.back());
+    vec.pop_back();
+    return res;
+}
+
 /**
  * Partial implementation of the builder interface: The
  * ExpressionBuilder implements all expression related
@@ -49,38 +107,8 @@ namespace UTAP {
 class ExpressionBuilder : public AbstractBuilder
 {
 public:
-    class ExpressionFragments
-    {
-    private:
-        std::vector<expression_t> data;
-
-    public:
-        expression_t& operator[](int idx) { return data[data.size() - idx - 1]; }
-        void push(expression_t e) { data.push_back(e); }
-        void pop() { data.pop_back(); }
-        void pop(uint32_t n);
-        uint32_t size() { return data.size(); }
-    };
-
-    class TypeFragments
-    {
-    private:
-        std::vector<type_t> data;
-
-    public:
-        type_t& operator[](int idx) { return data[data.size() - idx - 1]; }
-        void push(type_t value) { data.push_back(value); }
-        void pop()
-        {
-            assert(!data.empty());
-            data.pop_back();
-        }
-        void duplicate()
-        {
-            assert(!data.empty());
-            data.push_back(data.back());
-        }
-    };
+    using ExpressionFragments = FragmentStack<expression_t>;
+    using TypeFragments = FragmentStack<type_t>;
 
 protected:
     /** Expression stack. */
@@ -105,7 +133,12 @@ protected:
     void push_frame(frame_t);
 
     /** Pop the topmost frame. */
-    void popFrame();
+    frame_t pop_frame()
+    {
+        auto res = std::move(frames.top());
+        frames.pop();
+        return res;
+    }
 
     bool resolve(const std::string&, symbol_t&) const;
 
@@ -218,8 +251,8 @@ public:
     void expr_sum_dynamic_end(const char* name) override;
     void expr_foreach_dynamic_begin(const char*, const char*) override;
     void expr_foreach_dynamic_end(const char* name) override;
-    void push_dynamic_frame_of(template_t* t, std::string name);  // no override
-    void pop_dynamic_frame_of(std::string name);
+    void push_dynamic_frame_of(template_t* t, const std::string& name);  // no override
+    void pop_dynamic_frame_of(const std::string& name);
 };
 }  // namespace UTAP
 

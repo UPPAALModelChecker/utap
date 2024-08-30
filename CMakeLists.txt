@@ -21,10 +21,15 @@ endif(WIN32)
 
 option(UTAP_WITH_TESTS "UTAP Unit Tests" ${UTAP_WITH_TESTS_DEFAULT})
 option(UTAP_STATIC "UTAP Static Linking" ${UTAP_STATIC_DEFAULT})
+option(CLANG_TIDY "Enable clang-tidy linting" ON)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
+
+if (CLANG_TIDY)
+    include(cmake/clang-tidy.cmake)
+endif (CLANG_TIDY)
 
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")

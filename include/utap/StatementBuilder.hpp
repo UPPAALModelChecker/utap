@@ -61,8 +61,8 @@ protected:
     virtual variable_t* addVariable(type_t type, const std::string& name, expression_t init, position_t pos) = 0;
     virtual bool addFunction(type_t type, const std::string& name, position_t pos) = 0;
 
-    static void collectDependencies(std::set<symbol_t>&, expression_t);
-    static void collectDependencies(std::set<symbol_t>&, type_t);
+    static void collectDependencies(std::set<symbol_t>&, const expression_t&);
+    static void collectDependencies(std::set<symbol_t>&, const type_t&);
 
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
@@ -76,6 +76,7 @@ public:
     void struct_field(const char* name) override;
     void decl_typedef(const char* name) override;
     void decl_var(const char* name, bool init) override;
+    expression_t make_initialiser(const type_t& type, const expression_t& init);
     void decl_init_list(uint32_t num) override;
     void decl_field_init(const char* name) override;
     void decl_parameter(const char* name, bool) override;

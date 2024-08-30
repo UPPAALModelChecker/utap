@@ -163,7 +163,7 @@ string CaseStatement::str(const string& prefix) const
     return prefix + "case " + cond.str() + ":\n" + BlockStatement::str(prefix + INDENT);
 }
 
-DefaultStatement::DefaultStatement(frame_t frame): BlockStatement{std::move(frame)} {}
+DefaultStatement::DefaultStatement(const frame_t& frame): BlockStatement{frame} {}
 
 int32_t DefaultStatement::accept(StatementVisitor* visitor) { return visitor->visitDefaultStatement(this); }
 

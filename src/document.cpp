@@ -40,19 +40,6 @@
 using namespace UTAP;
 using namespace Constants;
 
-using std::list;
-using std::stack;
-using std::vector;
-using std::map;
-using std::pair;
-using std::make_pair;
-using std::min;
-using std::max;
-using std::set;
-using std::string;
-using std::ostream;
-using std::deque;
-
 static const char* const unsupported = "Internal error: Feature not supported in this mode.";
 static const char* const invalid_type = "$Invalid_type";
 
@@ -114,7 +101,7 @@ std::ostream& function_t::print(std::ostream& os) const
             type.get(i).print_declaration(os << ", ") << ' ' << type.get_label(i);
     }
     os << ")\n{\n";  // open function body
-    for (auto& variable : variables)
+    for (const auto& variable : variables)
         variable.print(os << "    ") << ";\n";
     os << body->str(INDENT);
     return os << "}";
@@ -122,7 +109,7 @@ std::ostream& function_t::print(std::ostream& os) const
 
 std::ostream& variable_t::print(std::ostream& os) const
 {
-    string type = uid.get_type().declaration();
+    std::string type = uid.get_type().declaration();
     if (uid.get_type().is_array()) {
         auto i = type.find('[');
         assert(i != std::string::npos);
@@ -135,11 +122,11 @@ std::ostream& variable_t::print(std::ostream& os) const
     return os;
 }
 
-bool declarations_t::add_function(type_t type, string name, position_t pos, function_t*& fun)
+bool declarations_t::add_function(type_t type, const std::string& name, position_t pos, function_t*& fun)
 {
     bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
-    fun->uid = frame.add_symbol(name, type, pos, fun);  // Add symbol
+    fun->uid = frame.add_symbol(name, std::move(type), pos, fun);  // Add symbol
     return !duplicate;
 }
 
@@ -179,7 +166,7 @@ std::ostream& declarations_t::print_constants(std::ostream& os) const
 std::ostream& declarations_t::print_typedefs(std::ostream& os) const
 {
     bool first = true;
-    for (auto& symbol : frame) {
+    for (const auto& symbol : frame) {
         if (symbol.get_type().get_kind() == TYPEDEF) {
             if (first) {
                 os << "// type definitions\n";
@@ -267,23 +254,22 @@ std::string instance_t::arguments_str() const
     return os.str();
 }
 
-location_t& template_t::add_location(const string& name, expression_t inv, expression_t er, position_t pos)
+location_t& template_t::add_location(const std::string& name, expression_t inv, expression_t er, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
     loc.uid = frame.add_symbol(name, type_t::create_primitive(LOCATION), pos, &loc);
     loc.nr = locations.size() - 1;
-    loc.invariant = inv;
-    loc.exp_rate = er;
-    if (duplicate) {
+    loc.invariant = std::move(inv);
+    loc.exp_rate = std::move(er);
+    if (duplicate)
         throw DuplicateDefinitionError(name);
-    }
     return loc;
 }
 
 // FIXME: like for unnamed locations, a name is autegenerated
 // this name may conflict with user-defined names
-branchpoint_t& template_t::add_branchpoint(const string& name, position_t pos)
+branchpoint_t& template_t::add_branchpoint(const std::string& name, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
@@ -295,7 +281,7 @@ branchpoint_t& template_t::add_branchpoint(const string& name, position_t pos)
     return branchpoint;
 }
 
-edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, string actname)
+edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, std::string actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edge_t& edge = edges.emplace_back();
@@ -358,7 +344,7 @@ update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
     return update;
 }
 
-condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool pch, bool isHot)
+condition_t& template_t::add_condition(std::vector<symbol_t> anchors, int loc, bool pch, bool isHot)
 {
     int32_t nr = conditions.empty() ? 0 : conditions.back().nr + 1;
     auto& condition = conditions.emplace_back(nr);
@@ -373,7 +359,7 @@ condition_t& template_t::add_condition(vector<symbol_t> anchors, int loc, bool p
 }
 
 template <typename Fn, typename Element, typename Res = std::invoke_result_t<Fn, Element>>
-deque<Res> collect(Fn&& fn, const deque<Element>& elements)
+std::deque<Res> collect(Fn&& fn, const std::deque<Element>& elements)
 {
     auto res = std::deque<Res>{};
     std::transform(std::begin(elements), std::end(elements), std::back_inserter(res), std::forward<Fn>(fn));
@@ -389,15 +375,15 @@ deque<Res> collect(Fn&& fn, const deque<Element>& elements)
  * at the same location.
  * a message, update or condition must be in only one simregion.
  */
-const vector<simregion_t> template_t::get_simregions()
+const std::vector<simregion_t> template_t::get_simregions()
 {
     // cout <<"=======LSC: get_simregions=======\n";
     // Copy the numbers of messages, conditions and updates from the scenario
-    deque<int> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
-    deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
-    deque<int> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
+    std::deque<int> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
+    std::deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
+    std::deque<int> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
 
-    auto simregions = vector<simregion_t>{};
+    auto simregions = std::vector<simregion_t>{};
     simregions.reserve(m_nr.size());
 
     /**
@@ -445,7 +431,7 @@ const vector<simregion_t> template_t::get_simregions()
             }
         }
         s.nr = simregions.size();
-        simregions.push_back(std::move(s));
+        simregions.push_back(s);
     }
 
     /**
@@ -527,7 +513,7 @@ bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpda
  * gets the first update on one of the given instances, at y location
  * (in simUpdate), returns false if there isn't any
  */
-bool template_t::get_update(vector<instance_line_t*>& instances, int y, update_t*& simUpdate)
+bool template_t::get_update(std::vector<instance_line_t*>& instances, int y, update_t*& simUpdate)
 {
     for (auto& instance : instances) {
         if (get_update(*instance, y, simUpdate))
@@ -536,26 +522,24 @@ bool template_t::get_update(vector<instance_line_t*>& instances, int y, update_t
     return false;
 }
 
-void instance_line_t::add_parameters(instance_t& inst, frame_t params, const vector<expression_t>& arguments1)
+void instance_line_t::add_parameters(instance_t& inst, frame_t params, const std::vector<expression_t>& arguments1)
 {
     unbound = params.get_size();
-    parameters = params;
+    parameters = std::move(params);
     parameters.add(inst.parameters);
     mapping = inst.mapping;
     arguments = arguments1.size();
     templ = inst.templ;
-
-    for (size_t i = 0; i < arguments1.size(); i++) {
+    for (size_t i = 0; i < arguments1.size(); ++i)
         mapping[inst.parameters[i]] = arguments1[i];
-    }
 }
 /**
  * return the simregions anchored to this instance,
  * ordered by location number
  */
-vector<simregion_t> instance_line_t::getSimregions(const vector<simregion_t>& simregions)
+std::vector<simregion_t> instance_line_t::getSimregions(const std::vector<simregion_t>& simregions)
 {
-    vector<simregion_t> i_simregions;
+    std::vector<simregion_t> i_simregions;
     // get the simregions anchored to this instance
     for (const auto& reg : simregions) {
         const message_t* m = reg.message;
@@ -778,8 +762,8 @@ Library& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(const string& name, frame_t params, position_t position, const bool is_TA,
-                                   const string& typeLSC, const string& mode)
+template_t& Document::add_template(const std::string& name, const frame_t& params, position_t position,
+                                   const bool is_TA, const std::string& typeLSC, const std::string& mode)
 {
     type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
@@ -798,7 +782,7 @@ template_t& Document::add_template(const string& name, frame_t params, position_
     return templ;
 }
 
-template_t& Document::add_dynamic_template(const std::string& name, frame_t params, position_t pos)
+template_t& Document::add_dynamic_template(const std::string& name, const frame_t& params, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     dyn_templates.emplace_back();
@@ -853,14 +837,14 @@ template_t* Document::find_dynamic_template(const std::string& name)
     return &(*it);
 }
 
-instance_t& Document::add_instance(const string& name, instance_t& inst, frame_t params,
-                                   const vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_instance(const std::string& name, instance_t& inst, frame_t params,
+                                   const std::vector<expression_t>& arguments, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     instance_t& instance = instances.emplace_back();
     instance.uid = global.frame.add_symbol(name, type, pos, &instance);
     instance.unbound = params.get_size();
-    instance.parameters = params;
+    instance.parameters = std::move(params);
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
     instance.arguments = arguments.size();
@@ -870,14 +854,14 @@ instance_t& Document::add_instance(const string& name, instance_t& inst, frame_t
     return instance;
 }
 
-instance_t& Document::add_LSC_instance(const string& name, instance_t& inst, frame_t params,
-                                       const vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_LSC_instance(const std::string& name, instance_t& inst, frame_t params,
+                                       const std::vector<expression_t>& arguments, position_t pos)
 {
-    type_t type = type_t::create_LSC_instance(params);
-    instance_t& instance = lsc_instances.emplace_back();
+    auto type = type_t::create_LSC_instance(params);
+    auto& instance = lsc_instances.emplace_back();
     instance.uid = global.frame.add_symbol(name, type, pos, &instance);
     instance.unbound = params.get_size();
-    instance.parameters = params;
+    instance.parameters = std::move(params);
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
     instance.arguments = arguments.size();
@@ -920,31 +904,31 @@ options_t& Document::get_options() { return model_options; }
 void Document::set_options(const options_t& options) { model_options = options; }
 
 // Add a regular variable
-variable_t* Document::add_variable(declarations_t* context, type_t type, const string& name, expression_t initial,
+variable_t* Document::add_variable(declarations_t* context, type_t type, const std::string& name, expression_t initial,
                                    position_t pos)
 {
-    variable_t* var = add_variable(context->variables, context->frame, type, name, pos);
-    var->init = initial;
+    auto* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
+    var->init = std::move(initial);
     return var;
 }
 
-variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type, const string& name,
-                                               expression_t initial, position_t pos)
+variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type,
+                                               const std::string& name, expression_t initial, position_t pos)
 {
-    variable_t* var = add_variable(function->variables, frame, type, name, pos);
-    var->init = initial;
+    variable_t* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
+    var->init = std::move(initial);
     return var;
 }
 
 // Add a regular variable
-variable_t* Document::add_variable(list<variable_t>& variables, frame_t frame, type_t type, const string& name,
-                                   position_t pos)
+variable_t* Document::add_variable(std::list<variable_t>& variables, frame_t frame, type_t type,
+                                   const std::string& name, position_t pos)
 {
     bool duplicate = frame.contains(name);
     // Add variable
     variable_t& var = variables.emplace_back();
     // Add symbol
-    var.uid = frame.add_symbol(name, type, pos, &var);
+    var.uid = frame.add_symbol(name, std::move(type), pos, &var);
     if (duplicate)
         throw DuplicateDefinitionError(name);
     return &var;
@@ -965,7 +949,7 @@ void Document::copy_functions_from_to(const template_t* from, template_t* to) co
 
 void Document::add_progress_measure(declarations_t* context, expression_t guard, expression_t measure)
 {
-    context->progress.emplace_back(guard, measure);
+    context->progress.emplace_back(std::move(guard), std::move(measure));
 }
 
 static void visit(DocumentVisitor& visitor, frame_t frame)
@@ -1052,19 +1036,19 @@ void Document::accept(DocumentVisitor& visitor)
     visitor.visitDocAfter(*this);
 }
 
-void Document::set_before_update(expression_t e) { before_update = e; }
+void Document::set_before_update(expression_t e) { before_update = std::move(e); }
 
-expression_t Document::get_before_update() { return before_update; }
+expression_t& Document::get_before_update() { return before_update; }
 
-void Document::set_after_update(expression_t e) { after_update = e; }
+void Document::set_after_update(expression_t e) { after_update = std::move(e); }
 
-expression_t Document::get_after_update() { return after_update; }
+expression_t& Document::get_after_update() { return after_update; }
 
 void Document::begin_chan_priority(expression_t chan)
 {
     hasPriorities |= true;
     chan_priority_t priorities;
-    priorities.head = chan;
+    priorities.head = std::move(chan);
     chan_priorities.push_back(priorities);
 }
 
@@ -1072,10 +1056,10 @@ void Document::add_chan_priority(char separator, expression_t chan)
 {
     assert(separator == ',' || separator == '<');
     chan_priority_t::tail_t& tail = chan_priorities.back().tail;
-    tail.push_back(chan_priority_t::entry(separator, chan));
+    tail.emplace_back(separator, std::move(chan));
 }
 
-void Document::set_proc_priority(const string& name, int priority)
+void Document::set_proc_priority(const std::string& name, int priority)
 {
     hasPriorities |= (priority != 0);
     proc_priority[name] = priority;
@@ -1103,9 +1087,10 @@ void Document::add_error(position_t position, std::string msg, std::string conte
                         std::move(context));
 }
 
-void Document::add_warning(position_t position, const std::string& msg, const std::string& context)
+void Document::add_warning(position_t position, std::string msg, std::string context)
 {
-    warnings.emplace_back(positions.find(position.start), positions.find(position.end), position, msg, context);
+    warnings.emplace_back(positions.find(position.start), positions.find(position.end), position, std::move(msg),
+                          std::move(context));
 }
 
 iodecl_t* Document::add_io_decl()

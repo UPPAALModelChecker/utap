@@ -79,7 +79,6 @@ class range_t
 public:
     using value_type = T;
     constexpr range_t() = default;
-    constexpr range_t(const range_t&) = default;
     constexpr static range_t make_empty() { return range_t{1, 0}; }
 
     /** construct a range of [first,last] */

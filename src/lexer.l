@@ -91,7 +91,7 @@ idchr        [a-zA-Z0-9_$#]
 "("         { return '('; }
 ")"         { return ')'; }
 "?"        	{ return '?'; }
-"'"        	{ return '\''; }
+"'"        	{ return T_APOS; }
 "!"        	{ return T_EXCLAM; }
 "\\"        { return '\\'; }
 "\""        { return '"'; }

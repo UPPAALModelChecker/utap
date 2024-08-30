@@ -47,7 +47,7 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
     this->libpaths.insert(this->libpaths.begin(), "");
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
+void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
 {
     std::set<symbol_t> symbols;
     expr.collect_possible_reads(symbols);
@@ -56,10 +56,10 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
         symbols.erase(s);
         if (dependencies.find(s) == dependencies.end()) {
             dependencies.insert(s);
-            if (auto d = s.get_data(); d) {
+            if (auto* d = s.get_data(); d != nullptr) {
                 if (auto t = s.get_type(); !(t.is_function() || t.is_function_external())) {
                     // assume is its variable, which is not always true
-                    variable_t* v = static_cast<variable_t*>(d);
+                    auto* v = static_cast<variable_t*>(d);
                     v->init.collect_possible_reads(symbols);
                 } else {
                     // TODO; fixme.
@@ -69,7 +69,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
     }
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, type_t type)
+void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const type_t& type)
 {
     if (type.get_kind() == RANGE) {
         auto [lower, upper] = type.get_range();
@@ -111,7 +111,7 @@ void StatementBuilder::type_array_of_type(size_t n)
      * not be able to compute the offset of a process in a set of
      * processes.
      */
-    if (currentTemplate) {
+    if (currentTemplate != nullptr) {
         collectDependencies(currentTemplate->restricted, size);
     }
 
@@ -127,8 +127,8 @@ void StatementBuilder::type_array_of_type(size_t n)
  */
 void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
 {
-    vector<type_t> f(fields.end() - n, fields.end());
-    vector<string> l(labels.end() - n, labels.end());
+    auto f = vector<type_t>(fields.end() - n, fields.end());
+    auto l = vector<string>(labels.end() - n, labels.end());
 
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
@@ -151,14 +151,14 @@ void StatementBuilder::struct_field(const char* name)
     }
 
     fields.push_back(type);
-    labels.push_back(name);
+    labels.emplace_back(name);
 
     /* Check the base type. We should check this in the type
      * checker. The problem is that we do not maintain the position of
      * types, hence we cannot place the error message if we wait until
      * the type check phase.
      */
-    type_t base = type.strip_array();
+    auto base = type.strip_array();
     if (!base.is_record() && !base.is_scalar() && !base.is_integral() && !base.is_double() && !base.is_clock()) {
         handle_error(TypeException{"$Invalid_type_in_structure"});
     }
@@ -203,7 +203,7 @@ static bool initialisable(type_t type)
     }
 }
 
-static bool mustInitialise(type_t type)
+static bool mustInitialise(const type_t& type)
 {
     const auto k = type.get_kind();
     assert(k != FUNCTION);
@@ -236,10 +236,8 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
 {
     // Pop initial value
     expression_t init;
-    if (hasInit) {
-        init = fragments[0];
-        fragments.pop();
-    }
+    if (hasInit)
+        init = fragments.pop();
 
     // Construct type
     type_t type = typeFragments[0];
@@ -254,7 +252,7 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
         handle_error(TypeException{"$Constants_must_have_an_initialiser"});
     }
 
-    if (currentFun && !initialisable(type)) {
+    if (currentFun != nullptr && !initialisable(type)) {
         handle_error(TypeException{"$Type_is_not_allowed_in_functions"});
     }
 
@@ -296,25 +294,68 @@ void StatementBuilder::decl_field_init(const char* name)
     fragments[0].set_type(type);
 }
 
+expression_t StatementBuilder::make_initialiser(const type_t& type, const expression_t& init)
+{
+    if (type.is_assignment_compatible(init.get_type(), true)) {
+        return init;
+    } else if (type.is_array() && init.get_kind() == LIST) {
+        auto subtype = type.get_sub();
+        auto result = std::vector<expression_t>(init.get_size());
+        for (uint32_t i = 0; i < init.get_type().size(); i++)
+            result[i] = make_initialiser(subtype, init[i]);
+        return expression_t::create_nary(LIST, result, init.get_position(), type);
+    } else if (type.is_record() && init.get_kind() == LIST) {
+        /* In order to access the record labels we have to strip any
+         * prefixes and labels from the record type.
+         */
+        auto result = std::vector<expression_t>(type.get_record_size());
+        auto current = uint32_t{0};
+        for (uint32_t i = 0; i < init.get_type().size(); ++i, ++current) {
+            const auto& label = init.get_type().get_label(i);
+            if (!label.empty()) {
+                auto index = type.find_index_of(label);
+                if (!index) {
+                    document.add_error(init[i].get_position(), "$Unknown_field", type.str());
+                    break;
+                } else {
+                    current = *index;
+                }
+            }
+            if (current >= type.get_record_size()) {
+                document.add_error(init[i].get_position(), "$Too_many_elements_in_initialiser", type.str());
+                break;
+            }
+            if (!result[current].empty()) {
+                document.add_error(init[i].get_position(), "$Multiple_initialisers_for_field", type.str());
+                continue;
+            }
+            result[current] = make_initialiser(type.get_sub(current), init[i]);
+        }
+        return expression_t::create_nary(LIST, result, init.get_position(), type);
+    }
+    document.add_error(init.get_position(), "$Invalid_initialiser", type.str());
+    return init;
+}
+
 void StatementBuilder::decl_init_list(uint32_t num)
 {
     // Pop fields
-    vector<expression_t> fields(num);
-    for (uint32_t i = 0; i < num; i++) {
+    auto fields = std::vector<expression_t>(num);
+    for (uint32_t i = 0; i < num; ++i)
         fields[i] = fragments[num - 1 - i];
-    }
     fragments.pop(num);
 
     // Compute new type (each field has a label type, see decl_field_init())
-    vector<type_t> types;
-    vector<string> labels;
+    auto types = std::vector<type_t>{};
+    types.reserve(num);
+    auto labels = std::vector<string>{};
+    labels.reserve(num);
     for (uint32_t i = 0; i < num; i++) {
-        type_t type = fields[i].get_type();
+        auto type = fields[i].get_type();
         types.push_back(type[0]);
         labels.push_back(type.get_label(0));
         fields[i].set_type(type[0]);
     }
-
     // Create list expression
     fragments.push(expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
 }
@@ -382,23 +423,20 @@ void StatementBuilder::decl_func_end()
     assert(currentFun);
     assert(currentFun->body);
 
-    /* Recover from unterminated blocks - delete any excess blocks.
-     */
+    // Recover from unterminated blocks - delete any excess blocks.
     blocks.clear();
 
-    /* If function has a non void return type, then check that last
+    /* If function has a non-void return type, then check that last
      * statement is a return statement.
      */
     if (!currentFun->uid.get_type()[0].is_void() && !currentFun->body->returns()) {
         handle_error(TypeException{"$Return_statement_expected"});
     }
 
-    /* Restore global frame.
-     */
-    popFrame();
+    // Restore global frame.
+    frames.pop();
 
-    /* Reset current function pointer to NULL.
-     */
+    // Reset current function pointer to NULL.
     currentFun = nullptr;
 }
 
@@ -420,7 +458,7 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
             success = true;
             break;
         } catch (const std::runtime_error& ex) {
-            errors.push_back(ex.what());
+            errors.emplace_back(ex.what());
             continue;
         }
     }
@@ -479,7 +517,7 @@ void StatementBuilder::block_end()
     get_block().push_stat(std::move(block));
 
     // Restore containing frame
-    popFrame();
+    frames.pop();
 }
 
 void StatementBuilder::empty_statement() { get_block().push_stat(std::make_unique<EmptyStatement>()); }
@@ -533,9 +571,8 @@ void StatementBuilder::iteration_end(const char* name)
         static_cast<IterationStatement*>(get_block().back())->stat = std::move(statement);
     }
 
-    /* Restore the frame pointer.
-     */
-    popFrame();
+    // Restore the frame pointer.
+    pop_frame();
 }
 
 void StatementBuilder::while_begin() {}
@@ -575,7 +612,7 @@ void StatementBuilder::expr_statement()
 
 void StatementBuilder::return_statement(bool args)
 {  // 1 expr if argument is true
-    if (!currentFun) {
+    if (currentFun == nullptr) {
         handle_error(TypeException{"$Cannot_return_outside_of_function_declaration"});
     } else {
         /* Only functions with non-void return type are allowed to have

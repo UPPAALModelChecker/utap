@@ -195,7 +195,7 @@ class PropertyBuilder;
 typedef std::shared_ptr<PropertyBuilder> PropertyBuilder_ptr;
 typedef std::shared_ptr<const PropertyBuilder> PropertyBuilder_const_ptr;
 
-class PropertyBuilder : public std::enable_shared_from_this<PropertyBuilder>, public UTAP::StatementBuilder
+class PropertyBuilder : public UTAP::StatementBuilder, public std::enable_shared_from_this<PropertyBuilder>
 {
 public:
     typedef std::list<PropInfo>::const_iterator const_iterator;
@@ -211,7 +211,7 @@ protected:
                                   UTAP::position_t pos) override;
     bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override;
 
-    void typeCheck(UTAP::expression_t expr);
+    void typeCheck(const UTAP::expression_t& expr);
     bool allowProcessReferences() override;
 
     virtual void typeProperty(UTAP::expression_t);

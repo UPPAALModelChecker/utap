@@ -88,10 +88,10 @@ public:
     bool operator<(const symbol_t&) const;
 
     /** Get frame this symbol belongs to */
-    frame_t get_frame();  // TODO: consider removing this method (mostly unused)
+    frame_t get_frame() const;  // TODO: consider removing this method (mostly unused)
 
     /** Returns the type of this symbol. */
-    type_t get_type() const;
+    const type_t& get_type() const;
 
     /** Alters the type of this symbol */
     void set_type(type_t);
@@ -149,9 +149,9 @@ public:
     /** Default constructors and operators due to pImpl */
     frame_t() = default;
     frame_t(const frame_t&) = default;
-    frame_t(frame_t&&) = default;
+    frame_t(frame_t&& other) noexcept = default;
     frame_t& operator=(const frame_t&) = default;
-    frame_t& operator=(frame_t&&) = default;
+    frame_t& operator=(frame_t&&) noexcept = default;
 
     /** Destructor due to pImpl */
     ~frame_t() noexcept;
@@ -200,13 +200,13 @@ public:
     void add(symbol_t);
 
     /** Add all symbols from the given frame */
-    void add(frame_t);
+    void add(const frame_t&);
 
-    /** Move all symbols from this to a given one (leaving this empty). */
-    void move_to(frame_t);
+    /** Move all symbols from this to other (leaving this empty). */
+    void move_to(frame_t& other);
 
     /** removes the given symbol*/
-    void remove(symbol_t s);
+    void remove(const symbol_t& s);
 
     /** Resolves a name in this frame or a parent frame. */
     bool resolve(const std::string& name, symbol_t& symbol) const;

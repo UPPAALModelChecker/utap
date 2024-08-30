@@ -26,9 +26,14 @@
 #include "utap/expression.h"
 #include "utap/symbols.h"
 
-#define INDENT "\t"
+#include <memory>
+#include <string>
+#include <utility>
+#include <cstdint>
 
 namespace UTAP {
+
+constexpr auto INDENT = "\t";
 class StatementVisitor;
 
 class Statement
@@ -99,7 +104,7 @@ public:
     IterationStatement(symbol_t symbol, frame_t frame, std::unique_ptr<Statement> statement):
         frame{std::move(frame)}, symbol{std::move(symbol)}, stat{std::move(statement)}
     {}
-    frame_t get_frame() { return frame; }
+    const frame_t& get_frame() const { return frame; }
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
     std::string str(const std::string& prefix) const override;
@@ -138,7 +143,7 @@ protected:
     frame_t frame;
 
 public:
-    explicit BlockStatement(frame_t frame): frame{std::move(frame)} {}
+    explicit BlockStatement(const frame_t& frame): frame{frame} {}
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
 
@@ -157,7 +162,8 @@ public:
 class ExternalBlockStatement : public BlockStatement
 {
 public:
-    ExternalBlockStatement(frame_t frame, void* fp, bool ret): BlockStatement{frame}, functionptr{fp}, doesReturn{ret}
+    ExternalBlockStatement(const frame_t& frame, void* fp, bool ret):
+        BlockStatement{frame}, functionptr{fp}, doesReturn{ret}
     {}
     bool returns() override;
     void* getFP() { return functionptr; }
@@ -190,7 +196,7 @@ public:
 class DefaultStatement : public BlockStatement
 {
 public:
-    explicit DefaultStatement(frame_t);
+    explicit DefaultStatement(const frame_t&);
     int32_t accept(StatementVisitor* visitor) override;
     bool returns() override;
 };

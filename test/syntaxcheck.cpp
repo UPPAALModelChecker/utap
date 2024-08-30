@@ -27,9 +27,7 @@
 
 using UTAP::Document;
 using std::endl;
-using std::cout;
 using std::cerr;
-using std::vector;
 
 int main(int argc, char* argv[])
 {
@@ -48,7 +46,7 @@ int main(int argc, char* argv[])
             parse_XML_file(name.c_str(), &system, !old);
         } else {
             FILE* file = fopen(name.c_str(), "r");
-            if (!file) {
+            if (file != nullptr) {
                 perror("check");
                 return 1;
             }

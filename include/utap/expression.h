@@ -90,23 +90,23 @@ public:
 
     /** Makes a deep clone of the expression and replaces the symbol
      * "from" with the symbol "to". */
-    expression_t clone_deeper(symbol_t from, symbol_t to) const;
+    expression_t clone_deeper(const symbol_t& from, symbol_t& to) const;
 
     /** Makes a deep clone of the expression and replaces each symbol
      * with a symbol from the given frame(s), with the same name */
-    expression_t clone_deeper(frame_t frame, frame_t select = {}) const;
+    expression_t clone_deeper(const frame_t& frame, const frame_t& select = {}) const;
 
     /** Returns the kind of the expression. */
     Constants::kind_t get_kind() const;
 
     /** Returns the number of subexpression. */
-    size_t get_size() const;
+    uint32_t get_size() const;
 
     /** Returns the position of this expression. */
     const position_t& get_position() const;
 
     /** Returns the type of the expression. */
-    type_t get_type() const;
+    const type_t& get_type() const;
 
     /** Sets the type of the expression. */
     void set_type(type_t);
@@ -145,7 +145,7 @@ public:
     expression_t& operator[](uint32_t);
 
     /** Returns the ith subexpression. */
-    const expression_t operator[](uint32_t) const;
+    const expression_t& operator[](uint32_t) const;
 
     /** Returns the ith subexpression. */
     expression_t& get(uint32_t);
@@ -182,7 +182,7 @@ public:
 
     /** Returns the symbol this expression evaluates to. Notice
         that not all expression evaluate to a symbol. */
-    const symbol_t get_symbol() const;
+    symbol_t get_symbol() const;
 
     /** Returns true if this expression is a reference to a
         symbol in the given set. */
@@ -206,13 +206,13 @@ public:
 
     /** Less-than operator. Makes it possible to put expression_t
         objects into an STL set. */
-    bool operator<(const expression_t) const;
+    bool operator<(const expression_t&) const;
 
     /** Equality operator. Returns true if the two references point
         to the same expression object. */
-    bool operator==(const expression_t) const;
+    bool operator==(const expression_t&) const;
 
-    expression_t subst(symbol_t, expression_t) const;
+    expression_t subst(const symbol_t&, expression_t) const;
 
     /**
      * Precedence of expression type, higher precedence goes before low precedence
@@ -228,7 +228,7 @@ public:
     static expression_t create_string(StringIndex, position_t = {});
 
     /** Create an IDENTIFIER expression */
-    static expression_t create_identifier(symbol_t, position_t = {});
+    static expression_t create_identifier(const symbol_t&, position_t = {});
 
     /** Create a unary expression */
     static expression_t create_unary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
@@ -260,7 +260,7 @@ public:
     friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.str(); }
 
 private:
-    std::ostream& print_bound_type(std::ostream& os, expression_t e) const;
+    std::ostream& print_bound_type(std::ostream& os, const expression_t& e) const;
 };
 
 }  // namespace UTAP

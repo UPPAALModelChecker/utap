@@ -187,7 +187,7 @@ struct declarations_t : stringify_t<declarations_t>
     std::list<gantt_t> ganttChart;
 
     /** Add function declaration. */
-    bool add_function(type_t type, std::string name, position_t, function_t*&);
+    bool add_function(type_t type, const std::string& name, position_t, function_t*&);
     /** The following methods are used to write the declarations in an XML file */
     std::string str(bool global) const;
     std::ostream& print(std::ostream&, bool global = false) const;
@@ -325,8 +325,8 @@ struct instance_t
     symbol_t uid{};                           /**< The name */
     frame_t parameters{};                     /**< The parameters */
     std::map<symbol_t, expression_t> mapping; /**< The parameter to argument mapping */
-    size_t arguments{0};
-    size_t unbound{0}; /**< The number of unbound parameters */
+    uint32_t arguments{0};
+    uint32_t unbound{0}; /**< The number of unbound parameters */
     struct template_t* templ{nullptr};
     std::set<symbol_t> restricted; /**< Restricted variables */
 
@@ -532,12 +532,12 @@ public:
 
     variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,
                                          position_t);
-    variable_t* add_variable(declarations_t*, type_t type, const std::string&, expression_t initial, position_t);
+    variable_t* add_variable(declarations_t*, type_t type, const std::string& name, expression_t initial, position_t);
     void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
 
-    template_t& add_template(const std::string& name, frame_t params, position_t, bool isTA = true,
+    template_t& add_template(const std::string& name, const frame_t& params, position_t, bool isTA = true,
                              const std::string& type = "", const std::string& mode = "");
-    template_t& add_dynamic_template(const std::string& name, frame_t params, position_t pos);
+    template_t& add_dynamic_template(const std::string& name, const frame_t& params, position_t pos);
 
     instance_t& add_instance(const std::string& name, instance_t& instance, frame_t params,
                              const std::vector<expression_t>& arguments, position_t);
@@ -556,9 +556,9 @@ public:
     void accept(DocumentVisitor&);
 
     void set_before_update(expression_t);
-    expression_t get_before_update();
+    expression_t& get_before_update();
     void set_after_update(expression_t);
-    expression_t get_after_update();
+    expression_t& get_after_update();
 
     void add_query(query_t query);  // creates a copy and moves it
     bool queries_empty() const;
@@ -659,7 +659,7 @@ public:
     /** Returns the last successfully loaded library, or throws std::runtime_error. */
     Library& last_library();
     void add_error(position_t, std::string msg, std::string ctx = "");
-    void add_warning(position_t, const std::string& msg, const std::string& ctx = "");
+    void add_warning(position_t, std::string msg, std::string ctx = "");
     bool has_errors() const { return !errors.empty(); }
     bool has_warnings() const { return !warnings.empty(); }
     const std::vector<error_t>& get_errors() const { return errors; }

@@ -117,33 +117,33 @@ public:
      * Returns the position of the type in the input file. This
      * exposes the fact that the type is actually part of the AST.
      */
-    position_t get_position() const;
+    const position_t& get_position() const;
 
     /**
      * Returns the number of children.
      */
-    size_t size() const;
+    uint32_t size() const;
 
     /** Less-than operator. */
     bool operator<(const type_t&) const;
 
     /** Returns the \a i'th child. */
-    type_t operator[](uint32_t) const;
+    const type_t& operator[](uint32_t) const;
 
     /** Returns the \a i'th child. */
-    type_t get(uint32_t) const;
+    const type_t& get(uint32_t) const;
 
     /** Returns the \a i'th label. */
     const std::string& get_label(uint32_t) const;
 
     /** Returns the expression associated with the type. */
-    expression_t get_expression() const;
+    const expression_t& get_expression() const;
 
     /**
      * Returns the size of an array (this is itself a type). @pre
      * is_array().
      */
-    type_t get_array_size() const;
+    const type_t& get_array_size() const;
 
     /**
      * Returns the element type of an array. Preserves any
@@ -166,7 +166,7 @@ public:
      * Returns the label of the \i'th field of a record. @pre
      * is_record().
      */
-    const std::string& get_record_label(size_t i) const;
+    const std::string& get_record_label(uint32_t i) const;
 
     /**
      * Returns the index of the record or process field with the
@@ -199,7 +199,7 @@ public:
     bool is_integer() const { return is(Constants::INT); }
 
     /** Shortcut for is(BOOL). */
-    bool isBoolean() const { return is(Constants::BOOL); }
+    bool is_boolean() const { return is(Constants::BOOL); }
 
     /** Shortcut for is(FUNCTION). */
     bool is_function() const { return is(Constants::FUNCTION); }
@@ -321,16 +321,48 @@ public:
     /** Returns true if and only if all elements of the type are mutable (not constant). */
     bool is_mutable() const;
 
-    /**
-     * Returns true if the type has kind \a kind or if type is a
+    /** Returns true if the type has kind \a kind or if type is a
      * prefix, RANGE or REF type and the getChild().is(kind)
-     * returns true.
-     */
+     * returns true. */
     bool is(Constants::kind_t kind) const;
 
-    /**
-     * Returns true if this is null-type or of kind UNKNOWN.
-     */
+    /** Returns true if two types are compatible for equality operator.
+     * Types are compatible if they are structurally
+     * equivalent. However for scalar we use name equivalence.  Prefixes
+     * like CONST, SYSTEM_META, URGENT, COMMITTED, BROADCAST, REF and TYPENAME
+     * are ignored.
+     * Clocks are not handled by this method: If t1 or t2 are clock-types,
+     * then false is returned.
+     * TODO: REVISIT: This should be updated. */
+    bool is_equality_compatible(const type_t& other) const;
+
+    /** Returns true if this type and rhs are assignment compatible.
+     * This is the case when an expression of type rvalue can be assigned to
+     * this type. It does not check whether this is actually a left-hand side value.
+     * In case of integers, it does not check the range of the expressions. */
+    bool is_assignment_compatible(const type_t& rhs, bool init = false) const;
+
+    /** Returns true if arguments of an inline if are compatible.
+     * The 'then' and 'else' arguments are compatible if and only if they
+     * have the same base type. In case of arrays, they must have the
+     * same size and the subtypes must be compatible. In case of records,
+     * they must have the same type name. */
+    bool is_inline_if_compatible(const type_t& alt1, const type_t& alt2) const;
+
+    /** Returns a value indicating the capabilities of a channel type. For
+     * urgent channels this is 0, for non-urgent broadcast channels this
+     * is 1, and in all other cases 2. */
+    int channel_capability() const;
+
+    /// Returns true if this and other are name-equivalent scalar types.
+    bool is_same_scalar(const type_t& other) const;
+
+    /** Returns true iff this and other are structurally equivalent.
+     * However, CONST, SYSTEM_META, and REF are ignored.
+     * Scalar sets are checked using named equivalence.  */
+    bool is_equivalent(const type_t& other) const;
+
+    /// Returns true if this is null-type or of kind UNKNOWN.
     bool unknown() const;
 
     /**
@@ -345,7 +377,7 @@ public:
      * the type (expressions that occur as ranges either on
      * array sizes, scalars or integers) with \a expr.
      */
-    type_t subst(symbol_t symbol, expression_t expr) const;
+    type_t subst(const symbol_t& symbol, const expression_t& expr) const;
     /**
      * Creates a new type by adding a prefix to it. The prefix
      * could be anything and it is the responsibility of the
@@ -373,7 +405,7 @@ public:
     static type_t create_process(frame_t, position_t = position_t());
 
     /** Creates a new processset type. */
-    static type_t create_process_set(type_t instance, position_t = position_t());
+    static type_t create_process_set(const type_t& instance, position_t = position_t());
 
     /** Creates a new record type */
     static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = position_t());

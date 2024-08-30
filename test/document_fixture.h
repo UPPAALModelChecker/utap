@@ -33,6 +33,21 @@
 #include <string>
 #include <cstring>
 
+/// Checks text containment in unit testing
+class Contains
+{
+    std::string_view text;
+
+public:
+    Contains(std::string_view text): text{text} {}
+    friend bool operator==(std::string_view text, const Contains& sub)
+    {
+        return text.find(sub.text) != std::string_view::npos;
+    }
+    friend bool operator!=(std::string_view text, const Contains& sub) { return !(text == sub); }
+    friend std::ostream& operator<<(std::ostream& os, const Contains& sub) { return os << sub.text; }
+};
+
 inline std::string read_content(const std::string& file_name)
 {
     const auto path = std::filesystem::path{MODELS_DIR} / file_name;
