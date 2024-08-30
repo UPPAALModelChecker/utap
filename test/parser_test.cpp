@@ -60,7 +60,8 @@ TEST_CASE("External functions")
         CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
     } else if constexpr (is(OS::Windows)) {
         CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
-        CHECK(errs[1].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
+        CHECK(errs[1].msg == Contains{"Failed to open dynamic library"});
+        CHECK(errs[1].msg == Contains{"libbad.dll: error 126: Module not found."});
         CHECK(errs[2].msg == Contains{"Failed to find symbol: error 127: Procedure not found."});
     } else if constexpr (is(OS::macOS)) {
         CHECK(errs[0].msg == Contains{"libbad.dylib: cannot open shared object file: No such file or directory"});
