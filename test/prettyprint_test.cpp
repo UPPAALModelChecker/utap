@@ -6,6 +6,8 @@
 
 #include <doctest/doctest.h>
 
+#include <iostream>
+
 using namespace UTAP;
 
 TEST_CASE("Symbolic queries")
