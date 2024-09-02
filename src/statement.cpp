@@ -2,7 +2,7 @@
 
 /* libutap - Uppaal Timed Automata Parser.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
-   Copyright (C) 2011-2021 Aalborg University.
+   Copyright (C) 2011-2024 Aalborg University.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -232,7 +232,6 @@ int32_t ExpressionVisitor::visit_block_statement(BlockStatement& stat)
             visit_expression(static_cast<variable_t*>(data)->init);
         }
     }
-
     // Visit statements.
     for (const auto& s : stat)
         s->accept(*this);
@@ -269,14 +268,57 @@ int32_t ExpressionVisitor::visit_return_statement(ReturnStatement& stat)
     return 0;
 }
 
-void CollectChangesVisitor::visit_expression(expression_t& expr) { expr.collect_possible_writes(changes); }
-
-CollectDependenciesVisitor::CollectDependenciesVisitor(std::set<symbol_t>& dependencies): dependencies(dependencies) {}
-
-void CollectDependenciesVisitor::visit_expression(expression_t& expr) { expr.collect_possible_reads(dependencies); }
-
-void CollectDynamicExpressions::visit_expression(expression_t& expr)
+class CollectChangesVisitor final : public ExpressionVisitor
 {
-    if (expr.is_dynamic() || expr.has_dynamic_sub())
-        expressions.push_back(expr);
+protected:
+    void visit_expression(expression_t& expr) override { expr.collect_possible_writes(changes); }
+
+public:
+    std::set<symbol_t> changes;
+    CollectChangesVisitor() = default;
+};
+
+std::set<symbol_t> UTAP::collect_changes(Statement& stat)
+{
+    auto visitor = CollectChangesVisitor{};
+    stat.accept(visitor);
+    return std::move(visitor.changes);
+}
+
+class CollectDependenciesVisitor final : public ExpressionVisitor
+{
+protected:
+    void visit_expression(expression_t& expr) override { expr.collect_possible_reads(dependencies); }
+
+public:
+    std::set<symbol_t> dependencies;
+    CollectDependenciesVisitor() = default;
+};
+
+std::set<symbol_t> UTAP::collect_dependencies(Statement& stat)
+{
+    auto visitor = CollectDependenciesVisitor{};
+    stat.accept(visitor);
+    return std::move(visitor.dependencies);
+}
+
+class CollectDynamicExpressions final : public ExpressionVisitor
+{
+protected:
+    void visit_expression(expression_t& expr) override
+    {
+        if (expr.is_dynamic() || expr.has_dynamic_sub())
+            expressions.push_back(expr);
+    }
+
+public:
+    std::vector<expression_t> expressions;
+    CollectDynamicExpressions() = default;
+};
+
+std::vector<expression_t> UTAP::collect_dynamic_expressions(Statement& stat)
+{
+    auto visitor = CollectDynamicExpressions{};
+    stat.accept(visitor);
+    return std::move(visitor.expressions);
 }

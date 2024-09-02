@@ -278,6 +278,7 @@ inline int32_t BreakStatement::accept(StatementVisitor& v) { return v.visit_brea
 inline int32_t ContinueStatement::accept(StatementVisitor& v) { return v.visit_continue_statement(*this); }
 inline int32_t ReturnStatement::accept(StatementVisitor& v) { return v.visit_return_statement(*this); }
 
+/// Calls visit_statement on every statement
 class AbstractStatementVisitor : public StatementVisitor
 {
 protected:
@@ -301,6 +302,7 @@ public:
     int32_t visit_return_statement(ReturnStatement& stat) override;
 };
 
+/// Calls visit_expression on every expression found in statements
 class ExpressionVisitor : public AbstractStatementVisitor
 {
 protected:
@@ -320,35 +322,14 @@ public:
     int32_t visit_return_statement(ReturnStatement& stat) override;
 };
 
-class CollectChangesVisitor : public ExpressionVisitor
-{
-protected:
-    void visit_expression(expression_t&) override;
-    std::set<symbol_t>& changes;
+/// Collects symbols that the statement changes
+std::set<symbol_t> collect_changes(Statement& stat);
 
-public:
-    explicit CollectChangesVisitor(std::set<symbol_t>& changes): changes{changes} {}
-};
+/// Collects symbols that the statement reads
+std::set<symbol_t> collect_dependencies(Statement& stat);
 
-class CollectDependenciesVisitor : public ExpressionVisitor
-{
-protected:
-    void visit_expression(expression_t&) override;
-    std::set<symbol_t>& dependencies;
-
-public:
-    explicit CollectDependenciesVisitor(std::set<symbol_t>&);
-};
-
-class CollectDynamicExpressions : public ExpressionVisitor
-{
-protected:
-    void visit_expression(expression_t&) override;
-    std::list<expression_t>& expressions;
-
-public:
-    explicit CollectDynamicExpressions(std::list<expression_t>& expressions): expressions{expressions} {}
-};
+/// Collects dynamic expressions within the statement
+std::vector<expression_t> collect_dynamic_expressions(Statement& stat);
 
 }  // namespace UTAP
 #endif  // UTAP_STATEMENT_H

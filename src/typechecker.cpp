@@ -1429,13 +1429,13 @@ void TypeChecker::checkObservationConstraints(const expression_t& expr)
     }
 }
 
-void TypeChecker::visit_function(function_t& fun)
+void TypeChecker::visit_function(function_t& fn)
 {
-    DocumentVisitor::visit_function(fun);
+    DocumentVisitor::visit_function(fn);
     /* Check that the return type is consistent and is a valid return
      * type.
      */
-    const type_t& return_type = fun.uid.get_type()[0];
+    const type_t& return_type = fn.uid.get_type()[0];
     checkType(return_type);
     if (!return_type.is_void() && !valid_return_type(return_type))
         handleError(invalid_return_type(return_type));
@@ -1445,32 +1445,29 @@ void TypeChecker::visit_function(function_t& fun)
      * the current function being type checked in the \a function
      * member.
      */
-    function = &fun;
-    fun.body->accept(*this);
+    function = &fn;
+    fn.body->accept(*this);
     function = nullptr;
 
     /* Check if there are dynamic expressions in the function body*/
-    checkDynamicExpressions(*fun.body);
+    checkDynamicExpressions(*fn.body);
 
     /* Collect identifiers of things external to the function accessed
      * or changed by the function. Notice that neither local variables
      * nor parameters are considered to be changed or accessed by a
      * function.
      */
-    auto visitor = CollectChangesVisitor{fun.changes};
-    fun.body->accept(visitor);
+    fn.changes = collect_changes(*fn.body);
+    fn.depends = collect_dependencies(*fn.body);
 
-    auto visitor2 = CollectDependenciesVisitor{fun.depends};
-    fun.body->accept(visitor2);
-
-    for (const auto& var : fun.variables) {
-        fun.changes.erase(var.uid);
-        fun.depends.erase(var.uid);
+    for (const auto& var : fn.variables) {
+        fn.changes.erase(var.uid);
+        fn.depends.erase(var.uid);
     }
-    const uint32_t parameters = fun.uid.get_type().size() - 1;
+    const uint32_t parameters = fn.uid.get_type().size() - 1;
     for (uint32_t i = 0; i < parameters; i++) {
-        fun.changes.erase(fun.body->get_frame()[i]);
-        fun.depends.erase(fun.body->get_frame()[i]);
+        fn.changes.erase(fn.body->get_frame()[i]);
+        fn.depends.erase(fn.body->get_frame()[i]);
     }
 }
 
@@ -2741,9 +2738,7 @@ bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expre
 
 bool TypeChecker::checkDynamicExpressions(Statement& stat)
 {
-    auto expr_list = std::list<expression_t>{};
-    auto e = CollectDynamicExpressions{expr_list};
-    stat.accept(e);
+    auto expr_list = collect_dynamic_expressions(stat);
     bool ok = true;
     for (const auto& expr : expr_list) {
         ok = false;
