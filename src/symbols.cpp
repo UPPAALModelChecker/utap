@@ -48,9 +48,9 @@ struct symbol_t::symbol_data : public std::enable_shared_from_this<symbol_t::sym
     {}
 };
 
-symbol_t::symbol_t(frame_t* frame, type_t type, std::string_view name, position_t position, void* user)
+symbol_t::symbol_t(frame_t& frame, type_t type, std::string_view name, position_t position, void* user)
 {
-    data = std::make_shared<symbol_data>(frame->data.get(), std::move(type), user, name, position);
+    data = std::make_shared<symbol_data>(frame.data.get(), std::move(type), user, name, position);
 }
 
 /* Destructor */
@@ -130,7 +130,7 @@ frame_t::iterator frame_t::end() { return std::end(data->symbols); }
 /* Adds a symbol of the given name and type to the frame */
 symbol_t frame_t::add_symbol(std::string_view name, type_t type, position_t position, void* user)
 {
-    auto symbol = symbol_t{this, std::move(type), name, position, user};
+    auto symbol = symbol_t{*this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
     if (!name.empty()) {
         data->mapping[symbol.get_name()] = data->symbols.size() - 1;

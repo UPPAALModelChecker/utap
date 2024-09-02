@@ -65,7 +65,7 @@ private:
 
 protected:
     friend class frame_t;
-    symbol_t(frame_t* frame, type_t type, std::string_view name, position_t position, void* user);
+    symbol_t(frame_t& frame, type_t type, std::string_view name, position_t position, void* user);
 
 public:
     /// Default constructor
@@ -194,7 +194,7 @@ public:
     bool empty() const;
 
     /// Adds a symbol of the given name and type to the frame
-    symbol_t add_symbol(std::string_view name, type_t, position_t position, void* user = nullptr);
+    symbol_t add_symbol(std::string_view name, type_t, position_t position = {}, void* user = nullptr);
 
     /// Add all symbols from the given frame
     void add(symbol_t);

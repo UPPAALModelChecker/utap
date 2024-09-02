@@ -27,7 +27,7 @@ TEST_SUITE_BEGIN("parser");
 
 TEST_CASE("Double Serialization Test")
 {
-    auto doc = read_document("if_statement.xml");
+    const auto doc = read_document("if_statement.xml");
     const auto& errs = doc.get_errors();
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
@@ -36,7 +36,7 @@ TEST_CASE("Double Serialization Test")
 
 TEST_CASE("Power expressions")
 {
-    auto doc = read_document("powers.xml");
+    const auto doc = read_document("powers.xml");
     const auto& errs = doc.get_errors();
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();

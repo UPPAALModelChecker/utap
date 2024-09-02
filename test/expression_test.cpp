@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2020-2022 Aalborg University.
+   Copyright (C) 2020-2024 Aalborg University.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public License
@@ -22,6 +22,8 @@
 #include "utap/expression.h"
 
 #include <doctest/doctest.h>
+
+TEST_SUITE_BEGIN("Expressions");
 
 TEST_CASE("Expression")
 {
@@ -199,3 +201,5 @@ TEST_CASE("Expression to string conversion")
         CHECK(p.str() == "(2 * 3) ** (5 * 7)");
     }
 }
+
+TEST_SUITE_END();

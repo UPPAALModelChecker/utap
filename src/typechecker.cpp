@@ -123,7 +123,7 @@ bool is_formula_list(const expression_t& expr)
 
 bool hasStrictLowerBound(const expression_t& expr)
 {
-    for (size_t i = 0; i < expr.get_size(); ++i) {
+    for (uint32_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictLowerBound(expr[i])) {
             return true;
         }
@@ -149,7 +149,7 @@ bool hasStrictLowerBound(const expression_t& expr)
 
 bool hasStrictUpperBound(const expression_t& expr)
 {
-    for (size_t i = 0; i < expr.get_size(); ++i) {
+    for (uint32_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictUpperBound(expr[i])) {
             return true;
         }
@@ -198,7 +198,7 @@ bool is_assignable(const type_t& type)
     case ARRAY: return is_assignable(type[0]);
 
     case RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
+        for (uint32_t i = 0; i < type.size(); i++) {
             if (!is_assignable(type[i])) {
                 return false;
             }
@@ -534,7 +534,7 @@ bool valid_return_type(const type_t& type)
 {
     switch (type.get_kind()) {
     case Constants::RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
+        for (uint32_t i = 0; i < type.size(); i++) {
             if (!valid_return_type(type[i])) {
                 return false;
             }
@@ -810,7 +810,7 @@ void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruc
         break;
 
     case RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
+        for (uint32_t i = 0; i < type.size(); i++) {
             checkType(type.get_sub(i), true, true);
         }
         break;
@@ -970,7 +970,7 @@ void TypeChecker::visit_io_decl(iodecl_t& iodecl)
 
 void TypeChecker::visit_process(instance_t& process)
 {
-    for (size_t i = 0; i < process.unbound; i++) {
+    for (uint32_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
         const symbol_t& parameter = process.parameters[i];
         const type_t& type = parameter.get_type();
@@ -1382,7 +1382,7 @@ bool TypeChecker::checkConditionalExpressionInFunction(const expression_t& expr)
 
 void TypeChecker::checkObservationConstraints(const expression_t& expr)
 {
-    for (size_t i = 0; i < expr.get_size(); ++i) {
+    for (uint32_t i = 0; i < expr.get_size(); ++i) {
         checkObservationConstraints(expr[i]);
     }
 
@@ -1499,7 +1499,7 @@ int32_t TypeChecker::visit_for_statement(ForStatement& stat)
     return stat.stat->accept(*this);
 }
 
-int32_t TypeChecker::visit_iteration_statement(IterationStatement& stat)
+int32_t TypeChecker::visit_iteration_statement(RangeStatement& stat)
 {
     const type_t& type = stat.symbol.get_type();
     checkType(type);
@@ -1859,7 +1859,7 @@ bool TypeChecker::checkExpression(expression_t& expr)
             handleError(wrong_number_of_arguments(expr));
             return false;
         }
-        for (size_t i = 0; i < temp->parameters.get_size(); i++) {
+        for (uint32_t i = 0; i < temp->parameters.get_size(); i++) {
             if (!checkSpawnParameterCompatible(temp->parameters[i].get_type(), expr[i + 1])) {
                 return false;
             }
@@ -2423,7 +2423,7 @@ bool TypeChecker::checkExpression(expression_t& expr)
         if (is_formula(expr[2]))
             type = type_t::create_primitive(FORMULA);
 
-        for (size_t i = 3; i < expr.get_size(); ++i) {
+        for (uint32_t i = 3; i < expr.get_size(); ++i) {
             if (expr[i].changes_any_variable()) {
                 handleError(must_be_side_effect_free(expr[i]));
                 return false;

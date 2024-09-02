@@ -22,15 +22,30 @@
 
 #include "utap/statement.h"
 
+#include <iostream>
+#include <sstream>
 #include <cassert>
 
 using namespace UTAP;
 
-std::string EmptyStatement::str(const std::string&) const { return ""; }
+std::string Statement::to_string(const std::string& indent) const
+{
+    auto os = std::ostringstream{};
+    print(os, indent);
+    return os.str();
+}
 
-std::string ExprStatement::str(const std::string& prefix) const { return prefix + expr.str() + ";"; }
+std::ostream& EmptyStatement::print(std::ostream& os, const std::string&) const { return os; }
 
-std::string AssertStatement::str(const std::string& prefix) const { return prefix + "assert(" + expr.str() + ");"; }
+std::ostream& ExprStatement::print(std::ostream& os, const std::string& indent) const
+{
+    return expr.print(os << indent) << ";";
+}
+
+std::ostream& AssertStatement::print(std::ostream& os, const std::string& indent) const
+{
+    return expr.print(os << indent << "assert(") << ");";
+}
 
 ForStatement::ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> stat):
     init{std::move(init)}, cond{std::move(cond)}, step{std::move(step)}, stat{std::move(stat)}
@@ -38,39 +53,44 @@ ForStatement::ForStatement(expression_t init, expression_t cond, expression_t st
     assert(this->stat != nullptr);
 }
 
-std::string ForStatement::str(const std::string& prefix) const
+std::ostream& ForStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return prefix + "for (" + init.str() + "; " + cond.str() + "; " + step.str() + ")\n{\n" +
-           stat->str(prefix + INDENT) + "}";
+    init.print(os << indent << "for (") << "; ";
+    cond.print(os) << "; ";
+    step.print(os) << ")\n";
+    return stat->print(os, indent + INDENT) << "\n";
 }
 
-std::string IterationStatement::str(const std::string& prefix) const
+std::ostream& RangeStatement::print(std::ostream& os, const std::string& indent) const
 {
-    std::string type = symbol.get_type()[0].get_label(0);
-    return prefix + "for (" + symbol.get_name() + " : " + type  // TODO: to be tested
-           + ")\n{\n" + stat->str(prefix + INDENT) + "}";
+    auto t = symbol.get_type();
+    auto [l, u] = t.get_range();
+    os << indent << "for (" << symbol.get_name() << " : int[" << l.get_value() << "," << u.get_value() << "])\n";
+    return stat->print(os, indent + INDENT) << "\n";
 }
 
 WhileStatement::WhileStatement(expression_t cond, std::unique_ptr<Statement> stat):
     cond{std::move(cond)}, stat{std::move(stat)}
 {
-    assert(this->stat);
+    assert(this->stat != nullptr);
 }
 
-std::string WhileStatement::str(const std::string& prefix) const
+std::ostream& WhileStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return prefix + "while(" + cond.str() + ")\n" + prefix + "{\n" + stat->str(prefix + INDENT) + prefix + "}";
+    cond.print(os << indent << "while(") << ") {\n";
+    return stat->print(os, indent + INDENT) << indent << "}";
 }
 
 DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t cond):
     stat{std::move(stat)}, cond{std::move(cond)}
 {
-    assert(this->stat);
+    assert(this->stat != nullptr);
 }
 
-std::string DoWhileStatement::str(const std::string& prefix) const
+std::ostream& DoWhileStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return prefix + "do {\n" + stat->str(prefix + INDENT) + prefix + "}";
+    os << indent << "do {\n";
+    return stat->print(os, indent + INDENT) << indent << "}";
 }
 
 void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
@@ -98,24 +118,32 @@ std::unique_ptr<Statement> BlockStatement::pop_stat()
     return st;
 }
 
-std::string BlockStatement::str(const std::string& prefix) const
+std::ostream& BlockStatement::print(std::ostream& os, const std::string& indent) const
 {
-    auto res = std::string{};
-    for (const auto& st : stats) {
-        res += st->str(prefix) + "\n";
-    }
-    return res;
+    os << indent << "{\n";
+    for (const auto& st : stats)
+        st->print(os, indent + INDENT) << "\n";
+    return os << indent << "}\n";
 }
 
-std::string SwitchStatement::str(const std::string& prefix) const
+std::ostream& SwitchStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return prefix + "switch(" + cond.str() + ")\n" + prefix + "{\n" + BlockStatement::str(prefix + INDENT) + prefix +
-           "}";
+    os << indent << "switch(";
+    cond.print(os) << ") {\n";
+    return BlockStatement::print(os, indent + INDENT) << indent << "}";
 }
 
-std::string CaseStatement::str(const std::string& prefix) const
+std::ostream& CaseStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return prefix + "case " + cond.str() + ":\n" + BlockStatement::str(prefix + INDENT);
+    os << indent << "case ";
+    cond.print(os) << ":\n";
+    return BlockStatement::print(os, indent + INDENT);
+}
+
+std::ostream& DefaultStatement::print(std::ostream& os, const std::string& indent) const
+{
+    os << indent << "default:\n";
+    return BlockStatement::print(os, indent + INDENT);
 }
 
 IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
@@ -124,20 +152,32 @@ IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase,
     assert(this->trueCase);
 }
 
-std::string IfStatement::str(const std::string& prefix) const
+std::ostream& IfStatement::print(std::ostream& os, const std::string& indent) const
 {
-    std::string str =
-        prefix + "if (" + cond.str() + ")\n" + prefix + "{\n" + trueCase->str(prefix + INDENT) + prefix + "}";
-    if (falseCase)
-        str += "else {\n" + falseCase->str(prefix + INDENT) + prefix + "}";
-    return str;
+    os << indent << "if (";
+    cond.print(os) << ") {\n";
+    trueCase->print(os, indent + INDENT) << indent << "}";
+    if (falseCase) {
+        os << " else {\n";
+        falseCase->print(os, indent + INDENT) << indent << "}";
+    }
+    return os;
 }
 
-std::string BreakStatement::str(const std::string& prefix) const { return prefix + "break;"; }
+std::ostream& BreakStatement::print(std::ostream& os, const std::string& indent) const
+{
+    return os << indent << "break;";
+}
 
-std::string ContinueStatement::str(const std::string& prefix) const { return prefix + "continue;"; }
+std::ostream& ContinueStatement::print(std::ostream& os, const std::string& indent) const
+{
+    return os << indent << "continue;";
+}
 
-std::string ReturnStatement::str(const std::string& prefix) const { return prefix + "return " + value.str() + ";"; }
+std::ostream& ReturnStatement::print(std::ostream& os, const std::string& prefix) const
+{
+    return value.print(os << "return ") << ";";
+}
 
 int32_t AbstractStatementVisitor::visit_statement(Statement&) { return 0; }
 
@@ -149,10 +189,7 @@ int32_t AbstractStatementVisitor::visit_assert_statement(AssertStatement& stat) 
 
 int32_t AbstractStatementVisitor::visit_for_statement(ForStatement& stat) { return stat.stat->accept(*this); }
 
-int32_t AbstractStatementVisitor::visit_iteration_statement(IterationStatement& stat)
-{
-    return stat.stat->accept(*this);
-}
+int32_t AbstractStatementVisitor::visit_iteration_statement(RangeStatement& stat) { return stat.stat->accept(*this); }
 
 int32_t AbstractStatementVisitor::visit_while_statement(WhileStatement& stat) { return stat.stat->accept(*this); }
 

@@ -98,7 +98,7 @@ public:
     int32_t visit_expr_statement(ExprStatement& stat) override;
     int32_t visit_assert_statement(AssertStatement& stat) override;
     int32_t visit_for_statement(ForStatement& stat) override;
-    int32_t visit_iteration_statement(IterationStatement& stat) override;
+    int32_t visit_iteration_statement(RangeStatement& stat) override;
     int32_t visit_while_statement(WhileStatement& stat) override;
     int32_t visit_do_while_statement(DoWhileStatement& stat) override;
     int32_t visit_block_statement(BlockStatement& stat) override;

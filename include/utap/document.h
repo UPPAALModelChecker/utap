@@ -353,36 +353,36 @@ struct instance_line_t : public instance_t
 
 struct template_t : public instance_t, declarations_t
 {
-    symbol_t init{};                        /**< The initial location */
-    frame_t template_set{};                 /**< Template set decls */
-    std::deque<location_t> locations;       /**< Locations */
-    std::deque<branchpoint_t> branchpoints; /**< Branchpoints */
-    std::deque<edge_t> edges;               /**< Edges */
+    symbol_t init{};                         ///< The initial location
+    frame_t template_set{};                  ///< Template set decls
+    std::deque<location_t> locations;        ///< Locations
+    std::deque<branchpoint_t> branchpoints;  ///< Branchpoints
+    std::deque<edge_t> edges;                ///< Edges
     std::vector<expression_t> dynamic_evals;
     bool is_TA{true};
     bool is_instantiated{false}; /**< Is the template used in the system*/
 
     int add_dynamic_eval(expression_t t)
     {
-        dynamic_evals.push_back(t);
+        dynamic_evals.push_back(std::move(t));
         return dynamic_evals.size() - 1;
     }
 
     std::vector<expression_t>& get_dynamic_eval() { return dynamic_evals; }
 
-    /** Add another location to template. */
+    /// Add another location to template.
     location_t& add_location(std::string_view name, expression_t inv, expression_t er, position_t pos);
 
-    /** Add another branchpoint to template. */
+    /// Add another branchpoint to template.
     branchpoint_t& add_branchpoint(std::string_view, position_t);
 
-    /** Add edge to template. */
+    /// Add edge to template.
     edge_t& add_edge(symbol_t src, symbol_t dst, bool type, std::string_view actname);
 
-    std::deque<instance_line_t> instances; /**< Instance Lines */
-    std::deque<message_t> messages;        /**< Messages */
-    std::deque<update_t> updates;          /**< Updates */
-    std::deque<condition_t> conditions;    /**< Conditions */
+    std::deque<instance_line_t> instances;  ///< Instance Lines
+    std::deque<message_t> messages;         ///< Messages
+    std::deque<update_t> updates;           ///< Updates
+    std::deque<condition_t> conditions;     ///< Conditions
     std::string type;
     std::string mode;
     bool has_prechart{false};
@@ -390,30 +390,30 @@ struct template_t : public instance_t, declarations_t
     int dyn_index{0};
     bool is_defined{false};
 
-    /** Add another instance line to template. */
+    /// Add another instance line to template.
     instance_line_t& add_instance_line();
 
-    /** Add message to template. */
+    /// Add message to template.
     message_t& add_message(symbol_t src, symbol_t dst, int loc, bool pch);
 
-    /** Add condition to template. */
+    /// Add condition to template.
     condition_t& add_condition(std::vector<symbol_t> anchors, int loc, bool pch, bool isHot);
 
-    /** Add update to template. */
+    /// Add update to template.
     update_t& add_update(symbol_t anchor, int loc, bool pch);
 
     bool is_invariant() const;  // type of the LSC
 
-    /* gets the simregions from the LSC scenario */
+    /// gets the simregions from the LSC scenario
     std::vector<simregion_t> get_simregions();
 
-    /* returns the condition on the given instance, at y location */
+    /// returns the condition on the given instance, at y location
     bool get_condition(instance_line_t& instance, int y, condition_t*& simCondition);
 
-    /* returns the update on the given instance at y location */
+    /// returns the update on the given instance at y location
     bool get_update(instance_line_t& instance, int y, update_t*& simUpdate);
 
-    /* returns the first update on one of the given instances, at y location */
+    /// returns the first update on one of the given instances, at y location
     bool get_update(std::vector<instance_line_t*>& instances, int y, update_t*& simUpdate);
 };
 
@@ -518,22 +518,23 @@ public:
     Document(Document&&) noexcept = default;
     Document& operator=(Document&&) noexcept = default;
 
-    /** Returns the global declarations of the document. */
+    /// Returns the global declarations of the document.
     declarations_t& get_globals() { return global; }
 
-    /** Returns the templates of the document. */
+    /// Returns the templates of the document.
+    const std::list<template_t>& get_templates() const { return templates; }
     std::list<template_t>& get_templates() { return templates; }
     const template_t* find_template(std::string_view name) const;
     std::vector<template_t*>& get_dynamic_templates();
     template_t* find_dynamic_template(std::string_view name);
 
-    /** Returns the processes of the document. */
+    /// Returns the processes of the document.
     std::list<instance_t>& get_processes() { return processes; }
 
     options_t& get_options();
     void set_options(const options_t& options);
 
-    /** Returns the queries enclosed in the model. */
+    /// Returns the queries enclosed in the model.
     const queries_t& get_queries() const { return queries; }
 
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
@@ -665,7 +666,7 @@ protected:
 
 public:
     void add(Library&& lib);
-    /** Returns the last successfully loaded library, or throws std::runtime_error. */
+    /// Returns the last successfully loaded library, or throws std::runtime_error.
     Library& last_library();
     void add_error(position_t, std::string msg, std::string ctx = "");
     void add_warning(position_t, std::string msg, std::string ctx = "");

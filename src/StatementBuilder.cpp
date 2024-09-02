@@ -537,7 +537,7 @@ void StatementBuilder::iteration_begin(std::string_view name)
      * this here as the statement is the only thing that can keep the
      * reference to the frame.
      */
-    get_block().push_stat(std::make_unique<IterationStatement>(variable->uid, frames.top(), nullptr));
+    get_block().push_stat(std::make_unique<RangeStatement>(variable->uid, frames.top(), nullptr));
 }
 
 void StatementBuilder::iteration_end(std::string_view name)
@@ -549,7 +549,7 @@ void StatementBuilder::iteration_end(std::string_view name)
     if (!get_block().empty()) {
         // If the syntax is wrong, we won't have anything in blocks.back()
         /* Add statement to loop construction.  */
-        static_cast<IterationStatement&>(get_block().back()).stat = std::move(statement);
+        static_cast<RangeStatement&>(get_block().back()).stat = std::move(statement);
     }
 
     // Restore the frame pointer.

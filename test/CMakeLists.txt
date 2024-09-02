@@ -14,6 +14,10 @@ if(UTAP_WITH_TESTS)
   target_link_libraries(expression_test PRIVATE UTAP doctest_main)
   add_test(NAME expression_test COMMAND expression_test)
 
+  add_executable(statement_test statement_test.cpp)
+  target_link_libraries(statement_test PRIVATE UTAP doctest_main)
+  add_test(NAME statement_test COMMAND statement_test)
+
   add_library(external_fn SHARED external_fn.cpp)
 
   add_executable(parser_test parser_test.cpp)

@@ -100,7 +100,7 @@ std::ostream& function_t::print(std::ostream& os) const
     os << ")\n{\n";  // open function body
     for (const auto& variable : variables)
         variable.print(os << "    ") << ";\n";
-    os << body->str(INDENT);
+    body->print(os, INDENT);
     return os << "}";
 }
 
@@ -382,9 +382,7 @@ std::vector<simregion_t> template_t::get_simregions()
     auto simregions = std::vector<simregion_t>{};
     simregions.reserve(m_nr.size());
 
-    /**
-     * iterates over messages
-     */
+    /// iterate over messages
     for (auto& message_nr : m_nr) {
         simregion_t s = simregion_t();
         s.set_message(messages, message_nr);
@@ -430,9 +428,7 @@ std::vector<simregion_t> template_t::get_simregions()
         simregions.push_back(s);
     }
 
-    /**
-     * iterates over remaining conditions
-     */
+    /// iterate over remaining conditions
     for (auto& c_itr : c_nr) {
         auto s = simregion_t{};
         s.set_condition(conditions, c_itr);
@@ -450,9 +446,7 @@ std::vector<simregion_t> template_t::get_simregions()
         simregions.push_back(s);
     }
 
-    /**
-     * iterates over remaining updates
-     */
+    /// iterate over remaining updates
     for (auto& u_itr : u_nr) {
         auto s = simregion_t();
         s.set_update(updates, u_itr);
