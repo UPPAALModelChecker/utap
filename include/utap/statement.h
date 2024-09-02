@@ -40,7 +40,7 @@ class Statement
 {
 public:
     virtual ~Statement() noexcept = default;
-    virtual int32_t accept(StatementVisitor& visitor) = 0;
+    virtual int32_t accept(StatementVisitor&) = 0;
     virtual bool returns() const = 0;
     virtual std::string str(const std::string& prefix) const = 0;
 
@@ -48,36 +48,36 @@ protected:
     Statement() = default;
 };
 
-class EmptyStatement : public Statement
+class EmptyStatement final : public Statement
 {
 public:
     EmptyStatement() = default;
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class ExprStatement : public Statement
+class ExprStatement final : public Statement
 {
 public:
     expression_t expr;
     explicit ExprStatement(expression_t expr): expr{std::move(expr)} {}
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class AssertStatement : public Statement
+class AssertStatement final : public Statement
 {
 public:
     expression_t expr;
     explicit AssertStatement(expression_t expr): expr{std::move(expr)} {}
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class ForStatement : public Statement
+class ForStatement final : public Statement
 {
 public:
     expression_t init;
@@ -85,13 +85,13 @@ public:
     expression_t step;
     std::unique_ptr<Statement> stat;
     ForStatement(expression_t, expression_t, expression_t, std::unique_ptr<Statement>);
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
 /// Statement class for the iterator loop-construction.
-class IterationStatement : public Statement
+class IterationStatement final : public Statement
 {
 protected:
     frame_t frame;
@@ -103,30 +103,30 @@ public:
         frame{std::move(frame)}, symbol{std::move(symbol)}, stat{std::move(statement)}
     {}
     const frame_t& get_frame() const { return frame; }
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class WhileStatement : public Statement
+class WhileStatement final : public Statement
 {
 public:
     expression_t cond;
     std::unique_ptr<Statement> stat;
     WhileStatement(expression_t, std::unique_ptr<Statement>);
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class DoWhileStatement : public Statement
+class DoWhileStatement final : public Statement
 {
 public:
     std::unique_ptr<Statement> stat;
     expression_t cond;
     DoWhileStatement(std::unique_ptr<Statement>, expression_t);
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return stat->returns(); }
     std::string str(const std::string& prefix) const override;
 };
 
@@ -142,30 +142,29 @@ protected:
 
 public:
     explicit BlockStatement(const frame_t& frame): frame{frame} {}
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
-
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return begin() != end() && back().returns(); }
     const frame_t& get_frame() const { return frame; }
     frame_t& get_frame() { return frame; }
     void push_stat(std::unique_ptr<Statement> stat);
     std::unique_ptr<Statement> pop_stat();
     const Statement& back() const;
     Statement& back();
-    const_iterator begin() const;
-    const_iterator end() const;
+    const_iterator begin() const { return stats.begin(); }
+    const_iterator end() const { return stats.end(); }
     bool empty() const { return stats.empty(); }
-    iterator begin();
-    iterator end();
+    iterator begin() { return stats.begin(); }
+    iterator end() { return stats.end(); }
     std::string str(const std::string& prefix) const override;
 };
 
-class ExternalBlockStatement : public BlockStatement
+class ExternalBlockStatement final : public BlockStatement
 {
 public:
     ExternalBlockStatement(const frame_t& frame, void* fp, bool ret):
         BlockStatement{frame}, functionptr{fp}, doesReturn{ret}
     {}
-    bool returns() const override;
+    bool returns() const override { return doesReturn; }
     void* getFP() { return functionptr; }
 
 private:
@@ -178,67 +177,67 @@ class SwitchStatement : public BlockStatement
 public:
     expression_t cond;
     SwitchStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor& v) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class CaseStatement : public BlockStatement
+class CaseStatement final : public BlockStatement
 {
 public:
     expression_t cond;
     CaseStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class DefaultStatement : public BlockStatement
+class DefaultStatement final : public BlockStatement
 {
 public:
-    explicit DefaultStatement(const frame_t&);
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    explicit DefaultStatement(const frame_t& f): BlockStatement{f} {}
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
 };
 
-class IfStatement : public Statement
+class IfStatement final : public Statement
 {
 public:
     expression_t cond;
     std::unique_ptr<Statement> trueCase;
     std::unique_ptr<Statement> falseCase;
     IfStatement(expression_t, std::unique_ptr<Statement>, std::unique_ptr<Statement> falseStat = nullptr);
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
     std::string str(const std::string& prefix) const override;
 };
 
-class BreakStatement : public Statement
+class BreakStatement final : public Statement
 {
 public:
     BreakStatement() = default;
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class ContinueStatement : public Statement
+class ContinueStatement final : public Statement
 {
 public:
     ContinueStatement() = default;
-    int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return false; }
     std::string str(const std::string& prefix) const override;
 };
 
-class ReturnStatement : public Statement
+class ReturnStatement final : public Statement
 {
 public:
     expression_t value;
     ReturnStatement() = default;
     explicit ReturnStatement(expression_t expr): value{std::move(expr)} {}
     int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override;
+    bool returns() const override { return true; }
     std::string str(const std::string& prefix) const override;
 };
 
@@ -262,6 +261,22 @@ public:
     virtual int32_t visit_continue_statement(ContinueStatement& stat) = 0;
     virtual int32_t visit_return_statement(ReturnStatement& stat) = 0;
 };
+
+inline int32_t EmptyStatement::accept(StatementVisitor& v) { return v.visit_empty_statement(*this); }
+inline int32_t ExprStatement::accept(StatementVisitor& v) { return v.visit_expr_statement(*this); }
+inline int32_t AssertStatement::accept(StatementVisitor& v) { return v.visit_assert_statement(*this); }
+inline int32_t ForStatement::accept(StatementVisitor& v) { return v.visit_for_statement(*this); }
+inline int32_t IterationStatement::accept(StatementVisitor& v) { return v.visit_iteration_statement(*this); }
+inline int32_t WhileStatement::accept(StatementVisitor& v) { return v.visit_while_statement(*this); }
+inline int32_t DoWhileStatement::accept(StatementVisitor& v) { return v.visit_do_while_statement(*this); }
+inline int32_t BlockStatement::accept(StatementVisitor& v) { return v.visit_block_statement(*this); }
+inline int32_t SwitchStatement::accept(StatementVisitor& v) { return v.visit_switch_statement(*this); }
+inline int32_t CaseStatement::accept(StatementVisitor& v) { return v.visit_case_statement(*this); }
+inline int32_t DefaultStatement::accept(StatementVisitor& v) { return v.visit_default_statement(*this); }
+inline int32_t IfStatement::accept(StatementVisitor& v) { return v.visit_if_statement(*this); }
+inline int32_t BreakStatement::accept(StatementVisitor& v) { return v.visit_break_statement(*this); }
+inline int32_t ContinueStatement::accept(StatementVisitor& v) { return v.visit_continue_statement(*this); }
+inline int32_t ReturnStatement::accept(StatementVisitor& v) { return v.visit_return_statement(*this); }
 
 class AbstractStatementVisitor : public StatementVisitor
 {

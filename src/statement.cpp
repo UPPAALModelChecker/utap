@@ -25,25 +25,12 @@
 #include <cassert>
 
 using namespace UTAP;
-using std::string;
 
-int32_t EmptyStatement::accept(StatementVisitor& v) { return v.visit_empty_statement(*this); }
+std::string EmptyStatement::str(const std::string&) const { return ""; }
 
-bool EmptyStatement::returns() const { return false; }
+std::string ExprStatement::str(const std::string& prefix) const { return prefix + expr.str() + ";"; }
 
-string EmptyStatement::str(const string&) const { return ""; }
-
-int32_t ExprStatement::accept(StatementVisitor& v) { return v.visit_expr_statement(*this); }
-
-bool ExprStatement::returns() const { return false; }
-
-string ExprStatement::str(const string& prefix) const { return prefix + expr.str() + ";"; }
-
-int32_t AssertStatement::accept(StatementVisitor& v) { return v.visit_assert_statement(*this); }
-
-bool AssertStatement::returns() const { return false; }
-
-string AssertStatement::str(const string& prefix) const { return prefix + "assert(" + expr.str() + ");"; }
+std::string AssertStatement::str(const std::string& prefix) const { return prefix + "assert(" + expr.str() + ");"; }
 
 ForStatement::ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> stat):
     init{std::move(init)}, cond{std::move(cond)}, step{std::move(step)}, stat{std::move(stat)}
@@ -51,23 +38,15 @@ ForStatement::ForStatement(expression_t init, expression_t cond, expression_t st
     assert(this->stat != nullptr);
 }
 
-int32_t ForStatement::accept(StatementVisitor& v) { return v.visit_for_statement(*this); }
-
-bool ForStatement::returns() const { return false; }
-
-string ForStatement::str(const string& prefix) const
+std::string ForStatement::str(const std::string& prefix) const
 {
     return prefix + "for (" + init.str() + "; " + cond.str() + "; " + step.str() + ")\n{\n" +
            stat->str(prefix + INDENT) + "}";
 }
 
-int32_t IterationStatement::accept(StatementVisitor& v) { return v.visit_iteration_statement(*this); }
-
-bool IterationStatement::returns() const { return false; }
-
-string IterationStatement::str(const string& prefix) const
+std::string IterationStatement::str(const std::string& prefix) const
 {
-    string type = symbol.get_type()[0].get_label(0);
+    std::string type = symbol.get_type()[0].get_label(0);
     return prefix + "for (" + symbol.get_name() + " : " + type  // TODO: to be tested
            + ")\n{\n" + stat->str(prefix + INDENT) + "}";
 }
@@ -78,11 +57,7 @@ WhileStatement::WhileStatement(expression_t cond, std::unique_ptr<Statement> sta
     assert(this->stat);
 }
 
-int32_t WhileStatement::accept(StatementVisitor& v) { return v.visit_while_statement(*this); }
-
-bool WhileStatement::returns() const { return false; }
-
-string WhileStatement::str(const string& prefix) const
+std::string WhileStatement::str(const std::string& prefix) const
 {
     return prefix + "while(" + cond.str() + ")\n" + prefix + "{\n" + stat->str(prefix + INDENT) + prefix + "}";
 }
@@ -93,11 +68,7 @@ DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t
     assert(this->stat);
 }
 
-int32_t DoWhileStatement::accept(StatementVisitor& v) { return v.visit_do_while_statement(*this); }
-
-bool DoWhileStatement::returns() const { return stat->returns(); }
-
-string DoWhileStatement::str(const string& prefix) const
+std::string DoWhileStatement::str(const std::string& prefix) const
 {
     return prefix + "do {\n" + stat->str(prefix + INDENT) + prefix + "}";
 }
@@ -107,14 +78,6 @@ void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
     assert(stat != nullptr);
     stats.push_back(std::move(stat));
 }
-
-BlockStatement::const_iterator BlockStatement::begin() const { return stats.begin(); }
-
-BlockStatement::const_iterator BlockStatement::end() const { return stats.end(); }
-
-BlockStatement::iterator BlockStatement::begin() { return stats.begin(); }
-
-BlockStatement::iterator BlockStatement::end() { return stats.end(); }
 
 Statement& BlockStatement::back()
 {
@@ -135,45 +98,25 @@ std::unique_ptr<Statement> BlockStatement::pop_stat()
     return st;
 }
 
-int32_t BlockStatement::accept(StatementVisitor& v) { return v.visit_block_statement(*this); }
-
-bool BlockStatement::returns() const { return begin() != end() && back().returns(); }
-
 std::string BlockStatement::str(const std::string& prefix) const
 {
-    std::string str{};
+    auto res = std::string{};
     for (const auto& st : stats) {
-        str += st->str(prefix) + "\n";
+        res += st->str(prefix) + "\n";
     }
-    return str;
+    return res;
 }
 
-bool ExternalBlockStatement::returns() const { return doesReturn; }
-
-int32_t SwitchStatement::accept(StatementVisitor& v) { return v.visit_switch_statement(*this); }
-
-bool SwitchStatement::returns() const { return false; }
-
-string SwitchStatement::str(const string& prefix) const
+std::string SwitchStatement::str(const std::string& prefix) const
 {
     return prefix + "switch(" + cond.str() + ")\n" + prefix + "{\n" + BlockStatement::str(prefix + INDENT) + prefix +
            "}";
 }
 
-int32_t CaseStatement::accept(StatementVisitor& v) { return v.visit_case_statement(*this); }
-
-bool CaseStatement::returns() const { return false; }
-
-string CaseStatement::str(const string& prefix) const
+std::string CaseStatement::str(const std::string& prefix) const
 {
     return prefix + "case " + cond.str() + ":\n" + BlockStatement::str(prefix + INDENT);
 }
-
-DefaultStatement::DefaultStatement(const frame_t& frame): BlockStatement{frame} {}
-
-int32_t DefaultStatement::accept(StatementVisitor& v) { return v.visit_default_statement(*this); }
-
-bool DefaultStatement::returns() const { return false; }
 
 IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
     cond{std::move(cond)}, trueCase{std::move(trueCase)}, falseCase{std::move(falseCase)}
@@ -181,18 +124,7 @@ IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase,
     assert(this->trueCase);
 }
 
-int32_t IfStatement::accept(StatementVisitor& v) { return v.visit_if_statement(*this); }
-
-bool IfStatement::returns() const
-{
-    // This is wrong: An if statement returns *for sure* if both its
-    // true and false branches return.
-    // return trueCase->returns() && (falseCase == NULL || falseCase->returns());
-
-    return trueCase->returns() && falseCase != nullptr && falseCase->returns();
-}
-
-string IfStatement::str(const string& prefix) const
+std::string IfStatement::str(const std::string& prefix) const
 {
     std::string str =
         prefix + "if (" + cond.str() + ")\n" + prefix + "{\n" + trueCase->str(prefix + INDENT) + prefix + "}";
@@ -201,23 +133,11 @@ string IfStatement::str(const string& prefix) const
     return str;
 }
 
-int32_t BreakStatement::accept(StatementVisitor& v) { return v.visit_break_statement(*this); }
+std::string BreakStatement::str(const std::string& prefix) const { return prefix + "break;"; }
 
-bool BreakStatement::returns() const { return false; }
+std::string ContinueStatement::str(const std::string& prefix) const { return prefix + "continue;"; }
 
-string BreakStatement::str(const string& prefix) const { return prefix + "break;"; }
-
-int32_t ContinueStatement::accept(StatementVisitor& v) { return v.visit_continue_statement(*this); }
-
-bool ContinueStatement::returns() const { return false; }
-
-string ContinueStatement::str(const string& prefix) const { return prefix + "continue;"; }
-
-int32_t ReturnStatement::accept(StatementVisitor& v) { return v.visit_return_statement(*this); }
-
-bool ReturnStatement::returns() const { return true; }
-
-string ReturnStatement::str(const string& prefix) const { return prefix + "return " + value.str() + ";"; }
+std::string ReturnStatement::str(const std::string& prefix) const { return prefix + "return " + value.str() + ";"; }
 
 int32_t AbstractStatementVisitor::visit_statement(Statement&) { return 0; }
 
