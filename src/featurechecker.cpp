@@ -41,25 +41,25 @@ FeatureChecker::FeatureChecker(Document& document)
     }
 }
 
-bool FeatureChecker::visitTemplateBefore(template_t& templ)
+bool FeatureChecker::visit_template_before(template_t& templ)
 {
     // Only check features if template is actually used in the system
     return templ.is_instantiated;
 }
 
-void FeatureChecker::visitVariable(variable_t& var)
+void FeatureChecker::visit_variable(variable_t& var)
 {
     if (var.uid.get_type().is_clock() && !var.init.empty() && var.init.uses_fp())
         supported_methods.symbolic = false;
 }
 
-void FeatureChecker::visitEdge(edge_t& edge)
+void FeatureChecker::visit_edge(edge_t& edge)
 {
-    visitAssignment(edge.assign);
-    visitGuard(edge.guard);
+    visit_assignment(edge.assign);
+    visit_guard(edge.guard);
 }
 
-void FeatureChecker::visitGuard(expression_t& guard)
+void FeatureChecker::visit_guard(expression_t& guard)
 {
     switch (guard.get_kind()) {
     case Constants::LT:
@@ -73,7 +73,7 @@ void FeatureChecker::visitGuard(expression_t& guard)
     }
 }
 
-void FeatureChecker::visitAssignment(expression_t& ass)
+void FeatureChecker::visit_assignment(expression_t& ass)
 {
     switch (ass.get_kind()) {
     case Constants::ASSIGN:
@@ -82,13 +82,13 @@ void FeatureChecker::visitAssignment(expression_t& ass)
         break;
     case Constants::COMMA:
         for (size_t i = 0; i < ass.get_size(); ++i)
-            visitAssignment(ass.get(i));
+            visit_assignment(ass.get(i));
         break;
     default: break;
     }
 }
 
-void FeatureChecker::visitLocation(location_t& location)
+void FeatureChecker::visit_location(location_t& location)
 {
     const auto& invariant = location.invariant;
     if (invariant.empty())

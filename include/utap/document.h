@@ -489,24 +489,24 @@ class DocumentVisitor
 {
 public:
     virtual ~DocumentVisitor() noexcept = default;
-    virtual void visitDocBefore(Document&) {}
-    virtual void visitDocAfter(Document&) {}
-    virtual void visitVariable(variable_t&) {}
-    virtual bool visitTemplateBefore(template_t&) { return true; }
-    virtual void visitTemplateAfter(template_t&) {}
-    virtual void visitLocation(location_t&) {}
-    virtual void visitEdge(edge_t&) {}
-    virtual void visitInstance(instance_t&) {}
-    virtual void visitProcess(instance_t&) {}
-    virtual void visitFunction(function_t&) {}
-    virtual void visitTypeDef(symbol_t) {}
-    virtual void visitIODecl(iodecl_t&) {}
-    virtual void visitProgressMeasure(progress_t&) {}
-    virtual void visitGanttChart(gantt_t&) {}
-    virtual void visitInstanceLine(instance_line_t&) {}
-    virtual void visitMessage(message_t&) {}
-    virtual void visitCondition(condition_t&) {}
-    virtual void visitUpdate(update_t&) {}
+    virtual void visit_doc_before(Document&) {}
+    virtual void visit_doc_after(Document&) {}
+    virtual void visit_variable(variable_t&) {}
+    virtual bool visit_template_before(template_t&) { return true; }
+    virtual void visit_template_after(template_t&) {}
+    virtual void visit_location(location_t&) {}
+    virtual void visit_edge(edge_t&) {}
+    virtual void visit_instance(instance_t&) {}
+    virtual void visit_process(instance_t&) {}
+    virtual void visit_function(function_t&) {}
+    virtual void visit_typedef(symbol_t) {}
+    virtual void visit_io_decl(iodecl_t&) {}
+    virtual void visit_progress(progress_t&) {}
+    virtual void visit_gantt(gantt_t&) {}
+    virtual void visit_instance_line(instance_line_t&) {}
+    virtual void visit_message(message_t&) {}
+    virtual void visit_condition(condition_t&) {}
+    virtual void visit_update(update_t&) {}
 };
 
 class Document
@@ -587,47 +587,47 @@ public:
     int get_proc_priority(std::string_view name) const;
 
     /** Returns true if document has some priority declaration. */
-    bool has_priority_declaration() const { return hasPriorities; }
+    bool has_priority_declaration() const { return has_priorities; }
 
     /** Returns true if document has some strict invariant. */
-    bool has_strict_invariants() const { return hasStrictInv; }
+    bool has_strict_invariants() const { return has_strict_inv; }
 
     /** Record that the document has some strict invariant. */
-    void record_strict_invariant() { hasStrictInv = true; }
+    void record_strict_invariant() { has_strict_inv = true; }
 
     /** Returns true if the document stops any clock. */
-    bool has_stop_watch() const { return stopsClock; }
+    bool has_stop_watch() const { return stops_clock; }
 
     /** Record that the document stops a clock. */
-    void record_stop_watch() { stopsClock = true; }
+    void record_stop_watch() { stops_clock = true; }
 
     /** Returns true if the document has guards on controllable edges with strict lower bounds. */
-    bool has_strict_lower_bound_on_controllable_edges() const { return hasStrictLowControlledGuards; }
+    bool has_strict_lower_bound_on_controllable_edges() const { return has_strict_low_controlled_guards; }
 
     /** Record that the document has guards on controllable edges with strict lower bounds. */
-    void record_strict_lower_bound_on_controllable_edges() { hasStrictLowControlledGuards = true; }
+    void record_strict_lower_bound_on_controllable_edges() { has_strict_low_controlled_guards = true; }
 
-    void clock_guard_recv_broadcast() { hasGuardOnRecvBroadcast = true; }
-    bool has_clock_guard_recv_broadcast() const { return hasGuardOnRecvBroadcast; }
+    void clock_guard_recv_broadcast() { has_guard_on_recv_broadcast = true; }
+    bool has_clock_guard_recv_broadcast() const { return has_guard_on_recv_broadcast; }
     void set_sync_used(int s) { syncUsed = s; }
     int get_sync_used() const { return syncUsed; }
 
-    void set_urgent_transition() { hasUrgentTrans = true; }
-    bool has_urgent_transition() const { return hasUrgentTrans; }
+    void set_urgent_transition() { has_urgent_trans = true; }
+    bool has_urgent_transition() const { return has_urgent_trans; }
     bool has_dynamic_templates() const { return !dyn_templates.empty(); }
 
     StringIndex add_string(std::string&& str) { return strings.add_string_if_new(std::move(str)); }
     const std::vector<std::string>& get_strings() const { return strings.get_strings(); };
 
 protected:
-    bool hasUrgentTrans{false};
-    bool hasPriorities{false};
-    bool hasStrictInv{false};
-    bool stopsClock{false};
-    bool hasStrictLowControlledGuards{false};
-    bool hasGuardOnRecvBroadcast{false};
-    bool hasNonBroadcastChan{false};
-    int defaultChanPriority{0};
+    bool has_urgent_trans{false};
+    bool has_priorities{false};
+    bool has_strict_inv{false};
+    bool stops_clock{false};
+    bool has_strict_low_controlled_guards{false};
+    bool has_guard_on_recv_broadcast{false};
+    bool has_non_broadcast_chan{false};
+    int default_chan_priority{0};
     std::list<chan_priority_t> chan_priorities;
     std::map<std::string, int, std::less<>> proc_priority;
     int syncUsed{0};  // see typechecker
@@ -682,7 +682,7 @@ public:
     const SupportedMethods& get_supported_methods() const { return supported_methods; }
     const position_index_t& get_positions() const { return positions; }
     void add_channel(bool is_broadcast);
-    bool all_broadcast() const { return !hasNonBroadcastChan; }
+    bool all_broadcast() const { return !has_non_broadcast_chan; }
 
 private:
     // TODO: move errors & warnings to ParserBuilder to get rid of mutable

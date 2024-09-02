@@ -36,12 +36,12 @@ public:
     explicit FeatureChecker(Document& document);
     SupportedMethods get_supported_methods() { return supported_methods; }
 
-    void visitEdge(edge_t& edge) override;
-    void visitAssignment(expression_t& ass);
-    void visitGuard(expression_t& guard);
-    void visitLocation(location_t& state) override;
-    void visitVariable(variable_t&) override;
-    bool visitTemplateBefore(template_t&) override;
+    void visit_edge(edge_t& edge) override;
+    void visit_assignment(expression_t& ass);
+    void visit_guard(expression_t& guard);
+    void visit_location(location_t& state) override;
+    void visit_variable(variable_t&) override;
+    bool visit_template_before(template_t&) override;
 
     void visitFrame(const frame_t& frame);
     bool isRateDisallowedInSymbolic(const expression_t& e);

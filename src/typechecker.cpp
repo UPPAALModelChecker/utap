@@ -566,14 +566,14 @@ void static_analysis(Document& doc)
 
 ///////////////////////////////////////////////////////////////////////////
 
-void CompileTimeComputableValues::visitVariable(variable_t& variable)
+void CompileTimeComputableValues::visit_variable(variable_t& variable)
 {
     if (variable.uid.get_type().is_constant()) {
         variables.insert(variable.uid);
     }
 }
 
-void CompileTimeComputableValues::visitInstance(instance_t& temp)
+void CompileTimeComputableValues::visit_instance(instance_t& temp)
 {
     for (const auto& param : temp.parameters) {
         const type_t& type = param.get_type();
@@ -828,7 +828,7 @@ void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruc
     }
 }
 
-void TypeChecker::visitDocAfter(Document& doc)
+void TypeChecker::visit_doc_after(Document& doc)
 {
     for (chan_priority_t& i : doc.get_chan_priorities()) {
         const bool i_default = (i.head == expression_t());
@@ -891,7 +891,7 @@ void TypeChecker::visitHybridClock(expression_t& e)
     }
 }
 
-void TypeChecker::visitIODecl(iodecl_t& iodecl)
+void TypeChecker::visit_io_decl(iodecl_t& iodecl)
 {
     for (auto& e : iodecl.param) {
         if (checkExpression(e)) {
@@ -968,7 +968,7 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
     }
 }
 
-void TypeChecker::visitProcess(instance_t& process)
+void TypeChecker::visit_process(instance_t& process)
 {
     for (size_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
@@ -983,9 +983,9 @@ void TypeChecker::visitProcess(instance_t& process)
     }
 }
 
-void TypeChecker::visitVariable(variable_t& variable)
+void TypeChecker::visit_variable(variable_t& variable)
 {
-    DocumentVisitor::visitVariable(variable);
+    DocumentVisitor::visit_variable(variable);
 
     checkType(variable.uid.get_type());
     if (variable.init.is_dynamic() || variable.init.has_dynamic_sub()) {
@@ -1000,9 +1000,9 @@ void TypeChecker::visitVariable(variable_t& variable)
     }
 }
 
-void TypeChecker::visitLocation(location_t& loc)
+void TypeChecker::visit_location(location_t& loc)
 {
-    DocumentVisitor::visitLocation(loc);
+    DocumentVisitor::visit_location(loc);
 
     if (!loc.invariant.empty()) {
         auto& inv = loc.invariant;
@@ -1040,15 +1040,13 @@ void TypeChecker::visitLocation(location_t& loc)
         handleWarning(deprecated_reset(loc.uid));
 }
 
-void TypeChecker::visitEdge(edge_t& edge)
+void TypeChecker::visit_edge(edge_t& edge)
 {
-    DocumentVisitor::visitEdge(edge);
+    DocumentVisitor::visit_edge(edge);
 
     // select
-    frame_t select = edge.select;
-    for (size_t i = 0; i < select.get_size(); i++) {
-        checkType(select[i].get_type());
-    }
+    for (auto& symbol : edge.select)
+        checkType(symbol.get_type());
 
     // guard
     bool strictBound = false;
@@ -1180,11 +1178,11 @@ void TypeChecker::visitEdge(edge_t& edge)
     }
 }
 
-void TypeChecker::visitInstanceLine(instance_line_t& instance) { DocumentVisitor::visitInstanceLine(instance); }
+void TypeChecker::visit_instance_line(instance_line_t& instance) { DocumentVisitor::visit_instance_line(instance); }
 
-void TypeChecker::visitMessage(message_t& message)
+void TypeChecker::visit_message(message_t& message)
 {
-    DocumentVisitor::visitMessage(message);
+    DocumentVisitor::visit_message(message);
 
     if (!message.label.empty()) {
         if (checkExpression(message.label)) {
@@ -1196,9 +1194,9 @@ void TypeChecker::visitMessage(message_t& message)
         }
     }
 }
-void TypeChecker::visitCondition(condition_t& condition)
+void TypeChecker::visit_condition(condition_t& condition)
 {
-    DocumentVisitor::visitCondition(condition);
+    DocumentVisitor::visit_condition(condition);
     if (!condition.label.empty()) {
         if (checkExpression(condition.label)) {
             if (!is_guard(condition.label))
@@ -1208,15 +1206,15 @@ void TypeChecker::visitCondition(condition_t& condition)
         }
     }
 }
-void TypeChecker::visitUpdate(update_t& update)
+void TypeChecker::visit_update(update_t& update)
 {
-    DocumentVisitor::visitUpdate(update);
+    DocumentVisitor::visit_update(update);
     if (!update.label.empty()) {
         checkAssignmentExpression(update.label);
     }
 }
 
-void TypeChecker::visitProgressMeasure(progress_t& progress)
+void TypeChecker::visit_progress(progress_t& progress)
 {
     checkExpression(progress.guard);
     checkExpression(progress.measure);
@@ -1226,7 +1224,7 @@ void TypeChecker::visitProgressMeasure(progress_t& progress)
         handleError(progress_measure_must_evaluate_to_integer(progress.measure));
 }
 
-void TypeChecker::visitGanttChart(gantt_t& gc)
+void TypeChecker::visit_gantt(gantt_t& gc)
 {
     for (auto& param : gc.parameters)
         checkType(param.get_type());
@@ -1242,9 +1240,9 @@ void TypeChecker::visitGanttChart(gantt_t& gc)
     }
 }
 
-void TypeChecker::visitInstance(instance_t& instance)
+void TypeChecker::visit_instance(instance_t& instance)
 {
-    DocumentVisitor::visitInstance(instance);
+    DocumentVisitor::visit_instance(instance);
 
     // Check the parameters of the instance.
     const type_t& type = instance.uid.get_type();
@@ -1431,9 +1429,9 @@ void TypeChecker::checkObservationConstraints(const expression_t& expr)
     }
 }
 
-void TypeChecker::visitFunction(function_t& fun)
+void TypeChecker::visit_function(function_t& fun)
 {
-    DocumentVisitor::visitFunction(fun);
+    DocumentVisitor::visit_function(fun);
     /* Check that the return type is consistent and is a valid return
      * type.
      */
@@ -2723,17 +2721,17 @@ expression_t parseExpression(const char* str, Document& doc, bool newxtr)
     return expr;
 }
 
-void TypeChecker::visitTemplateAfter(template_t& t)
-{
-    assert(&t == temp);
-    temp = nullptr;
-}
-
-bool TypeChecker::visitTemplateBefore(template_t& t)
+bool TypeChecker::visit_template_before(template_t& t)
 {
     assert(!temp);
     temp = &t;
     return true;
+}
+
+void TypeChecker::visit_template_after(template_t& t)
+{
+    assert(&t == temp);
+    temp = nullptr;
 }
 
 bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expression_t& arg)

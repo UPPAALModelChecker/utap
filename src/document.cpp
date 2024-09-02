@@ -948,58 +948,57 @@ void Document::add_progress_measure(declarations_t* context, expression_t guard,
     context->progress.emplace_back(std::move(guard), std::move(measure));
 }
 
-static void visit(DocumentVisitor& visitor, frame_t frame)
+static void visit(DocumentVisitor& visitor, frame_t& frame)
 {
-    for (size_t i = 0; i < frame.get_size(); ++i) {
+    for (uint32_t i = 0; i < frame.get_size(); ++i) {
         type_t type = frame[i].get_type();
-
         if (type.get_kind() == TYPEDEF) {
-            visitor.visitTypeDef(frame[i]);
+            visitor.visit_typedef(frame[i]);
             continue;
         }
 
         void* data = frame[i].get_data();
         type = type.strip_array();
-
+        // TODO: use visitor dispatch to recover the type
         if ((type.is(Constants::INT) || type.is(Constants::STRING) || type.is(Constants::DOUBLE) ||
              type.is(Constants::BOOL) || type.is(CLOCK) || type.is(CHANNEL) || type.is(SCALAR) ||
              type.get_kind() == RECORD) &&
             data != nullptr)  // <--- ignore parameters
         {
-            visitor.visitVariable(*static_cast<variable_t*>(data));
+            visitor.visit_variable(*static_cast<variable_t*>(data));
         } else if (type.is(LOCATION)) {
-            visitor.visitLocation(*static_cast<location_t*>(data));
+            visitor.visit_location(*static_cast<location_t*>(data));
         } else if (type.is(LOCATION_EXPR)) {
-            visitor.visitLocation(*static_cast<location_t*>(data));
+            visitor.visit_location(*static_cast<location_t*>(data));
         } else if (type.is(FUNCTION)) {
-            visitor.visitFunction(*static_cast<function_t*>(data));
+            visitor.visit_function(*static_cast<function_t*>(data));
         } else if (type.is(FUNCTION_EXTERNAL)) {
             // we cannot look inside a external function, skip.
         } else if (type.is(INSTANCE_LINE)) {
-            visitor.visitInstanceLine(*static_cast<instance_line_t*>(data));
+            visitor.visit_instance_line(*static_cast<instance_line_t*>(data));
         }
     }
 }
 
 void visitTemplate(template_t& t, DocumentVisitor& visitor)
 {
-    if (visitor.visitTemplateBefore(t)) {
+    if (visitor.visit_template_before(t)) {
         visit(visitor, t.frame);
         for (auto& edge : t.edges)
-            visitor.visitEdge(edge);
+            visitor.visit_edge(edge);
         for (auto& message : t.messages)
-            visitor.visitMessage(message);
+            visitor.visit_message(message);
         for (auto& update : t.updates)
-            visitor.visitUpdate(update);
+            visitor.visit_update(update);
         for (auto& cond : t.conditions)
-            visitor.visitCondition(cond);
-        visitor.visitTemplateAfter(t);
+            visitor.visit_condition(cond);
+        visitor.visit_template_after(t);
     }
 }
 
 void Document::accept(DocumentVisitor& visitor)
 {
-    visitor.visitDocBefore(*this);
+    visitor.visit_doc_before(*this);
     visit(visitor, global.frame);
     for (auto& templ : templates)
         visitTemplate(templ, visitor);
@@ -1011,30 +1010,30 @@ void Document::accept(DocumentVisitor& visitor)
         void* data = global.frame[i].get_data();
         type = type.strip_array();
         if (type.is(PROCESS) || type.is(PROCESS_SET)) {
-            visitor.visitProcess(*static_cast<instance_t*>(data));
+            visitor.visit_process(*static_cast<instance_t*>(data));
         } else if (type.is(INSTANCE)) {
-            visitor.visitInstance(*static_cast<instance_t*>(data));
+            visitor.visit_instance(*static_cast<instance_t*>(data));
         } else if (type.is(LSC_INSTANCE)) {
-            visitor.visitInstance(*static_cast<instance_t*>(data));
+            visitor.visit_instance(*static_cast<instance_t*>(data));
         }
     }
 
     for (auto&& decl : global.iodecl)
-        visitor.visitIODecl(decl);
+        visitor.visit_io_decl(decl);
 
     // Maybe not ideal place for this:
     for (auto&& progress : global.progress)
-        visitor.visitProgressMeasure(progress);
+        visitor.visit_progress(progress);
 
     for (auto&& gantt : global.ganttChart)
-        visitor.visitGanttChart(gantt);
+        visitor.visit_gantt(gantt);
 
-    visitor.visitDocAfter(*this);
+    visitor.visit_doc_after(*this);
 }
 
 void Document::begin_chan_priority(expression_t chan)
 {
-    hasPriorities |= true;
+    has_priorities |= true;
     chan_priority_t priorities;
     priorities.head = std::move(chan);
     chan_priorities.push_back(priorities);
@@ -1049,7 +1048,7 @@ void Document::add_chan_priority(char separator, expression_t chan)
 
 void Document::set_proc_priority(std::string_view name, int priority)
 {
-    hasPriorities |= (priority != 0);
+    has_priorities |= (priority != 0);
     proc_priority.emplace(name, priority);
 }
 
@@ -1067,7 +1066,7 @@ void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, s
 
 const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
 
-void Document::add_channel(bool is_broadcast) { hasNonBroadcastChan |= !is_broadcast; }
+void Document::add_channel(bool is_broadcast) { has_non_broadcast_chan |= !is_broadcast; }
 
 void Document::add_error(position_t position, std::string msg, std::string context)
 {

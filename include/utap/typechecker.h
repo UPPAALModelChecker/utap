@@ -42,8 +42,8 @@ private:
     std::set<symbol_t> variables;
 
 public:
-    void visitVariable(variable_t&) override;
-    void visitInstance(instance_t&) override;
+    void visit_variable(variable_t&) override;
+    void visit_instance(instance_t&) override;
     void add_symbol(symbol_t);
     bool contains(const symbol_t&) const;
 };
@@ -76,24 +76,24 @@ public:
     };
 
     explicit TypeChecker(Document& doc, bool refinement = false);
-    void visitTemplateAfter(template_t&) override;
-    bool visitTemplateBefore(template_t&) override;
-    void visitDocAfter(Document&) override;
-    void visitVariable(variable_t&) override;
-    void visitLocation(location_t&) override;
-    void visitEdge(edge_t&) override;
-    void visitInstance(instance_t&) override;
+    void visit_doc_after(Document&) override;
+    void visit_template_after(template_t&) override;
+    bool visit_template_before(template_t&) override;
+    void visit_variable(variable_t&) override;
+    void visit_location(location_t&) override;
+    void visit_edge(edge_t&) override;
+    void visit_instance(instance_t&) override;
     virtual void visitProperty(expression_t&);  // FIXME: does not override?!
-    void visitFunction(function_t&) override;
-    void visitProgressMeasure(progress_t&) override;
+    void visit_function(function_t&) override;
+    void visit_progress(progress_t&) override;
     virtual void visitHybridClock(expression_t&);  // FIXME: does not override?!
-    void visitIODecl(iodecl_t&) override;
-    void visitGanttChart(gantt_t&) override;
-    void visitProcess(instance_t&) override;
-    void visitInstanceLine(instance_line_t&) override;
-    void visitMessage(message_t&) override;
-    void visitCondition(condition_t&) override;
-    void visitUpdate(update_t&) override;
+    void visit_io_decl(iodecl_t&) override;
+    void visit_gantt(gantt_t&) override;
+    void visit_process(instance_t&) override;
+    void visit_instance_line(instance_line_t&) override;
+    void visit_message(message_t&) override;
+    void visit_condition(condition_t&) override;
+    void visit_update(update_t&) override;
     int32_t visitEmptyStatement(EmptyStatement* stat) override;
     int32_t visitExprStatement(ExprStatement* stat) override;
     int32_t visitAssertStatement(AssertStatement* stat) override;
