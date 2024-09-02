@@ -549,7 +549,7 @@ void StatementBuilder::iteration_end(std::string_view name)
     if (!get_block().empty()) {
         // If the syntax is wrong, we won't have anything in blocks.back()
         /* Add statement to loop construction.  */
-        static_cast<IterationStatement*>(get_block().back())->stat = std::move(statement);
+        static_cast<IterationStatement&>(get_block().back()).stat = std::move(statement);
     }
 
     // Restore the frame pointer.

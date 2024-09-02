@@ -1446,11 +1446,11 @@ void TypeChecker::visit_function(function_t& fun)
      * member.
      */
     function = &fun;
-    fun.body->accept(this);
+    fun.body->accept(*this);
     function = nullptr;
 
     /* Check if there are dynamic expressions in the function body*/
-    checkDynamicExpressions(fun.body.get());
+    checkDynamicExpressions(*fun.body);
 
     /* Collect identifiers of things external to the function accessed
      * or changed by the function. Notice that neither local variables
@@ -1458,10 +1458,10 @@ void TypeChecker::visit_function(function_t& fun)
      * function.
      */
     auto visitor = CollectChangesVisitor{fun.changes};
-    fun.body->accept(&visitor);
+    fun.body->accept(visitor);
 
     auto visitor2 = CollectDependenciesVisitor{fun.depends};
-    fun.body->accept(&visitor2);
+    fun.body->accept(visitor2);
 
     for (const auto& var : fun.variables) {
         fun.changes.erase(var.uid);
@@ -1474,37 +1474,37 @@ void TypeChecker::visit_function(function_t& fun)
     }
 }
 
-int32_t TypeChecker::visitEmptyStatement(EmptyStatement*) { return 0; }
+int32_t TypeChecker::visit_empty_statement(EmptyStatement&) { return 0; }
 
-int32_t TypeChecker::visitExprStatement(ExprStatement* stat)
+int32_t TypeChecker::visit_expr_statement(ExprStatement& stat)
 {
-    checkAssignmentExpression(stat->expr);
+    checkAssignmentExpression(stat.expr);
     return 0;
 }
 
-int32_t TypeChecker::visitAssertStatement(AssertStatement* stat)
+int32_t TypeChecker::visit_assert_statement(AssertStatement& stat)
 {
-    if (checkExpression(stat->expr) && stat->expr.changes_any_variable())
-        handleError(must_be_side_effect_free(stat->expr));
+    if (checkExpression(stat.expr) && stat.expr.changes_any_variable())
+        handleError(must_be_side_effect_free(stat.expr));
     return 0;
 }
 
-int32_t TypeChecker::visitForStatement(ForStatement* stat)
+int32_t TypeChecker::visit_for_statement(ForStatement& stat)
 {
-    checkAssignmentExpression(stat->init);
+    checkAssignmentExpression(stat.init);
 
-    if (checkExpression(stat->cond)) {
-        checkConditionalExpressionInFunction(stat->cond);
+    if (checkExpression(stat.cond)) {
+        checkConditionalExpressionInFunction(stat.cond);
     }
 
-    checkAssignmentExpression(stat->step);
+    checkAssignmentExpression(stat.step);
 
-    return stat->stat->accept(this);
+    return stat.stat->accept(*this);
 }
 
-int32_t TypeChecker::visitIterationStatement(IterationStatement* stat)
+int32_t TypeChecker::visit_iteration_statement(IterationStatement& stat)
 {
-    const type_t& type = stat->symbol.get_type();
+    const type_t& type = stat.symbol.get_type();
     checkType(type);
 
     /* We only support iteration over scalars and integers.
@@ -1514,31 +1514,31 @@ int32_t TypeChecker::visitIterationStatement(IterationStatement* stat)
     else if (!type.is(RANGE))
         handleError(range_expected(type));
 
-    return stat->stat->accept(this);
+    return stat.stat->accept(*this);
 }
 
-int32_t TypeChecker::visitWhileStatement(WhileStatement* stat)
+int32_t TypeChecker::visit_while_statement(WhileStatement& stat)
 {
-    if (checkExpression(stat->cond)) {
-        checkConditionalExpressionInFunction(stat->cond);
+    if (checkExpression(stat.cond)) {
+        checkConditionalExpressionInFunction(stat.cond);
     }
-    return stat->stat->accept(this);
+    return stat.stat->accept(*this);
 }
 
-int32_t TypeChecker::visitDoWhileStatement(DoWhileStatement* stat)
+int32_t TypeChecker::visit_do_while_statement(DoWhileStatement& stat)
 {
-    if (checkExpression(stat->cond)) {
-        checkConditionalExpressionInFunction(stat->cond);
+    if (checkExpression(stat.cond)) {
+        checkConditionalExpressionInFunction(stat.cond);
     }
-    return stat->stat->accept(this);
+    return stat.stat->accept(*this);
 }
 
-int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
+int32_t TypeChecker::visit_block_statement(BlockStatement& stat)
 {
     /* Check type and initialiser of local variables (parameters are
      * also considered local variables).
      */
-    frame_t frame = stat->get_frame();
+    auto frame = stat.get_frame();
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
         symbol_t symbol = frame[i];
         checkType(symbol.get_type());
@@ -1561,33 +1561,33 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
 
     /* Check statements.
      */
-    for (const auto& s : *stat)
-        s->accept(this);
+    for (const auto& s : stat)
+        s->accept(*this);
     return 0;
 }
 
-int32_t TypeChecker::visitIfStatement(IfStatement* stat)
+int32_t TypeChecker::visit_if_statement(IfStatement& stat)
 {
-    if (checkExpression(stat->cond)) {
-        checkConditionalExpressionInFunction(stat->cond);
+    if (checkExpression(stat.cond)) {
+        checkConditionalExpressionInFunction(stat.cond);
     }
-    stat->trueCase->accept(this);
-    if (stat->falseCase) {
-        stat->falseCase->accept(this);
+    stat.trueCase->accept(*this);
+    if (stat.falseCase) {
+        stat.falseCase->accept(*this);
     }
     return 0;
 }
 
-int32_t TypeChecker::visitReturnStatement(ReturnStatement* stat)
+int32_t TypeChecker::visit_return_statement(ReturnStatement& stat)
 {
-    if (!stat->value.empty()) {
-        checkExpression(stat->value);
+    if (!stat.value.empty()) {
+        checkExpression(stat.value);
 
         /* The only valid return types are integers and records. For these
          * two types, the type rules are the same as for parameters.
          */
         const type_t& return_type = function->uid.get_type()[0];
-        checkParameterCompatible(return_type, stat->value);
+        checkParameterCompatible(return_type, stat.value);
     }
     return 0;
 }
@@ -2739,11 +2739,11 @@ bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expre
     return checkParameterCompatible(param, arg);
 }
 
-bool TypeChecker::checkDynamicExpressions(Statement* stat)
+bool TypeChecker::checkDynamicExpressions(Statement& stat)
 {
     auto expr_list = std::list<expression_t>{};
     auto e = CollectDynamicExpressions{expr_list};
-    stat->accept(&e);
+    stat.accept(e);
     bool ok = true;
     for (const auto& expr : expr_list) {
         ok = false;

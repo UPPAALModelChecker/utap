@@ -40,8 +40,8 @@ class Statement
 {
 public:
     virtual ~Statement() noexcept = default;
-    virtual int32_t accept(StatementVisitor* visitor) = 0;
-    virtual bool returns() = 0;
+    virtual int32_t accept(StatementVisitor& visitor) = 0;
+    virtual bool returns() const = 0;
     virtual std::string str(const std::string& prefix) const = 0;
 
 protected:
@@ -52,8 +52,8 @@ class EmptyStatement : public Statement
 {
 public:
     EmptyStatement() = default;
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -62,8 +62,8 @@ class ExprStatement : public Statement
 public:
     expression_t expr;
     explicit ExprStatement(expression_t expr): expr{std::move(expr)} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -72,8 +72,8 @@ class AssertStatement : public Statement
 public:
     expression_t expr;
     explicit AssertStatement(expression_t expr): expr{std::move(expr)} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -85,14 +85,12 @@ public:
     expression_t step;
     std::unique_ptr<Statement> stat;
     ForStatement(expression_t, expression_t, expression_t, std::unique_ptr<Statement>);
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
-/**
- * Statement class for the iterator loop-construction.
- */
+/// Statement class for the iterator loop-construction.
 class IterationStatement : public Statement
 {
 protected:
@@ -105,8 +103,8 @@ public:
         frame{std::move(frame)}, symbol{std::move(symbol)}, stat{std::move(statement)}
     {}
     const frame_t& get_frame() const { return frame; }
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -116,8 +114,8 @@ public:
     expression_t cond;
     std::unique_ptr<Statement> stat;
     WhileStatement(expression_t, std::unique_ptr<Statement>);
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -127,8 +125,8 @@ public:
     std::unique_ptr<Statement> stat;
     expression_t cond;
     DoWhileStatement(std::unique_ptr<Statement>, expression_t);
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -144,13 +142,15 @@ protected:
 
 public:
     explicit BlockStatement(const frame_t& frame): frame{frame} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
 
-    frame_t get_frame() { return frame; }
+    const frame_t& get_frame() const { return frame; }
+    frame_t& get_frame() { return frame; }
     void push_stat(std::unique_ptr<Statement> stat);
     std::unique_ptr<Statement> pop_stat();
-    Statement* back();
+    const Statement& back() const;
+    Statement& back();
     const_iterator begin() const;
     const_iterator end() const;
     bool empty() const { return stats.empty(); }
@@ -165,7 +165,7 @@ public:
     ExternalBlockStatement(const frame_t& frame, void* fp, bool ret):
         BlockStatement{frame}, functionptr{fp}, doesReturn{ret}
     {}
-    bool returns() override;
+    bool returns() const override;
     void* getFP() { return functionptr; }
 
 private:
@@ -178,8 +178,8 @@ class SwitchStatement : public BlockStatement
 public:
     expression_t cond;
     SwitchStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -188,8 +188,8 @@ class CaseStatement : public BlockStatement
 public:
     expression_t cond;
     CaseStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -197,8 +197,8 @@ class DefaultStatement : public BlockStatement
 {
 public:
     explicit DefaultStatement(const frame_t&);
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
 };
 
 class IfStatement : public Statement
@@ -208,8 +208,8 @@ public:
     std::unique_ptr<Statement> trueCase;
     std::unique_ptr<Statement> falseCase;
     IfStatement(expression_t, std::unique_ptr<Statement>, std::unique_ptr<Statement> falseStat = nullptr);
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -217,8 +217,8 @@ class BreakStatement : public Statement
 {
 public:
     BreakStatement() = default;
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -226,8 +226,8 @@ class ContinueStatement : public Statement
 {
 public:
     ContinueStatement() = default;
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -237,8 +237,8 @@ public:
     expression_t value;
     ReturnStatement() = default;
     explicit ReturnStatement(expression_t expr): value{std::move(expr)} {}
-    int32_t accept(StatementVisitor* visitor) override;
-    bool returns() override;
+    int32_t accept(StatementVisitor& visitor) override;
+    bool returns() const override;
     std::string str(const std::string& prefix) const override;
 };
 
@@ -246,69 +246,69 @@ class StatementVisitor
 {
 public:
     virtual ~StatementVisitor() noexcept = default;
-    virtual int32_t visitEmptyStatement(EmptyStatement* stat) = 0;
-    virtual int32_t visitExprStatement(ExprStatement* stat) = 0;
-    virtual int32_t visitAssertStatement(AssertStatement* stat) = 0;
-    virtual int32_t visitForStatement(ForStatement* stat) = 0;
-    virtual int32_t visitIterationStatement(IterationStatement* stat) = 0;
-    virtual int32_t visitWhileStatement(WhileStatement* stat) = 0;
-    virtual int32_t visitDoWhileStatement(DoWhileStatement* stat) = 0;
-    virtual int32_t visitBlockStatement(BlockStatement* stat) = 0;
-    virtual int32_t visitSwitchStatement(SwitchStatement* stat) = 0;
-    virtual int32_t visitCaseStatement(CaseStatement* stat) = 0;
-    virtual int32_t visitDefaultStatement(DefaultStatement* stat) = 0;
-    virtual int32_t visitIfStatement(IfStatement* stat) = 0;
-    virtual int32_t visitBreakStatement(BreakStatement* stat) = 0;
-    virtual int32_t visitContinueStatement(ContinueStatement* stat) = 0;
-    virtual int32_t visitReturnStatement(ReturnStatement* stat) = 0;
+    virtual int32_t visit_empty_statement(EmptyStatement& stat) = 0;
+    virtual int32_t visit_expr_statement(ExprStatement& stat) = 0;
+    virtual int32_t visit_assert_statement(AssertStatement& stat) = 0;
+    virtual int32_t visit_for_statement(ForStatement& stat) = 0;
+    virtual int32_t visit_iteration_statement(IterationStatement& stat) = 0;
+    virtual int32_t visit_while_statement(WhileStatement& stat) = 0;
+    virtual int32_t visit_do_while_statement(DoWhileStatement& stat) = 0;
+    virtual int32_t visit_block_statement(BlockStatement& stat) = 0;
+    virtual int32_t visit_switch_statement(SwitchStatement& stat) = 0;
+    virtual int32_t visit_case_statement(CaseStatement& stat) = 0;
+    virtual int32_t visit_default_statement(DefaultStatement& stat) = 0;
+    virtual int32_t visit_if_statement(IfStatement& stat) = 0;
+    virtual int32_t visit_break_statement(BreakStatement& stat) = 0;
+    virtual int32_t visit_continue_statement(ContinueStatement& stat) = 0;
+    virtual int32_t visit_return_statement(ReturnStatement& stat) = 0;
 };
 
 class AbstractStatementVisitor : public StatementVisitor
 {
 protected:
-    virtual int32_t visitStatement(Statement* stat);
+    virtual int32_t visit_statement(Statement& stat);
 
 public:
-    int32_t visitEmptyStatement(EmptyStatement* stat) override;
-    int32_t visitExprStatement(ExprStatement* stat) override;
-    int32_t visitAssertStatement(AssertStatement* stat) override;
-    int32_t visitForStatement(ForStatement* stat) override;
-    int32_t visitIterationStatement(IterationStatement* stat) override;
-    int32_t visitWhileStatement(WhileStatement* stat) override;
-    int32_t visitDoWhileStatement(DoWhileStatement* stat) override;
-    int32_t visitBlockStatement(BlockStatement* stat) override;
-    int32_t visitSwitchStatement(SwitchStatement* stat) override;
-    int32_t visitCaseStatement(CaseStatement* stat) override;
-    int32_t visitDefaultStatement(DefaultStatement* stat) override;
-    int32_t visitIfStatement(IfStatement* stat) override;
-    int32_t visitBreakStatement(BreakStatement* stat) override;
-    int32_t visitContinueStatement(ContinueStatement* stat) override;
-    int32_t visitReturnStatement(ReturnStatement* stat) override;
+    int32_t visit_empty_statement(EmptyStatement& stat) override;
+    int32_t visit_expr_statement(ExprStatement& stat) override;
+    int32_t visit_assert_statement(AssertStatement& stat) override;
+    int32_t visit_for_statement(ForStatement& stat) override;
+    int32_t visit_iteration_statement(IterationStatement& stat) override;
+    int32_t visit_while_statement(WhileStatement& stat) override;
+    int32_t visit_do_while_statement(DoWhileStatement& stat) override;
+    int32_t visit_block_statement(BlockStatement& stat) override;
+    int32_t visit_switch_statement(SwitchStatement& stat) override;
+    int32_t visit_case_statement(CaseStatement& stat) override;
+    int32_t visit_default_statement(DefaultStatement& stat) override;
+    int32_t visit_if_statement(IfStatement& stat) override;
+    int32_t visit_break_statement(BreakStatement& stat) override;
+    int32_t visit_continue_statement(ContinueStatement& stat) override;
+    int32_t visit_return_statement(ReturnStatement& stat) override;
 };
 
 class ExpressionVisitor : public AbstractStatementVisitor
 {
 protected:
-    virtual void visitExpression(expression_t) = 0;
+    virtual void visit_expression(expression_t&) = 0;
 
 public:
-    int32_t visitExprStatement(ExprStatement* stat) override;
-    int32_t visitAssertStatement(AssertStatement* stat) override;
-    int32_t visitForStatement(ForStatement* stat) override;
-    int32_t visitWhileStatement(WhileStatement* stat) override;
-    int32_t visitDoWhileStatement(DoWhileStatement* stat) override;
-    int32_t visitBlockStatement(BlockStatement* stat) override;
-    int32_t visitSwitchStatement(SwitchStatement* stat) override;
-    int32_t visitCaseStatement(CaseStatement* stat) override;
-    int32_t visitDefaultStatement(DefaultStatement* stat) override;
-    int32_t visitIfStatement(IfStatement* stat) override;
-    int32_t visitReturnStatement(ReturnStatement* stat) override;
+    int32_t visit_expr_statement(ExprStatement& stat) override;
+    int32_t visit_assert_statement(AssertStatement& stat) override;
+    int32_t visit_for_statement(ForStatement& stat) override;
+    int32_t visit_while_statement(WhileStatement& stat) override;
+    int32_t visit_do_while_statement(DoWhileStatement& stat) override;
+    int32_t visit_block_statement(BlockStatement& stat) override;
+    int32_t visit_switch_statement(SwitchStatement& stat) override;
+    int32_t visit_case_statement(CaseStatement& stat) override;
+    int32_t visit_default_statement(DefaultStatement& stat) override;
+    int32_t visit_if_statement(IfStatement& stat) override;
+    int32_t visit_return_statement(ReturnStatement& stat) override;
 };
 
 class CollectChangesVisitor : public ExpressionVisitor
 {
 protected:
-    void visitExpression(expression_t) override;
+    void visit_expression(expression_t&) override;
     std::set<symbol_t>& changes;
 
 public:
@@ -318,7 +318,7 @@ public:
 class CollectDependenciesVisitor : public ExpressionVisitor
 {
 protected:
-    void visitExpression(expression_t) override;
+    void visit_expression(expression_t&) override;
     std::set<symbol_t>& dependencies;
 
 public:
@@ -328,7 +328,7 @@ public:
 class CollectDynamicExpressions : public ExpressionVisitor
 {
 protected:
-    void visitExpression(expression_t) override;
+    void visit_expression(expression_t&) override;
     std::list<expression_t>& expressions;
 
 public:
@@ -336,4 +336,4 @@ public:
 };
 
 }  // namespace UTAP
-#endif /* UTAP_STATEMENT_H */
+#endif  // UTAP_STATEMENT_H

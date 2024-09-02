@@ -94,18 +94,18 @@ public:
     void visit_message(message_t&) override;
     void visit_condition(condition_t&) override;
     void visit_update(update_t&) override;
-    int32_t visitEmptyStatement(EmptyStatement* stat) override;
-    int32_t visitExprStatement(ExprStatement* stat) override;
-    int32_t visitAssertStatement(AssertStatement* stat) override;
-    int32_t visitForStatement(ForStatement* stat) override;
-    int32_t visitIterationStatement(IterationStatement* stat) override;
-    int32_t visitWhileStatement(WhileStatement* stat) override;
-    int32_t visitDoWhileStatement(DoWhileStatement* stat) override;
-    int32_t visitBlockStatement(BlockStatement* stat) override;
-    int32_t visitIfStatement(IfStatement* stat) override;
-    int32_t visitReturnStatement(ReturnStatement* stat) override;
+    int32_t visit_empty_statement(EmptyStatement& stat) override;
+    int32_t visit_expr_statement(ExprStatement& stat) override;
+    int32_t visit_assert_statement(AssertStatement& stat) override;
+    int32_t visit_for_statement(ForStatement& stat) override;
+    int32_t visit_iteration_statement(IterationStatement& stat) override;
+    int32_t visit_while_statement(WhileStatement& stat) override;
+    int32_t visit_do_while_statement(DoWhileStatement& stat) override;
+    int32_t visit_block_statement(BlockStatement& stat) override;
+    int32_t visit_if_statement(IfStatement& stat) override;
+    int32_t visit_return_statement(ReturnStatement& stat) override;
 
-    bool checkDynamicExpressions(Statement* stat);
+    bool checkDynamicExpressions(Statement& stat);
     /** Type check an expression */
     bool checkExpression(expression_t&);
     bool checkSpawnParameterCompatible(const type_t& param, const expression_t& arg);
