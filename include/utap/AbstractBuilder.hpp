@@ -31,14 +31,10 @@
 #include <vector>
 
 namespace UTAP {
-class NotSupportedException : public std::exception
+class NotSupportedException : public std::logic_error
 {
-private:
-    std::string error;
-
 public:
-    NotSupportedException(const std::string& fun) { error = fun + " is not supported"; }
-    const char* what() const noexcept override { return error.c_str(); }
+    NotSupportedException(const std::string& fn): std::logic_error{fn + " is not supported"} {}
 };
 
 class AbstractBuilder : public ParserBuilder
@@ -54,7 +50,7 @@ public:
     /************************************************************
      * Query functions
      */
-    bool is_type(const char*) override;
+    bool is_type(std::string_view) override;
 
     /************************************************************
      * Types
@@ -70,28 +66,28 @@ public:
     void type_clock(PREFIX) override;
     void type_void() override;
     void type_scalar(PREFIX) override;
-    void type_name(PREFIX, const char* name) override;
+    void type_name(PREFIX, std::string_view name) override;
     void type_struct(PREFIX, uint32_t fields) override;
     void type_array_of_size(size_t) override;
     void type_array_of_type(size_t) override;
-    void struct_field(const char* name) override;
-    void decl_typedef(const char* name) override;
+    void struct_field(std::string_view name) override;
+    void decl_typedef(std::string_view name) override;
 
     /************************************************************
      * Variable declarations
      */
-    void decl_var(const char* name, bool init) override;
-    void decl_init_list(uint32_t num) override;       // n initialisers
-    void decl_field_init(const char* name) override;  // 1 initialiser
+    void decl_var(std::string_view name, bool init) override;
+    void decl_init_list(uint32_t num) override;            // n initialisers
+    void decl_field_init(std::string_view name) override;  // 1 initialiser
 
     /********************************************************************
      * Gantt chart declaration
      */
-    void gantt_decl_begin(const char* name) override;
-    void gantt_decl_select(const char* id) override;
+    void gantt_decl_begin(std::string_view name) override;
+    void gantt_decl_select(std::string_view id) override;
     void gantt_decl_end() override;
     void gantt_entry_begin() override;
-    void gantt_entry_select(const char* id) override;
+    void gantt_entry_select(std::string_view id) override;
     void gantt_entry_end() override;
 
     /************************************************************
@@ -102,27 +98,28 @@ public:
     /************************************************************
      * Function declarations
      */
-    void decl_parameter(const char* name, bool) override;
-    void decl_func_begin(const char* name) override;  // n paramaters
-    void decl_func_end() override;                    // 1 block
-    void dynamic_load_lib(const char* name) override;
-    void decl_external_func(const char* name, const char* alias) override;
+    void decl_parameter(std::string_view name, bool) override;
+    void decl_func_begin(std::string_view name) override;  // n paramaters
+    void decl_func_end() override;                         // 1 block
+    void dynamic_load_lib(std::string_view name) override;
+    void decl_external_func(std::string_view name, std::string_view alias) override;
 
     /************************************************************
      * Process declarations
      */
-    void proc_begin(const char* name, const bool isTA = true, const std::string& type = "",
-                    const std::string& mode = "") override;
-    void proc_end() override;                                                      // 1 ProcBody
-    void proc_location(const char* name, bool hasInvariant, bool hasER) override;  // 1 expr
-    void proc_location_commit(const char* name) override;                          // mark previously decl. state
-    void proc_location_urgent(const char* name) override;                          // mark previously decl. state
-    void proc_location_init(const char* name) override;                            // mark previously decl. state
-    void proc_branchpoint(const char* name) override;
-    void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname) override;
-    void proc_edge_end(const char* from, const char* to) override;
+    void proc_begin(std::string_view name, const bool isTA = true, std::string_view type = "",
+                    std::string_view mode = "") override;
+    void proc_end() override;                                                           // 1 ProcBody
+    void proc_location(std::string_view name, bool hasInvariant, bool hasER) override;  // 1 expr
+    void proc_location_commit(std::string_view name) override;                          // mark previously decl. state
+    void proc_location_urgent(std::string_view name) override;                          // mark previously decl. state
+    void proc_location_init(std::string_view name) override;                            // mark previously decl. state
+    void proc_branchpoint(std::string_view name) override;
+    void proc_edge_begin(std::string_view from, std::string_view to, const bool control,
+                         std::string_view actname) override;
+    void proc_edge_end(std::string_view from, std::string_view to) override;
     // 1 epxr,1sync,1expr
-    void proc_select(const char* id) override;
+    void proc_select(std::string_view id) override;
     void proc_guard() override;
     void proc_sync(Constants::synchronisation_t type) override;  // 1 expr
     void proc_update() override;
@@ -131,15 +128,15 @@ public:
      * Process declarations for LSC
      */
     void proc_instance_line() override;
-    void instance_name(const char* name, bool templ = true) override;
-    void instance_name_begin(const char* name) override;
-    void instance_name_end(const char* name, size_t arguments) override;
-    void proc_message(const char* from, const char* to, const int loc, const bool pch) override;
+    void instance_name(std::string_view name, bool templ = true) override;
+    void instance_name_begin(std::string_view name) override;
+    void instance_name_end(std::string_view name, size_t arguments) override;
+    void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
     void proc_message(Constants::synchronisation_t type) override;  // 1 expr
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                         const bool hot) override;
     void proc_condition() override;  // Label
-    void proc_LSC_update(const char* anchor, const int loc, const bool pch) override;
+    void proc_LSC_update(std::string_view anchor, const int loc, const bool pch) override;
     void proc_LSC_update() override;  // Label
     void prechart_set(const bool pch) override;
 
@@ -149,10 +146,10 @@ public:
     void block_begin() override;
     void block_end() override;
     void empty_statement() override;
-    void for_begin() override;                        // 3 expr
-    void for_end() override;                          // 1 stat
-    void iteration_begin(const char* name) override;  // 1 id, 1 type
-    void iteration_end(const char* name) override;    // 1 stat
+    void for_begin() override;                             // 3 expr
+    void for_end() override;                               // 1 stat
+    void iteration_begin(std::string_view name) override;  // 1 id, 1 type
+    void iteration_end(std::string_view name) override;    // 1 stat
     void while_begin() override;
     void while_end() override;  // 1 expr, 1 stat
     void do_while_begin() override;
@@ -179,9 +176,9 @@ public:
     void expr_true() override;
     void expr_false() override;
     void expr_double(double) override;
-    void expr_string(const char*) override;
+    void expr_string(std::string_view) override;
     void expr_location() override;
-    void expr_identifier(const char* varName) override;
+    void expr_identifier(std::string_view varName) override;
     void expr_nat(int32_t) override;  // natural number
     void expr_call_begin() override;
     void expr_call_end(uint32_t n) override;                // n exprs as arguments
@@ -194,30 +191,30 @@ public:
     void expr_unary(Constants::kind_t unaryop) override;    // 1 expr
     void expr_binary(Constants::kind_t binaryop) override;  // 2 expr
     void expr_nary(Constants::kind_t, uint32_t num) override;
-    void expr_scenario(const char* name) override;
+    void expr_scenario(std::string_view name) override;
     void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;  // 3 expr
     void expr_inline_if() override;                                              // 3 expr
     void expr_comma() override;                                                  // 2 expr
-    void expr_dot(const char*) override;                                         // 1 expr
+    void expr_dot(std::string_view) override;                                    // 1 expr
     void expr_deadlock() override;
-    void expr_forall_begin(const char* name) override;
-    void expr_forall_end(const char* name) override;
-    void expr_exists_begin(const char* name) override;
-    void expr_exists_end(const char* name) override;
-    void expr_sum_begin(const char* name) override;
-    void expr_sum_end(const char* name) override;
+    void expr_forall_begin(std::string_view name) override;
+    void expr_forall_end(std::string_view name) override;
+    void expr_exists_begin(std::string_view name) override;
+    void expr_exists_end(std::string_view name) override;
+    void expr_sum_begin(std::string_view name) override;
+    void expr_sum_end(std::string_view name) override;
 
     void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) override;
     void expr_proba_quantitative(Constants::kind_t) override;
     void expr_proba_compare(Constants::kind_t, Constants::kind_t) override;
-    void expr_proba_expected(const char* identifier) override;
+    void expr_proba_expected(std::string_view identifier) override;
     void expr_simulate(int no_of_exprs, bool = false, int = 0) override;
     void expr_builtin_function1(Constants::kind_t) override;
     void expr_builtin_function2(Constants::kind_t) override;
     void expr_builtin_function3(Constants::kind_t) override;
     void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
     void expr_load_strategy() override;
-    void expr_save_strategy(const char* strategy_name) override;
+    void expr_save_strategy(std::string_view strategy_name) override;
 
     // MITL
     void expr_MITL_formula() override;
@@ -232,23 +229,23 @@ public:
     /************************************************************
      * System declaration
      */
-    void instantiation_begin(const char*, size_t, const char*) override;
-    void instantiation_end(const char*, size_t, const char*, size_t) override;
-    void process(const char*) override;
+    void instantiation_begin(std::string_view, size_t, std::string_view) override;
+    void instantiation_end(std::string_view, size_t, std::string_view, size_t) override;
+    void process(std::string_view) override;
     void process_list_end() override;
     void done() override;
 
-    void handle_expect(const char* text) override;
+    void handle_expect(std::string_view text) override;
 
     /************************************************************
      * Properties
      */
     void property() override;
-    void scenario(const char*) override;              // LSC
-    void parse(const char*) override;                 // LSC
-    void strategy_declaration(const char*) override;  // tiga-smc
-    void subjection(const char*) override;
-    void imitation(const char*) override;
+    void scenario(std::string_view) override;              // LSC
+    void parse(const char*) override;                      // LSC
+    void strategy_declaration(std::string_view) override;  // tiga-smc
+    void subjection(std::string_view) override;
+    void imitation(std::string_view) override;
 
     /********************************************************************
      * Guiding
@@ -263,37 +260,37 @@ public:
     void chan_priority_add(char separator) override;
     void chan_priority_default() override;
     void proc_priority_inc() override;
-    void proc_priority(const std::string&) override;
+    void proc_priority(std::string_view) override;
 
-    void decl_dynamic_template(const std::string& name) override;
+    void decl_dynamic_template(std::string_view name) override;
     void expr_spawn(int) override;
     void expr_exit() override;
     void expr_numof() override;
 
-    void expr_forall_dynamic_begin(const char*, const char*) override;
-    void expr_forall_dynamic_end(const char* name) override;
-    void expr_exists_dynamic_begin(const char*, const char*) override;
-    void expr_exists_dynamic_end(const char* name) override;
-    void expr_sum_dynamic_begin(const char*, const char*) override;
-    void expr_sum_dynamic_end(const char*) override;
-    void expr_foreach_dynamic_begin(const char*, const char*) override;
-    void expr_foreach_dynamic_end(const char* name) override;
-    void expr_dynamic_process_expr(const char*) override;
-    void expr_MITL_forall_dynamic_begin(const char*, const char*) override;
-    void expr_MITL_forall_dynamic_end(const char* name) override;
-    void expr_MITL_exists_dynamic_begin(const char*, const char*) override;
-    void expr_MITL_exists_dynamic_end(const char* name) override;
+    void expr_forall_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_forall_dynamic_end(std::string_view name) override;
+    void expr_exists_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_exists_dynamic_end(std::string_view name) override;
+    void expr_sum_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_sum_dynamic_end(std::string_view) override;
+    void expr_foreach_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_foreach_dynamic_end(std::string_view name) override;
+    void expr_dynamic_process_expr(std::string_view) override;
+    void expr_MITL_forall_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_MITL_forall_dynamic_end(std::string_view name) override;
+    void expr_MITL_exists_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_MITL_exists_dynamic_end(std::string_view name) override;
 
     /** Verification queries */
-    void model_option(const char* key, const char* value) override;
+    void model_option(std::string_view key, std::string_view value) override;
     void query_begin() override;
-    void query_formula(const char* formula, const char* location) override;
-    void query_comment(const char* comment) override;
-    void query_options(const char* options, const char*) override;
+    void query_formula(std::string_view formula, std::string_view location) override;
+    void query_comment(std::string_view comment) override;
+    void query_options(std::string_view options, std::string_view) override;
     void expectation_begin() override;
     void expectation_end() override;
-    void expectation_value(const char* res, const char* type, const char* value) override;
-    void expect_resource(const char* type, const char* value, const char* unit) override;
+    void expectation_value(std::string_view res, std::string_view type, std::string_view value) override;
+    void expect_resource(std::string_view type, std::string_view value, std::string_view unit) override;
     void query_results_begin() override;
     void query_results_end() override;
     void query_end() override;

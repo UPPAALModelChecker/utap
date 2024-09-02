@@ -140,7 +140,7 @@ void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
  * Used to declare the fields of a structure. The type of the field is
  * expected to be on the type fragment stack.
  */
-void StatementBuilder::struct_field(const char* name)
+void StatementBuilder::struct_field(std::string_view name)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -169,15 +169,13 @@ void StatementBuilder::struct_field(const char* name)
  * fragment stack. In case of array types, dim constant expressions
  * are expected on and popped from the expression stack.
  */
-void StatementBuilder::decl_typedef(const char* name)
+void StatementBuilder::decl_typedef(std::string_view name)
 {
     bool duplicate = frames.top().contains(name);
-    type_t type = type_t::create_typedef(name, typeFragments[0], position);
+    type_t type = type_t::create_typedef(std::string{name}, typeFragments[0], position);
     typeFragments.pop();
-    if (duplicate) {
+    if (duplicate)
         throw DuplicateDefinitionError(name);
-    }
-
     frames.top().add_symbol(name, type, position);
 }
 
@@ -232,7 +230,7 @@ static bool mustInitialise(const type_t& type)
  * top of the expression stack.  The expressions will be popped of the
  * stack (the type is left untouched).
  */
-void StatementBuilder::decl_var(const char* name, bool hasInit)
+void StatementBuilder::decl_var(std::string_view name, bool hasInit)
 {
     // Pop initial value
     expression_t init;
@@ -288,7 +286,7 @@ void StatementBuilder::decl_var(const char* name, bool hasInit)
 // initialiser is used (i.e. a list of fields), then the type
 // requirements are much less strict.
 
-void StatementBuilder::decl_field_init(const char* name)
+void StatementBuilder::decl_field_init(std::string_view name)
 {
     type_t type = fragments[0].get_type().create_label(name, position);
     fragments[0].set_type(type);
@@ -363,7 +361,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
 /********************************************************************
  * Function declarations
  */
-void StatementBuilder::decl_parameter(const char* name, bool ref)
+void StatementBuilder::decl_parameter(std::string_view name, bool ref)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -375,7 +373,7 @@ void StatementBuilder::decl_parameter(const char* name, bool ref)
     params.add_symbol(name, type, position);
 }
 
-void StatementBuilder::decl_func_begin(const char* name)
+void StatementBuilder::decl_func_begin(std::string_view name)
 {
     // assert(currentFun == nullptr); // the parser should recover cleanly, but it does not
     if (currentFun != nullptr) {
@@ -440,16 +438,18 @@ void StatementBuilder::decl_func_end()
     currentFun = nullptr;
 }
 
-void StatementBuilder::dynamic_load_lib(const char* lib)
+void StatementBuilder::dynamic_load_lib(std::string_view lib)
 {
-    // check that we have a library
-    size_t len = strlen(lib);
-    if (len <= 2) {
+    auto name = std::string{};
+    {  // strip the quote marks
+        auto is = std::istringstream{std::string{lib}};
+        is >> std::quoted(name);
+    }
+    if (name.empty()) {
         handle_error(TypeException{"Cannot_load_empty_library_path"});
         return;
     }
-    auto name = std::string(lib + 1, len - 2);  // strip the quote marks
-    auto errors = std::vector<std::string>{};   // buffer the errors
+    auto errors = std::vector<std::string>{};  // buffer the errors
     auto success = false;
     for (const auto& dir : libpaths) {
         auto path = dir / name;
@@ -468,31 +468,31 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
     }
 }
 
-void StatementBuilder::decl_external_func(const char* name, const char* alias)
+void StatementBuilder::decl_external_func(std::string_view name, std::string_view alias)
 {
     assert(currentFun == nullptr);
 
-    type_t return_type = typeFragments[0];
-    typeFragments.pop();
+    auto return_type = typeFragments.pop();
 
-    vector<type_t> types;
-    vector<string> labels;
-    for (size_t i = 0; i < params.get_size(); i++) {
-        types.push_back(params[i].get_type());
-        labels.push_back(params[i].get_name());
+    auto types = vector<type_t>{};
+    types.reserve(params.get_size());
+    auto labels = vector<string>{};
+    labels.reserve(params.get_size());
+    for (const auto& param : params) {
+        types.push_back(param.get_type());
+        labels.push_back(param.get_name());
     }
 
     void* fp = nullptr;
     try {
-        fp = document.last_library().get_symbol(name);
+        fp = document.last_library().get_symbol(std::string{name});
     } catch (const std::runtime_error& ex) {
         handle_error(TypeException{ex.what()});
     }
 
-    type_t type = type_t::create_external_function(return_type, types, labels, position);
-    if (!addFunction(type, alias, position_t())) {
+    auto type = type_t::create_external_function(return_type, types, labels, position);
+    if (!addFunction(type, alias, position_t()))
         handle_error(DuplicateDefinitionError(alias));
-    }
     push_frame(frame_t::create(frames.top()));
     params.move_to(frames.top());  // params is emptied here
     currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());
@@ -533,7 +533,7 @@ void StatementBuilder::for_end()
     fragments.pop(3);
 }
 
-void StatementBuilder::iteration_begin(const char* name)
+void StatementBuilder::iteration_begin(std::string_view name)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -559,7 +559,7 @@ void StatementBuilder::iteration_begin(const char* name)
     get_block().push_stat(std::make_unique<IterationStatement>(variable->uid, frames.top(), nullptr));
 }
 
-void StatementBuilder::iteration_end(const char* name)
+void StatementBuilder::iteration_end(std::string_view name)
 {
     /* Retrieve the statement that we iterate over.
      */

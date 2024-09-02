@@ -77,7 +77,7 @@ struct PositionTracker
      * content). Adds position to \a builder and increments it by
      * 1.
      */
-    void setPath(UTAP::ParserBuilder* parser, const std::string& s)
+    void setPath(UTAP::ParserBuilder* parser, std::string_view s)
     {
         // Incrementing the position by one avoids the problem where the
         // end-position happens to bleed into a path. E.g. the range 5-10

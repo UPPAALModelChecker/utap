@@ -173,7 +173,7 @@ public:
      * given label. Returns -1 if such a field does not
      * exist. @pre is_record() or is_process().
      */
-    std::optional<uint32_t> find_index_of(const std::string&) const;
+    std::optional<uint32_t> find_index_of(std::string_view) const;
 
     /**
      * Returns the range of a RANGE type. @pre is_range().
@@ -386,7 +386,7 @@ public:
     type_t create_prefix(Constants::kind_t kind, position_t = position_t()) const;
 
     /** Creates a LABEL. */
-    type_t create_label(std::string, position_t = position_t()) const;
+    type_t create_label(std::string_view, position_t = position_t()) const;
 
     /**
      */

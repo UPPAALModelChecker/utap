@@ -69,7 +69,7 @@ void ExpressionBuilder::handle_warning(const TypeException& ex) { document.add_w
 
 void ExpressionBuilder::push_frame(frame_t frame) { frames.push(std::move(frame)); }
 
-bool ExpressionBuilder::resolve(const std::string& name, symbol_t& uid) const
+bool ExpressionBuilder::resolve(std::string_view name, symbol_t& uid) const
 {
     assert(!frames.empty());
     return frames.top().resolve(name, uid);
@@ -77,7 +77,7 @@ bool ExpressionBuilder::resolve(const std::string& name, symbol_t& uid) const
 
 ExpressionBuilder::ExpressionFragments& ExpressionBuilder::getExpressions() { return fragments; }
 
-bool ExpressionBuilder::is_type(const char* name)
+bool ExpressionBuilder::is_type(std::string_view name)
 {
     symbol_t uid;
     if (!resolve(name, uid)) {
@@ -96,9 +96,9 @@ expression_t ExpressionBuilder::make_constant(double value) const
     return expression_t::create_double(value, position);
 }
 
-expression_t ExpressionBuilder::make_constant(const std::string& value) const
+expression_t ExpressionBuilder::make_constant(std::string_view value) const
 {
-    auto is = std::istringstream{value};
+    auto is = std::istringstream{std::string{value}};
     auto newstring = std::string{};
     is >> std::quoted(newstring);
     StringIndex str = document.add_string(std::move(newstring));
@@ -238,7 +238,7 @@ void ExpressionBuilder::type_scalar(PREFIX prefix)
     typeFragments.push(type);
 }
 
-void ExpressionBuilder::type_name(PREFIX prefix, const char* name)
+void ExpressionBuilder::type_name(PREFIX prefix, std::string_view name)
 {
     symbol_t uid;
     assert(resolve(name, uid));
@@ -280,9 +280,9 @@ void ExpressionBuilder::expr_double(double d)
     fragments.push(expr);
 }
 
-void ExpressionBuilder::expr_string(const char* name) { fragments.push(make_constant(name)); }
+void ExpressionBuilder::expr_string(std::string_view name) { fragments.push(make_constant(std::string{name})); }
 
-void ExpressionBuilder::expr_identifier(const char* name)
+void ExpressionBuilder::expr_identifier(std::string_view name)
 {
     symbol_t uid;
 
@@ -482,7 +482,7 @@ void ExpressionBuilder::expr_nary(kind_t kind, uint32_t num)
     fragments.push(expression_t::create_nary(kind, fields, position));
 }
 
-void ExpressionBuilder::expr_scenario(const char* name)
+void ExpressionBuilder::expr_scenario(std::string_view name)
 {
     auto uid = symbol_t{};
     auto check [[maybe_unused]] = resolve(name, uid);
@@ -553,7 +553,7 @@ void ExpressionBuilder::expr_location()
     fragments[0] = expr;
 }
 
-void ExpressionBuilder::expr_dot(const char* id)
+void ExpressionBuilder::expr_dot(std::string_view id)
 {
     expression_t expr = fragments[0];
     type_t type = expr.get_type();
@@ -604,7 +604,7 @@ void ExpressionBuilder::expr_dot(const char* id)
     fragments[0] = expr;
 }
 
-void ExpressionBuilder::expr_forall_begin(const char* name)
+void ExpressionBuilder::expr_forall_begin(std::string_view name)
 {
     type_t type = typeFragments[0];
     typeFragments.pop();
@@ -621,7 +621,7 @@ void ExpressionBuilder::expr_forall_begin(const char* name)
     }
 }
 
-void ExpressionBuilder::expr_forall_end(const char* name)
+void ExpressionBuilder::expr_forall_end(std::string_view name)
 {
     /* Create the forall expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded
@@ -633,9 +633,9 @@ void ExpressionBuilder::expr_forall_end(const char* name)
     pop_frame();
 }
 
-void ExpressionBuilder::expr_exists_begin(const char* name) { expr_forall_begin(name); }
+void ExpressionBuilder::expr_exists_begin(std::string_view name) { expr_forall_begin(name); }
 
-void ExpressionBuilder::expr_exists_end(const char* name)
+void ExpressionBuilder::expr_exists_end(std::string_view name)
 {
     /* Create the exists expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded
@@ -647,9 +647,9 @@ void ExpressionBuilder::expr_exists_end(const char* name)
     pop_frame();
 }
 
-void ExpressionBuilder::expr_sum_begin(const char* name) { expr_forall_begin(name); }
+void ExpressionBuilder::expr_sum_begin(std::string_view name) { expr_forall_begin(name); }
 
-void ExpressionBuilder::expr_sum_end(const char* name)
+void ExpressionBuilder::expr_sum_end(std::string_view name)
 {
     /* Create the sum expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded
@@ -729,7 +729,7 @@ void ExpressionBuilder::expr_load_strategy()
     fragments.push(expression_t::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
 }
 
-void ExpressionBuilder::expr_save_strategy(const char* strategy_name)
+void ExpressionBuilder::expr_save_strategy(std::string_view strategy_name)
 {
     assert(fragments.size() == 1);
     fragments[0] = expression_t::create_binary(SAVE_STRAT, fragments[0], make_constant(strategy_name), position);
@@ -770,7 +770,7 @@ void ExpressionBuilder::expr_proba_compare(Constants::kind_t pathType1, Constant
     fragments.push(expression_t::create_nary(PROBA_CMP, std::move(args), position));
 }
 
-void ExpressionBuilder::expr_proba_expected(const char* aggregatingOp)
+void ExpressionBuilder::expr_proba_expected(std::string_view aggregatingOp)
 {
     auto& boundTypeOrBoundedExpr = fragments[3];
     auto& bound = fragments[2];
@@ -778,9 +778,9 @@ void ExpressionBuilder::expr_proba_expected(const char* aggregatingOp)
     auto& expression = fragments[0];
 
     int aggOpId;
-    if (strcmp("min", aggregatingOp) == 0)
+    if (aggregatingOp == "min")
         aggOpId = 0;
-    else if (strcmp("max", aggregatingOp) == 0)
+    else if (aggregatingOp == "max")
         aggOpId = 1;
     else
         throw TypeException("min or max expected");
@@ -953,7 +953,7 @@ void ExpressionBuilder::expr_numof()
     fragments.push(expression_t::create_unary(NUMOF, id, position, t));
 }
 
-void ExpressionBuilder::expr_forall_dynamic_begin(const char* name, const char* temp)
+void ExpressionBuilder::expr_forall_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(PROCESS_VAR, position), position);
@@ -964,7 +964,7 @@ void ExpressionBuilder::expr_forall_dynamic_begin(const char* name, const char* 
     push_dynamic_frame_of(templ, name);
 }
 
-void ExpressionBuilder::expr_forall_dynamic_end(const char* name)
+void ExpressionBuilder::expr_forall_dynamic_end(std::string_view name)
 {
     // At this instant we should have expression on top of the stack and the template identifier
     // below it
@@ -986,7 +986,7 @@ void ExpressionBuilder::expr_forall_dynamic_end(const char* name)
     pop_frame();
     pop_dynamic_frame_of(name);
 }
-void ExpressionBuilder::expr_exists_dynamic_begin(const char* name, const char* temp)
+void ExpressionBuilder::expr_exists_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
@@ -998,7 +998,7 @@ void ExpressionBuilder::expr_exists_dynamic_begin(const char* name, const char* 
     }
 }
 
-void ExpressionBuilder::expr_exists_dynamic_end(const char* name)
+void ExpressionBuilder::expr_exists_dynamic_end(std::string_view name)
 {
     expression_t expr = fragments[0];
     expression_t process = fragments[1];
@@ -1018,7 +1018,7 @@ void ExpressionBuilder::expr_exists_dynamic_end(const char* name)
     pop_dynamic_frame_of(name);
 }
 
-void ExpressionBuilder::expr_sum_dynamic_begin(const char* name, const char* temp)
+void ExpressionBuilder::expr_sum_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
@@ -1029,7 +1029,7 @@ void ExpressionBuilder::expr_sum_dynamic_begin(const char* name, const char* tem
     push_dynamic_frame_of(templ, name);
 }
 
-void ExpressionBuilder::expr_sum_dynamic_end(const char* name)
+void ExpressionBuilder::expr_sum_dynamic_end(std::string_view name)
 {
     expression_t& expr = fragments[0];
     expression_t& process = fragments[1];
@@ -1041,7 +1041,7 @@ void ExpressionBuilder::expr_sum_dynamic_end(const char* name)
     pop_dynamic_frame_of(name);
 }
 
-void ExpressionBuilder::expr_foreach_dynamic_begin(const char* name, const char* temp)
+void ExpressionBuilder::expr_foreach_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
@@ -1052,7 +1052,7 @@ void ExpressionBuilder::expr_foreach_dynamic_begin(const char* name, const char*
         throw UnknownDynamicTemplateError(temp);
 }
 
-void ExpressionBuilder::expr_foreach_dynamic_end(const char* name)
+void ExpressionBuilder::expr_foreach_dynamic_end(std::string_view name)
 {
     auto& expr = fragments[0];
     auto& process = fragments[1];
@@ -1065,12 +1065,15 @@ void ExpressionBuilder::expr_foreach_dynamic_end(const char* name)
     pop_dynamic_frame_of(name);
 }
 
-void ExpressionBuilder::push_dynamic_frame_of(template_t* t, const std::string& name)
+void ExpressionBuilder::push_dynamic_frame_of(template_t* t, std::string_view name)
 {
-    if (!t->is_defined) {
+    if (!t->is_defined)
         throw TypeException("Template referenced before used");
-    }
-    dynamicFrames[name] = t->frame;
+    dynamicFrames.emplace(std::string{name}, t->frame);
 }
 
-void ExpressionBuilder::pop_dynamic_frame_of(const std::string& name) { dynamicFrames.erase(name); }
+void ExpressionBuilder::pop_dynamic_frame_of(std::string_view name)
+{
+    if (auto it = dynamicFrames.find(name); it != dynamicFrames.end())
+        dynamicFrames.erase(it);
+}

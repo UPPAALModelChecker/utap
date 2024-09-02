@@ -58,8 +58,8 @@ protected:
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 
-    virtual variable_t* addVariable(type_t type, const std::string& name, expression_t init, position_t pos) = 0;
-    virtual bool addFunction(type_t type, const std::string& name, position_t pos) = 0;
+    virtual variable_t* addVariable(type_t type, std::string_view name, expression_t init, position_t pos) = 0;
+    virtual bool addFunction(type_t type, std::string_view name, position_t pos) = 0;
 
     static void collectDependencies(std::set<symbol_t>&, const expression_t&);
     static void collectDependencies(std::set<symbol_t>&, const type_t&);
@@ -73,24 +73,24 @@ public:
     void type_array_of_size(size_t) override;
     void type_array_of_type(size_t) override;
     void type_struct(PREFIX, uint32_t fields) override;
-    void struct_field(const char* name) override;
-    void decl_typedef(const char* name) override;
-    void decl_var(const char* name, bool init) override;
+    void struct_field(std::string_view name) override;
+    void decl_typedef(std::string_view name) override;
+    void decl_var(std::string_view name, bool init) override;
     expression_t make_initialiser(const type_t& type, const expression_t& init);
     void decl_init_list(uint32_t num) override;
-    void decl_field_init(const char* name) override;
-    void decl_parameter(const char* name, bool) override;
-    void decl_func_begin(const char* name) override;
+    void decl_field_init(std::string_view name) override;
+    void decl_parameter(std::string_view name, bool) override;
+    void decl_func_begin(std::string_view name) override;
     void decl_func_end() override;
-    void dynamic_load_lib(const char* name) override;
-    void decl_external_func(const char* name, const char* alias) override;
+    void dynamic_load_lib(std::string_view name) override;
+    void decl_external_func(std::string_view name, std::string_view alias) override;
     void block_begin() override;
     void block_end() override;
     void empty_statement() override;
     void for_begin() override;
     void for_end() override;
-    void iteration_begin(const char* name) override;
-    void iteration_end(const char* name) override;
+    void iteration_begin(std::string_view name) override;
+    void iteration_end(std::string_view name) override;
     void while_begin() override;
     void while_end() override;
     void do_while_begin() override;

@@ -25,9 +25,10 @@
 
 #include "utap/common.h"
 
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
-#include <string>
+#include <string_view>
 #include <vector>
 
 namespace UTAP {
@@ -119,7 +120,7 @@ public:
      * symbol table as a named type, for instance, "int" or "bool" or
      * a user defined type.
      */
-    virtual bool is_type(const char*) = 0;
+    virtual bool is_type(std::string_view) = 0;
 
     /** Duplicate type at the top of the type stack. */
     virtual void type_duplicate() = 0;
@@ -191,7 +192,7 @@ public:
      * Called when a type name has been parsed. Prefix indicates
      * whether the type named was prefixed (e.g. with 'const').
      */
-    virtual void type_name(PREFIX, const char* name) = 0;
+    virtual void type_name(PREFIX, std::string_view name) = 0;
 
     /**
      * Called when a struct-type has been parsed. Prior to the
@@ -206,21 +207,21 @@ public:
      * call of struct_field(). In case of array fields, 'dim'
      * expressions indicating the array sizes have been reported.
      */
-    virtual void struct_field(const char* name) = 0;
+    virtual void struct_field(std::string_view name) = 0;
 
     /**
      * Used when a typedef declaration was parsed. name is the
      * name of the new type.
      */
-    virtual void decl_typedef(const char* name) = 0;
+    virtual void decl_typedef(std::string_view name) = 0;
 
     /**
      * Called to when a variable declaration has been parsed.
      */
-    virtual void decl_var(const char* name, bool init) = 0;
+    virtual void decl_var(std::string_view name, bool init) = 0;
 
-    virtual void decl_init_list(uint32_t num) = 0;       // n initialisers
-    virtual void decl_field_init(const char* name) = 0;  // 1 initialiser
+    virtual void decl_init_list(uint32_t num) = 0;            // n initialisers
+    virtual void decl_field_init(std::string_view name) = 0;  // 1 initialiser
 
     /**
      * Guard progress measure declaration. Requires two
@@ -231,54 +232,55 @@ public:
     /********************************************************************
      * Function declarations
      */
-    virtual void decl_parameter(const char* name, bool ref) = 0;
-    virtual void decl_func_begin(const char* name) = 0;
+    virtual void decl_parameter(std::string_view name, bool ref) = 0;
+    virtual void decl_func_begin(std::string_view name) = 0;
     virtual void decl_func_end() = 0;  // 1 block
-    virtual void dynamic_load_lib(const char* name) = 0;
-    virtual void decl_external_func(const char* name, const char* alias) = 0;
+    virtual void dynamic_load_lib(std::string_view name) = 0;
+    virtual void decl_external_func(std::string_view name, std::string_view alias) = 0;
 
     /********************************************************************
      * Process declarations
      */
-    virtual void proc_begin(const char* name, const bool isTA = true, const std::string& type = "",
-                            const std::string& mode = "") = 0;                        // m parameters
-    virtual void proc_end() = 0;                                                      // 1 ProcBody
-    virtual void proc_location(const char* name, bool hasInvariant, bool hasER) = 0;  // 1 expr
-    virtual void proc_location_commit(const char* name) = 0;                          // mark previously decl. state
-    virtual void proc_location_urgent(const char* name) = 0;                          // mark previously decl. state
-    virtual void proc_location_init(const char* name) = 0;                            // mark previously decl. state
-    virtual void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname = "") = 0;
-    virtual void proc_edge_end(const char* from, const char* to) = 0;
-    virtual void proc_select(const char* id) = 0;                   // 1 expr
+    virtual void proc_begin(std::string_view name, const bool isTA = true, std::string_view type = "",
+                            std::string_view mode = "") = 0;                               // m parameters
+    virtual void proc_end() = 0;                                                           // 1 ProcBody
+    virtual void proc_location(std::string_view name, bool hasInvariant, bool hasER) = 0;  // 1 expr
+    virtual void proc_location_commit(std::string_view name) = 0;  // mark previously decl. state
+    virtual void proc_location_urgent(std::string_view name) = 0;  // mark previously decl. state
+    virtual void proc_location_init(std::string_view name) = 0;    // mark previously decl. state
+    virtual void proc_edge_begin(std::string_view from, std::string_view to, const bool control,
+                                 std::string_view actname = "") = 0;
+    virtual void proc_edge_end(std::string_view from, std::string_view to) = 0;
+    virtual void proc_select(std::string_view id) = 0;              // 1 expr
     virtual void proc_guard() = 0;                                  // 1 expr
     virtual void proc_sync(Constants::synchronisation_t type) = 0;  // 1 expr
     virtual void proc_update() = 0;                                 // 1 expr
     virtual void proc_prob() = 0;
-    virtual void proc_branchpoint(const char* name) = 0;
+    virtual void proc_branchpoint(std::string_view name) = 0;
     /************************************************************
      * Process declarations for LSC
      */
     virtual void proc_instance_line() = 0;
-    virtual void instance_name(const char* name, bool templ = true) = 0;
-    virtual void instance_name_begin(const char* name) = 0;
-    virtual void instance_name_end(const char* name, size_t arguments) = 0;
-    virtual void proc_message(const char* from, const char* to, const int loc, const bool pch) = 0;
+    virtual void instance_name(std::string_view name, bool templ = true) = 0;
+    virtual void instance_name_begin(std::string_view name) = 0;
+    virtual void instance_name_end(std::string_view name, size_t arguments) = 0;
+    virtual void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) = 0;
     virtual void proc_message(Constants::synchronisation_t type) = 0;
     virtual void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                                 const bool hot) = 0;
     virtual void proc_condition() = 0;  // 1 expr
-    virtual void proc_LSC_update(const char* anchor, const int loc, const bool pch) = 0;
+    virtual void proc_LSC_update(std::string_view anchor, const int loc, const bool pch) = 0;
     virtual void proc_LSC_update() = 0;  // 1 expr
     virtual void prechart_set(const bool pch) = 0;
 
     /********************************************************************
      * Gantt chart declarations
      */
-    virtual void gantt_decl_begin(const char* name) = 0;
-    virtual void gantt_decl_select(const char* id) = 0;
+    virtual void gantt_decl_begin(std::string_view name) = 0;
+    virtual void gantt_decl_select(std::string_view id) = 0;
     virtual void gantt_decl_end() = 0;
     virtual void gantt_entry_begin() = 0;
-    virtual void gantt_entry_select(const char* id) = 0;
+    virtual void gantt_entry_select(std::string_view id) = 0;
     virtual void gantt_entry_end() = 0;
 
     /*********************************************************************
@@ -287,10 +289,10 @@ public:
     virtual void block_begin() = 0;
     virtual void block_end() = 0;
     virtual void empty_statement() = 0;
-    virtual void for_begin() = 0;                        // 3 expr
-    virtual void for_end() = 0;                          // 1 stat
-    virtual void iteration_begin(const char* name) = 0;  // 1 id, 1 type
-    virtual void iteration_end(const char* name) = 0;    // 1 stat
+    virtual void for_begin() = 0;                             // 3 expr
+    virtual void for_end() = 0;                               // 1 stat
+    virtual void iteration_begin(std::string_view name) = 0;  // 1 id, 1 type
+    virtual void iteration_end(std::string_view name) = 0;    // 1 stat
     virtual void while_begin() = 0;
     virtual void while_end() = 0;  // 1 expr, 1 stat
     virtual void do_while_begin() = 0;
@@ -317,8 +319,8 @@ public:
     virtual void expr_false() = 0;
     virtual void expr_true() = 0;
     virtual void expr_double(double) = 0;
-    virtual void expr_string(const char* name) = 0;
-    virtual void expr_identifier(const char* varName) = 0;
+    virtual void expr_string(std::string_view name) = 0;
+    virtual void expr_identifier(std::string_view varName) = 0;
     virtual void expr_location() = 0;
     virtual void expr_nat(int32_t) = 0;  // natural number
     virtual void expr_call_begin() = 0;
@@ -332,25 +334,25 @@ public:
     virtual void expr_unary(Constants::kind_t unaryop) = 0;       // 1 expr
     virtual void expr_binary(Constants::kind_t binaryop) = 0;     // 2 expr
     virtual void expr_nary(Constants::kind_t, uint32_t num) = 0;  // n expr
-    virtual void expr_scenario(const char* name) = 0;             // LSC
+    virtual void expr_scenario(std::string_view name) = 0;        // LSC
     virtual void expr_ternary(Constants::kind_t ternaryop,
                               bool firstMissing = false) = 0;  // 3 expr
     virtual void expr_inline_if() = 0;                         // 3 expr
     virtual void expr_comma() = 0;                             // 2 expr
-    virtual void expr_dot(const char*) = 0;                    // 1 expr
+    virtual void expr_dot(std::string_view) = 0;               // 1 expr
     virtual void expr_deadlock() = 0;
-    virtual void expr_forall_begin(const char* name) = 0;
-    virtual void expr_forall_end(const char* name) = 0;
-    virtual void expr_exists_begin(const char* name) = 0;
-    virtual void expr_exists_end(const char* name) = 0;
-    virtual void expr_sum_begin(const char* name) = 0;
-    virtual void expr_sum_end(const char* name) = 0;
+    virtual void expr_forall_begin(std::string_view name) = 0;
+    virtual void expr_forall_end(std::string_view name) = 0;
+    virtual void expr_exists_begin(std::string_view name) = 0;
+    virtual void expr_exists_end(std::string_view name) = 0;
+    virtual void expr_sum_begin(std::string_view name) = 0;
+    virtual void expr_sum_end(std::string_view name) = 0;
 
     // Extensions for SMC:
     virtual void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) = 0;  ///< estimate Pr
     virtual void expr_proba_quantitative(Constants::kind_t) = 0;                            ///< evaluate if Pr >= value
     virtual void expr_proba_compare(Constants::kind_t, Constants::kind_t) = 0;              ///< compare two Prs
-    virtual void expr_proba_expected(const char* identifier) = 0;                           ///< estimate mean value
+    virtual void expr_proba_expected(std::string_view identifier) = 0;                      ///< estimate mean value
     virtual void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) = 0;
     virtual void expr_builtin_function1(Constants::kind_t) = 0;
     virtual void expr_builtin_function2(Constants::kind_t) = 0;
@@ -361,7 +363,7 @@ public:
     virtual void expr_optimize_exp(Constants::kind_t, PRICETYPE,
                                    Constants::kind_t) = 0;  ///< minimize/maximize expected value query
     virtual void expr_load_strategy() = 0;
-    virtual void expr_save_strategy(const char* strategy_name) = 0;
+    virtual void expr_save_strategy(std::string_view strategy_name) = 0;
 
     // MITL Extensions
     virtual void expr_MITL_formula() = 0;
@@ -379,23 +381,24 @@ public:
     /********************************************************************
      * System declaration
      */
-    virtual void instantiation_begin(const char* id, size_t parameters, const char* templ) = 0;
-    virtual void instantiation_end(const char* id, size_t parameters, const char* templ, size_t arguments) = 0;
-    virtual void process(const char*) = 0;
+    virtual void instantiation_begin(std::string_view id, size_t parameters, std::string_view templ) = 0;
+    virtual void instantiation_end(std::string_view id, size_t parameters, std::string_view templ,
+                                   size_t arguments) = 0;
+    virtual void process(std::string_view) = 0;
     virtual void process_list_end() = 0;
     virtual void done() = 0;  // marks the end of the file
 
-    virtual void handle_expect(const char* text) = 0;
+    virtual void handle_expect(std::string_view text) = 0;
 
     /********************************************************************
      * Properties
      */
     virtual void property() = 0;
-    virtual void scenario(const char*) = 0;              // LSC
-    virtual void parse(const char*) = 0;                 // LSC
-    virtual void strategy_declaration(const char*) = 0;  // tiga-smc
-    virtual void subjection(const char*) = 0;
-    virtual void imitation(const char*) = 0;
+    virtual void scenario(std::string_view) = 0;              // LSC
+    virtual void parse(const char*) = 0;                      // LSC
+    virtual void strategy_declaration(std::string_view) = 0;  // tiga-smc
+    virtual void subjection(std::string_view) = 0;
+    virtual void imitation(std::string_view) = 0;
 
     /********************************************************************
      * Guiding
@@ -410,53 +413,53 @@ public:
     virtual void chan_priority_add(char separator) = 0;
     virtual void chan_priority_default() = 0;
     virtual void proc_priority_inc() = 0;
-    virtual void proc_priority(const std::string&) = 0;
+    virtual void proc_priority(std::string_view) = 0;
     /** Dynamic */
-    virtual void decl_dynamic_template(const std::string& name) = 0;
+    virtual void decl_dynamic_template(std::string_view name) = 0;
     virtual void expr_spawn(int) = 0;
     virtual void expr_exit() = 0;
     virtual void expr_numof() = 0;
-    virtual void expr_forall_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_forall_dynamic_end(const char* name) = 0;
-    virtual void expr_exists_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_exists_dynamic_end(const char* name) = 0;
-    virtual void expr_sum_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_sum_dynamic_end(const char* name) = 0;
-    virtual void expr_foreach_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_foreach_dynamic_end(const char* name) = 0;
-    virtual void expr_MITL_forall_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_MITL_forall_dynamic_end(const char* name) = 0;
-    virtual void expr_MITL_exists_dynamic_begin(const char*, const char*) = 0;
-    virtual void expr_MITL_exists_dynamic_end(const char* name) = 0;
-    virtual void expr_dynamic_process_expr(const char*) = 0;
+    virtual void expr_forall_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_forall_dynamic_end(std::string_view name) = 0;
+    virtual void expr_exists_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_exists_dynamic_end(std::string_view name) = 0;
+    virtual void expr_sum_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_sum_dynamic_end(std::string_view name) = 0;
+    virtual void expr_foreach_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_foreach_dynamic_end(std::string_view name) = 0;
+    virtual void expr_MITL_forall_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_MITL_forall_dynamic_end(std::string_view name) = 0;
+    virtual void expr_MITL_exists_dynamic_begin(std::string_view, std::string_view) = 0;
+    virtual void expr_MITL_exists_dynamic_end(std::string_view name) = 0;
+    virtual void expr_dynamic_process_expr(std::string_view) = 0;
 
     /** Verification queries */
-    virtual void model_option(const char* key, const char* value) = 0;
+    virtual void model_option(std::string_view key, std::string_view value) = 0;
     virtual void query_begin() = 0;
-    virtual void query_formula(const char* formula, const char* location) = 0;
-    virtual void query_comment(const char* comment) = 0;
-    virtual void query_options(const char* option, const char*) = 0;
+    virtual void query_formula(std::string_view formula, std::string_view location) = 0;
+    virtual void query_comment(std::string_view comment) = 0;
+    virtual void query_options(std::string_view option, std::string_view) = 0;
     virtual void expectation_begin() = 0;
     virtual void expectation_end() = 0;
-    virtual void expectation_value(const char* res, const char* type, const char* value) = 0;
-    virtual void expect_resource(const char* type, const char* value, const char* unit) = 0;
+    virtual void expectation_value(std::string_view res, std::string_view type, std::string_view value) = 0;
+    virtual void expect_resource(std::string_view type, std::string_view value, std::string_view unit) = 0;
     virtual void query_results_begin() = 0;
     virtual void query_results_end() = 0;
     virtual void query_end() = 0;
 };
 
 /** Error/warning messages with some arguments */
-TypeException UnknownIdentifierError(const std::string& name);
-TypeException HasNoMemberError(const std::string& name);
-TypeException IsNotAStructError(const std::string& name);
-TypeException DuplicateDefinitionError(const std::string& name);
-TypeException InvalidTypeError(const std::string& name);
-TypeException NoSuchProcessError(const std::string& name);
-TypeException NotATemplateError(const std::string& name);
-TypeException NotAProcessError(const std::string& name);
-TypeException StrategyNotDeclaredError(const std::string& name);
-TypeException UnknownDynamicTemplateError(const std::string& name);
-TypeException ShadowsAVariableWarning(const std::string& name);
+TypeException UnknownIdentifierError(std::string_view name);
+TypeException HasNoMemberError(std::string_view name);
+TypeException IsNotAStructError(std::string_view name);
+TypeException DuplicateDefinitionError(std::string_view name);
+TypeException InvalidTypeError(std::string_view name);
+TypeException NoSuchProcessError(std::string_view name);
+TypeException NotATemplateError(std::string_view name);
+TypeException NotAProcessError(std::string_view name);
+TypeException StrategyNotDeclaredError(std::string_view name);
+TypeException UnknownDynamicTemplateError(std::string_view name);
+TypeException ShadowsAVariableWarning(std::string_view name);
 
 }  // namespace UTAP
 
@@ -467,9 +470,9 @@ TypeException ShadowsAVariableWarning(const std::string& name);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(FILE*, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XTA(FILE*, UTAP::ParserBuilder&, bool newxta);
 
-int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta);
 
 /**
  * Parse a buffer in the XTA format, reporting the document to the given
@@ -478,7 +481,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part_t part, const std::string& xpath);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta, UTAP::xta_part_t part, std::string_view xpath);
 
 /**
  * Parse a buffer in the XML format, reporting the document to the given
@@ -487,7 +490,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder*, bool newxta, UTAP::xta_part
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder&, bool newxta);
 
 /**
  * Parse the file with the given name assuming it is in the XML
@@ -497,21 +500,21 @@ int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder*, bool newxta);
  * otherwise the 3.x syntax is used. On success, this function returns
  * with a positive value.
  */
-int32_t parse_XML_file(const char* filename, UTAP::ParserBuilder*, bool newxta);
+int32_t parse_XML_file(const std::filesystem::path& path, UTAP::ParserBuilder&, bool newxta);
 
-int32_t parse_XML_fd(int fd, UTAP::ParserBuilder* pb, bool newxta);
+int32_t parse_XML_fd(int fd, UTAP::ParserBuilder& pb, bool newxta);
 
 /**
  * Parse properties from a buffer. The properties are reported using
  * the given ParserBuilder and errors are reported using the
  * ErrorHandler.
  */
-int32_t parseProperty(const char* str, UTAP::ParserBuilder* aParserBuilder, const std::string& xpath = "");
+int32_t parse_property(const char* buffer, UTAP::ParserBuilder& aParserBuilder, const std::string& xpath = {});
 
 /**
  * Parse properties from a file. The properties are reported using the
  * given ParserBuilder and errors are reported using the ErrorHandler.
  */
-int32_t parseProperty(FILE*, UTAP::ParserBuilder* aParserBuilder);
+int32_t parse_property(FILE*, UTAP::ParserBuilder& aParserBuilder);
 
 #endif /* UTAP_BUILDER_HH */

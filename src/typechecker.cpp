@@ -2666,57 +2666,58 @@ bool TypeChecker::isUniqueReference(const expression_t& expr) const
     }
 }
 
-bool parse_XTA(FILE* file, Document* doc, bool newxta)
+bool parse_XTA(FILE* file, Document& doc, bool newxta)
 {
-    DocumentBuilder builder(*doc);
-    parse_XTA(file, &builder, newxta);
-    static_analysis(*doc);
-    return !doc->has_errors();
+    auto builder = DocumentBuilder{doc};
+    parse_XTA(file, builder, newxta);
+    static_analysis(doc);
+    return !doc.has_errors();
 }
 
-bool parse_XTA(const char* buffer, Document* doc, bool newxta)
+bool parse_XTA(const char* buffer, Document& doc, bool newxta)
 {
-    DocumentBuilder builder(*doc);
-    parse_XTA(buffer, &builder, newxta);
-    static_analysis(*doc);
-    return !doc->has_errors();
+    auto builder = DocumentBuilder{doc};
+    parse_XTA(buffer, builder, newxta);
+    static_analysis(doc);
+    return !doc.has_errors();
 }
 
-int32_t parse_XML_buffer(const char* buffer, Document* doc, bool newxta,
+int32_t parse_XML_buffer(const char* buffer, Document& doc, bool newxta,
                          const std::vector<std::filesystem::path>& paths)
 {
-    auto builder = DocumentBuilder{*doc, paths};
-    if (const auto err = parse_XML_buffer(buffer, &builder, newxta); err != 0)
+    auto builder = DocumentBuilder{doc, paths};
+    if (const auto err = parse_XML_buffer(buffer, builder, newxta); err != 0)
         return err;
-    static_analysis(*doc);
+    static_analysis(doc);
     return 0;
 }
 
-int32_t parse_XML_file(const char* file, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
+int32_t parse_XML_file(const std::filesystem::path& file, Document& doc, bool newxta,
+                       const std::vector<std::filesystem::path>& paths)
 {
-    auto builder = DocumentBuilder{*doc, paths};
-    if (const auto err = parse_XML_file(file, &builder, newxta); err != 0)
+    auto builder = DocumentBuilder{doc, paths};
+    if (const auto err = parse_XML_file(file, builder, newxta); err != 0)
         return err;
-    static_analysis(*doc);
+    static_analysis(doc);
     return 0;
 }
 
-int32_t parse_XML_fd(int fd, Document* doc, bool newxta, const std::vector<std::filesystem::path>& paths)
+int32_t parse_XML_fd(int fd, Document& doc, bool newxta, const std::vector<std::filesystem::path>& paths)
 {
-    auto builder = DocumentBuilder{*doc, paths};
-    if (const auto err = parse_XML_fd(fd, &builder, newxta); err != 0)
+    auto builder = DocumentBuilder{doc, paths};
+    if (const auto err = parse_XML_fd(fd, builder, newxta); err != 0)
         return err;
-    static_analysis(*doc);
+    static_analysis(doc);
     return 0;
 }
 
-expression_t parseExpression(const char* str, Document* doc, bool newxtr)
+expression_t parseExpression(const char* str, Document& doc, bool newxtr)
 {
-    auto builder = ExpressionBuilder{*doc};
-    parse_XTA(str, &builder, newxtr, S_EXPRESSION, "");
+    auto builder = ExpressionBuilder{doc};
+    parse_XTA(str, builder, newxtr, S_EXPRESSION, "");
     expression_t expr = builder.getExpressions()[0];
-    if (!doc->has_errors()) {
-        auto checker = TypeChecker{*doc};
+    if (!doc.has_errors()) {
+        auto checker = TypeChecker{doc};
         checker.checkExpression(expr);
     }
     return expr;

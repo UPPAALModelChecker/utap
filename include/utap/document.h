@@ -170,7 +170,7 @@ struct gantt_t
     std::string name;   /**< The name */
     frame_t parameters; /**< The select parameters */
     std::list<ganttmap_t> mapping;
-    explicit gantt_t(std::string name): name{std::move(name)} {}
+    explicit gantt_t(std::string_view name): name{name} {}
 };
 
 /**
@@ -188,7 +188,7 @@ struct declarations_t : stringify_t<declarations_t>
     std::list<gantt_t> ganttChart;
 
     /** Add function declaration. */
-    bool add_function(type_t type, const std::string& name, position_t, function_t*&);
+    bool add_function(type_t type, std::string_view name, position_t, function_t*&);
     /** The following methods are used to write the declarations in an XML file */
     std::string str(bool global) const;
     std::ostream& print(std::ostream&, bool global = false) const;
@@ -368,13 +368,13 @@ struct template_t : public instance_t, declarations_t
     std::vector<expression_t>& get_dynamic_eval() { return dynamic_evals; }
 
     /** Add another location to template. */
-    location_t& add_location(const std::string& name, expression_t inv, expression_t er, position_t pos);
+    location_t& add_location(std::string_view name, expression_t inv, expression_t er, position_t pos);
 
     /** Add another branchpoint to template. */
-    branchpoint_t& add_branchpoint(const std::string&, position_t);
+    branchpoint_t& add_branchpoint(std::string_view, position_t);
 
     /** Add edge to template. */
-    edge_t& add_edge(symbol_t src, symbol_t dst, bool type, std::string actname);
+    edge_t& add_edge(symbol_t src, symbol_t dst, bool type, std::string_view actname);
 
     std::deque<instance_line_t> instances; /**< Instance Lines */
     std::deque<message_t> messages;        /**< Messages */
@@ -447,6 +447,9 @@ struct resource_t
     std::string name;
     std::string value;
     std::optional<std::string> unit;
+    resource_t(std::string name, std::string value, std::optional<std::string> unit):
+        name{std::move(name)}, value{std::move(name)}, unit{std::move(unit)}
+    {}
 };
 
 using resources_t = std::vector<resource_t>;
@@ -509,15 +512,17 @@ public:
     Document();
     Document(const Document&) = delete;
     Document& operator=(const Document&) = delete;
+    Document(Document&&) noexcept = default;
+    Document& operator=(Document&&) noexcept = default;
 
     /** Returns the global declarations of the document. */
     declarations_t& get_globals() { return global; }
 
     /** Returns the templates of the document. */
     std::list<template_t>& get_templates() { return templates; }
-    const template_t* find_template(const std::string& name) const;
+    const template_t* find_template(std::string_view name) const;
     std::vector<template_t*>& get_dynamic_templates();
-    template_t* find_dynamic_template(const std::string& name);
+    template_t* find_dynamic_template(std::string_view name);
 
     /** Returns the processes of the document. */
     std::list<instance_t>& get_processes() { return processes; }
@@ -531,19 +536,19 @@ public:
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
 
-    variable_t* add_variable_to_function(function_t*, frame_t, type_t, const std::string&, expression_t initital,
+    variable_t* add_variable_to_function(function_t*, frame_t, type_t, std::string_view, expression_t initital,
                                          position_t);
-    variable_t* add_variable(declarations_t*, type_t type, const std::string& name, expression_t initial, position_t);
+    variable_t* add_variable(declarations_t*, type_t type, std::string_view name, expression_t initial, position_t);
     void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
 
-    template_t& add_template(const std::string& name, const frame_t& params, position_t, bool isTA = true,
-                             const std::string& type = "", const std::string& mode = "");
-    template_t& add_dynamic_template(const std::string& name, const frame_t& params, position_t pos);
+    template_t& add_template(std::string_view name, const frame_t& params, position_t, bool isTA = true,
+                             std::string_view type = "", std::string_view mode = "");
+    template_t& add_dynamic_template(std::string_view name, const frame_t& params, position_t pos);
 
-    instance_t& add_instance(const std::string& name, instance_t& instance, frame_t params,
+    instance_t& add_instance(std::string_view name, instance_t& instance, frame_t params,
                              const std::vector<expression_t>& arguments, position_t);
 
-    instance_t& add_LSC_instance(const std::string& name, instance_t& instance, frame_t params,
+    instance_t& add_LSC_instance(std::string_view name, instance_t& instance, frame_t params,
                                  const std::vector<expression_t>& arguments, position_t);
     void remove_process(instance_t& instance);  // LSC
 
@@ -573,10 +578,10 @@ public:
     std::list<chan_priority_t>& get_chan_priorities() { return chan_priorities; }
 
     /** Sets process priority for process \a name. */
-    void set_proc_priority(const std::string& name, int priority);
+    void set_proc_priority(std::string_view name, int priority);
 
     /** Returns process priority for process \a name. */
-    int get_proc_priority(const char* name) const;
+    int get_proc_priority(std::string_view name) const;
 
     /** Returns true if document has some priority declaration. */
     bool has_priority_declaration() const { return hasPriorities; }
@@ -621,7 +626,7 @@ protected:
     bool hasNonBroadcastChan{false};
     int defaultChanPriority{0};
     std::list<chan_priority_t> chan_priorities;
-    std::map<std::string, int> proc_priority;
+    std::map<std::string, int, std::less<>> proc_priority;
     int syncUsed{0};  // see typechecker
 
     // The list of templates.
@@ -647,7 +652,7 @@ protected:
     options_t model_options;
     queries_t queries;
 
-    variable_t* add_variable(std::list<variable_t>& variables, frame_t frame, type_t type, const std::string&,
+    variable_t* add_variable(std::list<variable_t>& variables, frame_t frame, type_t type, std::string_view,
                              position_t);
 
     std::string location;

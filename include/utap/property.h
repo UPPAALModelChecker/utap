@@ -192,8 +192,8 @@ struct PropInfo
 
 class PropertyBuilder;
 
-typedef std::shared_ptr<PropertyBuilder> PropertyBuilder_ptr;
-typedef std::shared_ptr<const PropertyBuilder> PropertyBuilder_const_ptr;
+using PropertyBuilder_ptr = std::shared_ptr<PropertyBuilder>;
+using PropertyBuilder_const_ptr = std::shared_ptr<const PropertyBuilder>;
 
 class PropertyBuilder : public UTAP::StatementBuilder, public std::enable_shared_from_this<PropertyBuilder>
 {
@@ -207,9 +207,9 @@ private:
 protected:
     std::list<PropInfo> properties{};  // TigaPropertyBuilder assumes stable list and stores pointers.
 
-    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
+    UTAP::variable_t* addVariable(UTAP::type_t type, std::string_view name, UTAP::expression_t init,
                                   UTAP::position_t pos) override;
-    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override;
+    bool addFunction(UTAP::type_t type, std::string_view name, UTAP::position_t pos) override;
 
     void typeCheck(UTAP::expression_t& expr);
     bool allowProcessReferences() override;
@@ -235,8 +235,8 @@ public:
     const_iterator end() const;
 
     void property() override;
-    void scenario(const char*) override;
-    void handle_expect(const char* text) override;
+    void scenario(std::string_view) override;
+    void handle_expect(std::string_view text) override;
 
     bool isSMC(UTAP::expression_t* expr = nullptr);
 };
@@ -244,7 +244,7 @@ public:
 class TigaPropertyBuilder final : public PropertyBuilder
 {
 protected:
-    std::map<std::string, PropInfo*> declarations{};
+    std::map<std::string, PropInfo*, std::less<>> declarations{};
 
     // Should be implemented as frames instead if an actual language evolves
     // also use set to avoid (evaluating) duplicates
@@ -252,9 +252,9 @@ protected:
     PropInfo* _imitation{nullptr};
 
     void typeProperty(UTAP::expression_t) override;
-    void strategy_declaration(const char*) override;
-    void subjection(const char*) override;
-    void imitation(const char*) override;
+    void strategy_declaration(std::string_view) override;
+    void subjection(std::string_view) override;
+    void imitation(std::string_view) override;
     void expr_optimize(int, int, int, int) override;
 
 public:
@@ -262,7 +262,7 @@ public:
 
     /* Should be implemented by verifier/property.h at some point.
        virtual void paramProperty(size_t, UTAP::Constants::kind_t);
-       virtual void declParamId(const char*);
+       virtual void declParamId(std::string_view);
     */
 };
 

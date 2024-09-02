@@ -60,10 +60,10 @@ inline std::string read_content(const std::string& file_name)
     return content;
 }
 
-std::unique_ptr<UTAP::Document> read_document(const std::string& file_name)
+UTAP::Document read_document(const std::string& file_name)
 {
-    auto doc = std::make_unique<UTAP::Document>();
-    auto res = parse_XML_buffer(read_content(file_name).c_str(), doc.get(), true);
+    auto doc = UTAP::Document();
+    auto res = parse_XML_buffer(read_content(file_name).c_str(), doc, true);
     if (res != 0)
         throw std::logic_error("Failed to parse document");
     return doc;
@@ -150,15 +150,15 @@ public:
         query = fragments[0];
         fragments.pop();
     }
-    void strategy_declaration(const char* strategy_name) override {}
+    void strategy_declaration(std::string_view strategy_name) override {}
     void typecheck() { checker.checkExpression(query); }
     [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
-    UTAP::variable_t* addVariable(UTAP::type_t type, const std::string& name, UTAP::expression_t init,
+    UTAP::variable_t* addVariable(UTAP::type_t type, std::string_view name, UTAP::expression_t init,
                                   UTAP::position_t pos) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }
-    bool addFunction(UTAP::type_t type, const std::string& name, UTAP::position_t pos) override
+    bool addFunction(UTAP::type_t type, std::string_view name, UTAP::position_t pos) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }
@@ -166,20 +166,20 @@ public:
 
 class QueryFixture
 {
-    std::unique_ptr<UTAP::Document> doc;
+    UTAP::Document doc;
     UTAP::TigaPropertyBuilder query_builder;
 
 public:
-    QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
-    auto& get_errors() const { return doc->get_errors(); }
+    QueryFixture(UTAP::Document&& doc): doc{std::move(doc)}, query_builder{this->doc} {}
+    auto& get_errors() const { return doc.get_errors(); }
     const UTAP::PropInfo& parse_query(const char* query)
     {
-        auto result = parseProperty(query, &query_builder);
+        auto result = parse_property(query, query_builder);
 
-        if (result == -1 || !doc->get_errors().empty()) {
-            if (doc->get_errors().empty())
+        if (result == -1 || not doc.get_errors().empty()) {
+            if (doc.get_errors().empty())
                 throw std::logic_error("Query parsing failed with no errors");
-            throw std::logic_error(doc->get_errors()[0].msg);
+            throw std::logic_error(doc.get_errors()[0].msg);
         }
         return query_builder.getProperties().back();
     }
@@ -248,11 +248,11 @@ system %s;
     }
 
     /** Derives a document from a document template and parses it */
-    [[nodiscard]] std::unique_ptr<UTAP::Document> parse() const
+    [[nodiscard]] UTAP::Document parse() const
     {
-        auto doc = std::make_unique<UTAP::Document>();
+        auto doc = UTAP::Document{};
         auto data = str();
-        parse_XML_buffer(data.c_str(), doc.get(), true);
+        parse_XML_buffer(data.c_str(), doc, true);
         return doc;
     }
 

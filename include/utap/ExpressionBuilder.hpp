@@ -140,11 +140,11 @@ protected:
         return res;
     }
 
-    bool resolve(const std::string&, symbol_t&) const;
+    bool resolve(std::string_view, symbol_t&) const;
 
     expression_t make_constant(int value) const;
     expression_t make_constant(double value) const;
-    expression_t make_constant(const std::string& value) const;
+    expression_t make_constant(std::string_view value) const;
 
     /**
      * Given a prefix and a type, this method creates a new type
@@ -162,7 +162,7 @@ protected:
      * case the method should be overridden by a sub class.
      */
     virtual bool allowProcessReferences() { return false; }
-    std::map<std::string, frame_t> dynamicFrames;
+    std::map<std::string, frame_t, std::less<>> dynamicFrames;
 
 public:
     explicit ExpressionBuilder(Document& doc);
@@ -183,13 +183,13 @@ public:
     void type_clock(PREFIX) override;
     void type_void() override;
     void type_scalar(PREFIX) override;
-    void type_name(PREFIX, const char* name) override;
-    bool is_type(const char*) override;
+    void type_name(PREFIX, std::string_view name) override;
+    bool is_type(std::string_view) override;
     void expr_true() override;
     void expr_false() override;
     void expr_double(double) override;
-    void expr_string(const char* name) override;
-    void expr_identifier(const char* varName) override;
+    void expr_string(std::string_view name) override;
+    void expr_identifier(std::string_view varName) override;
     void expr_location() override;
     void expr_nat(int32_t) override;
     void expr_call_begin() override;
@@ -203,29 +203,29 @@ public:
     void expr_unary(Constants::kind_t unaryop) override;
     void expr_binary(Constants::kind_t binaryop) override;
     void expr_nary(Constants::kind_t op, uint32_t num) override;
-    void expr_scenario(const char* name) override;
+    void expr_scenario(std::string_view name) override;
     expression_t exprScenario();
     void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;
-    void expr_dot(const char*) override;
+    void expr_dot(std::string_view) override;
     void expr_deadlock() override;
-    void expr_forall_begin(const char* name) override;
-    void expr_forall_end(const char* name) override;
-    void expr_exists_begin(const char* name) override;
-    void expr_exists_end(const char* name) override;
-    void expr_sum_begin(const char* name) override;
-    void expr_sum_end(const char* name) override;
+    void expr_forall_begin(std::string_view name) override;
+    void expr_forall_end(std::string_view name) override;
+    void expr_exists_begin(std::string_view name) override;
+    void expr_exists_end(std::string_view name) override;
+    void expr_sum_begin(std::string_view name) override;
+    void expr_sum_end(std::string_view name) override;
 
     void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) override;
     void expr_proba_quantitative(Constants::kind_t) override;
     void expr_proba_compare(Constants::kind_t, Constants::kind_t) override;
-    void expr_proba_expected(const char*) override;
+    void expr_proba_expected(std::string_view) override;
     void expr_builtin_function1(Constants::kind_t) override;
     void expr_builtin_function2(Constants::kind_t) override;
     void expr_builtin_function3(Constants::kind_t) override;
     void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
-    void expr_save_strategy(const char* strategy_name) override;
+    void expr_save_strategy(std::string_view strategy_name) override;
     void expr_load_strategy() override;
 
     void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) override;
@@ -243,16 +243,16 @@ public:
     void expr_spawn(int params) override;
     void expr_exit() override;
     void expr_numof() override;
-    void expr_forall_dynamic_begin(const char*, const char*) override;
-    void expr_forall_dynamic_end(const char* name) override;
-    void expr_exists_dynamic_begin(const char*, const char*) override;
-    void expr_exists_dynamic_end(const char*) override;
-    void expr_sum_dynamic_begin(const char*, const char*) override;
-    void expr_sum_dynamic_end(const char* name) override;
-    void expr_foreach_dynamic_begin(const char*, const char*) override;
-    void expr_foreach_dynamic_end(const char* name) override;
-    void push_dynamic_frame_of(template_t* t, const std::string& name);  // no override
-    void pop_dynamic_frame_of(const std::string& name);
+    void expr_forall_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_forall_dynamic_end(std::string_view name) override;
+    void expr_exists_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_exists_dynamic_end(std::string_view) override;
+    void expr_sum_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_sum_dynamic_end(std::string_view name) override;
+    void expr_foreach_dynamic_begin(std::string_view, std::string_view) override;
+    void expr_foreach_dynamic_end(std::string_view name) override;
+    void push_dynamic_frame_of(template_t* t, std::string_view name);  // no override
+    void pop_dynamic_frame_of(std::string_view name);
 };
 }  // namespace UTAP
 

@@ -122,7 +122,7 @@ std::ostream& variable_t::print(std::ostream& os) const
     return os;
 }
 
-bool declarations_t::add_function(type_t type, const std::string& name, position_t pos, function_t*& fun)
+bool declarations_t::add_function(type_t type, std::string_view name, position_t pos, function_t*& fun)
 {
     bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
@@ -254,7 +254,7 @@ std::string instance_t::arguments_str() const
     return os.str();
 }
 
-location_t& template_t::add_location(const std::string& name, expression_t inv, expression_t er, position_t pos)
+location_t& template_t::add_location(std::string_view name, expression_t inv, expression_t er, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
@@ -269,19 +269,18 @@ location_t& template_t::add_location(const std::string& name, expression_t inv, 
 
 // FIXME: like for unnamed locations, a name is autegenerated
 // this name may conflict with user-defined names
-branchpoint_t& template_t::add_branchpoint(const std::string& name, position_t pos)
+branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
     branchpoint.uid = frame.add_symbol(name, type_t::create_primitive(BRANCHPOINT), pos, &branchpoint);
     branchpoint.bpNr = branchpoints.size() - 1;
-    if (duplicate) {
+    if (duplicate)
         throw DuplicateDefinitionError(name);
-    }
     return branchpoint;
 }
 
-edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, std::string actname)
+edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, std::string_view actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edge_t& edge = edges.emplace_back();
@@ -301,7 +300,7 @@ edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, std::stri
     }
 
     edge.control = control;
-    edge.actname = std::move(actname);
+    edge.actname = actname;
     edge.nr = nr;
     return edge;
 }
@@ -762,8 +761,8 @@ Library& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(const std::string& name, const frame_t& params, position_t position,
-                                   const bool is_TA, const std::string& typeLSC, const std::string& mode)
+template_t& Document::add_template(std::string_view name, const frame_t& params, position_t position, const bool is_TA,
+                                   std::string_view typeLSC, std::string_view mode)
 {
     type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
@@ -782,7 +781,7 @@ template_t& Document::add_template(const std::string& name, const frame_t& param
     return templ;
 }
 
-template_t& Document::add_dynamic_template(const std::string& name, const frame_t& params, position_t pos)
+template_t& Document::add_dynamic_template(std::string_view name, const frame_t& params, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     dyn_templates.emplace_back();
@@ -812,12 +811,12 @@ std::vector<template_t*>& Document::get_dynamic_templates()
     return dyn_templates_vec;
 }
 
-inline auto equal_name(const std::string& name)
+inline auto equal_name(std::string_view name)
 {
-    return [&name](const auto& e) { return (e.uid.get_name() == name); };
+    return [name](const auto& e) { return (e.uid.get_name() == name); };
 }
 
-const template_t* Document::find_template(const std::string& name) const
+const template_t* Document::find_template(std::string_view name) const
 {
     auto has_name = equal_name(name);
     auto it = std::find_if(templates.begin(), templates.end(), has_name);
@@ -829,7 +828,7 @@ const template_t* Document::find_template(const std::string& name) const
     return &(*it);
 }
 
-template_t* Document::find_dynamic_template(const std::string& name)
+template_t* Document::find_dynamic_template(std::string_view name)
 {
     auto it = std::find_if(dyn_templates.begin(), dyn_templates.end(), equal_name(name));
     if (it == std::end(dyn_templates))
@@ -837,7 +836,7 @@ template_t* Document::find_dynamic_template(const std::string& name)
     return &(*it);
 }
 
-instance_t& Document::add_instance(const std::string& name, instance_t& inst, frame_t params,
+instance_t& Document::add_instance(std::string_view name, instance_t& inst, frame_t params,
                                    const std::vector<expression_t>& arguments, position_t pos)
 {
     type_t type = type_t::create_instance(params);
@@ -854,7 +853,7 @@ instance_t& Document::add_instance(const std::string& name, instance_t& inst, fr
     return instance;
 }
 
-instance_t& Document::add_LSC_instance(const std::string& name, instance_t& inst, frame_t params,
+instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, frame_t params,
                                        const std::vector<expression_t>& arguments, position_t pos)
 {
     auto type = type_t::create_LSC_instance(params);
@@ -904,7 +903,7 @@ options_t& Document::get_options() { return model_options; }
 void Document::set_options(const options_t& options) { model_options = options; }
 
 // Add a regular variable
-variable_t* Document::add_variable(declarations_t* context, type_t type, const std::string& name, expression_t initial,
+variable_t* Document::add_variable(declarations_t* context, type_t type, std::string_view name, expression_t initial,
                                    position_t pos)
 {
     auto* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
@@ -912,8 +911,8 @@ variable_t* Document::add_variable(declarations_t* context, type_t type, const s
     return var;
 }
 
-variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type,
-                                               const std::string& name, expression_t initial, position_t pos)
+variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type, std::string_view name,
+                                               expression_t initial, position_t pos)
 {
     variable_t* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
     var->init = std::move(initial);
@@ -921,8 +920,8 @@ variable_t* Document::add_variable_to_function(function_t* function, frame_t fra
 }
 
 // Add a regular variable
-variable_t* Document::add_variable(std::list<variable_t>& variables, frame_t frame, type_t type,
-                                   const std::string& name, position_t pos)
+variable_t* Document::add_variable(std::list<variable_t>& variables, frame_t frame, type_t type, std::string_view name,
+                                   position_t pos)
 {
     bool duplicate = frame.contains(name);
     // Add variable
@@ -1051,13 +1050,13 @@ void Document::add_chan_priority(char separator, expression_t chan)
     tail.emplace_back(separator, std::move(chan));
 }
 
-void Document::set_proc_priority(const std::string& name, int priority)
+void Document::set_proc_priority(std::string_view name, int priority)
 {
     hasPriorities |= (priority != 0);
-    proc_priority[name] = priority;
+    proc_priority.emplace(name, priority);
 }
 
-int Document::get_proc_priority(const char* name) const
+int Document::get_proc_priority(std::string_view name) const
 {
     auto it = proc_priority.find(name);
     assert(it != proc_priority.end());

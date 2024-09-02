@@ -84,7 +84,7 @@ void PrettyPrinter::handle_error(const TypeException& msg) { throw msg; }
 void PrettyPrinter::handle_warning(const TypeException& msg) { throw msg; }
 
 // FIXME: Scoping of type names is not handled
-bool PrettyPrinter::is_type(const char* name) { return types.find(name) != types.end(); }
+bool PrettyPrinter::is_type(std::string_view name) { return types.find(name) != types.end(); }
 
 void PrettyPrinter::type_duplicate() { type.push(type.top()); }
 
@@ -117,7 +117,10 @@ void PrettyPrinter::type_scalar(PREFIX prefix)
     type.push(prefix_labels[prefix] + "scalar[" + size + "]");
 }
 
-void PrettyPrinter::type_name(PREFIX prefix, const char* name) { type.push(prefix_labels[prefix] + name); }
+void PrettyPrinter::type_name(PREFIX prefix, std::string_view name)
+{
+    type.push(prefix_labels[prefix] + std::string{name});
+}
 
 void PrettyPrinter::type_array_of_size(size_t n) { array.push(pop_back(st)); }
 
@@ -139,7 +142,7 @@ void PrettyPrinter::type_struct(PREFIX prefix, uint32_t n)
     type.push(ss.str());
 }
 
-void PrettyPrinter::struct_field(const char* name)
+void PrettyPrinter::struct_field(std::string_view name)
 {
     std::stringstream ss;
     ss << type.top() << " " << name;
@@ -151,23 +154,20 @@ void PrettyPrinter::struct_field(const char* name)
     fields.push_back(ss.str());
 }
 
-void PrettyPrinter::decl_typedef(const char* name)
+void PrettyPrinter::decl_typedef(std::string_view name)
 {
     indent();
-    *o.top() << "typedef " << type.top() << " " << name;
-    type.pop();
+    *o.top() << "typedef " << pop_top(type) << " " << name;
 
-    while (!array.empty()) {
-        *o.top() << '[' << array.top() << ']';
-        array.pop();
-    }
+    while (!array.empty())
+        *o.top() << '[' << pop_top(array) << ']';
 
     *o.top() << ";\n";
 
-    types.insert(name);
+    types.emplace(name);
 }
 
-void PrettyPrinter::decl_var(const char* id, bool init)
+void PrettyPrinter::decl_var(std::string_view id, bool init)
 {
     auto i = std::string{};
 
@@ -178,10 +178,8 @@ void PrettyPrinter::decl_var(const char* id, bool init)
     *o.top() << type.top() << ' ' << id;
     type.pop();
 
-    while (!array.empty()) {
-        *o.top() << '[' << array.top() << ']';
-        array.pop();
-    }
+    while (!array.empty())
+        *o.top() << '[' << pop_top(array) << ']';
 
     if (init)
         *o.top() << " = " << i;
@@ -197,11 +195,11 @@ void PrettyPrinter::decl_init_list(uint32_t num)
     st.push_back("{ " + s + " }");
 }
 
-void PrettyPrinter::expr_scenario(const char* name) { st.push_back("scenario:"s + name); }
+void PrettyPrinter::expr_scenario(std::string_view name) { st.push_back("scenario:" + std::string{name}); }
 
 void PrettyPrinter::expr_nary(kind_t kind, uint32_t num)
 {
-    const char* opString = nullptr;
+    auto opString = std::string{};
     switch (kind) {
     case LIST: opString = ", "; break;
     default: throw TypeException{"Invalid operator"};
@@ -213,26 +211,25 @@ void PrettyPrinter::expr_nary(kind_t kind, uint32_t num)
     st.push_back("{ " + s + " }");
 }
 
-void PrettyPrinter::decl_field_init(const char* name)
+void PrettyPrinter::decl_field_init(std::string_view name)
 {
-    if (name != nullptr && std::strlen(name) > 0) {
-        st.back() = name + ": "s + st.back();
-    }
+    if (not name.empty())
+        st.back() = std::string{name} + ": " + st.back();
 }
 
-void PrettyPrinter::decl_parameter(const char* name, bool ref)
+void PrettyPrinter::decl_parameter(std::string_view name, bool ref)
 {
     if (!array.empty())
         throw TypeException{"Array parameters are not supported"};
     if (!param.empty())
         param += ", ";
     if (ref)
-        param += pop_top(type) + " &" + name;
+        param += pop_top(type) + " &" + std::string{name};
     else
-        param += pop_top(type) + " " + name;
+        param += pop_top(type) + " " + std::string{name};
 }
 
-void PrettyPrinter::decl_func_begin(const char* name)
+void PrettyPrinter::decl_func_begin(std::string_view name)
 {
     indent();
     *o.top() << pop_top(type) << " " << name << "(" << param << ")\n";
@@ -249,9 +246,9 @@ void PrettyPrinter::decl_func_end()
     *o.top() << "}\n";
 }
 
-void PrettyPrinter::dynamic_load_lib(const char* name) {}
+void PrettyPrinter::dynamic_load_lib(std::string_view name) {}
 
-void PrettyPrinter::decl_external_func(const char* name, const char* alias) {}
+void PrettyPrinter::decl_external_func(std::string_view name, std::string_view alias) {}
 
 void PrettyPrinter::block_begin()
 {
@@ -275,7 +272,7 @@ void PrettyPrinter::empty_statement()
     *o.top() << ";\n";
 }
 
-void PrettyPrinter::iteration_begin(const char* id)
+void PrettyPrinter::iteration_begin(std::string_view id)
 {
     indent();
     *o.top() << "for ( " << id << " : " << type.top() << " )\n";
@@ -283,7 +280,7 @@ void PrettyPrinter::iteration_begin(const char* id)
     type.pop();
 }
 
-void PrettyPrinter::iteration_end(const char* id)
+void PrettyPrinter::iteration_end(std::string_view id)
 {
     *o.top() << '\n';
     level--;
@@ -393,16 +390,15 @@ void PrettyPrinter::return_statement(bool hasValue)
     }
 }
 
-void PrettyPrinter::proc_begin(const char* id, const bool isTA, const std::string& type, const std::string& mode)
+void PrettyPrinter::proc_begin(std::string_view id, const bool isTA, std::string_view type, std::string_view mode)
 {
-    *o.top() << "process " << (id != nullptr ? id : "") << templateset << '(' << param << ")\n{\n";
+    *o.top() << "process " << id << templateset << '(' << param << ")\n{\n";
     param.clear();
     templateset = "";
-
     level += 1;
 }
 
-void PrettyPrinter::proc_location(const char* id, bool hasInvariant, bool hasExpRate)
+void PrettyPrinter::proc_location(std::string_view id, bool hasInvariant, bool hasExpRate)
 {
     if (first) {
         first = false;
@@ -431,28 +427,28 @@ void PrettyPrinter::proc_location(const char* id, bool hasInvariant, bool hasExp
     }
 }
 
-void PrettyPrinter::proc_branchpoint(const char* id)
+void PrettyPrinter::proc_branchpoint(std::string_view id)
 {
     if (!branchpoints.empty())
         branchpoints += ", ";
     branchpoints += id;
 }
 
-void PrettyPrinter::proc_location_urgent(const char* id)
+void PrettyPrinter::proc_location_urgent(std::string_view id)
 {
     if (!urgent.empty())
         urgent += ", ";
     urgent += id;
 }
 
-void PrettyPrinter::proc_location_commit(const char* id)
+void PrettyPrinter::proc_location_commit(std::string_view id)
 {
     if (!committed.empty())
         committed += ", ";
     committed += id;
 }
 
-void PrettyPrinter::proc_location_init(const char* id)
+void PrettyPrinter::proc_location_init(std::string_view id)
 {
     first = true;
     *o.top() << ";\n";  // end of states
@@ -479,14 +475,14 @@ void PrettyPrinter::proc_location_init(const char* id)
     *o.top() << "init " << id << ";\n";
 }
 
-void PrettyPrinter::proc_select(const char* id)
+void PrettyPrinter::proc_select(std::string_view id)
 {
     auto t = pop_top(type);
     if (select == -1) {
         st.push_back(std::string{id} + ":" + t);
         select = st.size();
     } else {
-        st.back() += std::string{", "} + id + ":" + t;
+        st.back() += ", " + std::string{id} + ":" + t;
     }
 }
 
@@ -508,13 +504,14 @@ void PrettyPrinter::proc_update() { update = st.size(); }
 
 // void PrettyPrinter::proc_prob() { probability = st.size(); }
 
-void PrettyPrinter::proc_edge_begin(const char* from, const char* to, const bool control)
+void PrettyPrinter::proc_edge_begin(std::string_view from, std::string_view to, const bool control)
 
 {
-    proc_edge_begin(from, to, control, nullptr);
+    proc_edge_begin(from, to, control, "");
 }
 
-void PrettyPrinter::proc_edge_begin(const char* source, const char* target, const bool control, const char* actname)
+void PrettyPrinter::proc_edge_begin(std::string_view source, std::string_view target, const bool control,
+                                    std::string_view actname)
 {
     if (first) {
         // this is the first transition
@@ -530,7 +527,7 @@ void PrettyPrinter::proc_edge_begin(const char* source, const char* target, cons
     indent();
 
     *o.top() << source << (control ? " -> " : " -u-> ") << target << " {\n";
-    if (actname != nullptr) {
+    if (not actname.empty()) {
         level++;
         indent();
         *o.top() << "action " << actname << ";\n";
@@ -538,7 +535,7 @@ void PrettyPrinter::proc_edge_begin(const char* source, const char* target, cons
     }
 }
 
-void PrettyPrinter::proc_edge_end(const char* source, const char* target)
+void PrettyPrinter::proc_edge_end(std::string_view source, std::string_view target)
 {
     level++;
 
@@ -597,7 +594,7 @@ void PrettyPrinter::proc_end()
     *o.top() << "}\n\n";
 }
 
-void PrettyPrinter::expr_identifier(const char* id) { st.emplace_back(id); }
+void PrettyPrinter::expr_identifier(std::string_view id) { st.emplace_back(id); }
 
 void PrettyPrinter::expr_nat(int32_t n)
 {
@@ -626,7 +623,7 @@ void PrettyPrinter::expr_double(double d)
     st.emplace_back(s.data());
 }
 
-void PrettyPrinter::expr_string(const char* val) { st.emplace_back(val); }
+void PrettyPrinter::expr_string(std::string_view val) { st.emplace_back(val); }
 
 void PrettyPrinter::expr_call_begin() { st.back() += "("; }
 
@@ -657,70 +654,70 @@ void PrettyPrinter::expr_post_decrement() { st.back() += "--"; }
 
 void PrettyPrinter::expr_pre_decrement() { st.back() = "--" + st.back(); }
 
-static const char* get_builtin_fun_name(kind_t kind)
+static std::string_view get_builtin_fun_name(kind_t kind)
 {
     // the order must match declarations in include/utap/common.h
-    static const char* funNames[] = {"abs",
-                                     "fabs",
-                                     "fmod",
-                                     "fma",
-                                     "fmax",
-                                     "fmin",
-                                     "fdim",
-                                     "exp",
-                                     "exp2",
-                                     "expm1",
-                                     "ln",
-                                     "log",
-                                     "log10",
-                                     "log2",
-                                     "log1p",
-                                     "pow",
-                                     "sqrt",
-                                     "cbrt",
-                                     "hypot",
-                                     "sin",
-                                     "cos",
-                                     "tan",
-                                     "asin",
-                                     "acos",
-                                     "atan",
-                                     "atan2",
-                                     "sinh",
-                                     "cosh",
-                                     "tanh",
-                                     "asinh",
-                                     "acosh",
-                                     "atanh",
-                                     "erf",
-                                     "erfc",
-                                     "tgamma",
-                                     "lgamma",
-                                     "ceil",
-                                     "floor",
-                                     "trunc",
-                                     "round",
-                                     "fint",
-                                     "ldexp",
-                                     "ilogb",
-                                     "logb",
-                                     "nextafter",
-                                     "copysign",
-                                     "fpclassify",
-                                     "isfinite",
-                                     "isinf",
-                                     "isnan",
-                                     "isnormal",
-                                     "signbit",
-                                     "isunordered",
-                                     "random",
-                                     "random_arcsine",
-                                     "random_beta",
-                                     "random_gamma",
-                                     "random_normal",
-                                     "random_poisson",
-                                     "random_tri",
-                                     "random_weibull"};
+    static std::string_view funNames[] = {"abs",
+                                          "fabs",
+                                          "fmod",
+                                          "fma",
+                                          "fmax",
+                                          "fmin",
+                                          "fdim",
+                                          "exp",
+                                          "exp2",
+                                          "expm1",
+                                          "ln",
+                                          "log",
+                                          "log10",
+                                          "log2",
+                                          "log1p",
+                                          "pow",
+                                          "sqrt",
+                                          "cbrt",
+                                          "hypot",
+                                          "sin",
+                                          "cos",
+                                          "tan",
+                                          "asin",
+                                          "acos",
+                                          "atan",
+                                          "atan2",
+                                          "sinh",
+                                          "cosh",
+                                          "tanh",
+                                          "asinh",
+                                          "acosh",
+                                          "atanh",
+                                          "erf",
+                                          "erfc",
+                                          "tgamma",
+                                          "lgamma",
+                                          "ceil",
+                                          "floor",
+                                          "trunc",
+                                          "round",
+                                          "fint",
+                                          "ldexp",
+                                          "ilogb",
+                                          "logb",
+                                          "nextafter",
+                                          "copysign",
+                                          "fpclassify",
+                                          "isfinite",
+                                          "isinf",
+                                          "isnan",
+                                          "isnormal",
+                                          "signbit",
+                                          "isunordered",
+                                          "random",
+                                          "random_arcsine",
+                                          "random_beta",
+                                          "random_gamma",
+                                          "random_normal",
+                                          "random_poisson",
+                                          "random_tri",
+                                          "random_weibull"};
     static_assert(RANDOM_WEIBULL_F - ABS_F + 1 == sizeof(funNames) / sizeof(funNames[0]),
                   "Builtin function name list is wrong");
     assert(ABS_F <= kind && kind <= RANDOM_WEIBULL_F);
@@ -846,43 +843,40 @@ void PrettyPrinter::expr_comma()
     st.back() = expr1 + ", " + expr2;
 }
 
-void PrettyPrinter::expr_dot(const char* field) { st.back() = st.back() + "." + field; }
+void PrettyPrinter::expr_dot(std::string_view field) { st.back() = st.back() + "." + std::string{field}; }
 
 void PrettyPrinter::expr_location() { st.back() = st.back() + ".location"; }
 
 void PrettyPrinter::expr_deadlock() { st.emplace_back("deadlock"); }
 
-void PrettyPrinter::expr_forall_begin(const char* name)
+void PrettyPrinter::expr_forall_begin(std::string_view name)
 {
-    st.push_back(std::string("forall (") + name + ":" + type.top() + ") ");
-    type.pop();
+    st.push_back("forall (" + std::string{name} + ":" + pop_top(type) + ") ");
 }
 
-void PrettyPrinter::expr_forall_end(const char* name)
-{
-    auto expr = pop_back(st);
-    st.back() += expr;
-}
-
-void PrettyPrinter::expr_exists_begin(const char* name)
-{
-    st.push_back("exists ("s + name + ":" + type.top() + ") ");
-    type.pop();
-}
-
-void PrettyPrinter::expr_exists_end(const char* name)
+void PrettyPrinter::expr_forall_end(std::string_view name)
 {
     auto expr = pop_back(st);
     st.back() += expr;
 }
 
-void PrettyPrinter::expr_sum_begin(const char* name)
+void PrettyPrinter::expr_exists_begin(std::string_view name)
 {
-    st.push_back("sum ("s + name + ":" + type.top() + ") ");
-    type.pop();
+    st.push_back("exists (" + std::string{name} + ":" + pop_top(type) + ") ");
 }
 
-void PrettyPrinter::expr_sum_end(const char* name)
+void PrettyPrinter::expr_exists_end(std::string_view name)
+{
+    auto expr = pop_back(st);
+    st.back() += expr;
+}
+
+void PrettyPrinter::expr_sum_begin(std::string_view name)
+{
+    st.push_back("sum (" + std::string{name} + ":" + pop_top(type) + ") ");
+}
+
+void PrettyPrinter::expr_sum_end(std::string_view name)
 {
     auto expr = pop_back(st);
     st.back() += expr;
@@ -908,12 +902,12 @@ void PrettyPrinter::after_update()
     *o.top() << "}\n";
 }
 
-void PrettyPrinter::instantiation_begin(const char* id, size_t, const char* templ)
+void PrettyPrinter::instantiation_begin(std::string_view id, size_t, std::string_view templ)
 {
     // Ignore
 }
 
-void PrettyPrinter::instantiation_end(const char* id, size_t parameters, const char* templ, size_t arguments)
+void PrettyPrinter::instantiation_end(std::string_view id, size_t parameters, std::string_view templ, size_t arguments)
 {
     auto s = std::stack<std::string>{};
     while (arguments-- > 0)
@@ -928,7 +922,7 @@ void PrettyPrinter::instantiation_end(const char* id, size_t parameters, const c
     *o.top() << ");\n";
 }
 
-void PrettyPrinter::process(const char* id)
+void PrettyPrinter::process(std::string_view id)
 {
     if (first) {
         *o.top() << "system " << id;
@@ -1036,14 +1030,14 @@ void PrettyPrinter::expr_simulate(int nbExpr, bool hasReach, int nbOfAcceptingRu
 
 /** Built-in verification queries if any */
 void PrettyPrinter::query_begin() { *o.top() << "\n/** Query begin: */\n"; }
-void PrettyPrinter::query_formula(const char* formula, const char* location)
+void PrettyPrinter::query_formula(std::string_view formula, std::string_view location)
 {
-    if (formula != nullptr)
+    if (not formula.empty())
         *o.top() << "/* Formula: " << formula << " */\n";
 }
-void PrettyPrinter::query_comment(const char* comment)
+void PrettyPrinter::query_comment(std::string_view comment)
 {
-    if (comment != nullptr)
+    if (not comment.empty())
         *o.top() << "/* Comment: " << comment << " */\n";
 }
 void PrettyPrinter::query_end() { *o.top() << "/** Query end. */\n"; }

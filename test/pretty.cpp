@@ -52,11 +52,11 @@ int main(int argc, char* argv[])
         auto pretty = UTAP::PrettyPrinter{cout};
 
         if (path.extension() == ".xml") {
-            parse_XML_file(path.string().c_str(), &pretty, newSyntax);
+            parse_XML_file(path, pretty, newSyntax);
         } else {
             auto file_path = path.string();
             if (FILE* file = fopen(file_path.c_str(), "r"); file != nullptr) {
-                parse_XTA(file, &pretty, newSyntax);
+                parse_XTA(file, pretty, newSyntax);
             } else {
                 std::perror(file_path.c_str());
                 std::exit(EXIT_FAILURE);

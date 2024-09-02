@@ -2032,15 +2032,15 @@ static void setStartToken(xta_part_t part, bool newxta)
     }
 }
 
-static int32_t parse_XTA(ParserBuilder *aParserBuilder,
-                bool newxta, xta_part_t part, const std::string& xpath)
+static int32_t parse_XTA(ParserBuilder& aParserBuilder,
+                bool newxta, xta_part_t part, std::string_view xpath)
 {
     // Select syntax
     syntax = newxta ? syntax_t::NEW_GUIDING : syntax_t::OLD_GUIDING;
     setStartToken(part, newxta);
 
     // Set parser builder
-    ch = aParserBuilder;
+    ch = &aParserBuilder;
 
     // Reset position tracking
     tracker.setPath(ch, xpath);
@@ -2055,14 +2055,14 @@ static int32_t parse_XTA(ParserBuilder *aParserBuilder,
     return res;
 }
 
-static int32_t parseProperty(ParserBuilder *aParserBuilder, const std::string& xpath)
+static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xpath)
 {
     // Select syntax
     syntax = syntax_t::PROPERTY;
     setStartToken(S_PROPERTY, false);
 
     // Set parser builder
-    ch = aParserBuilder;
+    ch = &aParserBuilder;
 
     // Reset position tracking
     tracker.setPath(ch, xpath);
@@ -2070,8 +2070,8 @@ static int32_t parseProperty(ParserBuilder *aParserBuilder, const std::string& x
     return (utap_parse() != 0) ? -1 : 0;
 }
 
-int32_t parse_XTA(const char *str, ParserBuilder *builder,
-             bool newxta, xta_part_t part, const std::string& xpath)
+int32_t parse_XTA(const char *str, ParserBuilder& builder,
+             bool newxta, xta_part_t part, std::string_view xpath)
 {
     utap__scan_string(str);
     int32_t res = parse_XTA(builder, newxta, part, xpath);
@@ -2080,7 +2080,7 @@ int32_t parse_XTA(const char *str, ParserBuilder *builder,
 }
 
 const char* utap_builtin_declarations() {
-return
+static const char* res =
 "const int INT8_MIN   =        -128;\n"
 "const int INT8_MAX   =         127;\n"
 "const int UINT8_MAX  =         255;\n"
@@ -2112,16 +2112,17 @@ return
 "const double M_SQRT2    = 1.4142135623730951454746218587388284504413604736328125;\n"  // sqrt(2)
 "const double M_SQRT1_2  = 0.70710678118654757273731092936941422522068023681640625;\n" // sqrt(1/2)
 ;
+    return res;
 }
 
-int32_t parse_XTA(const char *str, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(const char *str, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
     return parse_XTA(str, builder, newxta, S_XTA, "");
 }
 
-int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(FILE *file, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
@@ -2131,18 +2132,18 @@ int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
     return res;
 }
 
-int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder, const std::string& xpath)
+int32_t parse_property(const char *str, ParserBuilder& aParserBuilder, const std::string& xpath)
 {
     utap__scan_string(str);
-    int32_t res = parseProperty(aParserBuilder, xpath);
+    int32_t res = parse_property(aParserBuilder, xpath);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
 
-int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder)
+int32_t parse_property(FILE *file, ParserBuilder& aParserBuilder)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int32_t res = parseProperty(aParserBuilder, "");
+    int32_t res = parse_property(aParserBuilder, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }

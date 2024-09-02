@@ -22,35 +22,56 @@
 #include "utap/builder.h"
 
 namespace UTAP {
-TypeException UnknownIdentifierError(const std::string& name) { return TypeException{"$Unknown_identifier: " + name}; }
-
-TypeException HasNoMemberError(const std::string& name) { return TypeException{"$has_no_member_named " + name}; }
-
-TypeException IsNotAStructError(const std::string& name) { return TypeException{name + " $is_not_a_structure"}; }
-
-TypeException DuplicateDefinitionError(const std::string& name)
+TypeException UnknownIdentifierError(std::string_view name)
 {
-    return TypeException{"$Duplicate_definition_of " + name};
+    return TypeException{"$Unknown_identifier: " + std::string{name}};
 }
 
-TypeException InvalidTypeError(const std::string& name) { return TypeException{"$Invalid_type " + name}; }
-
-TypeException NoSuchProcessError(const std::string& name) { return TypeException{"$No_such_process: " + name}; }
-
-TypeException NotATemplateError(const std::string& name) { return TypeException{"$Not_a_template: " + name}; }
-
-TypeException NotAProcessError(const std::string& name) { return TypeException{name + " $is_not_a_process"}; }
-
-TypeException StrategyNotDeclaredError(const std::string& name)
+TypeException HasNoMemberError(std::string_view name)
 {
-    return TypeException{"$strategy_not_declared: " + name};
+    return TypeException{"$has_no_member_named " + std::string{name}};
 }
 
-TypeException UnknownDynamicTemplateError(const std::string& name)
+TypeException IsNotAStructError(std::string_view name)
 {
-    return TypeException{"Unknown dynamic template " + name};
+    return TypeException{std::string{name} + " $is_not_a_structure"};
 }
 
-TypeException ShadowsAVariableWarning(const std::string& name) { return TypeException{name + " $shadows_a_variable"}; }
+TypeException DuplicateDefinitionError(std::string_view name)
+{
+    return TypeException{"$Duplicate_definition_of " + std::string{name}};
+}
+
+TypeException InvalidTypeError(std::string_view name) { return TypeException{"$Invalid_type " + std::string{name}}; }
+
+TypeException NoSuchProcessError(std::string_view name)
+{
+    return TypeException{"$No_such_process: " + std::string{name}};
+}
+
+TypeException NotATemplateError(std::string_view name)
+{
+    return TypeException{"$Not_a_template: " + std::string{name}};
+}
+
+TypeException NotAProcessError(std::string_view name)
+{
+    return TypeException{std::string{name} + " $is_not_a_process"};
+}
+
+TypeException StrategyNotDeclaredError(std::string_view name)
+{
+    return TypeException{"$strategy_not_declared: " + std::string{name}};
+}
+
+TypeException UnknownDynamicTemplateError(std::string_view name)
+{
+    return TypeException{"Unknown dynamic template " + std::string{name}};
+}
+
+TypeException ShadowsAVariableWarning(std::string_view name)
+{
+    return TypeException{std::string{name} + " $shadows_a_variable"};
+}
 
 }  // namespace UTAP

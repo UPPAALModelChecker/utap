@@ -85,7 +85,7 @@ const std::string& type_t::get_label(uint32_t i) const
     return data->children[i].label;
 }
 
-std::optional<uint32_t> type_t::find_index_of(const std::string& label) const
+std::optional<uint32_t> type_t::find_index_of(std::string_view label) const
 {
     assert(is_record() || is_process());
     const type_t type = strip();
@@ -534,11 +534,11 @@ type_t type_t::create_prefix(kind_t kind, position_t pos) const
     return type;
 }
 
-type_t type_t::create_label(std::string label, position_t pos) const
+type_t type_t::create_label(std::string_view label, position_t pos) const
 {
     auto type = type_t{LABEL, pos, 1};
     type.data->children[0].child = *this;
-    type.data->children[0].label = std::move(label);
+    type.data->children[0].label = label;
     return type;
 }
 

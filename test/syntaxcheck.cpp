@@ -37,25 +37,25 @@ int main(int argc, char* argv[])
         }
         auto old = ("-b"s == argv[1]);
 
-        Document system;
+        auto doc = Document{};
         auto name = std::string{argv[argc - 1]};
 
         if (name.substr(name.length() - 4) == ".xml") {
-            parse_XML_file(name.c_str(), &system, !old);
+            parse_XML_file(name.c_str(), doc, !old);
         } else {
             FILE* file = fopen(name.c_str(), "r");
             if (file == nullptr) {
                 perror(name.c_str());
                 return 1;
             }
-            parse_XTA(file, &system, !old);
+            parse_XTA(file, doc, !old);
             fclose(file);
         }
-        for (const auto& err : system.get_errors())
+        for (const auto& err : doc.get_errors())
             std::cerr << err << std::endl;
-        for (const auto& warn : system.get_warnings())
+        for (const auto& warn : doc.get_warnings())
             std::cerr << warn << std::endl;
-        return system.get_errors().empty() && system.get_warnings().empty() ? 0 : 2;
+        return doc.get_errors().empty() && doc.get_warnings().empty() ? 0 : 2;
     } catch (std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 3;

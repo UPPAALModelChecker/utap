@@ -30,13 +30,7 @@
 #include <vector>
 #include <cstdlib>
 
-using std::vector;
-using std::map;
-using std::ostream;
-using std::string;
-
 // The base types
-
 using namespace UTAP;
 using namespace Constants;
 
@@ -47,16 +41,16 @@ struct symbol_t::symbol_data : public std::enable_shared_from_this<symbol_t::sym
     frame_t::frame_data* frame = nullptr;  // Uncounted pointer to containing frame // TODO: consider removing
     type_t type;                           // The type of the symbol
     void* user = nullptr;                  // User data
-    string name;                           // The name of the symbol
+    std::string name;                      // The name of the symbol
     position_t position;                   // the position of the symbol definition in the original document
-    symbol_data(frame_t::frame_data* frame, type_t type, void* user, string name, position_t position):
-        frame{frame}, type{std::move(type)}, user{user}, name{std::move(name)}, position{position}
+    symbol_data(frame_t::frame_data* frame, type_t type, void* user, std::string_view name, position_t position):
+        frame{frame}, type{std::move(type)}, user{user}, name{name}, position{position}
     {}
 };
 
-symbol_t::symbol_t(frame_t* frame, type_t type, string name, position_t position, void* user)
+symbol_t::symbol_t(frame_t* frame, type_t type, std::string_view name, position_t position, void* user)
 {
-    data = std::make_shared<symbol_data>(frame->data.get(), std::move(type), user, std::move(name), position);
+    data = std::make_shared<symbol_data>(frame->data.get(), std::move(type), user, name, position);
 }
 
 /* Destructor */
@@ -86,9 +80,9 @@ void* symbol_t::get_data() { return data->user; }
 const void* symbol_t::get_data() const { return data->user; }
 
 /* Returns the name (identifier) of this symbol */
-const string& symbol_t::get_name() const { return data->name; }
+const std::string& symbol_t::get_name() const { return data->name; }
 
-void symbol_t::set_name(string name) { data->name = std::move(name); }
+void symbol_t::set_name(std::string name) { data->name = std::move(name); }
 
 std::ostream& operator<<(std::ostream& o, const UTAP::symbol_t& t) { return o << t.get_type() << " " << t.get_name(); }
 
@@ -97,9 +91,9 @@ std::ostream& operator<<(std::ostream& o, const UTAP::symbol_t& t) { return o <<
 struct frame_t::frame_data : public std::enable_shared_from_this<frame_t::frame_data>
 {
     // bool hasParent;                // True if there is a parent
-    frame_data* parent;            // The parent frame data
-    vector<symbol_t> symbols;      // The symbols in the frame
-    map<string, int32_t> mapping;  // Mapping from names to indices
+    frame_data* parent;                                   // The parent frame data
+    std::vector<symbol_t> symbols;                        // The symbols in the frame
+    std::map<std::string, int32_t, std::less<>> mapping;  // Mapping from names to indices
     explicit frame_data(frame_data* p): parent{p} {}
     bool has_parent() const { return parent != nullptr; }
 };
@@ -134,7 +128,7 @@ frame_t::iterator frame_t::begin() { return std::begin(data->symbols); }
 frame_t::iterator frame_t::end() { return std::end(data->symbols); }
 
 /* Adds a symbol of the given name and type to the frame */
-symbol_t frame_t::add_symbol(const string& name, type_t type, position_t position, void* user)
+symbol_t frame_t::add_symbol(std::string_view name, type_t type, position_t position, void* user)
 {
     auto symbol = symbol_t{this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
@@ -195,7 +189,7 @@ void frame_t::remove(const symbol_t& s)
     }
 }
 
-std::optional<uint32_t> frame_t::get_index_of(const string& name) const
+std::optional<uint32_t> frame_t::get_index_of(std::string_view name) const
 {
     auto res = std::optional<uint32_t>{};
     if (auto it = data->mapping.find(name); it != data->mapping.end())
@@ -216,7 +210,7 @@ std::optional<uint32_t> frame_t::get_index_of(const symbol_t& symbol) const
    Resolves the name in this frame or the parent frame and
    returns the corresponding symbol.
 */
-bool frame_t::resolve(const string& name, symbol_t& symbol) const
+bool frame_t::resolve(std::string_view name, symbol_t& symbol) const
 {
     auto idx = get_index_of(name);
     if (!idx)

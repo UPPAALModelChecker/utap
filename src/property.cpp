@@ -34,29 +34,26 @@ using UTAP::expression_t;
 using namespace UTAP::Constants;
 using namespace UTAP;
 
-using std::istringstream;
-using std::list;
-using std::string;
-
 void PropertyBuilder::typeCheck(expression_t& expr) { tc.visitProperty(expr); }
 
 void PropertyBuilder::clear() { properties.clear(); }
 
-const list<PropInfo>& PropertyBuilder::getProperties() const { return properties; }
+const std::list<PropInfo>& PropertyBuilder::getProperties() const { return properties; }
 
 PropertyBuilder::const_iterator PropertyBuilder::begin() const { return properties.begin(); }
 
 PropertyBuilder::const_iterator PropertyBuilder::end() const { return properties.end(); }
 
-static void parseExpect(std::string expect, PropInfo& info)
+static void parseExpect(std::string_view expect, PropInfo& info)
 {
     using std::cerr;
     using std::endl;
     if (expect.empty())
         return;
-    std::transform(begin(expect), end(expect), begin(expect), ::toupper);
-    auto is = istringstream(expect);
-    string token;
+    auto exp_u = std::string{expect};
+    std::transform(begin(exp_u), end(exp_u), begin(exp_u), ::toupper);
+    auto is = std::istringstream(exp_u);
+    std::string token;
     while (getline(is, token, ',')) {
         if (token == "T" || token == "SAT" || token == "SATISFIED" || token == "TRUE") {
             info.set_expect(status_t::DONE_TRUE);
@@ -71,7 +68,7 @@ static void parseExpect(std::string expect, PropInfo& info)
         } else {
             auto is = std::istringstream(token);
             double number;
-            string unit;
+            std::string unit;
             if (is >> number) {
                 if (is >> unit) {
                     if (unit == "B")
@@ -246,7 +243,7 @@ void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
                                   "properties.");
 }
 
-void PropertyBuilder::scenario(const char* name)
+void PropertyBuilder::scenario(std::string_view name)
 {
     symbol_t symbol, i_symbol;
     if (!resolve(name, symbol))
@@ -256,38 +253,38 @@ void PropertyBuilder::scenario(const char* name)
         throw std::runtime_error("$Not_a_LSC_template: " + symbol.get_name());
 }
 
-void PropertyBuilder::handle_expect(const char* text)
+void PropertyBuilder::handle_expect(std::string_view text)
 {
-    if (text != nullptr && text[0] != '\0' && !properties.empty())
+    if (not text.empty() && not properties.empty())
         parseExpect(text, properties.back());
 }
 
 bool PropertyBuilder::allowProcessReferences() { return true; }
 
-void PropertyBuilder::parse(const char* buf) { parseProperty(buf, this); }
+void PropertyBuilder::parse(const char* buf) { parse_property(buf, *this); }
 
 void PropertyBuilder::parse(FILE* file)
 {
     clear();
-    parseProperty(file, this);
+    parse_property(file, *this);
 }
 
 void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::options_t& options)
 {
     size_t num_props = properties.size();
-    parseProperty(buf, this, xpath);
+    parse_property(buf, *this, xpath);
     // if buffer contained no property, we must not set options at end of list.
     // in particular, if the first query is empty, this assignment would segfault.
     if (properties.size() > num_props)
         properties.back().options = options;
 }
 
-variable_t* PropertyBuilder::addVariable(type_t type, const std::string& name, expression_t init, position_t pos)
+variable_t* PropertyBuilder::addVariable(type_t type, std::string_view name, expression_t init, position_t pos)
 {
     throw UTAP::NotSupportedException("addVariable is not supported");
 }
 
-bool PropertyBuilder::addFunction(type_t type, const std::string& name, position_t pos)
+bool PropertyBuilder::addFunction(type_t type, std::string_view name, position_t pos)
 {
     throw UTAP::NotSupportedException("addFunction is not supported");
 }
@@ -445,7 +442,7 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
     }
 }
 
-void TigaPropertyBuilder::strategy_declaration(const char* id)
+void TigaPropertyBuilder::strategy_declaration(std::string_view id)
 {
     const std::string name = std::string(id);
     if (auto it = declarations.find(name); it != declarations.end()) {
@@ -457,7 +454,7 @@ void TigaPropertyBuilder::strategy_declaration(const char* id)
         properties.back().declaration = name;
 }
 
-void TigaPropertyBuilder::subjection(const char* id)
+void TigaPropertyBuilder::subjection(std::string_view id)
 {
     std::string name = std::string(id);
     if (auto it = declarations.find(name); it != declarations.end())
@@ -466,13 +463,12 @@ void TigaPropertyBuilder::subjection(const char* id)
         handle_error(UTAP::StrategyNotDeclaredError(name));
 }
 
-void TigaPropertyBuilder::imitation(const char* id)
+void TigaPropertyBuilder::imitation(std::string_view id)
 {
-    const std::string name = std::string(id);
-    if (auto it = declarations.find(name); it != declarations.end())
+    if (auto it = declarations.find(id); it != declarations.end())
         _imitation = it->second;
     else
-        handle_error(UTAP::StrategyNotDeclaredError(name));
+        handle_error(UTAP::StrategyNotDeclaredError(id));
 }
 
 void TigaPropertyBuilder::expr_optimize(int, int, int, int)
