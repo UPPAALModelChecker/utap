@@ -80,16 +80,16 @@ class ParserBuilder
 {
 public:
     /*********************************************************************
-     * Prefixes
+     * Type prefix which can be applied in front of some type.
      */
-    enum PREFIX {
-        PREFIX_NONE = 0,
-        PREFIX_CONST = 1,
-        PREFIX_URGENT = 2,
-        PREFIX_BROADCAST = 4,
-        PREFIX_URGENT_BROADCAST = 6,
-        PREFIX_SYSTEM_META = 8,
-        PREFIX_HYBRID = 16
+    enum class TypePrefix : uint8_t {
+        NONE = 0,
+        CONST = 1,
+        URGENT = 2,
+        BROADCAST = 4,
+        URGENT_BROADCAST = 6,
+        SYSTEM_META = 8,
+        HYBRID = 16
     };
 
     std::vector<std::string> lscTemplateNames;
@@ -131,39 +131,39 @@ public:
     /**
      * Called whenever a boolean type is parsed.
      */
-    virtual void type_bool(PREFIX) = 0;
+    virtual void type_bool(TypePrefix) = 0;
 
     /**
      * Called whenever an integer type is parsed.
      */
-    virtual void type_int(PREFIX) = 0;
+    virtual void type_int(TypePrefix) = 0;
 
     /**
      * Called whenever a string type is parsed.
      */
-    virtual void type_string(PREFIX) = 0;
+    virtual void type_string(TypePrefix) = 0;
 
     /**
      * Called whenever a double type is parsed.
      */
-    virtual void type_double(PREFIX) = 0;
+    virtual void type_double(TypePrefix) = 0;
 
     /**
      * Called whenever an integer type with a range is
      * parsed. Expressions for the lower and upper have been
      * pushed before.
      */
-    virtual void type_bounded_int(PREFIX) = 0;
+    virtual void type_bounded_int(TypePrefix) = 0;
 
     /**
      * Called whenever a channel type is parsed.
      */
-    virtual void type_channel(PREFIX) = 0;
+    virtual void type_channel(TypePrefix) = 0;
 
     /**
      * Called whenever a clock type is parsed.
      */
-    virtual void type_clock(PREFIX) = 0;
+    virtual void type_clock(TypePrefix) = 0;
 
     /**
      * Called whenever a void type is parsed.
@@ -174,32 +174,32 @@ public:
      * Called to create an array type. The size of the array was
      * previously pushed as an expression.
      */
-    virtual void type_array_of_size(size_t) = 0;
+    virtual void type_array_of_size(uint32_t) = 0;
 
     /**
      * Called to create an array type. The size of the array was
      * previously pushed as a type.
      */
-    virtual void type_array_of_type(size_t) = 0;
+    virtual void type_array_of_type(uint32_t) = 0;
 
     /**
      * Called whenever a scalar type is parsed. The size of the
      * scalar set was pushed as an expression before.
      */
-    virtual void type_scalar(PREFIX) = 0;
+    virtual void type_scalar(TypePrefix) = 0;
 
     /**
      * Called when a type name has been parsed. Prefix indicates
      * whether the type named was prefixed (e.g. with 'const').
      */
-    virtual void type_name(PREFIX, std::string_view name) = 0;
+    virtual void type_name(TypePrefix, std::string_view name) = 0;
 
     /**
      * Called when a struct-type has been parsed. Prior to the
      * call 'fields' fields must have been declared using the
      * structXXX methods.
      */
-    virtual void type_struct(PREFIX, uint32_t fields) = 0;
+    virtual void type_struct(TypePrefix, uint32_t fields) = 0;
 
     /**
      * Called to declare a field of a structure. The type of the
@@ -263,7 +263,7 @@ public:
     virtual void proc_instance_line() = 0;
     virtual void instance_name(std::string_view name, bool templ = true) = 0;
     virtual void instance_name_begin(std::string_view name) = 0;
-    virtual void instance_name_end(std::string_view name, size_t arguments) = 0;
+    virtual void instance_name_end(std::string_view name, uint32_t arguments) = 0;
     virtual void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) = 0;
     virtual void proc_message(Constants::synchronisation_t type) = 0;
     virtual void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
@@ -381,9 +381,9 @@ public:
     /********************************************************************
      * System declaration
      */
-    virtual void instantiation_begin(std::string_view id, size_t parameters, std::string_view templ) = 0;
-    virtual void instantiation_end(std::string_view id, size_t parameters, std::string_view templ,
-                                   size_t arguments) = 0;
+    virtual void instantiation_begin(std::string_view id, uint32_t parameters, std::string_view templ) = 0;
+    virtual void instantiation_end(std::string_view id, uint32_t parameters, std::string_view templ,
+                                   uint32_t arguments) = 0;
     virtual void process(std::string_view) = 0;
     virtual void process_list_end() = 0;
     virtual void done() = 0;  // marks the end of the file
@@ -449,17 +449,17 @@ public:
 };
 
 /** Error/warning messages with some arguments */
-TypeException UnknownIdentifierError(std::string_view name);
-TypeException HasNoMemberError(std::string_view name);
-TypeException IsNotAStructError(std::string_view name);
-TypeException DuplicateDefinitionError(std::string_view name);
-TypeException InvalidTypeError(std::string_view name);
-TypeException NoSuchProcessError(std::string_view name);
-TypeException NotATemplateError(std::string_view name);
-TypeException NotAProcessError(std::string_view name);
-TypeException StrategyNotDeclaredError(std::string_view name);
-TypeException UnknownDynamicTemplateError(std::string_view name);
-TypeException ShadowsAVariableWarning(std::string_view name);
+TypeException unknown_identifier_error(std::string_view name);
+TypeException has_no_such_member_error(std::string_view name);
+TypeException is_not_a_struct_error(std::string_view name);
+TypeException duplicate_definition_error(std::string_view name);
+TypeException invalid_type_error(std::string_view name);
+TypeException no_such_process_error(std::string_view name);
+TypeException not_a_template_error(std::string_view name);
+TypeException not_a_process_error(std::string_view name);
+TypeException strategy_not_declared_error(std::string_view name);
+TypeException unknown_dynamic_template_error(std::string_view name);
+TypeException shadows_a_variable_warning(std::string_view name);
 
 }  // namespace UTAP
 

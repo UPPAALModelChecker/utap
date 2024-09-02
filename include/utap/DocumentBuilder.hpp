@@ -81,23 +81,16 @@ protected:
 
     /** The update under construction. */
     update_t* currentUpdate{nullptr};
-
     /** The message under construction. */
     message_t* currentMessage{nullptr};
-
     /** The instance line under construction. */
     instance_line_t* currentInstanceLine{nullptr};
 
-    iodecl_t* currentIODecl{nullptr};
-
+    std::unique_ptr<iodecl_t> currentIODecl{nullptr};
     std::unique_ptr<query_t> currentQuery{nullptr};
 
-    results_t* currentResults{nullptr};
-
-    expectation_t* currentExpectation{nullptr};
-    //
-    // Method for handling types
-    //
+    std::unique_ptr<results_t> currentResults{nullptr};
+    std::unique_ptr<expectation_t> currentExpectation;
 
     declarations_t* getCurrentDeclarationBlock();
 
@@ -132,8 +125,8 @@ public:
     void proc_sync(Constants::synchronisation_t type) override;
     void proc_update() override;
     void proc_prob() override;
-    void instantiation_begin(std::string_view, size_t, std::string_view) override;
-    void instantiation_end(std::string_view, size_t, std::string_view, size_t) override;
+    void instantiation_begin(std::string_view, uint32_t, std::string_view) override;
+    void instantiation_end(std::string_view, uint32_t, std::string_view, uint32_t) override;
     void process(std::string_view) override;
     void process_list_end() override;
     void done() override;
@@ -147,7 +140,7 @@ public:
     void proc_instance_line() override;
     void instance_name(std::string_view name, bool templ = true) override;
     void instance_name_begin(std::string_view name) override;
-    void instance_name_end(std::string_view name, size_t arguments) override;
+    void instance_name_end(std::string_view name, uint32_t arguments) override;
     void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
     void proc_message(Constants::synchronisation_t type) override;
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,

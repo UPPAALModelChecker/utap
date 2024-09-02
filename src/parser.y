@@ -302,7 +302,7 @@ const char* utap_msg(const char *msg)
 %union {
     bool flag;
     int number;
-    ParserBuilder::PREFIX prefix;
+    ParserBuilder::TypePrefix prefix;
     kind_t kind;
     char string[MAXLEN];
     double floating;
@@ -648,56 +648,56 @@ TypeId:
 
 Type:
         T_TYPENAME {
-            CALL(@1, @1, type_name(ParserBuilder::PREFIX_NONE, $1));
+            CALL(@1, @1, type_name(ParserBuilder::TypePrefix::NONE, $1));
         }
         | TypePrefix T_TYPENAME {
             CALL(@1, @2, type_name($1, $2));
         }
         | T_STRUCT '{' FieldDeclList '}' {
-            CALL(@1, @4, type_struct(ParserBuilder::PREFIX_NONE, $3));
+            CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, $3));
         }
         | TypePrefix T_STRUCT '{' FieldDeclList '}' {
             CALL(@1, @5, type_struct($1, $4));
         }
         | T_STRUCT '{' error '}' {
-          CALL(@1, @4, type_struct(ParserBuilder::PREFIX_NONE, 0));
+          CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, 0));
         }
         | TypePrefix T_STRUCT '{' error '}' {
-          CALL(@1, @5, type_struct(ParserBuilder::PREFIX_NONE, 0));
+          CALL(@1, @5, type_struct(ParserBuilder::TypePrefix::NONE, 0));
         }
         | T_BOOL {
-          CALL(@1, @1, type_bool(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @1, type_bool(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_BOOL {
           CALL(@1, @2, type_bool($1));
         }
-        | T_DOUBLE { CALL(@1, @1, type_double(ParserBuilder::PREFIX_NONE)); }
+        | T_DOUBLE { CALL(@1, @1, type_double(ParserBuilder::TypePrefix::NONE)); }
         | TypePrefix T_DOUBLE { CALL(@1, @2, type_double($1)); }
-        | T_STRING { CALL(@1, @1, type_string(ParserBuilder::PREFIX_NONE)); }
+        | T_STRING { CALL(@1, @1, type_string(ParserBuilder::TypePrefix::NONE)); }
         | TypePrefix T_STRING { CALL(@1, @2, type_string($1)); }
-        | T_INT { CALL(@1, @1, type_int(ParserBuilder::PREFIX_NONE)); }
+        | T_INT { CALL(@1, @1, type_int(ParserBuilder::TypePrefix::NONE)); }
         | TypePrefix T_INT { CALL(@1, @2, type_int($1)); }
         | T_INT '[' Expression ',' Expression ']'
         {
-          CALL(@1, @6, type_bounded_int(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @6, type_bounded_int(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_INT  '[' Expression ',' Expression ']' {
           CALL(@1, @7, type_bounded_int($1));
         }
         | T_CHAN {
-          CALL(@1, @1, type_channel(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @1, type_channel(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_CHAN {
           CALL(@1, @2, type_channel($1));
         }
-        | T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::PREFIX_NONE)); }
-        | T_HYBRID T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::PREFIX_HYBRID)); }
+        | T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::NONE)); }
+        | T_HYBRID T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::HYBRID)); }
         | T_VOID {
           CALL(@1, @1, type_void());
         }
         | T_SCALAR '[' Expression ']'
         {
-          CALL(@1, @4, type_scalar(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @4, type_scalar(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_SCALAR  '[' Expression ']' {
           CALL(@1, @5, type_scalar($1));
@@ -749,11 +749,11 @@ FieldDeclId:
         ;
 
 TypePrefix:
-          T_URGENT    { $$ = ParserBuilder::PREFIX_URGENT; }
-        | T_BROADCAST { $$ = ParserBuilder::PREFIX_BROADCAST; }
-        | T_URGENT T_BROADCAST { $$ = ParserBuilder::PREFIX_URGENT_BROADCAST; }
-        | T_CONST  { $$ = ParserBuilder::PREFIX_CONST; }
-        | T_META { $$ = ParserBuilder::PREFIX_SYSTEM_META; }
+          T_URGENT    { $$ = ParserBuilder::TypePrefix::URGENT; }
+        | T_BROADCAST { $$ = ParserBuilder::TypePrefix::BROADCAST; }
+        | T_URGENT T_BROADCAST { $$ = ParserBuilder::TypePrefix::URGENT_BROADCAST; }
+        | T_CONST  { $$ = ParserBuilder::TypePrefix::CONST; }
+        | T_META { $$ = ParserBuilder::TypePrefix::SYSTEM_META; }
         ;
 
 /*********************************************************************
@@ -1467,7 +1467,7 @@ OldDeclaration:
 OldVarDecl:
         VariableDecl
         | T_OLDCONST {
-          CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+          CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } OldConstDeclIdList ';' {
           CALL(@1, @3, type_pop());
         }
@@ -1554,12 +1554,12 @@ OldProcParam:
 
 OldProcConstParam:
         T_OLDCONST {
-            CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@3, @4, decl_parameter($3, false));
         }
         | OldProcConstParam ',' {
-            CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@4, @5, decl_parameter($4, false));
         }

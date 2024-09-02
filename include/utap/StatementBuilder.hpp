@@ -70,9 +70,9 @@ public:
 
     BlockStatement& get_block();
 
-    void type_array_of_size(size_t) override;
-    void type_array_of_type(size_t) override;
-    void type_struct(PREFIX, uint32_t fields) override;
+    void type_array_of_size(uint32_t) override;
+    void type_array_of_type(uint32_t) override;
+    void type_struct(TypePrefix, uint32_t fields) override;
     void struct_field(std::string_view name) override;
     void decl_typedef(std::string_view name) override;
     void decl_var(std::string_view name, bool init) override;

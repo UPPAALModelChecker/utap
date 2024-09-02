@@ -263,7 +263,7 @@ location_t& template_t::add_location(std::string_view name, expression_t inv, ex
     loc.invariant = std::move(inv);
     loc.exp_rate = std::move(er);
     if (duplicate)
-        throw DuplicateDefinitionError(name);
+        throw duplicate_definition_error(name);
     return loc;
 }
 
@@ -276,7 +276,7 @@ branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos
     branchpoint.uid = frame.add_symbol(name, type_t::create_primitive(BRANCHPOINT), pos, &branchpoint);
     branchpoint.bpNr = branchpoints.size() - 1;
     if (duplicate)
-        throw DuplicateDefinitionError(name);
+        throw duplicate_definition_error(name);
     return branchpoint;
 }
 
@@ -929,7 +929,7 @@ variable_t* Document::add_variable(std::list<variable_t>& variables, frame_t fra
     // Add symbol
     var.uid = frame.add_symbol(name, std::move(type), pos, &var);
     if (duplicate)
-        throw DuplicateDefinitionError(name);
+        throw duplicate_definition_error(name);
     return &var;
 }
 

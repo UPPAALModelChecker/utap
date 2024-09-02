@@ -57,19 +57,19 @@ public:
      */
     void type_duplicate() override;
     void type_pop() override;
-    void type_bool(PREFIX) override;
-    void type_int(PREFIX) override;
-    void type_string(PREFIX) override;
-    void type_double(PREFIX) override;
-    void type_bounded_int(PREFIX) override;
-    void type_channel(PREFIX) override;
-    void type_clock(PREFIX) override;
+    void type_bool(TypePrefix) override;
+    void type_int(TypePrefix) override;
+    void type_string(TypePrefix) override;
+    void type_double(TypePrefix) override;
+    void type_bounded_int(TypePrefix) override;
+    void type_channel(TypePrefix) override;
+    void type_clock(TypePrefix) override;
     void type_void() override;
-    void type_scalar(PREFIX) override;
-    void type_name(PREFIX, std::string_view name) override;
-    void type_struct(PREFIX, uint32_t fields) override;
-    void type_array_of_size(size_t) override;
-    void type_array_of_type(size_t) override;
+    void type_scalar(TypePrefix) override;
+    void type_name(TypePrefix, std::string_view name) override;
+    void type_struct(TypePrefix, uint32_t fields) override;
+    void type_array_of_size(uint32_t) override;
+    void type_array_of_type(uint32_t) override;
     void struct_field(std::string_view name) override;
     void decl_typedef(std::string_view name) override;
 
@@ -130,7 +130,7 @@ public:
     void proc_instance_line() override;
     void instance_name(std::string_view name, bool templ = true) override;
     void instance_name_begin(std::string_view name) override;
-    void instance_name_end(std::string_view name, size_t arguments) override;
+    void instance_name_end(std::string_view name, uint32_t arguments) override;
     void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
     void proc_message(Constants::synchronisation_t type) override;  // 1 expr
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
@@ -229,8 +229,8 @@ public:
     /************************************************************
      * System declaration
      */
-    void instantiation_begin(std::string_view, size_t, std::string_view) override;
-    void instantiation_end(std::string_view, size_t, std::string_view, size_t) override;
+    void instantiation_begin(std::string_view, uint32_t, std::string_view) override;
+    void instantiation_end(std::string_view, uint32_t, std::string_view, uint32_t) override;
     void process(std::string_view) override;
     void process_list_end() override;
     void done() override;

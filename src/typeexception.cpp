@@ -22,54 +22,54 @@
 #include "utap/builder.h"
 
 namespace UTAP {
-TypeException UnknownIdentifierError(std::string_view name)
+TypeException unknown_identifier_error(std::string_view name)
 {
     return TypeException{"$Unknown_identifier: " + std::string{name}};
 }
 
-TypeException HasNoMemberError(std::string_view name)
+TypeException has_no_such_member_error(std::string_view name)
 {
     return TypeException{"$has_no_member_named " + std::string{name}};
 }
 
-TypeException IsNotAStructError(std::string_view name)
+TypeException is_not_a_struct_error(std::string_view name)
 {
     return TypeException{std::string{name} + " $is_not_a_structure"};
 }
 
-TypeException DuplicateDefinitionError(std::string_view name)
+TypeException duplicate_definition_error(std::string_view name)
 {
     return TypeException{"$Duplicate_definition_of " + std::string{name}};
 }
 
-TypeException InvalidTypeError(std::string_view name) { return TypeException{"$Invalid_type " + std::string{name}}; }
+TypeException invalid_type_error(std::string_view name) { return TypeException{"$Invalid_type " + std::string{name}}; }
 
-TypeException NoSuchProcessError(std::string_view name)
+TypeException no_such_process_error(std::string_view name)
 {
     return TypeException{"$No_such_process: " + std::string{name}};
 }
 
-TypeException NotATemplateError(std::string_view name)
+TypeException not_a_template_error(std::string_view name)
 {
     return TypeException{"$Not_a_template: " + std::string{name}};
 }
 
-TypeException NotAProcessError(std::string_view name)
+TypeException not_a_process_error(std::string_view name)
 {
     return TypeException{std::string{name} + " $is_not_a_process"};
 }
 
-TypeException StrategyNotDeclaredError(std::string_view name)
+TypeException strategy_not_declared_error(std::string_view name)
 {
     return TypeException{"$strategy_not_declared: " + std::string{name}};
 }
 
-TypeException UnknownDynamicTemplateError(std::string_view name)
+TypeException unknown_dynamic_template_error(std::string_view name)
 {
     return TypeException{"Unknown dynamic template " + std::string{name}};
 }
 
-TypeException ShadowsAVariableWarning(std::string_view name)
+TypeException shadows_a_variable_warning(std::string_view name)
 {
     return TypeException{std::string{name} + " $shadows_a_variable"};
 }

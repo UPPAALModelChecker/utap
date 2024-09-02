@@ -26,7 +26,6 @@
 #include <vector>
 #include <cassert>
 #include <cinttypes>
-#include <cstring>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -37,14 +36,11 @@
 using namespace UTAP;
 using namespace Constants;
 
-using std::vector;
-using std::string;
-
 StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::path> libpaths):
     ExpressionBuilder{doc}, libpaths{std::move(libpaths)}
 {
     this->libpaths.insert(this->libpaths.begin(), std::filesystem::current_path());
-    this->libpaths.insert(this->libpaths.begin(), "");
+    this->libpaths.emplace(this->libpaths.begin(), "");
 }
 
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
@@ -77,33 +73,28 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, con
         collectDependencies(dependencies, upper);
         collectDependencies(dependencies, type[0]);
     } else {
-        for (size_t i = 0; i < type.size(); i++) {
+        for (uint32_t i = 0; i < type.size(); ++i)
             collectDependencies(dependencies, type[i]);
-        }
     }
 }
 
-void StatementBuilder::type_array_of_size(size_t n)
+void StatementBuilder::type_array_of_size(uint32_t n)
 {
-    /* Pop array size of fragments stack.
-     */
-    expression_t expr = fragments[0];
-    fragments.pop();
+    // Pop array size of fragments stack.
+    expression_t expr = fragments.pop();
 
-    /* Create type.
-     */
+    // Create type.
     expr_nat(0);
     fragments.push(expr);
     expr_nat(1);
     expr_binary(MINUS);
-    type_bounded_int(PREFIX_NONE);
+    type_bounded_int(TypePrefix::NONE);
     type_array_of_type(n + 1);
 }
 
-void StatementBuilder::type_array_of_type(size_t n)
+void StatementBuilder::type_array_of_type(uint32_t n)
 {
-    type_t size = typeFragments[0];
-    typeFragments.pop();
+    type_t size = typeFragments.pop();
     typeFragments[n - 1] = type_t::create_array(typeFragments[n - 1], size, position);
 
     /* If template local declaration, then mark all symbols in 'size'
@@ -125,14 +116,12 @@ void StatementBuilder::type_array_of_type(size_t n)
  * type stack. The type is based on n fields, which are expected to be
  * on and will be popped off the type stack.
  */
-void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
+void StatementBuilder::type_struct(TypePrefix prefix, uint32_t n)
 {
-    auto f = vector<type_t>(fields.end() - n, fields.end());
-    auto l = vector<string>(labels.end() - n, labels.end());
-
+    auto f = std::vector<type_t>(fields.end() - n, fields.end());
+    auto l = std::vector<std::string>(labels.end() - n, labels.end());
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
-
     typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, position)));
 }
 
@@ -142,13 +131,11 @@ void StatementBuilder::type_struct(PREFIX prefix, uint32_t n)
  */
 void StatementBuilder::struct_field(std::string_view name)
 {
-    type_t type = typeFragments[0];
-    typeFragments.pop();
+    auto type = typeFragments.pop();
 
     // Constant fields are not allowed
-    if (type.is(CONSTANT)) {
+    if (type.is(CONSTANT))
         handle_error(TypeException{"$Constant_fields_not_allowed_in_struct"});
-    }
 
     fields.push_back(type);
     labels.emplace_back(name);
@@ -175,7 +162,7 @@ void StatementBuilder::decl_typedef(std::string_view name)
     type_t type = type_t::create_typedef(std::string{name}, typeFragments[0], position);
     typeFragments.pop();
     if (duplicate)
-        throw DuplicateDefinitionError(name);
+        throw duplicate_definition_error(name);
     frames.top().add_symbol(name, type, position);
 }
 
@@ -346,7 +333,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
     // Compute new type (each field has a label type, see decl_field_init())
     auto types = std::vector<type_t>{};
     types.reserve(num);
-    auto labels = std::vector<string>{};
+    auto labels = std::vector<std::string>{};
     labels.reserve(num);
     for (uint32_t i = 0; i < num; i++) {
         auto type = fields[i].get_type();
@@ -363,13 +350,9 @@ void StatementBuilder::decl_init_list(uint32_t num)
  */
 void StatementBuilder::decl_parameter(std::string_view name, bool ref)
 {
-    type_t type = typeFragments[0];
-    typeFragments.pop();
-
-    if (ref) {
+    type_t type = typeFragments.pop();
+    if (ref)
         type = type.create_prefix(REF);
-    }
-
     params.add_symbol(name, type, position);
 }
 
@@ -389,19 +372,18 @@ void StatementBuilder::decl_func_begin(std::string_view name)
         blocks.clear();
     }
 
-    type_t return_type = typeFragments[0];
-    typeFragments.pop();
-
-    vector<type_t> types;
-    vector<string> labels;
-    for (size_t i = 0; i < params.get_size(); i++) {
-        types.push_back(params[i].get_type());
-        labels.push_back(params[i].get_name());
+    auto return_type = typeFragments.pop();
+    auto types = std::vector<type_t>{};
+    types.reserve(params.get_size());
+    auto labels = std::vector<std::string>{};
+    labels.reserve(params.get_size());
+    for (const auto& param : params) {
+        types.push_back(param.get_type());
+        labels.push_back(param.get_name());
     }
-    type_t type = type_t::create_function(return_type, types, labels, position);
-    if (!addFunction(type, name, {})) {
-        handle_error(DuplicateDefinitionError(name));
-    }
+    auto type = type_t::create_function(return_type, types, labels, position);
+    if (!addFunction(type, name, {}))
+        handle_error(duplicate_definition_error(name));
 
     /* We maintain a stack of frames. As the function has a local
      * scope, we push a new frame and move the parameters to it.
@@ -409,8 +391,7 @@ void StatementBuilder::decl_func_begin(std::string_view name)
     push_frame(frame_t::create(frames.top()));
     params.move_to(frames.top());  // params is emptied here
 
-    /* Create function block.
-     */
+    // Create function block.
     currentFun->body = std::make_unique<BlockStatement>(frames.top());
 }
 
@@ -474,9 +455,9 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
 
     auto return_type = typeFragments.pop();
 
-    auto types = vector<type_t>{};
+    auto types = std::vector<type_t>{};
     types.reserve(params.get_size());
-    auto labels = vector<string>{};
+    auto labels = std::vector<std::string>{};
     labels.reserve(params.get_size());
     for (const auto& param : params) {
         types.push_back(param.get_type());
@@ -492,7 +473,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
 
     auto type = type_t::create_external_function(return_type, types, labels, position);
     if (!addFunction(type, alias, position_t()))
-        handle_error(DuplicateDefinitionError(alias));
+        handle_error(duplicate_definition_error(alias));
     push_frame(frame_t::create(frames.top()));
     params.move_to(frames.top());  // params is emptied here
     currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());

@@ -447,7 +447,7 @@ void TigaPropertyBuilder::strategy_declaration(std::string_view id)
     const std::string name = std::string(id);
     if (auto it = declarations.find(name); it != declarations.end()) {
         declarations.erase(it);
-        handle_warning(UTAP::DuplicateDefinitionError(name));
+        handle_warning(UTAP::duplicate_definition_error(name));
     }
     declarations.emplace(name, &properties.back());
     if (!properties.empty())  // this happens when the model and the query file do not correspond.
@@ -460,7 +460,7 @@ void TigaPropertyBuilder::subjection(std::string_view id)
     if (auto it = declarations.find(name); it != declarations.end())
         subjections.push_back(it->second);
     else
-        handle_error(UTAP::StrategyNotDeclaredError(name));
+        handle_error(UTAP::strategy_not_declared_error(name));
 }
 
 void TigaPropertyBuilder::imitation(std::string_view id)
@@ -468,7 +468,7 @@ void TigaPropertyBuilder::imitation(std::string_view id)
     if (auto it = declarations.find(id); it != declarations.end())
         _imitation = it->second;
     else
-        handle_error(UTAP::StrategyNotDeclaredError(id));
+        handle_error(UTAP::strategy_not_declared_error(id));
 }
 
 void TigaPropertyBuilder::expr_optimize(int, int, int, int)

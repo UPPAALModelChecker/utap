@@ -151,7 +151,7 @@ protected:
      * by applying the prefix. TypeExceptions might be thrown if
      * the combination of the prefix and the type is illegal.
      */
-    type_t apply_prefix(PREFIX, type_t type);
+    type_t apply_prefix(TypePrefix, type_t type);
 
     /**
      * If this method returns true, it is allowed to access the
@@ -174,16 +174,16 @@ public:
     void handle_warning(const TypeException&) override;
     void type_duplicate() override;
     void type_pop() override;
-    void type_bool(PREFIX) override;
-    void type_int(PREFIX) override;
-    void type_string(PREFIX prefix) override;
-    void type_double(PREFIX) override;
-    void type_bounded_int(PREFIX) override;
-    void type_channel(PREFIX) override;
-    void type_clock(PREFIX) override;
+    void type_bool(TypePrefix) override;
+    void type_int(TypePrefix) override;
+    void type_string(TypePrefix prefix) override;
+    void type_double(TypePrefix) override;
+    void type_bounded_int(TypePrefix) override;
+    void type_channel(TypePrefix) override;
+    void type_clock(TypePrefix) override;
     void type_void() override;
-    void type_scalar(PREFIX) override;
-    void type_name(PREFIX, std::string_view name) override;
+    void type_scalar(TypePrefix) override;
+    void type_name(TypePrefix, std::string_view name) override;
     bool is_type(std::string_view) override;
     void expr_true() override;
     void expr_false() override;

@@ -36,8 +36,12 @@ using namespace UTAP::Constants;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-static const std::string prefix_labels[] = {"", "const ", "urgent ", "", "broadcast ", "", "urgent broadcast ",
-                                            "", "meta "};
+static inline const std::string& label(AbstractBuilder::TypePrefix prefix)
+{
+    static const std::string labels[] = {"", "const ", "urgent ", "", "broadcast ", "", "urgent broadcast ",
+                                         "", "meta "};
+    return labels[(uint8_t)prefix];
+}
 
 static inline std::string pop_back(std::vector<std::string>& vs)
 {
@@ -90,49 +94,49 @@ void PrettyPrinter::type_duplicate() { type.push(type.top()); }
 
 void PrettyPrinter::type_pop() { type.pop(); }
 
-void PrettyPrinter::type_bool(PREFIX prefix) { type.push(prefix_labels[prefix] + "bool"); }
+void PrettyPrinter::type_bool(TypePrefix prefix) { type.push(label(prefix) + "bool"); }
 
-void PrettyPrinter::type_int(PREFIX prefix) { type.push(prefix_labels[prefix] + "int"); }
+void PrettyPrinter::type_int(TypePrefix prefix) { type.push(label(prefix) + "int"); }
 
-void PrettyPrinter::type_string(PREFIX prefix) { type.push(prefix_labels[prefix] + "string"); }
+void PrettyPrinter::type_string(TypePrefix prefix) { type.push(label(prefix) + "string"); }
 
-void PrettyPrinter::type_double(PREFIX prefix) { type.push(prefix_labels[prefix] + "double"); }
+void PrettyPrinter::type_double(TypePrefix prefix) { type.push(label(prefix) + "double"); }
 
-void PrettyPrinter::type_bounded_int(PREFIX prefix)
+void PrettyPrinter::type_bounded_int(TypePrefix prefix)
 {
     const auto u = pop_back(st);
     const auto l = pop_back(st);
-    type.push(prefix_labels[prefix] + "int[" + l + "," + u + "]");
+    type.push(label(prefix) + "int[" + l + "," + u + "]");
 }
 
-void PrettyPrinter::type_channel(PREFIX prefix) { type.push(prefix_labels[prefix] + "chan"); }
+void PrettyPrinter::type_channel(TypePrefix prefix) { type.push(label(prefix) + "chan"); }
 
-void PrettyPrinter::type_clock(PREFIX prefix) { type.push(prefix_labels[prefix] + "clock"); }
+void PrettyPrinter::type_clock(TypePrefix prefix) { type.push(label(prefix) + "clock"); }
 
 void PrettyPrinter::type_void() { type.emplace("void"); }
 
-void PrettyPrinter::type_scalar(PREFIX prefix)
+void PrettyPrinter::type_scalar(TypePrefix prefix)
 {
     const auto size = pop_back(st);
-    type.push(prefix_labels[prefix] + "scalar[" + size + "]");
+    type.push(label(prefix) + "scalar[" + size + "]");
 }
 
-void PrettyPrinter::type_name(PREFIX prefix, std::string_view name)
+void PrettyPrinter::type_name(TypePrefix prefix, std::string_view name)
 {
-    type.push(prefix_labels[prefix] + std::string{name});
+    type.push(label(prefix) + std::string{name});
 }
 
-void PrettyPrinter::type_array_of_size(size_t n) { array.push(pop_back(st)); }
+void PrettyPrinter::type_array_of_size(uint32_t n) { array.push(pop_back(st)); }
 
-void PrettyPrinter::type_array_of_type(size_t n)
+void PrettyPrinter::type_array_of_type(uint32_t n)
 {
     array.push(type.top());
     type.pop();
 }
-void PrettyPrinter::type_struct(PREFIX prefix, uint32_t n)
+void PrettyPrinter::type_struct(TypePrefix prefix, uint32_t n)
 {
     std::stringstream ss;
-    ss << prefix_labels[prefix];
+    ss << label(prefix);
     ss << "struct {\n";
     assert(fields.size() >= n);
     for (auto i = std::next(fields.begin(), fields.size() - n), e = fields.end(); i != e; ++i)
@@ -902,12 +906,13 @@ void PrettyPrinter::after_update()
     *o.top() << "}\n";
 }
 
-void PrettyPrinter::instantiation_begin(std::string_view id, size_t, std::string_view templ)
+void PrettyPrinter::instantiation_begin(std::string_view id, uint32_t, std::string_view templ)
 {
     // Ignore
 }
 
-void PrettyPrinter::instantiation_end(std::string_view id, size_t parameters, std::string_view templ, size_t arguments)
+void PrettyPrinter::instantiation_end(std::string_view id, uint32_t parameters, std::string_view templ,
+                                      uint32_t arguments)
 {
     auto s = std::stack<std::string>{};
     while (arguments-- > 0)

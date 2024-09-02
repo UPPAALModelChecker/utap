@@ -64,19 +64,19 @@ bool AbstractBuilder::is_type(std::string_view) { return false; }
 
 void AbstractBuilder::type_duplicate() { UNSUPPORTED; }
 void AbstractBuilder::type_pop() { UNSUPPORTED; }
-void AbstractBuilder::type_bool(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_int(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_string(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_double(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_bounded_int(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_channel(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_clock(PREFIX) { UNSUPPORTED; }
+void AbstractBuilder::type_bool(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_int(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_string(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_double(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_bounded_int(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_channel(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_clock(TypePrefix) { UNSUPPORTED; }
 void AbstractBuilder::type_void() { UNSUPPORTED; }
-void AbstractBuilder::type_scalar(PREFIX) { UNSUPPORTED; }
-void AbstractBuilder::type_name(PREFIX, std::string_view name) { UNSUPPORTED; }
-void AbstractBuilder::type_struct(PREFIX, uint32_t fields) { UNSUPPORTED; }
-void AbstractBuilder::type_array_of_size(size_t) { UNSUPPORTED; }
-void AbstractBuilder::type_array_of_type(size_t) { UNSUPPORTED; }
+void AbstractBuilder::type_scalar(TypePrefix) { UNSUPPORTED; }
+void AbstractBuilder::type_name(TypePrefix, std::string_view name) { UNSUPPORTED; }
+void AbstractBuilder::type_struct(TypePrefix, uint32_t fields) { UNSUPPORTED; }
+void AbstractBuilder::type_array_of_size(uint32_t) { UNSUPPORTED; }
+void AbstractBuilder::type_array_of_type(uint32_t) { UNSUPPORTED; }
 void AbstractBuilder::struct_field(std::string_view name) { UNSUPPORTED; }
 
 void AbstractBuilder::decl_typedef(std::string_view name) { UNSUPPORTED; }
@@ -126,7 +126,7 @@ void AbstractBuilder::proc_prob() { UNSUPPORTED; }
 void AbstractBuilder::proc_message(Constants::synchronisation_t type) { UNSUPPORTED; }
 void AbstractBuilder::proc_instance_line() { UNSUPPORTED; }
 void AbstractBuilder::instance_name_begin(std::string_view name) { UNSUPPORTED; }
-void AbstractBuilder::instance_name_end(std::string_view name, size_t arguments) { UNSUPPORTED; }
+void AbstractBuilder::instance_name_end(std::string_view name, uint32_t arguments) { UNSUPPORTED; }
 void AbstractBuilder::instance_name(std::string_view name, bool templ) { UNSUPPORTED; }
 
 void AbstractBuilder::proc_message(std::string_view from, std::string_view to, const int loc, const bool pch)
@@ -234,8 +234,8 @@ void AbstractBuilder::expr_proba_expected(std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::expr_exists_begin(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_exists_end(std::string_view name) { UNSUPPORTED; }
 
-void AbstractBuilder::instantiation_begin(std::string_view, size_t, std::string_view) { UNSUPPORTED; }
-void AbstractBuilder::instantiation_end(std::string_view, size_t, std::string_view, size_t) { UNSUPPORTED; }
+void AbstractBuilder::instantiation_begin(std::string_view, uint32_t, std::string_view) { UNSUPPORTED; }
+void AbstractBuilder::instantiation_end(std::string_view, uint32_t, std::string_view, uint32_t) { UNSUPPORTED; }
 
 void AbstractBuilder::process(std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::process_list_end() { UNSUPPORTED; }
