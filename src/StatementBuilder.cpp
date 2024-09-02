@@ -49,7 +49,7 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
 
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
 {
-    std::set<symbol_t> symbols;
+    auto symbols = std::set<symbol_t>{};
     expr.collect_possible_reads(symbols);
     while (!symbols.empty()) {
         symbol_t s = *symbols.begin();
@@ -434,7 +434,7 @@ void StatementBuilder::decl_func_end()
     }
 
     // Restore global frame.
-    frames.pop();
+    pop_frame();
 
     // Reset current function pointer to NULL.
     currentFun = nullptr;
@@ -454,7 +454,7 @@ void StatementBuilder::dynamic_load_lib(const char* lib)
     for (const auto& dir : libpaths) {
         auto path = dir / name;
         try {
-            document.add(Library{path.string().c_str()});
+            document.add(Library{path.string()});
             success = true;
             break;
         } catch (const std::runtime_error& ex) {
@@ -517,7 +517,7 @@ void StatementBuilder::block_end()
     get_block().push_stat(std::move(block));
 
     // Restore containing frame
-    frames.pop();
+    pop_frame();
 }
 
 void StatementBuilder::empty_statement() { get_block().push_stat(std::make_unique<EmptyStatement>()); }

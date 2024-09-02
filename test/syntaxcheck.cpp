@@ -26,8 +26,6 @@
 #include <vector>
 
 using UTAP::Document;
-using std::endl;
-using std::cerr;
 
 int main(int argc, char* argv[])
 {
@@ -46,20 +44,20 @@ int main(int argc, char* argv[])
             parse_XML_file(name.c_str(), &system, !old);
         } else {
             FILE* file = fopen(name.c_str(), "r");
-            if (file != nullptr) {
-                perror("check");
+            if (file == nullptr) {
+                perror(name.c_str());
                 return 1;
             }
             parse_XTA(file, &system, !old);
             fclose(file);
         }
         for (const auto& err : system.get_errors())
-            cerr << err << endl;
+            std::cerr << err << std::endl;
         for (const auto& warn : system.get_warnings())
-            cerr << warn << endl;
+            std::cerr << warn << std::endl;
         return system.get_errors().empty() && system.get_warnings().empty() ? 0 : 2;
     } catch (std::exception& e) {
-        cerr << e.what() << endl;
+        std::cerr << e.what() << std::endl;
         return 3;
     }
 }

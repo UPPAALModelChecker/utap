@@ -21,6 +21,9 @@
 
 #include "utap/DocumentBuilder.hpp"
 
+#include "print.hpp"
+
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 #include <cassert>
@@ -103,8 +106,7 @@ void DocumentBuilder::gantt_entry_select(const char* id) { addSelectSymbolToFram
 
 void DocumentBuilder::gantt_entry_end()
 {
-    auto gm = ganttmap_t{
-        .parameters = pop_top(frames), .predicate = std::move(fragments[1]), .mapping = std::move(fragments[0])};
+    auto gm = ganttmap_t{pop_top(frames), std::move(fragments[1]), std::move(fragments[0])};
     fragments.pop(2);
     currentGantt->mapping.push_back(std::move(gm));
 }
@@ -336,16 +338,12 @@ void DocumentBuilder::instantiation_end(const char* name, size_t parameters, con
         } else if (arguments > expected) {
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
-            /* Collect arguments from expression stack.
-             */
-            std::vector<expression_t> exprs(arguments);
-            while (arguments-- > 0) {
-                exprs[arguments] = fragments[0];
-                fragments.pop();
-            }
-
-            /* Create template composition.
-             */
+            // Collect arguments from expression stack.
+            auto exprs = std::vector<expression_t>(arguments);
+            while (arguments-- > 0)
+                exprs[arguments] = fragments.pop();
+            arguments = 0;
+            // Create template composition.
             instance_t& new_instance = (id.get_type().get_kind() == INSTANCE)
                                            ? document.add_instance(name, *old_instance, params, exprs, position)
                                            : document.add_LSC_instance(name, *old_instance, params, exprs, position);
@@ -363,9 +361,8 @@ void DocumentBuilder::instantiation_end(const char* name, size_t parameters, con
                 }
             }
         }
-    } else {
-        fragments.pop(arguments);
     }
+    fragments.pop(arguments);
 }
 
 // Adds process_t* pointer to system_line
@@ -481,7 +478,8 @@ void DocumentBuilder::instance_name_begin(const char* name)
 
 void DocumentBuilder::instance_name_end(const char* name, size_t arguments)
 {
-    auto i_name = std::string{name};
+    auto i_name = std::ostringstream{};
+    i_name << name;
     // Parameters are at the top of the frame stack.
     auto params = pop_top(frames);
     // assert(parameters == params.get_size());
@@ -493,29 +491,19 @@ void DocumentBuilder::instance_name_end(const char* name, size_t arguments)
         /* Check number of arguments. If too many arguments, pop the
          * rest.
          */
-        size_t expected = id.get_type().size();
+        auto expected = id.get_type().size();
         if (arguments < expected) {
             handle_error(TypeException{"$Too_few_arguments"});
         } else if (arguments > expected) {
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
-            /* Collect arguments from expression stack.
-             */
+            // Collect arguments from expression stack.
             auto exprs = std::vector<expression_t>(arguments);
             while (arguments-- > 0)
                 exprs[arguments] = fragments.pop();
-            i_name += '(';
-            if (!exprs.empty()) {
-                auto it = exprs.begin();
-                i_name += it->str();
-                while (++it != exprs.end()) {
-                    i_name += ',';
-                    i_name += it->str();
-                }
-            }
-            i_name += ')';
-            instance_name(i_name.c_str());
-            // std::cout << "instance line name: " << i_name << std::endl;
+            arguments = 0;
+            i_name << '(' << infix(exprs, ",") << ')';
+            instance_name(i_name.str().c_str());
             // Create template composition.
             currentInstanceLine->add_parameters(*old_instance, params, exprs);
 

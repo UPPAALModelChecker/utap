@@ -86,7 +86,7 @@ std::string replace_all(std::string text, const std::string& what, const std::st
 {
     for (auto pos = text.find(what); pos != std::string::npos; pos = text.find(what, pos + 1))
         text.replace(pos, what.length(), with);
-    return std::move(text);
+    return text;
 }
 
 std::string escape_xml(std::string text)
@@ -94,7 +94,7 @@ std::string escape_xml(std::string text)
     text = replace_all(std::move(text), "&", "&amp;");
     text = replace_all(std::move(text), "<", "&lt;");
     text = replace_all(std::move(text), ">", "&gt;");
-    return std::move(text);
+    return text;
 }
 
 class template_fixture
@@ -171,7 +171,7 @@ class QueryFixture
 
 public:
     QueryFixture(std::unique_ptr<UTAP::Document> new_doc): doc{std::move(new_doc)}, query_builder{*doc} {}
-    auto get_errors() const { return doc->get_errors(); }
+    auto& get_errors() const { return doc->get_errors(); }
     const UTAP::PropInfo& parse_query(const char* query)
     {
         auto result = parseProperty(query, &query_builder);

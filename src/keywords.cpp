@@ -164,7 +164,7 @@ bool is_keyword(std::string_view word, syntax_t syntax)
 {
     const auto* keyword = find_keyword(word);
     if (keyword != nullptr)
-        return (keyword->syntax & syntax) != 0u;
+        return (keyword->syntax & syntax) != syntax_t::NONE;
     else
         return false;
 }

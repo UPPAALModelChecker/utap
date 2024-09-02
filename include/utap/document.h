@@ -158,7 +158,8 @@ struct iodecl_t
 struct ganttmap_t
 {
     frame_t parameters;
-    expression_t predicate, mapping;
+    expression_t predicate;
+    expression_t mapping;
 };
 
 /**
@@ -206,7 +207,7 @@ struct LSC_element_t
     int location{-1};
     bool is_in_prechart{false};
     explicit LSC_element_t(uint32_t nr): nr{nr} {}
-    int get_nr() const { return nr; }
+    uint32_t get_nr() const { return nr; }
 };
 
 /** Information about a message. Messages have a source (src) and a
@@ -401,7 +402,7 @@ struct template_t : public instance_t, declarations_t
     bool is_invariant() const;  // type of the LSC
 
     /* gets the simregions from the LSC scenario */
-    const std::vector<simregion_t> get_simregions();
+    std::vector<simregion_t> get_simregions();
 
     /* returns the condition on the given instance, at y location */
     bool get_condition(instance_line_t& instance, int y, condition_t*& simCondition);
@@ -555,10 +556,10 @@ public:
     void add_gantt(declarations_t*, gantt_t);  // copies gantt_t and moves it
     void accept(DocumentVisitor&);
 
-    void set_before_update(expression_t);
-    expression_t& get_before_update();
-    void set_after_update(expression_t);
-    expression_t& get_after_update();
+    void set_before_update(expression_t e) { before_update = std::move(e); }
+    expression_t& get_before_update() { return before_update; }
+    void set_after_update(expression_t e) { after_update = std::move(e); }
+    expression_t& get_after_update() { return after_update; }
 
     void add_query(query_t query);  // creates a copy and moves it
     bool queries_empty() const;

@@ -1285,7 +1285,7 @@ void TypeChecker::visitInstance(instance_t& instance)
     }
 }
 
-void TypeChecker::visitProperty(expression_t expr)
+void TypeChecker::visitProperty(expression_t& expr)
 {
     if (checkExpression(expr)) {
         if (expr.changes_any_variable()) {
@@ -1597,7 +1597,7 @@ int32_t TypeChecker::visitReturnStatement(ReturnStatement* stat)
 /**
  * Returns true iff argument type is compatible with parameter type.
  */
-bool TypeChecker::isParameterCompatible(const type_t& paramType, const expression_t& arg)
+bool TypeChecker::isParameterCompatible(const type_t& paramType, const expression_t& arg) const
 {
     const bool ref = paramType.is(REF);
     const bool constant = paramType.is_constant();
@@ -1696,7 +1696,7 @@ type_t TypeChecker::getInlineIfCommonType(const type_t& t1, const type_t& t2) co
         return t1;
     else if (t2.is_record())
         return t2;
-    else if (t1.is_clock() && !t2.is_clock() || !t1.is_clock() && t2.is_clock())
+    else if ((t1.is_clock() && !t2.is_clock()) || (!t1.is_clock() && t2.is_clock()))
         return type_t{DOUBLE, {}, 0};
     else if (t1.is_assignment_compatible(t2))
         return t1;
@@ -2362,7 +2362,7 @@ bool TypeChecker::checkExpression(expression_t& expr)
             if (!ok)
                 return false;
         }
-        for (int i = 3; i < nb; ++i) {
+        for (uint32_t i = 3; i < nb; ++i) {
             if (!is_integral(expr[i]) && !is_clock(expr[i]) && !is_double_value(expr[i]) &&
                 !expr[i].get_type().is(Constants::DOUBLE_INV_GUARD) && !is_constraint(expr[i]) &&
                 !expr[i].get_type().is_record() && !expr[i].get_type().is_array()) {

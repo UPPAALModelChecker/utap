@@ -169,35 +169,36 @@ struct xpath_corrupt_error : std::logic_error
     xpath_corrupt_error(): std::logic_error{"XPath is corrupted"} {}
 };
 
+std::string_view trim(std::string_view text)
+{
+    static constexpr auto ws = "\t\n\v\f\r ";
+    auto res = text.substr(0, 0);
+    if (auto b = text.find_first_not_of(ws); b != std::string_view::npos) {
+        auto e = text.find_last_not_of(ws);
+        res = text.substr(b, e - b + 1);
+    }
+    return res;
+}
+
 /**
  * Extracts the alpha-numerical symbol used for variable/type
  * identifiers.  Identifier starts with alpha and further might
  * contain digits, white spaces are ignored.
- *
- * Throws a TypeException is identifier is invalid or a newly
- * allocated string to be destroyed with delete [].
+ * @param text a potential identifier as a character string.
+ * @return valid identifier trimmed
+ * @throws std::logic_error if identifier is invalid.
  */
-static std::string_view symbol(std::string_view sv)
-{  // TODO: LSC revisit: this is very similar to trimming whitespace
-    if (sv.empty())
+static std::string_view symbol(std::string_view text)
+{
+    text = trim(text);
+    if (text.empty())
         throw id_expected_error{};
-    const auto* it = std::begin(sv);
-    const auto* end = std::end(sv);
-    while (it != end && std::isspace(*it) != 0)
-        ++it;
-    if (it == end)
+    if (!is_alpha(text[0]))
         throw id_expected_error{};
-    if (!is_alpha(*it))
-        throw id_expected_error{};
-    const auto* last = it;
-    while (last != end && is_id_char(*last))
-        ++last;
-    const auto* p = last;
-    while (p != end && std::isspace(*p) != 0)
-        ++p;
-    if (p != end)
-        throw invalid_id_error{};
-    return std::string_view(it, std::distance(it, last));
+    for (const auto& c : text)
+        if (!is_id_char(c))
+            throw invalid_id_error{};
+    return text;
 }
 
 /**
@@ -643,23 +644,22 @@ std::string XMLReader::name(bool instanceLine)
 std::string XMLReader::readText(bool instanceLine)
 {
     if (getNodeType() == XML_READER_TYPE_TEXT) {  // text content of a node
-        const char* text = (const char*)xmlTextReaderValue(reader.get());
-        const auto len = text != nullptr ? std::strlen(text) : 0;
-        const auto text_sv = std::string_view{text, len};
+        xmlChar* text = xmlTextReaderValue(reader.get());
+        auto text_sv = std::string_view{text != nullptr ? (const char*)text : ""};
         tracker.setPath(parser, path.str());
         tracker.increment(parser, text_sv.size());
         try {
             auto id = (instanceLine) ? text_sv : symbol(text_sv);
             if (!is_keyword(id, syntax_t::OLD_PROPERTY)) {
                 auto res = std::string{id};
-                xmlFree((void*)text);
+                xmlFree(text);
                 return res;
             }
             parser->handle_error(TypeException{"$Keywords_are_not_allowed_here"});
         } catch (std::logic_error& str) {
             parser->handle_error(TypeException{str.what()});
         }
-        xmlFree((void*)text);
+        xmlFree(text);
     }
     return "";
 }

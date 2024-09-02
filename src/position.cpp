@@ -76,7 +76,7 @@ std::ostream& operator<<(std::ostream& os, const UTAP::error_t& e)
            << (e.position.end - e.end.position);
     }
     return os;
-};
+}
 
 std::string UTAP::error_t::str() const
 {

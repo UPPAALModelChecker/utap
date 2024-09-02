@@ -54,20 +54,20 @@ int main(int argc, char* argv[])
         if (path.extension() == ".xml") {
             parse_XML_file(path.string().c_str(), &pretty, newSyntax);
         } else {
-            FILE* file = fopen(path.string().c_str(), "r");
-            if (file == nullptr) {
-                char msg[256];
-                std::snprintf(msg, 255, "Error opening %s", path.c_str());
-                std::perror(msg);
-                return 1;
+            auto file_path = path.string();
+            if (FILE* file = fopen(file_path.c_str(), "r"); file != nullptr) {
+                parse_XTA(file, &pretty, newSyntax);
+            } else {
+                std::perror(file_path.c_str());
+                std::exit(EXIT_FAILURE);
             }
-            parse_XTA(file, &pretty, newSyntax);
         }
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
-        return 1;
+        std::exit(EXIT_FAILURE);
     } catch (...) {
         std::cerr << "Caught unknown exception." << std::endl;
+        std::exit(EXIT_FAILURE);
     }
     return 0;
 }

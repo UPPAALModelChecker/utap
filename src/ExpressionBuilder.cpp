@@ -305,10 +305,9 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
 {
     auto e = expression_t{};
     auto type = type_t{};
-    auto* instance = static_cast<instance_t*>(nullptr);
+    const auto* instance = static_cast<instance_t*>(nullptr);
 
-    /* n+1'th element from the top is the identifier.
-     */
+    // n+1'th element from the top is the identifier.
     auto id = fragments[n];
 
     /* Create vector of sub expressions: The first expression
@@ -335,7 +334,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
     case PROCESS_SET:
         if (expr.size() - 1 != id.get_type().size())
             handle_error(TypeException{"$Wrong_number_of_arguments"});
-        instance = static_cast<instance_t*>(id.get_symbol().get_data());
+        instance = static_cast<const instance_t*>(id.get_symbol().get_data());
 
         /* Process set lookups are represented as expressions indexing
          * into an array. To satisfy the type checker, we create a
@@ -475,7 +474,7 @@ void ExpressionBuilder::expr_nary(kind_t kind, uint32_t num)
 {
     // Pop fields
     auto fields = std::vector<expression_t>(num);
-    for (uint32_t i = 0; i < num; i++)
+    for (uint32_t i = 0; i < num; ++i)
         fields[i] = fragments[num - 1 - i];
     fragments.pop(num);
 
@@ -812,7 +811,7 @@ void ExpressionBuilder::expr_simulate(int nbExpr, bool hasReach, int numberOfAcc
     args.push_back(runs);
     args.push_back(boundTypeOrBoundedExpr);
     args.push_back(bound);
-    for (auto i = 0u; i < nbExpr; ++i)
+    for (auto i = 0; i < nbExpr; ++i)
         args.push_back(fragments[offset - 1 - i]);  // recover the original order
 
     if (hasReach) {
@@ -959,7 +958,7 @@ void ExpressionBuilder::expr_forall_dynamic_begin(const char* name, const char* 
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
-    if (templ != nullptr)
+    if (templ == nullptr)
         throw UnknownDynamicTemplateError(temp);
     // dynamicFrames[name]=templ->frame;
     push_dynamic_frame_of(templ, name);
@@ -969,9 +968,9 @@ void ExpressionBuilder::expr_forall_dynamic_end(const char* name)
 {
     // At this instant we should have expression on top of the stack and the template identifier
     // below it
-    expression_t& expr = fragments[0];
-    expression_t& process = fragments[1];
-    expression_t identifier = expression_t::create_identifier(frames.top()[0], position);
+    auto& expr = fragments[0];
+    auto& process = fragments[1];
+    auto identifier = expression_t::create_identifier(frames.top()[0], position);
     bool mitl = isMITL(expr);
     if (mitl) {
         if (expr.get_kind() == MITL_ATOM) {
@@ -1024,9 +1023,8 @@ void ExpressionBuilder::expr_sum_dynamic_begin(const char* name, const char* tem
     push_frame(frame_t::create(frames.top()));
     frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
-    if (templ == nullptr) {
+    if (templ == nullptr)
         throw UnknownDynamicTemplateError(temp);
-    }
     // dynamicFrames [name]=templ->frame;
     push_dynamic_frame_of(templ, name);
 }

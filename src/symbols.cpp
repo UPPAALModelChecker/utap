@@ -151,7 +151,7 @@ symbol_t frame_t::add_symbol(const string& name, type_t type, position_t positio
 void frame_t::add(symbol_t symbol)
 {
     data->symbols.push_back(std::move(symbol));
-    auto& symb = data->symbols.back();
+    const auto& symb = data->symbols.back();
     if (!symb.get_name().empty())
         data->mapping[symb.get_name()] = data->symbols.size() - 1;
 }
@@ -172,10 +172,10 @@ void frame_t::add(const frame_t& frame)
 */
 void frame_t::move_to(frame_t& frame)
 {
-    // TODO: simplify into move-assignment
-    for (auto&& symbol : data->symbols) {
-        frame.add(symbol);
+    auto symbols = std::move(data->symbols);
+    for (auto&& symbol : symbols) {
         symbol.data->frame = frame.data.get();
+        frame.add(std::move(symbol));
     }
     data->symbols.clear();
     data->mapping.clear();
@@ -184,14 +184,13 @@ void frame_t::move_to(frame_t& frame)
 /** removes the given symbol*/
 void frame_t::remove(const symbol_t& s)
 {
-    // TODO: simplify
-    vector<symbol_t> symbols = std::move(data->symbols);
+    auto symbols = std::move(data->symbols);
     data->symbols.clear();
     data->mapping.clear();
     for (auto&& symbol : symbols) {
         if (symbol != s) {
             symbol.data->frame = data.get();
-            add(symbol);
+            add(std::move(symbol));
         }
     }
 }

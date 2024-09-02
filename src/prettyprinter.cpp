@@ -25,6 +25,7 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
+#include <stdexcept>
 #include <string>
 #include <cassert>
 #include <charconv>
@@ -38,14 +39,14 @@ using namespace std::string_view_literals;
 static const std::string prefix_labels[] = {"", "const ", "urgent ", "", "broadcast ", "", "urgent broadcast ",
                                             "", "meta "};
 
-inline std::string pop_back(std::vector<std::string>& vs)
+static inline std::string pop_back(std::vector<std::string>& vs)
 {
     auto res = std::move(vs.back());
     vs.pop_back();
     return res;
 }
 
-inline std::string pop_top(std::stack<std::string>& ss)
+static inline std::string pop_top(std::stack<std::string>& ss)
 {
     auto res = std::move(ss.top());
     ss.pop();
@@ -296,12 +297,9 @@ void PrettyPrinter::for_begin()
 
 void PrettyPrinter::for_end()  // 3 expr, 1 stat
 {
-    std::string expr3 = st.back();
-    st.pop_back();
-    std::string expr2 = st.back();
-    st.pop_back();
-    std::string expr1 = st.back();
-    st.pop_back();
+    auto expr3 = pop_back(st);
+    auto expr2 = pop_back(st);
+    auto expr1 = pop_back(st);
     auto* s = dynamic_cast<std::ostringstream*>(o.top());
     o.pop();
 
@@ -314,13 +312,12 @@ void PrettyPrinter::for_end()  // 3 expr, 1 stat
 void PrettyPrinter::while_begin()
 {
     level++;
-    o.push(new std::ostringstream());
+    o.push(new std::ostringstream{});
 }
 
 void PrettyPrinter::while_end()  // 1 expr, 1 stat
 {
-    std::string expr = st.back();
-    st.pop_back();
+    auto expr = pop_back(st);
     auto* s = dynamic_cast<std::ostringstream*>(o.top());
     o.pop();
 
@@ -338,14 +335,14 @@ void PrettyPrinter::do_while_end() {}
 void PrettyPrinter::if_begin()
 {
     level++;
-    o.push(new std::ostringstream());  // prepare for THEN statement
+    o.push(new std::ostringstream{});  // prepare for THEN statement
 }
 
 void PrettyPrinter::if_condition() {}
 
 void PrettyPrinter::if_then()
 {
-    o.push(new std::ostringstream());  // prepare for ELSE statement
+    o.push(new std::ostringstream{});  // prepare for ELSE statement
 }
 
 void PrettyPrinter::if_end(bool hasElse)  // 1 expr, 1 or 2 statements
@@ -353,9 +350,8 @@ void PrettyPrinter::if_end(bool hasElse)  // 1 expr, 1 or 2 statements
     auto* e = dynamic_cast<std::ostringstream*>(o.top());
     o.pop();  // ELSE
     auto* t = dynamic_cast<std::ostringstream*>(o.top());
-    o.pop();  // THEN
-    auto c = st.back();
-    st.pop_back();  // COND
+    o.pop();                // THEN
+    auto c = pop_back(st);  // COND
 
     level--;
     indent();
@@ -384,16 +380,14 @@ void PrettyPrinter::continue_statement()
 void PrettyPrinter::expr_statement()
 {
     indent();
-    *o.top() << st.back() << ";\n";
-    st.pop_back();
+    *o.top() << pop_back(st) << ";\n";
 }
 
 void PrettyPrinter::return_statement(bool hasValue)
 {
     indent();
     if (hasValue) {
-        *o.top() << "return " << st.back() << ";\n";
-        st.pop_back();
+        *o.top() << "return " << pop_back(st) << ";\n";
     } else {
         *o.top() << "return;\n";
     }
@@ -424,10 +418,8 @@ void PrettyPrinter::proc_location(const char* id, bool hasInvariant, bool hasExp
 
     *o.top() << id;
     std::string expRate;  // pop expressions from stack in reverse order
-    if (hasExpRate) {
-        expRate = st.back();
-        st.pop_back();
-    }
+    if (hasExpRate)
+        expRate = pop_back(st);
     if (hasInvariant) {
         *o.top() << " {" << st.back();
         st.pop_back();
@@ -489,8 +481,7 @@ void PrettyPrinter::proc_location_init(const char* id)
 
 void PrettyPrinter::proc_select(const char* id)
 {
-    std::string t = type.top();
-    type.pop();
+    auto t = pop_top(type);
     if (select == -1) {
         st.push_back(std::string{id} + ":" + t);
         select = st.size();
@@ -654,8 +645,7 @@ void PrettyPrinter::expr_call_end(uint32_t n)
 
 void PrettyPrinter::expr_array()
 {
-    std::string f = st.back();
-    st.pop_back();
+    auto f = pop_back(st);
     st.back() += '[' + f + ']';
 }
 
@@ -744,27 +734,21 @@ void PrettyPrinter::expr_builtin_function1(kind_t kind)
 
 void PrettyPrinter::expr_builtin_function2(kind_t kind)
 {
-    auto arg2 = st.back();
-    st.pop_back();
+    auto arg2 = pop_back(st);
     st.back() = std::string(get_builtin_fun_name(kind)) + '(' + st.back() + ',' + arg2 + ')';
 }
 
 void PrettyPrinter::expr_builtin_function3(kind_t kind)
 {
-    auto arg3 = st.back();
-    st.pop_back();
-    auto arg2 = st.back();
-    st.pop_back();
+    auto arg3 = pop_back(st);
+    auto arg2 = pop_back(st);
     st.back() = std::string(get_builtin_fun_name(kind)) + '(' + st.back() + ',' + arg2 + ',' + arg3 + ')';
 }
 
 void PrettyPrinter::expr_assignment(kind_t op)
 {
-    auto rhs = std::move(st.back());
-    st.pop_back();
-    auto lhs = std::move(st.back());
-    st.pop_back();
-
+    auto rhs = pop_back(st);
+    auto lhs = pop_back(st);
     st.emplace_back();
     switch (op) {
     case ASSIGN: st.back() = '(' + lhs + " = " + rhs + ')'; break;
@@ -784,9 +768,7 @@ void PrettyPrinter::expr_assignment(kind_t op)
 
 void PrettyPrinter::expr_unary(kind_t op)
 {
-    auto exp = std::move(st.back());
-    st.pop_back();
-
+    auto exp = pop_back(st);
     st.emplace_back();
     switch (op) {
     case MINUS: st.back() = '-' + exp; break;
@@ -802,11 +784,8 @@ void PrettyPrinter::expr_unary(kind_t op)
 
 void PrettyPrinter::expr_binary(kind_t op)
 {
-    auto exp2 = std::move(st.back());
-    st.pop_back();
-    auto exp1 = std::move(st.back());
-    st.pop_back();
-
+    auto exp2 = pop_back(st);
+    auto exp1 = pop_back(st);
     st.emplace_back();
     switch (op) {
     case PO_CONTROL: st.back() = exp1 + " control: " + exp2; break;
@@ -839,18 +818,9 @@ void PrettyPrinter::expr_binary(kind_t op)
 
 void PrettyPrinter::expr_ternary(kind_t op, bool firstMissing)
 {
-    auto exp3 = std::move(st.back());
-    st.pop_back();
-    auto exp2 = std::move(st.back());
-    st.pop_back();
-    std::string exp1;
-    if (firstMissing)
-        exp1 = "1";
-    else {
-        exp1 = st.back();
-        st.pop_back();
-    }
-
+    auto exp3 = pop_back(st);
+    auto exp2 = pop_back(st);
+    auto exp1 = (firstMissing) ? "1"s : pop_back(st);
     st.emplace_back();
     switch (op) {
     case CONTROL_TOPT: st.back() = "control_t*(" + exp1 + "," + exp2 + "): " + exp3; break;
@@ -861,22 +831,17 @@ void PrettyPrinter::expr_ternary(kind_t op, bool firstMissing)
 
 void PrettyPrinter::expr_inline_if()
 {
-    auto expr3 = std::move(st.back());
-    st.pop_back();
-    auto expr2 = std::move(st.back());
-    st.pop_back();
-    auto expr1 = std::move(st.back());
-    st.pop_back();
+    auto expr3 = pop_back(st);
+    auto expr2 = pop_back(st);
+    auto expr1 = pop_back(st);
     st.emplace_back();
     st.back() = expr1 + " ? " + expr2 + " : " + expr3;
 }
 
 void PrettyPrinter::expr_comma()
 {
-    auto expr2 = std::move(st.back());
-    st.pop_back();
-    auto expr1 = std::move(st.back());
-    st.pop_back();
+    auto expr2 = pop_back(st);
+    auto expr1 = pop_back(st);
     st.emplace_back();
     st.back() = expr1 + ", " + expr2;
 }
@@ -895,34 +860,31 @@ void PrettyPrinter::expr_forall_begin(const char* name)
 
 void PrettyPrinter::expr_forall_end(const char* name)
 {
-    std::string expr = st.back();
-    st.pop_back();
+    auto expr = pop_back(st);
     st.back() += expr;
 }
 
 void PrettyPrinter::expr_exists_begin(const char* name)
 {
-    st.push_back(std::string("exists (") + name + ":" + type.top() + ") ");
+    st.push_back("exists ("s + name + ":" + type.top() + ") ");
     type.pop();
 }
 
 void PrettyPrinter::expr_exists_end(const char* name)
 {
-    std::string expr = st.back();
-    st.pop_back();
+    auto expr = pop_back(st);
     st.back() += expr;
 }
 
 void PrettyPrinter::expr_sum_begin(const char* name)
 {
-    st.push_back(std::string("sum (") + name + ":" + type.top() + ") ");
+    st.push_back("sum ("s + name + ":" + type.top() + ") ");
     type.pop();
 }
 
 void PrettyPrinter::expr_sum_end(const char* name)
 {
-    std::string expr = st.back();
-    st.pop_back();
+    auto expr = pop_back(st);
     st.back() += expr;
 }
 
@@ -1039,7 +1001,7 @@ void PrettyPrinter::expr_MITL_box(int low, int high)
 
 void PrettyPrinter::expr_simulate(int nbExpr, bool hasReach, int nbOfAcceptingRuns)
 {
-    auto reachExpr = st.back();
+    auto reachExpr = pop_back(st);
     if (hasReach)
         st.pop_back();
 

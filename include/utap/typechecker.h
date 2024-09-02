@@ -83,7 +83,7 @@ public:
     void visitLocation(location_t&) override;
     void visitEdge(edge_t&) override;
     void visitInstance(instance_t&) override;
-    virtual void visitProperty(expression_t);  // FIXME: does not override?!
+    virtual void visitProperty(expression_t&);  // FIXME: does not override?!
     void visitFunction(function_t&) override;
     void visitProgressMeasure(progress_t&) override;
     virtual void visitHybridClock(expression_t&);  // FIXME: does not override?!
@@ -114,7 +114,7 @@ private:
     int syncUsed{0};  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
     const template_t* temp{nullptr};
     Document& document;
-    CompileTimeComputableValues compileTimeComputableValues;
+    mutable CompileTimeComputableValues compileTimeComputableValues;
     function_t* function{nullptr}; /**< Current function being type checked. */
     bool refinementWarnings;
 
@@ -126,7 +126,7 @@ private:
     bool isLValue(const expression_t&) const;
     bool isModifiableLValue(const expression_t&) const;
     bool isUniqueReference(const expression_t& expr) const;
-    bool isParameterCompatible(const type_t& param, const expression_t& arg);
+    bool isParameterCompatible(const type_t& param, const expression_t& arg) const;
     bool checkParameterCompatible(const type_t& param, const expression_t& arg);
     void checkIgnoredValue(const expression_t& expr);
     bool checkAssignmentExpression(expression_t&);

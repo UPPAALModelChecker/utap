@@ -1,4 +1,7 @@
-Checks: '*,-fuchsia-*,-google-*,-zircon-*,-abseil-*,-llvmlibc-*,-llvm-*,-modernize-use-trailing-return-type,-modernize-use-nodiscard,-hicpp-braces-around-statements,-hicpp-avoid-c-arrays,-hicpp-no-array-decay,-*-uppercase-literal-suffix,-readability-braces-around-statements,-readability-convert-member-functions-to-static,-readability-magic-numbers,-readability-function-cognitive-complexity,-readability-identifier-length,-misc-non-private-member-variables-in-classes,-altera-*,-android-*,-modernize-avoid-c-arrays,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-cppcoreguidelines-avoid-c-arrays,-cppcoreguidelines-avoid-magic-numbers'
+Checks: '-*,cppcoreguidelines-macro-usage,hicpp-deprecated-headers,modernize-deprecated-headers,hicpp-use-override,hicpp-use-emplace,modernize-use-emplace,hicpp-use-auto,readability-container-size-empty,readability-implicit-bool-conversion,readability-redundant-smartptr-get,readability-qualified-auto,performance-unnecessary-value-param,modernize-make-unique,modernize-make-shared,misc-unused-using-decls,performance-move-const-arg,modernize-use-using,modernize-use-nullptr,modernize-deprecated-headers,modernize-loop-convert,misc-unused-using-decls,misc-static-assert,misc-redundant-expression,modernize-use-bool-literals,readability-delete-null-pointer,readability-redundant-member-init'
+WarningsAsErrors: '-*'
+HeaderFilterRegex: ''
+FormatStyle: .clang-format
 
 # To add more rules, refer to the following link:
 # https://clang.llvm.org/extra/clang-tidy/checks/readability-identifier-naming.html

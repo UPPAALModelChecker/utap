@@ -1,6 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2011-2024 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -74,7 +75,7 @@ private:
     expression_t(Constants::kind_t, const position_t&);
 
 public:
-    /** Default constructor. Creates an empty expression. */
+    /// Default constructor creates an empty expression.
     expression_t() = default;
 
     bool uses_fp() const;
@@ -82,10 +83,10 @@ public:
     bool uses_hybrid() const;
     bool is_dynamic() const;
     bool has_dynamic_sub() const;
-    /** Make a shallow clone of the expression. */
+    /// Make a shallow clone of the expression.
     expression_t clone() const;
 
-    /** Makes a deep clone of the expression. */
+    /// Makes a deep clone of the expression.
     expression_t clone_deeper() const;
 
     /** Makes a deep clone of the expression and replaces the symbol
@@ -96,19 +97,19 @@ public:
      * with a symbol from the given frame(s), with the same name */
     expression_t clone_deeper(const frame_t& frame, const frame_t& select = {}) const;
 
-    /** Returns the kind of the expression. */
+    /// Returns the kind of the expression.
     Constants::kind_t get_kind() const;
 
-    /** Returns the number of subexpression. */
+    /// Returns the number of subexpression.
     uint32_t get_size() const;
 
-    /** Returns the position of this expression. */
+    /// Returns the position of this expression.
     const position_t& get_position() const;
 
-    /** Returns the type of the expression. */
+    /// Returns the type of the expression.
     const type_t& get_type() const;
 
-    /** Sets the type of the expression. */
+    /// Sets the type of the expression.
     void set_type(type_t);
 
     /** Returns the value field of this expression. This
@@ -129,35 +130,34 @@ public:
         call is not valid for all expressions. */
     double get_double_value() const;
 
-    /** Returns true if this is an empty expression. */
+    /// Returns true if this is an empty expression.
     bool empty() const;
 
-    /** Returns the synchronisation type of SYNC operations. */
+    /// Returns the synchronisation type of SYNC operations.
     Constants::synchronisation_t get_sync() const;
 
-    /** Outputs a textual representation of the expression. */
+    /// Outputs a textual representation of the expression.
     std::ostream& print(std::ostream& os, bool old = false) const;
 
-    /** Returns a string representation of the expression. */
+    /// Returns a string representation of the expression.
     std::string str(bool old = false) const;
 
-    /** Returns the ith subexpression. */
+    /// Returns the ith subexpression.
     expression_t& operator[](uint32_t);
 
-    /** Returns the ith subexpression. */
+    /// Returns the ith subexpression.
     const expression_t& operator[](uint32_t) const;
 
-    /** Returns the ith subexpression. */
+    /// Returns the ith subexpression.
     expression_t& get(uint32_t);
 
-    /** Returns the ith subexpression. */
+    /// Returns the ith subexpression.
     const expression_t& get(uint32_t) const;
 
-    /** Equality operator */
+    /// Equality operator
     bool equal(const expression_t&) const;
 
-    /**
-     *  Returns the symbol of a variable reference. The expression
+    /** Returns the symbol of a variable reference. The expression
      *  must be a left-hand side value. In case of
      *  dot-expressions, the record/process symbol is returned. In
      *  case of an inline if, the 'true' branch is returned.
@@ -166,10 +166,9 @@ public:
      *  (s.f).get_symbol() returns 's'
      *  (i<1?j:k).get_symbol() returns 'j'
      */
-    symbol_t get_symbol();
+    // const symbol_t& get_symbol();
 
-    /**
-     * Returns the set of symbols this expression might resolve
+    /** Returns the set of symbols this expression might resolve
      * into. In case of inline if, both the 'true' and 'false'
      * branch is added. In case of dot-expressions, both the left
      * hand reference and the member field are returned.
@@ -188,13 +187,13 @@ public:
         symbol in the given set. */
     bool is_reference_to(const std::set<symbol_t>&) const;
 
-    /** Returns true if the expression contains deadlock expression */
+    /// Returns true if the expression contains deadlock expression
     bool contains_deadlock() const;
     /** True if this expression can change any of the variables
             identified by the given symbols. */
     bool changes_variable(const std::set<symbol_t>&) const;
 
-    /** True if this expression can change any variable at all. */
+    /// True if this expression can change any variable at all.
     bool changes_any_variable() const;
 
     /** True if the evaluation of this expression depends on
@@ -214,23 +213,21 @@ public:
 
     expression_t subst(const symbol_t&, expression_t) const;
 
-    /**
-     * Precedence of expression type, higher precedence goes before low precedence
-     */
+    /// Precedence of expression type, higher precedence goes before low precedence
     static int get_precedence(Constants::kind_t);
 
-    /** Create a CONSTANT expression. */
+    /// Create a CONSTANT expression.
     static expression_t create_constant(int32_t, position_t = {});
     static expression_t create_var_index(int32_t, position_t = {});
 
     static expression_t create_double(double, position_t = {});
-    /** Life time of string reference must outlive expression */
+    /// Life time of string reference must outlive expression
     static expression_t create_string(StringIndex, position_t = {});
 
-    /** Create an IDENTIFIER expression */
+    /// Create an IDENTIFIER expression
     static expression_t create_identifier(const symbol_t&, position_t = {});
 
-    /** Create a unary expression */
+    /// Create a unary expression
     static expression_t create_unary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
 
     /** Create a binary expression */
@@ -257,7 +254,7 @@ public:
     // true if empty or equal to 1.
     bool is_true() const;
     int get_precedence() const;
-    friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return o << e.str(); }
+    friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return e.print(o); }
 
 private:
     std::ostream& print_bound_type(std::ostream& os, const expression_t& e) const;
@@ -265,4 +262,4 @@ private:
 
 }  // namespace UTAP
 
-#endif
+#endif  // UTAP_EXPRESSION_HH

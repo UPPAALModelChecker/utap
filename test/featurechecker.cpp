@@ -37,7 +37,7 @@ int main(int argc, char** argv)
                   << "Usage: " << command << " [model-file-path]" << std::endl;
         return 1;
     }
-    for (auto i = 1u; i < argc; ++i) {
+    for (auto i = 1; i < argc; ++i) {
         auto path = std::filesystem::path{argv[i]};
         try {
             if (!exists(path))

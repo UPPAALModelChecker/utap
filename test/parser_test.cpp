@@ -31,20 +31,20 @@ TEST_CASE("Double Serialization Test")
 {
     auto doc = read_document("if_statement.xml");
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    const auto& warnings = doc->get_warnings();
-    CHECK(warnings.size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Power expressions")
 {
     auto doc = read_document("powers.xml");
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    const auto& warnings = doc->get_warnings();
-    CHECK(warnings.size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("External functions")
@@ -71,12 +71,12 @@ TEST_CASE("External functions")
         REQUIRE_MESSAGE(false, "OS is not supported");
     }
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
     // TypeChecker is not run when errors are present, so we do it on our own:
     auto checker = UTAP::TypeChecker{*doc};
     doc->accept(checker);
-    CHECK(errs.size() == 3);
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    REQUIRE(errs.size() == 3);  // no new errors
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Error location")
@@ -85,8 +85,8 @@ TEST_CASE("Error location")
     REQUIRE(doc);
     const auto& errs = doc->get_errors();
     const auto& warns = doc->get_warnings();
-    REQUIRE(errs.size() == 0);
-    CHECK(warns.size() == 0);
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
     const auto& templates = doc->get_templates();
     REQUIRE(templates.size() > 0);
     const auto& edges = templates.front().edges;
@@ -225,7 +225,7 @@ TEST_CASE("Multiple functions despite early failure type def")
         CHECK(func.body != nullptr);
 }
 
-TEST_CASE("variable declaration failure shoulnt shadow declarations")
+TEST_CASE("variable declaration failure shouldn't shadow declarations")
 {
     auto f = document_fixture{};
     f.add_global_decl("int x = 0;int asdf\nint z = 0;");
@@ -236,7 +236,7 @@ TEST_CASE("variable declaration failure shoulnt shadow declarations")
     CHECK(doc->get_globals().frame.resolve("z", sym));
 }
 
-TEST_CASE("variable declaration failure shoulnt shadow declarations")
+TEST_CASE("variable declaration failure shouldn't shadow declarations")
 {
     auto f = document_fixture{};
     f.add_global_decl("typedef int x;\ntypedef int y\ntypedef int z;");
@@ -247,7 +247,7 @@ TEST_CASE("variable declaration failure shoulnt shadow declarations")
     CHECK(doc->get_globals().frame.resolve("z", sym));
 }
 
-TEST_CASE("variable declaration failure shoulnt shadow function")
+TEST_CASE("variable declaration failure shouldn't shadow function")
 {
     auto f = document_fixture{};
     f.add_global_decl("typedef int y\nvoid func(){}");
@@ -256,7 +256,7 @@ TEST_CASE("variable declaration failure shoulnt shadow function")
     CHECK(doc->get_globals().functions.size() == 1);
 }
 
-TEST_CASE("Missing closing curlybrace for function")
+TEST_CASE("Missing closing curly brace for function")
 {
     auto f = document_fixture{};
     f.add_global_decl("void func(){ ");
@@ -266,7 +266,7 @@ TEST_CASE("Missing closing curlybrace for function")
     CHECK(doc->get_errors().size() > 0);
 }
 
-TEST_CASE("Missing closing curlybrace shouldnt shadow function")
+TEST_CASE("Missing closing curly brace shouldn't shadow function")
 {
     auto f = document_fixture{};
     f.add_global_decl("void func() {} void func2(){ ");
@@ -286,8 +286,8 @@ TEST_CASE("Sim region cleanup causes memory errors (run with ASAN)")
 {
     auto doc = read_document("lsc_example.xml");
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
 
     auto& templ = doc->get_templates().back();
     auto sims = templ.get_simregions();
@@ -299,9 +299,10 @@ TEST_CASE("Struct int,int initialization")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("const struct { int x; int y; } s = {1, 1};").parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct int,double initialization")
@@ -311,9 +312,10 @@ TEST_CASE("Struct int,double initialization")
                    .add_global_decl("const struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct double,double initialization")
@@ -323,9 +325,10 @@ TEST_CASE("Struct double,double initialization")
                    .add_global_decl("const struct { double x; double y; } s = {1.0, 1};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Nested struct int,double initialization")
@@ -336,9 +339,10 @@ TEST_CASE("Nested struct int,double initialization")
             .add_global_decl("typedef struct { int x; double y; } S; struct { S s1; S s2; } s = {{5,5.5},{2,2.25}};")
             .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta struct")
@@ -348,9 +352,10 @@ TEST_CASE("Meta struct")
                    .add_global_decl("meta struct { int x; double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Struct meta field")
@@ -360,9 +365,10 @@ TEST_CASE("Struct meta field")
                    .add_global_decl("meta struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializing doubles in struct with ints")
@@ -372,9 +378,10 @@ TEST_CASE("Initializing doubles in struct with ints")
                    .add_global_decl("meta struct { double x; meta double y; } s = {1, 1};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializing ints with double value")
@@ -382,9 +389,10 @@ TEST_CASE("Initializing ints with double value")
     auto doc =
         document_fixture{}.add_default_process().add_global_decl("struct { int x; int y; } s = {1.1, 1.2};").parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 2);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK(errs.size() == 2);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta field in non meta struct")
@@ -394,9 +402,10 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Meta field in non meta struct")
@@ -406,9 +415,10 @@ TEST_CASE("Meta field in non meta struct")
                    .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Nested structs")
@@ -418,9 +428,10 @@ TEST_CASE("Nested structs")
                    .add_global_decl("struct { int x; struct { int y; double d;} data; } s = {1, {5, 5.0}};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK(errors.size() == 0);
-    CHECK(doc->get_warnings().size() == 0);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc->get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Structs with arrays")
@@ -431,9 +442,9 @@ TEST_CASE("Structs with arrays")
                    .parse();
     REQUIRE(doc);
     const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Array of structs")
@@ -443,10 +454,10 @@ TEST_CASE("Array of structs")
                    .add_global_decl("struct { int x; double y;} s[2] = {{1,5.0}, {1,2.5}};")
                    .parse();
     REQUIRE(doc);
-    const auto& errors = doc->get_errors();
-    CHECK_MESSAGE(errors.size() == 0, errors.at(0).msg);
+    const auto& errs = doc->get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Pre increment precedence bug")
@@ -456,11 +467,8 @@ TEST_CASE("Pre increment precedence bug")
                    .add_global_decl("void f(){ ++i[0]; }")
                    .add_default_process()
                    .parse();
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Post increment precedence bug")
@@ -471,11 +479,7 @@ TEST_CASE("Post increment precedence bug")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Double post increment precedence")
@@ -486,11 +490,7 @@ TEST_CASE("Double post increment precedence")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    REQUIRE(errs.size() == 1);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK(doc->get_errors().size() == 1);
 }
 
 TEST_CASE("pre post increment precedence")
@@ -501,11 +501,7 @@ TEST_CASE("pre post increment precedence")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    REQUIRE(errs.size() == 1);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK(doc->get_errors().size() == 1);
 }
 
 TEST_CASE("Double pre increment with forced precedence")
@@ -516,11 +512,7 @@ TEST_CASE("Double pre increment with forced precedence")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Double pre increment precedence")
@@ -531,11 +523,7 @@ TEST_CASE("Double pre increment precedence")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Increment with array subscripting and dot accessing")
@@ -546,11 +534,7 @@ TEST_CASE("Increment with array subscripting and dot accessing")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Increment with multiple array subscripting and dot accessing")
@@ -561,11 +545,7 @@ TEST_CASE("Increment with multiple array subscripting and dot accessing")
                    .add_default_process()
                    .parse();
 
-    REQUIRE(doc);
-    const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
-    const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
 TEST_CASE("Initializer: int")
@@ -578,9 +558,9 @@ TEST_CASE("Initializer: int")
 
     REQUIRE(doc);
     const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializer: array")
@@ -593,9 +573,9 @@ TEST_CASE("Initializer: array")
 
     REQUIRE(doc);
     const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Initializer: struct")
@@ -609,9 +589,9 @@ TEST_CASE("Initializer: struct")
 
     REQUIRE(doc);
     const auto& errs = doc->get_errors();
-    CHECK_MESSAGE(errs.size() == 0, errs.front().msg);
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc->get_warnings();
-    CHECK_MESSAGE(warns.size() == 0, warns.front().msg);
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_SUITE_END();

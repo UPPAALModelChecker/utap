@@ -29,6 +29,7 @@
 #include "utap/type.h"
 
 #include <algorithm>
+#include <functional>
 #include <iomanip>
 #include <memory>  // enable_shared_from_this
 #include <sstream>
@@ -46,14 +47,14 @@ using namespace Constants;
 
 struct expression_t::expression_data : public std::enable_shared_from_this<expression_t::expression_data>
 {
-    position_t position; /**< The position of the expression */
-    kind_t kind;         /**< The kind of the node */
+    position_t position;  ///< The position of the expression
+    kind_t kind;          ///< The kind of the node
 
     std::variant<int32_t, synchronisation_t, double, StringIndex> value;
 
-    symbol_t symbol;               /**< The symbol of the node */
-    type_t type;                   /**< The type of the expression */
-    std::vector<expression_t> sub; /**< Subexpressions */
+    symbol_t symbol;                ///< The symbol of the node
+    type_t type;                    ///< The type of the expression
+    std::vector<expression_t> sub;  ///< Subexpressions
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
 };
 
@@ -294,18 +295,14 @@ bool expression_t::is_dynamic() const
 bool expression_t::has_dynamic_sub() const
 {
     bool hasIt = false;
-    if (const auto n = get_size(); n <= 0) {
-        return false;
-    } else {
-        for (uint32_t i = 0; i < n; ++i) {
-            if (get(i).is_dynamic()) {
-                return true;
-            } else {
-                hasIt |= get(i).has_dynamic_sub();
-            }
+    const auto n = get_size();
+    for (uint32_t i = 0; i < n; ++i) {
+        if (get(i).is_dynamic()) {
+            return true;
+        } else {
+            hasIt |= get(i).has_dynamic_sub();
         }
     }
-
     return hasIt;
 }
 
@@ -634,10 +631,9 @@ bool expression_t::equal(const expression_t& e) const
    case of inline if, the symbol referenced by the 'true' part is
    returned.
 */
-symbol_t expression_t::get_symbol() { return ((const expression_t*)this)->get_symbol(); }
-
 symbol_t expression_t::get_symbol() const
 {
+    static auto blank = symbol_t{};
     assert(data);
 
     switch (get_kind()) {
@@ -673,7 +669,7 @@ symbol_t expression_t::get_symbol() const
 
     case SCENARIO: return get(0).get_symbol();
 
-    default: return symbol_t();
+    default: return blank;
     }
 }
 
@@ -1145,7 +1141,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         nb = get_size() - 3;
         if (nb > 0) {
             get(3).print(os, old);
-            for (int i = 1; i < nb; ++i)
+            for (uint32_t i = 1; i < nb; ++i)
                 get(3 + i).print(os << ", ", old);
         }
         os << "}";
@@ -1341,13 +1337,12 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case NOT: embrace(os << '!', old, get(0), precedence); break;
 
-    case DOT: {
-        if (const type_t& t = get(0).get_type(); t.is_process() || t.is_record())
+    case DOT:
+        if (const auto& t = get(0).get_type(); t.is_process() || t.is_record())
             embrace(os, old, get(0), precedence) << '.' << t.get_record_label(std::get<int32_t>(data->value));
         else
             assert(0);
         break;
-    }
 
     case INLINE_IF:
         embrace(os, old, get(0), precedence) << " ? ";
@@ -1465,7 +1460,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old);
         os << ")[";
         if (get(0).get_kind() == Constants::CONSTANT) {
-            if (bool is_step_bound = (get(0).get_value() == 0))
+            if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
             get(0).print(os, old);
@@ -1489,7 +1484,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(3).print(os, old);
         os << ")[";
         if (get(0).get_kind() == Constants::CONSTANT) {
-            if (bool is_step_bound = (get(0).get_value() == 0))
+            if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
             get(0).print(os, old);

@@ -529,14 +529,14 @@ type_t type_t::create_primitive(kind_t kind, position_t pos) { return type_t(kin
 
 type_t type_t::create_prefix(kind_t kind, position_t pos) const
 {
-    type_t type(kind, pos, 1);
+    auto type = type_t{kind, pos, 1};
     type.data->children[0].child = *this;
     return type;
 }
 
 type_t type_t::create_label(std::string label, position_t pos) const
 {
-    type_t type(LABEL, pos, 1);
+    auto type = type_t{LABEL, pos, 1};
     type.data->children[0].child = *this;
     type.data->children[0].label = std::move(label);
     return type;

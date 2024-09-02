@@ -19,7 +19,7 @@ else(doctest_FOUND)
   endif (FIND_FATAL)
   include(FetchContent)
   set(DOCTEST_WITH_TESTS OFF CACHE BOOL "doctest tests and examples")
-  set(DOCTEST_WITH_MAIN_IN_STATIC_LIB ON CACHE BOOL "Build a static lib for doctest::doctest_with_main")
+  set(DOCTEST_WITH_MAIN_IN_STATIC_LIB ON CACHE BOOL "Build static lib for doctest::doctest_with_main")
   set(DOCTEST_NO_INSTALL OFF CACHE BOOL "Skip the installation process")
   set(DOCTEST_USE_STD_HEADERS OFF CACHE BOOL "Use std headers")
   FetchContent_Declare(doctest

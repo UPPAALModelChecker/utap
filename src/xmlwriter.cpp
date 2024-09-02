@@ -105,7 +105,7 @@ void XMLWriter::writeAttribute(const char* name, const char* value)
 /** Parses optional declaration. */
 void XMLWriter::declaration()
 {
-    std::string globalDeclarations = doc->get_globals().str(true);
+    auto globalDeclarations = doc->get_globals().str(true);
     globalDeclarations += "\n";
     globalDeclarations += getChanPriority();
     globalDeclarations += " ";
@@ -115,7 +115,6 @@ void XMLWriter::declaration()
 std::string XMLWriter::getChanPriority() const
 {
     const auto& prs = doc->get_chan_priorities();
-    std::list<chan_priority_t>::const_iterator itr;
     auto str = std::string{};
     if (!prs.empty()) {
         str += "// channel priorities\n";
@@ -311,9 +310,9 @@ void XMLWriter::taTempl(const template_t& templ)
         return;
     }
     selfLoops.clear();
-    std::string name = templ.uid.get_name();
-    std::string parameters = templ.parameters_str();
-    std::string declarations = templ.str(false);
+    auto name = templ.uid.get_name();
+    auto parameters = templ.parameters_str();
+    auto declarations = templ.str(false);
 
     startElement("template");
     writeElement("name", name.c_str());
@@ -335,8 +334,8 @@ void XMLWriter::taTempl(const template_t& templ)
 
 void XMLWriter::system_instantiation()
 {  // TODO proc priority
-    std::string str = "";
-    std::string proc = "";
+    auto str = std::string{};
+    auto proc = std::string{};
     for (const instance_t& p : doc->get_processes()) {
         if (p.uid.get_name() != p.templ->uid.get_name())
             str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
@@ -403,7 +402,7 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
 
     handler = xmlFindCharEncodingHandler(encoding);
     if (handler == nullptr) {
-        printf("ConvertInput: no encoding handler found for '%s'\n", encoding != nullptr ? encoding : "");
+        printf("ConvertInput: no encoding handler found for '%s'\n", (encoding != nullptr) ? encoding : "");
         return nullptr;
     }
 

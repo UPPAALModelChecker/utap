@@ -375,13 +375,13 @@ std::deque<Res> collect(Fn&& fn, const std::deque<Element>& elements)
  * at the same location.
  * a message, update or condition must be in only one simregion.
  */
-const std::vector<simregion_t> template_t::get_simregions()
+std::vector<simregion_t> template_t::get_simregions()
 {
     // cout <<"=======LSC: get_simregions=======\n";
     // Copy the numbers of messages, conditions and updates from the scenario
-    std::deque<int> m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
-    std::deque<int> c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
-    std::deque<int> u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
+    auto m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
+    auto c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
+    auto u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
 
     auto simregions = std::vector<simregion_t>{};
     simregions.reserve(m_nr.size());
@@ -539,7 +539,7 @@ void instance_line_t::add_parameters(instance_t& inst, frame_t params, const std
  */
 std::vector<simregion_t> instance_line_t::getSimregions(const std::vector<simregion_t>& simregions)
 {
-    std::vector<simregion_t> i_simregions;
+    auto i_simregions = std::vector<simregion_t>{};
     // get the simregions anchored to this instance
     for (const auto& reg : simregions) {
         const message_t* m = reg.message;
@@ -1035,14 +1035,6 @@ void Document::accept(DocumentVisitor& visitor)
 
     visitor.visitDocAfter(*this);
 }
-
-void Document::set_before_update(expression_t e) { before_update = std::move(e); }
-
-expression_t& Document::get_before_update() { return before_update; }
-
-void Document::set_after_update(expression_t e) { after_update = std::move(e); }
-
-expression_t& Document::get_after_update() { return after_update; }
 
 void Document::begin_chan_priority(expression_t chan)
 {
