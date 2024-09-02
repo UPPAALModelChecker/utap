@@ -494,7 +494,7 @@ Error clock_difference_is_not_supported(const expression_t& expr)
     return {expr, "$Clock_differences_are_not_supported"};
 }
 
-static bool isGameProperty(const expression_t& expr)
+bool is_game_property(const expression_t& expr)
 {
     switch (expr.get_kind()) {
     case CONTROL:
@@ -508,41 +508,41 @@ static bool isGameProperty(const expression_t& expr)
     }
 }
 
-bool hasMITLInQuantifiedSub(const expression_t& expr)
+bool has_MITL_in_quantified_sub(const expression_t& expr)
 {
     bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
     if (!hasIt) {
         for (uint32_t i = 0; i < expr.get_size(); i++) {
-            hasIt |= hasMITLInQuantifiedSub(expr.get(i));
+            hasIt |= has_MITL_in_quantified_sub(expr.get(i));
         }
     }
     return hasIt;
 }
 
-bool hasSpawnOrExit(const expression_t& expr)
+bool has_spawn_or_exit(const expression_t& expr)
 {
     bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
     if (!hasIt) {
         for (uint32_t i = 0; i < expr.get_size(); i++) {
-            hasIt |= hasSpawnOrExit(expr.get(i));
+            hasIt |= has_spawn_or_exit(expr.get(i));
         }
     }
     return hasIt;
 }
 
-bool validReturnType(const type_t& type)
+bool valid_return_type(const type_t& type)
 {
     switch (type.get_kind()) {
     case Constants::RECORD:
         for (size_t i = 0; i < type.size(); i++) {
-            if (!validReturnType(type[i])) {
+            if (!valid_return_type(type[i])) {
                 return false;
             }
         }
         return true;
 
     case Constants::RANGE:
-    case Constants::LABEL: return validReturnType(type[0]);
+    case Constants::LABEL: return valid_return_type(type[0]);
 
     case Constants::INT:
     case Constants::BOOL:
@@ -1298,7 +1298,7 @@ void TypeChecker::visitProperty(expression_t& expr)
         }
         if (!is_formula(expr))
             handleError(must_be_valid_formula(expr));
-        if (isGameProperty(expr)) {
+        if (is_game_property(expr)) {
             /*
             for (uint32_t i = 0; i < expr.get_size(); i++)
             {
@@ -1333,7 +1333,7 @@ void TypeChecker::visitProperty(expression_t& expr)
              */
             checkObservationConstraints(expr);
         }
-        if (hasMITLInQuantifiedSub(expr) && expr.get_kind() != MITL_FORMULA)
+        if (has_MITL_in_quantified_sub(expr) && expr.get_kind() != MITL_FORMULA)
             handleError(mitl_inside_forall_or_exists_in_non_mitl(expr));
     }
 }
@@ -1439,7 +1439,7 @@ void TypeChecker::visitFunction(function_t& fun)
      */
     const type_t& return_type = fun.uid.get_type()[0];
     checkType(return_type);
-    if (!return_type.is_void() && !validReturnType(return_type))
+    if (!return_type.is_void() && !valid_return_type(return_type))
         handleError(invalid_return_type(return_type));
 
     /* Type check the function body: Type checking return statements

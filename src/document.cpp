@@ -40,9 +40,6 @@
 using namespace UTAP;
 using namespace Constants;
 
-static const char* const unsupported = "Internal error: Feature not supported in this mode.";
-static const char* const invalid_type = "$Invalid_type";
-
 template <typename Item>
 std::string stringify_t<Item>::str() const
 {

@@ -60,22 +60,17 @@ declarations_t* DocumentBuilder::getCurrentDeclarationBlock()
 
 void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, frame_t& frame, position_t pos)
 {
-    type_t type = typeFragments[0];
-    typeFragments.pop();
-
+    auto type = typeFragments.pop();
     if (!type.is(CONSTANT)) {
         type = type.create_prefix(CONSTANT);
     }
-
     if (!type.is_scalar() && !type.is_integer()) {
         handle_error(TypeException{"$Scalar_set_or_integer_expected"});
     } else if (!type.is(RANGE)) {
         handle_error(TypeException{"$Range_expected"});
     } else {
-        symbol_t uid;
-        if (resolve(id, uid)) {
+        if (auto uid = symbol_t{}; resolve(id, uid))
             handle_warning(shadows_a_variable_warning(id));
-        }
         frame.add_symbol(id, type, pos);
     }
 }
@@ -105,9 +100,10 @@ void DocumentBuilder::gantt_entry_select(std::string_view id) { addSelectSymbolT
 
 void DocumentBuilder::gantt_entry_end()
 {
-    auto gm = ganttmap_t{pop_top(frames), std::move(fragments[1]), std::move(fragments[0])};
-    fragments.pop(2);
-    currentGantt->mapping.push_back(std::move(gm));
+    auto frame = pop_top(frames);
+    auto mapping = fragments.pop();
+    auto predicate = fragments.pop();
+    currentGantt->mapping.emplace_back(std::move(frame), std::move(predicate), std::move(mapping));
 }
 
 /************************************************************
@@ -115,13 +111,10 @@ void DocumentBuilder::gantt_entry_end()
  */
 void DocumentBuilder::decl_progress(bool hasGuard)
 {
-    expression_t guard, measure;
-    measure = fragments[0];
-    fragments.pop();
-    if (hasGuard) {
-        guard = fragments[0];
-        fragments.pop();
-    }
+    auto measure = fragments.pop();
+    auto guard = expression_t{};
+    if (hasGuard)
+        guard = fragments.pop();
     document.add_progress_measure(getCurrentDeclarationBlock(), guard, measure);
 }
 
@@ -172,7 +165,8 @@ void DocumentBuilder::proc_end()  // 1 ProcBody
  */
 void DocumentBuilder::proc_location(std::string_view name, bool hasInvariant, bool hasER)  // 1 expr
 {
-    expression_t e, f;
+    expression_t e;
+    expression_t f;
     if (hasER)
         f = fragments.pop();
     if (hasInvariant)
@@ -182,8 +176,7 @@ void DocumentBuilder::proc_location(std::string_view name, bool hasInvariant, bo
 
 void DocumentBuilder::proc_location_commit(std::string_view name)
 {
-    symbol_t uid;
-    if (!resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else if (uid.get_type().is(URGENT)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
@@ -194,8 +187,7 @@ void DocumentBuilder::proc_location_commit(std::string_view name)
 
 void DocumentBuilder::proc_location_urgent(std::string_view name)
 {
-    symbol_t uid;
-    if (!resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else if (uid.get_type().is(COMMITTED)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
@@ -208,8 +200,7 @@ void DocumentBuilder::proc_branchpoint(std::string_view name) { currentTemplate-
 
 void DocumentBuilder::proc_location_init(std::string_view name)
 {
-    auto uid = symbol_t{};
-    if (!resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else {
         currentTemplate->init = uid;
@@ -219,13 +210,12 @@ void DocumentBuilder::proc_location_init(std::string_view name)
 void DocumentBuilder::proc_edge_begin(std::string_view from, std::string_view to, const bool control,
                                       std::string_view actname)
 {
-    auto fid = symbol_t{};
-    auto tid = symbol_t{};
-
-    if (!resolve(from, fid) || (!fid.get_type().is_location() && !fid.get_type().is_branchpoint())) {
+    if (auto fid = symbol_t{};
+        !resolve(from, fid) || (!fid.get_type().is_location() && !fid.get_type().is_branchpoint())) {
         handle_error(TypeException{"$No_such_location_or_branchpoint_(source)"});
         push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
-    } else if (!resolve(to, tid) || (!tid.get_type().is_location() && !tid.get_type().is_branchpoint())) {
+    } else if (auto tid = symbol_t{};
+               !resolve(to, tid) || (!tid.get_type().is_location() && !tid.get_type().is_branchpoint())) {
         handle_error(TypeException{"$No_such_location_or_branchpoint_(destination)"});
         push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
     } else {
@@ -248,9 +238,7 @@ void DocumentBuilder::proc_guard()
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
-
-    currentEdge->guard = fragments[0];
-    fragments.pop();
+    currentEdge->guard = fragments.pop();
 }
 
 void DocumentBuilder::proc_sync(synchronisation_t type)
@@ -259,9 +247,7 @@ void DocumentBuilder::proc_sync(synchronisation_t type)
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
-
-    currentEdge->sync = expression_t::create_sync(fragments[0], type, position);
-    fragments.pop();
+    currentEdge->sync = expression_t::create_sync(fragments.pop(), type, position);
 }
 
 void DocumentBuilder::proc_update()
@@ -270,9 +256,7 @@ void DocumentBuilder::proc_update()
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
-
-    currentEdge->assign = fragments[0];
-    fragments.pop();
+    currentEdge->assign = fragments.pop();
 }
 
 void DocumentBuilder::proc_prob()
@@ -281,9 +265,7 @@ void DocumentBuilder::proc_prob()
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
-
-    currentEdge->prob = fragments[0];
-    fragments.pop();
+    currentEdge->prob = fragments.pop();
 }
 
 /********************************************************************
@@ -323,7 +305,6 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
     auto id = symbol_t{};
     if (resolve(templ_name, id) && (id.get_type().get_kind() == INSTANCE || id.get_type().get_kind() == LSC_INSTANCE)) {
         auto* old_instance = static_cast<instance_t*>(id.get_data());
-
         // Check number of arguments. If too many arguments, pop the rest.
         auto expected = id.get_type().size();
         if (arguments < expected) {
@@ -382,17 +363,9 @@ void DocumentBuilder::process_list_end() {}
 
 void DocumentBuilder::done() {}
 
-void DocumentBuilder::before_update()
-{
-    document.set_before_update(fragments[0]);
-    fragments.pop();
-}
+void DocumentBuilder::before_update() { document.set_before_update(fragments.pop()); }
 
-void DocumentBuilder::after_update()
-{
-    document.set_after_update(fragments[0]);
-    fragments.pop();
-}
+void DocumentBuilder::after_update() { document.set_after_update(fragments.pop()); }
 
 /********************************************************************
  * Priority
@@ -434,10 +407,9 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
     symbol_t uid;
     if (templ) {
         auto instName = std::string{name};
-        auto templName = instName.substr(0, instName.find('('));  // std::cout << templName << std::endl;
-        if (!resolve(templName, uid) || (uid.get_type().get_kind() != INSTANCE)) {
+        auto templName = instName.substr(0, instName.find('('));
+        if (!resolve(templName, uid) || (uid.get_type().get_kind() != INSTANCE))
             handle_error(not_a_template_error(templName));
-        }
     } else {
         if (resolve(name, uid) && (uid.get_type().get_kind() == INSTANCE)) {
             const auto* t = static_cast<template_t*>(uid.get_data());

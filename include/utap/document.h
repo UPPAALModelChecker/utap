@@ -160,6 +160,9 @@ struct ganttmap_t
     frame_t parameters;
     expression_t predicate;
     expression_t mapping;
+    ganttmap_t(frame_t param, expression_t pred, expression_t m):
+        parameters{std::move(param)}, predicate{std::move(pred)}, mapping{std::move(m)}
+    {}
 };
 
 /**
