@@ -29,80 +29,136 @@ TEST_SUITE_BEGIN("Statements");
 using namespace UTAP;
 using namespace std::string_literals;
 
-constexpr auto indent = "";
+static const std::string indent = INDENT;  // one indentation to harden the tests
 
 TEST_CASE("Empty")
 {
     auto s = EmptyStatement{};
-    CHECK(s.to_string(indent) == "");
+    CHECK(s.to_string(indent) == indent + ";");
 }
 
-expression_t make_assignment(const expression_t& id)
-{
-    auto i1 = expression_t::create_constant(1);
-    auto i2 = expression_t::create_constant(2);
-    auto i1_plus_i2 = expression_t::create_binary(Constants::PLUS, i1, i2);
-    auto var_a_assign = expression_t::create_binary(UTAP::Constants::ASSIGN, id, i1_plus_i2);
-    return var_a_assign;
-}
-
-expression_t make_equality(const expression_t& id)
-{
-    auto i1 = expression_t::create_constant(1);
-    auto i2 = expression_t::create_constant(2);
-    auto i1_plus_i2 = expression_t::create_binary(Constants::PLUS, i1, i2);
-    auto var_a_assign = expression_t::create_binary(UTAP::Constants::EQ, id, i1_plus_i2);
-    return var_a_assign;
-}
-
-TEST_CASE("Composite")
+TEST_CASE("Composite statements")
 {
     auto int_type = type_t::create_primitive(UTAP::Constants::INT);
     auto global = frame_t::create();
     auto var_a = global.add_symbol("a", int_type, {});
     auto id_a = expression_t::create_identifier(var_a);
-    SUBCASE("Assignment")
+    auto val0 = expression_t::create_constant(0);
+    auto val1 = expression_t::create_constant(1);
+    auto val5 = expression_t::create_constant(5);
+    SUBCASE("Trivial")
     {
-        auto s = ExprStatement{make_assignment(id_a)};
-        CHECK(s.to_string(indent) == "a = 1 + 2;");
+        auto val2 = expression_t::create_constant(2);
+        auto plus = expression_t::create_binary(Constants::PLUS, val1, val2);
+        SUBCASE("Assignment")
+        {
+            auto assign = expression_t::create_binary(UTAP::Constants::ASSIGN, id_a, plus);
+            auto s = ExprStatement{assign};
+            CHECK(s.to_string(indent) == indent + "a = 1 + 2;");
+        }
+        SUBCASE("Equality")
+        {
+            auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
+            auto s = ExprStatement{equal};
+            CHECK(s.to_string(indent) == indent + "a == 1 + 2;");
+        }
+        SUBCASE("Assertion")
+        {
+            auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
+            auto s = AssertStatement{equal};
+            CHECK(s.to_string(indent) == indent + "assert(a == 1 + 2);");
+        }
     }
-    SUBCASE("Equality")
-    {
-        auto s = ExprStatement{make_equality(id_a)};
-        CHECK(s.to_string(indent) == "a == 1 + 2;");
-    }
-    SUBCASE("Assertion")
-    {
-        auto s = AssertStatement{make_equality(id_a)};
-        CHECK(s.to_string(indent) == "assert(a == 1 + 2);");
-    }
-    SUBCASE("For-loop")
+    SUBCASE("Conditional")
     {
         auto var_i = global.add_symbol("i", int_type);
         auto id_i = expression_t::create_identifier(var_i);
-        auto val0 = expression_t::create_constant(0);
-        auto init = expression_t::create_binary(UTAP::Constants::ASSIGN, id_i, val0);
-        auto val5 = expression_t::create_constant(5);
-        auto cond = expression_t::create_binary(UTAP::Constants::LT, id_i, val5);
-        auto step = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_i);
-        auto comp = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
-        auto stat = std::make_unique<ExprStatement>(comp);
-        auto s = ForStatement{init, cond, step, std::move(stat)};
-        CHECK(s.to_string(indent) == "for (i = 0; i < 5; ++i)\n"s + INDENT + "a += i;\n");
+        auto step_i = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_i);
+        auto step_a = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
+        auto cond_i = expression_t::create_binary(UTAP::Constants::LT, id_i, val5);
+        auto cond_a = expression_t::create_binary(UTAP::Constants::LT, id_a, val5);
+        SUBCASE("If")
+        {
+            auto s =
+                IfStatement{cond_i, std::make_unique<ExprStatement>(step_i), std::make_unique<ExprStatement>(step_a)};
+            CHECK(s.to_string(indent) == indent + "if (i < 5)\n" + indent + INDENT + "++i;\n" + indent + "else\n" +
+                                             indent + INDENT + "a += i;\n");
+        }
+        SUBCASE("For loop")
+        {
+            auto init = expression_t::create_binary(UTAP::Constants::ASSIGN, id_i, val0);
+            auto s = ForStatement{init, cond_i, step_i, std::make_unique<ExprStatement>(step_a)};
+            CHECK(s.to_string(indent) == indent + "for (i = 0; i < 5; ++i)\n"s + indent + INDENT + "a += i;\n");
+        }
+        SUBCASE("While loop")
+        {
+            auto s = WhileStatement{cond_i, std::make_unique<ExprStatement>(step_i)};
+            CHECK(s.to_string(indent) == indent + "while (i < 5)\n"s + indent + INDENT + "++i;\n");
+        }
+        SUBCASE("Do-While loop")
+        {
+            auto s = DoWhileStatement{std::make_unique<ExprStatement>(step_i), cond_i};
+            CHECK(s.to_string(indent) == indent + "do\n" + indent + INDENT + "++i;\n"s + indent + "while (i < 5);\n");
+        }
     }
-    SUBCASE("Ranged-loop")
+    SUBCASE("Ranged loop")
     {
-        auto val0 = expression_t::create_constant(0);
-        auto val2b = expression_t::create_constant((1u << 31) - 1);
-        auto uint32_type = type_t::create_range(int_type, val0, val2b);
-        auto val5 = expression_t::create_constant(5);
-        auto int_0_5 = type_t::create_range(uint32_type, val0, val5);
+        auto int_0_5 = type_t::create_range(int_type, val0, val5);
         auto var_i = global.add_symbol("i", int_0_5);
         auto id_i = expression_t::create_identifier(var_i);
         auto comp = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
-        auto stat = std::make_unique<ExprStatement>(comp);
-        auto s = RangeStatement{var_i, global, std::move(stat)};
-        CHECK(s.to_string(indent) == "for (i : int[0,5])\n"s + INDENT + "a += i;\n");
+        auto s = RangeStatement{var_i, global, std::make_unique<ExprStatement>(comp)};
+        CHECK(s.to_string(indent) == indent + "for (i : int[0,5])\n"s + indent + INDENT + "a += i;\n");
+    }
+    SUBCASE("Block")
+    {
+        auto var_i = global.add_symbol("i", int_type);
+        auto id_i = expression_t::create_identifier(var_i);
+        auto e1 = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
+        auto e2 = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_a);
+        auto s = BlockStatement{global};
+        CHECK(s.to_string(indent) == "{\n" + indent + "}");
+        s.push_stat(std::make_unique<ExprStatement>(e1));
+        CHECK(s.to_string(indent) == "{\n" + indent + INDENT + "a += i;\n" + indent + "}");
+        s.push_stat(std::make_unique<ExprStatement>(e2));
+        CHECK(s.to_string(indent) == "{\n" + indent + INDENT + "a += i;\n" + indent + INDENT + "++a;\n" + indent + "}");
+    }
+    SUBCASE("External block")
+    {
+        auto fn = [] { return true; };
+        auto s = ExternalBlockStatement{global, (void*)+fn, true};
+        CHECK(s.to_string(indent) == "{\n" + indent + "}");
+    }
+    SUBCASE("Switch")
+    {
+        auto switch_frame = frame_t::create(global);
+        auto s = SwitchStatement{switch_frame, id_a};
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + "}\n");
+        auto case0 = std::make_unique<CaseStatement>(frame_t::create(switch_frame), val0);
+        case0->push_stat(std::make_unique<BreakStatement>());
+        s.push_stat(std::move(case0));
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + "}\n");
+        auto case1 = std::make_unique<CaseStatement>(frame_t::create(switch_frame), val1);
+        case1->push_stat(std::make_unique<BreakStatement>());
+        s.push_stat(std::move(case1));
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + INDENT +
+                                         "case 1: {\n" + indent + INDENT + INDENT + "break;\n" + indent + INDENT +
+                                         "}\n" + indent + "}\n");
+        auto def = std::make_unique<DefaultStatement>(frame_t::create(switch_frame));
+        def->push_stat(std::make_unique<BreakStatement>());
+        s.push_stat(std::move(def));
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + INDENT +
+                                         "case 1: {\n" + indent + INDENT + INDENT + "break;\n" + indent + INDENT +
+                                         "}\n" + indent + INDENT + "default: {\n" + indent + INDENT + INDENT +
+                                         "break;\n" + indent + INDENT + "}\n" + indent + "}\n");
+    }
+    SUBCASE("Return")
+    {
+        auto s = ReturnStatement{id_a};
+        CHECK(s.to_string(indent) == indent + "return a;");
     }
 }
 

@@ -42,8 +42,9 @@ public:
     virtual ~Statement() noexcept = default;
     virtual int32_t accept(StatementVisitor&) = 0;
     virtual bool returns() const = 0;
-    virtual std::ostream& print(std::ostream&, const std::string& indent) const = 0;
-    std::string to_string(const std::string& indent) const;
+    virtual std::ostream& print(std::ostream&, const std::string& indent = {}) const = 0;
+    std::string to_string(const std::string& indent = {}) const;
+    friend std::ostream& operator<<(std::ostream& os, const Statement& s) { return s.print(os); }
 
 protected:
     Statement() = default;
@@ -78,6 +79,18 @@ public:
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
+class IfStatement final : public Statement
+{
+public:
+    expression_t cond;
+    std::unique_ptr<Statement> trueCase;
+    std::unique_ptr<Statement> falseCase;
+    IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase = nullptr);
+    int32_t accept(StatementVisitor&) override;
+    bool returns() const override { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
+    std::ostream& print(std::ostream&, const std::string& indent) const override;
+};
+
 class ForStatement final : public Statement
 {
 public:
@@ -94,7 +107,7 @@ public:
 /// Statement class for the ranged-loop construction.
 class RangeStatement final : public Statement
 {
-protected:
+private:
     frame_t frame;
 
 public:
@@ -114,7 +127,7 @@ class WhileStatement final : public Statement
 public:
     expression_t cond;
     std::unique_ptr<Statement> stat;
-    WhileStatement(expression_t, std::unique_ptr<Statement>);
+    WhileStatement(expression_t condition, std::unique_ptr<Statement> statement);
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -142,7 +155,7 @@ protected:
     frame_t frame;
 
 public:
-    explicit BlockStatement(const frame_t& frame): frame{frame} {}
+    explicit BlockStatement(frame_t frame): frame{std::move(frame)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return begin() != end() && back().returns(); }
     const frame_t& get_frame() const { return frame; }
@@ -162,14 +175,14 @@ public:
 class ExternalBlockStatement final : public BlockStatement
 {
 public:
-    ExternalBlockStatement(const frame_t& frame, void* fp, bool ret):
-        BlockStatement{frame}, functionptr{fp}, doesReturn{ret}
+    ExternalBlockStatement(frame_t frame, void* fp, bool ret):
+        BlockStatement{std::move(frame)}, function{fp}, doesReturn{ret}
     {}
     bool returns() const override { return doesReturn; }
-    void* getFP() { return functionptr; }
+    void* getFP() { return function; }
 
 private:
-    void* functionptr;
+    void* function;
     bool doesReturn;
 };
 
@@ -187,7 +200,7 @@ class CaseStatement final : public BlockStatement
 {
 public:
     expression_t cond;
-    CaseStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
+    CaseStatement(frame_t frame, expression_t value): BlockStatement{std::move(frame)}, cond{std::move(value)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -199,18 +212,6 @@ public:
     explicit DefaultStatement(const frame_t& f): BlockStatement{f} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
-    std::ostream& print(std::ostream&, const std::string& indent) const override;
-};
-
-class IfStatement final : public Statement
-{
-public:
-    expression_t cond;
-    std::unique_ptr<Statement> trueCase;
-    std::unique_ptr<Statement> falseCase;
-    IfStatement(expression_t, std::unique_ptr<Statement>, std::unique_ptr<Statement> falseStat = nullptr);
-    int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 

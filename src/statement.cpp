@@ -35,7 +35,7 @@ std::string Statement::to_string(const std::string& indent) const
     return os.str();
 }
 
-std::ostream& EmptyStatement::print(std::ostream& os, const std::string&) const { return os; }
+std::ostream& EmptyStatement::print(std::ostream& os, const std::string& indent) const { return os << indent << ";"; }
 
 std::ostream& ExprStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -45,6 +45,24 @@ std::ostream& ExprStatement::print(std::ostream& os, const std::string& indent) 
 std::ostream& AssertStatement::print(std::ostream& os, const std::string& indent) const
 {
     return expr.print(os << indent << "assert(") << ");";
+}
+
+IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
+    cond{std::move(cond)}, trueCase{std::move(trueCase)}, falseCase{std::move(falseCase)}
+{
+    assert(this->trueCase);
+}
+
+std::ostream& IfStatement::print(std::ostream& os, const std::string& indent) const
+{
+    os << indent << "if (";
+    cond.print(os) << ")\n";
+    trueCase->print(os, indent + INDENT) << "\n";
+    if (falseCase) {
+        os << indent << "else\n";
+        falseCase->print(os, indent + INDENT) << "\n";
+    }
+    return os;
 }
 
 ForStatement::ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> stat):
@@ -77,8 +95,8 @@ WhileStatement::WhileStatement(expression_t cond, std::unique_ptr<Statement> sta
 
 std::ostream& WhileStatement::print(std::ostream& os, const std::string& indent) const
 {
-    cond.print(os << indent << "while(") << ") {\n";
-    return stat->print(os, indent + INDENT) << indent << "}";
+    cond.print(os << indent << "while (") << ")\n";
+    return stat->print(os, indent + INDENT) << '\n';
 }
 
 DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t cond):
@@ -89,8 +107,8 @@ DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t
 
 std::ostream& DoWhileStatement::print(std::ostream& os, const std::string& indent) const
 {
-    os << indent << "do {\n";
-    return stat->print(os, indent + INDENT) << indent << "}";
+    stat->print(os << indent << "do\n", indent + INDENT) << "\n" << indent << "while (";
+    return cond.print(os) << ");\n";
 }
 
 void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
@@ -120,48 +138,30 @@ std::unique_ptr<Statement> BlockStatement::pop_stat()
 
 std::ostream& BlockStatement::print(std::ostream& os, const std::string& indent) const
 {
-    os << indent << "{\n";
+    os << "{\n";
     for (const auto& st : stats)
         st->print(os, indent + INDENT) << "\n";
-    return os << indent << "}\n";
+    return os << indent << "}";
 }
 
 std::ostream& SwitchStatement::print(std::ostream& os, const std::string& indent) const
 {
-    os << indent << "switch(";
-    cond.print(os) << ") {\n";
-    return BlockStatement::print(os, indent + INDENT) << indent << "}";
+    os << indent << "switch (";
+    cond.print(os) << ") ";
+    return BlockStatement::print(os, indent) << "\n";
 }
 
 std::ostream& CaseStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << indent << "case ";
-    cond.print(os) << ":\n";
-    return BlockStatement::print(os, indent + INDENT);
+    cond.print(os) << ": ";
+    return BlockStatement::print(os, indent);
 }
 
 std::ostream& DefaultStatement::print(std::ostream& os, const std::string& indent) const
 {
-    os << indent << "default:\n";
-    return BlockStatement::print(os, indent + INDENT);
-}
-
-IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
-    cond{std::move(cond)}, trueCase{std::move(trueCase)}, falseCase{std::move(falseCase)}
-{
-    assert(this->trueCase);
-}
-
-std::ostream& IfStatement::print(std::ostream& os, const std::string& indent) const
-{
-    os << indent << "if (";
-    cond.print(os) << ") {\n";
-    trueCase->print(os, indent + INDENT) << indent << "}";
-    if (falseCase) {
-        os << " else {\n";
-        falseCase->print(os, indent + INDENT) << indent << "}";
-    }
-    return os;
+    os << indent << "default: ";
+    return BlockStatement::print(os, indent);
 }
 
 std::ostream& BreakStatement::print(std::ostream& os, const std::string& indent) const
@@ -174,9 +174,9 @@ std::ostream& ContinueStatement::print(std::ostream& os, const std::string& inde
     return os << indent << "continue;";
 }
 
-std::ostream& ReturnStatement::print(std::ostream& os, const std::string& prefix) const
+std::ostream& ReturnStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return value.print(os << "return ") << ";";
+    return value.print(os << indent << "return ") << ";";
 }
 
 int32_t AbstractStatementVisitor::visit_statement(Statement&) { return 0; }
@@ -184,6 +184,16 @@ int32_t AbstractStatementVisitor::visit_statement(Statement&) { return 0; }
 int32_t AbstractStatementVisitor::visit_empty_statement(EmptyStatement& stat) { return visit_statement(stat); }
 
 int32_t AbstractStatementVisitor::visit_expr_statement(ExprStatement& stat) { return visit_statement(stat); }
+
+int32_t AbstractStatementVisitor::visit_if_statement(IfStatement& stat)
+{
+    if (stat.falseCase) {
+        stat.trueCase->accept(*this);
+        return stat.falseCase->accept(*this);
+    } else {
+        return stat.trueCase->accept(*this);
+    }
+}
 
 int32_t AbstractStatementVisitor::visit_assert_statement(AssertStatement& stat) { return visit_statement(stat); }
 
@@ -210,16 +220,6 @@ int32_t AbstractStatementVisitor::visit_case_statement(CaseStatement& stat) { re
 int32_t AbstractStatementVisitor::visit_default_statement(DefaultStatement& stat)
 {
     return visit_block_statement(stat);
-}
-
-int32_t AbstractStatementVisitor::visit_if_statement(IfStatement& stat)
-{
-    if (stat.falseCase) {
-        stat.trueCase->accept(*this);
-        return stat.falseCase->accept(*this);
-    } else {
-        return stat.trueCase->accept(*this);
-    }
 }
 
 int32_t AbstractStatementVisitor::visit_break_statement(BreakStatement& stat) { return visit_statement(stat); }
