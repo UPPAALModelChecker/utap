@@ -527,7 +527,7 @@ void LSCInstanceLine::add_parameters(Instance& inst, Frame params, const std::ve
  * return the simregions anchored to this instance,
  * ordered by location number
  */
-std::vector<LSCSimRegion> LSCInstanceLine::getSimregions(const std::vector<LSCSimRegion>& simregions)
+std::vector<LSCSimRegion> LSCInstanceLine::get_simregions(const std::vector<LSCSimRegion>& simregions)
 {
     auto i_simregions = std::vector<LSCSimRegion>{};
     // get the simregions anchored to this instance

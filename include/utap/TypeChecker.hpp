@@ -84,7 +84,7 @@ public:
     void visit_instance(Instance&) override;
     virtual void visitProperty(Expression&);  // FIXME: does not override?!
     void visit_function(Function&) override;
-    void visit_progress(progress_t&) override;
+    void visit_progress(Progress&) override;
     virtual void visitHybridClock(Expression&);  // FIXME: does not override?!
     void visit_io_decl(IODecl&) override;
     void visit_gantt(GanttEntry&) override;

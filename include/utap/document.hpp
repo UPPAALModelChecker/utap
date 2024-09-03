@@ -20,8 +20,8 @@
    USA
 */
 
-#ifndef UTAP_INTERMEDIATE_HH
-#define UTAP_INTERMEDIATE_HH
+#ifndef UTAP_DOCUMENT_HH
+#define UTAP_DOCUMENT_HH
 
 #include "utap/Library.hpp"
 #include "utap/expression.hpp"
@@ -36,7 +36,12 @@
 #include <vector>
 
 namespace UTAP {
-// Describes supported analysis methods for the given document
+
+/**
+ * Classes used to represent model document (Abstract Syntax Tree).
+ */
+
+/// Describes supported analysis methods for the given document
 struct SupportedMethods
 {
     bool symbolic{true};
@@ -44,14 +49,14 @@ struct SupportedMethods
     bool concrete{true};
 };
 
-/** Adds str() method which calls Item::print(std::ostream&) to produce a string representation */
+/// Adds str() method calling Item::print(std::ostream&) to produce a string representation
 template <typename Item>
 struct Stringify
 {
     std::string str() const;
 };
 
-/** Adds str(indent) method which calls Item::print(std::ostream&, indent) to produce a string representation */
+/// Adds str(indent) method calling Item::print(std::ostream&, indent) to produce a string representation
 template <typename Item>
 struct StringifyIndent : Stringify<Item>
 {
@@ -64,9 +69,9 @@ struct StringifyIndent : Stringify<Item>
 */
 struct Variable : Stringify<Variable>
 {
-    Symbol uid;                               /**< The symbol of the variable */
-    Expression init;                          /**< The initializer */
-    std::ostream& print(std::ostream&) const; /**< outputs a textual representation */
+    Symbol uid;                                ///< The symbol of the variable
+    Expression init;                           ///< The initializer
+    std::ostream& print(std::ostream&) const;  ///< outputs a textual representation
 };
 
 /** Information about a location.
@@ -77,12 +82,12 @@ struct Variable : Stringify<Variable>
 */
 struct Location : Stringify<Location>
 {
-    Symbol uid;           /**< The symbol of the location */
-    Expression name;      /**< TODO: the location name with its position */
-    Expression invariant; /**< The invariant */
-    Expression exp_rate;  /**< the exponential rate controlling the speed of leaving the location */
-    Expression cost_rate; /**< cost rate/derivative expression */
-    int32_t nr;           /**< Location number in a template */
+    Symbol uid;            ///< The symbol of the location
+    Expression name;       ///< TODO: the location name with its position
+    Expression invariant;  ///< The invariant
+    Expression exp_rate;   ///< the exponential rate controlling the speed of leaving the location
+    Expression cost_rate;  ///< cost rate/derivative expression
+    int32_t nr;            ///< Location number in a template
     std::ostream& print(std::ostream&) const;
 };
 
@@ -105,19 +110,19 @@ struct Branchpoint
 */
 struct Edge : Stringify<Edge>
 {
-    int nr;       /**< Placement in input file */
-    bool control; /**< Controllable (true/false) */
+    int nr;        ///< Placement in input file
+    bool control;  ///< Controllable (true/false)
     std::string actname;
-    Location* src{nullptr};            /**< Pointer to source location */
-    Branchpoint* srcb{nullptr};        /**< Pointer to source branchpoint */
-    Location* dst{nullptr};            /**< Pointer to destination location */
-    Branchpoint* dstb{nullptr};        /**< Pointer to destination branchpoint */
-    Frame select;                      /**< Frame for non-deterministic select */
-    Expression guard;                  /**< The guard */
-    Expression assign;                 /**< The assignment */
-    Expression sync;                   /**< The synchronisation */
-    Expression prob;                   /**< Probability for probabilistic edges. */
-    std::vector<int32_t> selectValues; /**<The select values, if any */
+    Location* src{nullptr};             ///< Pointer to source location
+    Branchpoint* srcb{nullptr};         ///< Pointer to source branchpoint
+    Location* dst{nullptr};             ///< Pointer to destination location
+    Branchpoint* dstb{nullptr};         ///< Pointer to destination branchpoint
+    Frame select;                       ///< Frame for non-deterministic select
+    Expression guard;                   ///< The guard
+    Expression assign;                  ///< The assignment
+    Expression sync;                    ///< The synchronisation
+    Expression prob;                    ///< Probability for probabilistic edges.
+    std::vector<int32_t> selectValues;  ///< The select values, if any
     std::ostream& print(std::ostream&) const;
 };
 
@@ -128,22 +133,24 @@ class BlockStatement;  // Forward declaration
 */
 struct Function : Stringify<Function>
 {
-    Symbol uid;                                    /**< The symbol of the function. */
-    std::set<Symbol> changes{};                    /**< Variables changed by this function. */
-    std::set<Symbol> depends{};                    /**< Variables the function depends on. */
-    std::list<Variable> variables{};               /**< Local variables. List is used for stable pointers. */
-    std::unique_ptr<BlockStatement> body{nullptr}; /**< Pointer to the block. */
+    Symbol uid;                                     ///< The symbol of the function.
+    std::set<Symbol> changes{};                     ///< Variables changed by this function.
+    std::set<Symbol> depends{};                     ///< Variables the function depends on.
+    std::list<Variable> variables{};                ///< Local variables. List is used for stable pointers.
+    std::unique_ptr<BlockStatement> body{nullptr};  ///< Pointer to the block.
     Function() = default;
-    std::ostream& print(std::ostream& os) const; /**< textual representation, used to write the XML file */
+    std::ostream& print(std::ostream& os) const;  ///< textual representation, used to write the XML file
 };
 
-struct progress_t
+/// Progress meassure expressions for sweep-line method (state-space memory reuse)
+struct Progress
 {
     Expression guard;
     Expression measure;
-    progress_t(Expression guard, Expression measure): guard{std::move(guard)}, measure{std::move(measure)} {}
+    Progress(Expression guard, Expression measure): guard{std::move(guard)}, measure{std::move(measure)} {}
 };
 
+/// I/O declarations
 struct IODecl
 {
     std::string instanceName;
@@ -165,13 +172,11 @@ struct GanttMap
     {}
 };
 
-/**
- * Gantt chart Entry.
- */
+/// Gantt chart Entry.
 struct GanttEntry
 {
-    std::string name; /**< The name */
-    Frame parameters; /**< The select parameters */
+    std::string name;  ///< The name
+    Frame parameters;  ///< The select parameters
     std::list<GanttMap> mapping;
     explicit GanttEntry(std::string_view name): name{name} {}
 };
@@ -184,15 +189,15 @@ struct Template;
 struct Declarations : Stringify<Declarations>
 {
     Frame frame;
-    std::list<Variable> variables;  /**< Variables. List is used for stable pointers. */
-    std::list<Function> functions;  /**< Functions */
-    std::list<progress_t> progress; /**< Progress measures */
+    std::list<Variable> variables;  ///< Variables. List is used for stable pointers.
+    std::list<Function> functions;  ///< Functions
+    std::list<Progress> progress;   ///< Progress measures
     std::list<IODecl> iodecl;
     std::list<GanttEntry> ganttChart;
 
-    /** Add function declaration. */
+    /// Add function declaration.
     bool add_function(Type type, std::string_view name, position_t, Function*&);
-    /** The following methods are used to write the declarations in an XML file */
+    /// The following methods are used to write the declarations in an XML file
     std::string str(bool global) const;
     std::ostream& print(std::ostream&, bool global = false) const;
     std::ostream& print_constants(std::ostream&) const;
@@ -203,10 +208,10 @@ struct Declarations : Stringify<Declarations>
 
 struct LSCInstanceLine;  // to be defined later
 
-/** Common members among LSC elements */
+/// Common members among LSC elements */
 struct LSCElement
 {
-    uint32_t nr; /**< Placement in input file */
+    uint32_t nr;  ///< Placement in input file
     int location{-1};
     bool is_in_prechart{false};
     explicit LSCElement(uint32_t nr): nr{nr} {}
@@ -219,9 +224,9 @@ struct LSCElement
  */
 struct LSCMessage : LSCElement
 {
-    LSCInstanceLine* src{nullptr}; /**< Pointer to source instance line */
-    LSCInstanceLine* dst{nullptr}; /**< Pointer to destination instance line */
-    Expression label;              /**< The label */
+    LSCInstanceLine* src{nullptr};  ///< Pointer to source instance line
+    LSCInstanceLine* dst{nullptr};  ///< Pointer to destination instance line
+    Expression label;               ///< The label
     explicit LSCMessage(uint32_t nr): LSCElement{nr} {}
 };
 /** Information about a condition. Conditions have an anchor instance lines.
@@ -229,8 +234,8 @@ struct LSCMessage : LSCElement
  */
 struct LSCCondition : LSCElement
 {
-    std::vector<LSCInstanceLine*> anchors{}; /**< Pointer to anchor instance lines */
-    Expression label;                        /**< The label */
+    std::vector<LSCInstanceLine*> anchors{};  ///< Pointer to anchor instance lines
+    Expression label;                         ///< The label
     bool isHot{false};
     explicit LSCCondition(uint32_t nr): LSCElement{nr} {}
 };
@@ -240,17 +245,17 @@ struct LSCCondition : LSCElement
  */
 struct LSCUpdate : LSCElement
 {
-    LSCInstanceLine* anchor{nullptr}; /**< Pointer to anchor instance line */
-    Expression label;                 /**< The label */
+    LSCInstanceLine* anchor{nullptr};  ///< Pointer to anchor instance line
+    Expression label;                  ///< The label
     explicit LSCUpdate(uint32_t nr): LSCElement{nr} {}
 };
 
 struct LSCSimRegion : Stringify<LSCSimRegion>
 {
     uint32_t nr{};
-    LSCMessage* message{nullptr};     /** May be empty */
-    LSCCondition* condition{nullptr}; /** May be empty */
-    LSCUpdate* update{nullptr};       /** May be empty */
+    LSCMessage* message{nullptr};      // May be empty
+    LSCCondition* condition{nullptr};  // May be empty
+    LSCUpdate* update{nullptr};        // May be empty
 
     int get_loc() const;
     bool is_in_prechart() const;
@@ -342,12 +347,11 @@ struct Instance
     std::string arguments_str() const;
 };
 
-/** Information about an instance line.
- */
+/// Information about an instance line.
 struct LSCInstanceLine : public Instance
 {
-    uint32_t instance_nr; /**< LSCInstanceLine number in template */
-    std::vector<LSCSimRegion> getSimregions(const std::vector<LSCSimRegion>& simregions);
+    uint32_t instance_nr;  ///< LSCInstanceLine number in template
+    std::vector<LSCSimRegion> get_simregions(const std::vector<LSCSimRegion>& simregions);
     void add_parameters(Instance& inst, Frame params, const std::vector<Expression>& arguments);
 };
 
@@ -360,7 +364,7 @@ struct Template : public Instance, Declarations
     std::deque<Edge> edges;                ///< Edges
     std::vector<Expression> dynamic_evals;
     bool is_TA{true};
-    bool is_instantiated{false}; /**< Is the template used in the system*/
+    bool is_instantiated{false};  ///< Is the template used in the system
 
     int add_dynamic_eval(Expression t)
     {
@@ -480,6 +484,7 @@ struct Expectation
     Resources resources;
 };
 
+/// Verification query (model properties, etc)
 struct Query
 {
     std::string formula;
@@ -507,9 +512,9 @@ public:
     virtual void visit_instance(Instance&) {}
     virtual void visit_process(Instance&) {}
     virtual void visit_function(Function&) {}
-    virtual void visit_typedef(Symbol) {}
+    virtual void visit_typedef(Symbol&) {}
     virtual void visit_io_decl(IODecl&) {}
-    virtual void visit_progress(progress_t&) {}
+    virtual void visit_progress(Progress&) {}
     virtual void visit_gantt(GanttEntry&) {}
     virtual void visit_instance_line(LSCInstanceLine&) {}
     virtual void visit_message(LSCMessage&) {}
@@ -588,31 +593,31 @@ public:
     const std::list<ChanPriority>& get_chan_priorities() const { return chan_priorities; }
     std::list<ChanPriority>& get_chan_priorities() { return chan_priorities; }
 
-    /** Sets process priority for process \a name. */
+    /// Sets process priority for process \a name. */
     void set_proc_priority(std::string_view name, int priority);
 
-    /** Returns process priority for process \a name. */
+    /// Returns process priority for process \a name. */
     int get_proc_priority(std::string_view name) const;
 
-    /** Returns true if document has some priority declaration. */
+    /// Returns true if document has some priority declaration. */
     bool has_priority_declaration() const { return has_priorities; }
 
-    /** Returns true if document has some strict invariant. */
+    /// Returns true if document has some strict invariant. */
     bool has_strict_invariants() const { return has_strict_inv; }
 
-    /** Record that the document has some strict invariant. */
+    /// Record that the document has some strict invariant. */
     void record_strict_invariant() { has_strict_inv = true; }
 
-    /** Returns true if the document stops any clock. */
+    /// Returns true if the document stops any clock. */
     bool has_stop_watch() const { return stops_clock; }
 
-    /** Record that the document stops a clock. */
+    /// Record that the document stops a clock. */
     void record_stop_watch() { stops_clock = true; }
 
-    /** Returns true if the document has guards on controllable edges with strict lower bounds. */
+    /// Returns true if the document has guards on controllable edges with strict lower bounds. */
     bool has_strict_lower_bound_on_controllable_edges() const { return has_strict_low_controlled_guards; }
 
-    /** Record that the document has guards on controllable edges with strict lower bounds. */
+    /// Record that the document has guards on controllable edges with strict lower bounds. */
     void record_strict_lower_bound_on_controllable_edges() { has_strict_low_controlled_guards = true; }
 
     void clock_guard_recv_broadcast() { has_guard_on_recv_broadcast = true; }
@@ -699,4 +704,4 @@ private:
 };
 }  // namespace UTAP
 
-#endif /* UTAP_INTERMEDIATE_HH */
+#endif /* UTAP_DOCUMENT_HH */

@@ -1207,7 +1207,7 @@ void TypeChecker::visit_update(LSCUpdate& update)
     }
 }
 
-void TypeChecker::visit_progress(progress_t& progress)
+void TypeChecker::visit_progress(Progress& progress)
 {
     checkExpression(progress.guard);
     checkExpression(progress.measure);
