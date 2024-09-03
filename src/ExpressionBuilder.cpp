@@ -21,7 +21,7 @@
 
 #include "utap/ExpressionBuilder.hpp"
 
-#include "utap/typechecker.hpp"
+#include "utap/TypeChecker.hpp"
 
 #include <sstream>
 #include <string>

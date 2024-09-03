@@ -33,8 +33,8 @@
 #include <variant>
 
 #include <utap/StatementBuilder.hpp>
+#include <utap/TypeChecker.hpp>
 #include <utap/document.hpp>
-#include <utap/typechecker.hpp>
 
 namespace UTAP {
 

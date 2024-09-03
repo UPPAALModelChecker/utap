@@ -19,7 +19,7 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA
 */
-#include "utap/typechecker.hpp"
+#include "utap/TypeChecker.hpp"
 
 #include "utap/DocumentBuilder.hpp"
 #include "utap/ExpressionBuilder.hpp"

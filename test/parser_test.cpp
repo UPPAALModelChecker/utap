@@ -18,7 +18,7 @@
 
 #include "utap/Library.hpp"
 #include "utap/StatementBuilder.hpp"
-#include "utap/typechecker.hpp"
+#include "utap/TypeChecker.hpp"
 #include "utap/utap.hpp"
 
 #include <doctest/doctest.h>
