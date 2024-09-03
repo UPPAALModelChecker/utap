@@ -43,7 +43,7 @@ private:
 
 public:
     void visit_variable(Variable&) override;
-    void visit_instance(instance_t&) override;
+    void visit_instance(Instance&) override;
     void add_symbol(Symbol);
     bool contains(const Symbol&) const;
 };
@@ -76,23 +76,23 @@ public:
 
     explicit TypeChecker(Document& doc, bool refinement = false);
     void visit_doc_after(Document&) override;
-    void visit_template_after(template_t&) override;
-    bool visit_template_before(template_t&) override;
+    void visit_template_after(Template&) override;
+    bool visit_template_before(Template&) override;
     void visit_variable(Variable&) override;
-    void visit_location(location_t&) override;
-    void visit_edge(edge_t&) override;
-    void visit_instance(instance_t&) override;
+    void visit_location(Location&) override;
+    void visit_edge(Edge&) override;
+    void visit_instance(Instance&) override;
     virtual void visitProperty(Expression&);  // FIXME: does not override?!
-    void visit_function(function_t&) override;
+    void visit_function(Function&) override;
     void visit_progress(progress_t&) override;
     virtual void visitHybridClock(Expression&);  // FIXME: does not override?!
-    void visit_io_decl(iodecl_t&) override;
-    void visit_gantt(gantt_t&) override;
-    void visit_process(instance_t&) override;
-    void visit_instance_line(instance_line_t&) override;
-    void visit_message(message_t&) override;
-    void visit_condition(condition_t&) override;
-    void visit_update(update_t&) override;
+    void visit_io_decl(IODecl&) override;
+    void visit_gantt(GanttEntry&) override;
+    void visit_process(Instance&) override;
+    void visit_instance_line(LSCInstanceLine&) override;
+    void visit_message(LSCMessage&) override;
+    void visit_condition(LSCCondition&) override;
+    void visit_update(LSCUpdate&) override;
     int32_t visit_empty_statement(EmptyStatement& stat) override;
     int32_t visit_expr_statement(ExprStatement& stat) override;
     int32_t visit_assert_statement(AssertStatement& stat) override;
@@ -111,10 +111,10 @@ public:
 
 private:
     int syncUsed{0};  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
-    const template_t* temp{nullptr};
+    const Template* temp{nullptr};
     Document& document;
     mutable CompileTimeComputableValues compileTimeComputableValues;
-    function_t* function{nullptr}; /**< Current function being type checked. */
+    Function* function{nullptr}; /**< Current function being type checked. */
     bool refinementWarnings;
 
     void handleError(TypeError error);
@@ -144,7 +144,7 @@ private:
     bool checkBound(const Expression& expr);
     bool checkPredicate(const Expression& expr);
     bool checkProbBound(const Expression& expr);
-    bool checkUntilCond(Constants::kind_t kind, const Expression& expr);
+    bool checkUntilCond(Constants::Kind kind, const Expression& expr);
     bool checkMonitoredExpr(const Expression& expr);
     bool checkPathQuant(const Expression& expr);
     bool checkAggregationOp(const Expression& expr);

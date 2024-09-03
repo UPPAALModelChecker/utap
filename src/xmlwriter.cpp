@@ -150,7 +150,7 @@ void XMLWriter::label(const char* kind, std::string data, int x, int y)
     endElement();
 }
 
-void XMLWriter::name(const location_t& loc, int x, int y)
+void XMLWriter::name(const Location& loc, int x, int y)
 {
     const char* name = loc.uid.get_name().c_str();
     startElement("name");
@@ -160,7 +160,7 @@ void XMLWriter::name(const location_t& loc, int x, int y)
     endElement();
 }
 
-void XMLWriter::writeStateAttributes(const location_t& loc, int x, int y)
+void XMLWriter::writeStateAttributes(const Location& loc, int x, int y)
 {
     int32_t id = loc.nr;
     writeAttribute("id", concat("id", id).c_str());
@@ -169,7 +169,7 @@ void XMLWriter::writeStateAttributes(const location_t& loc, int x, int y)
 }
 
 /* writes a location */
-void XMLWriter::location(const location_t& loc)
+void XMLWriter::location(const Location& loc)
 {
     startElement("location");
     int x = STEP * loc.nr;
@@ -205,16 +205,16 @@ void XMLWriter::location(const location_t& loc)
 }
 
 /* writes the init tag */
-void XMLWriter::init(const template_t& templ)
+void XMLWriter::init(const Template& templ)
 {
-    int id = static_cast<const location_t*>(templ.init.get_data())->nr;
+    int id = static_cast<const Location*>(templ.init.get_data())->nr;
     startElement("init");
     writeAttribute("ref", concat("id", id).c_str());
     endElement();
 }
 
 /* writes the source of the given edge */
-int XMLWriter::source(const edge_t& edge)
+int XMLWriter::source(const Edge& edge)
 {
     int loc = edge.src->nr;
     const auto id = concat("id", loc);
@@ -225,7 +225,7 @@ int XMLWriter::source(const edge_t& edge)
 }
 
 /* writes the target of the given edge */
-int XMLWriter::target(const edge_t& edge)
+int XMLWriter::target(const Edge& edge)
 {
     int loc = edge.dst->nr;
     const auto id = concat("id", loc);
@@ -235,7 +235,7 @@ int XMLWriter::target(const edge_t& edge)
     return loc;
 }
 
-void XMLWriter::selfLoop(const int loc, const double initialAngle, const edge_t& edge)
+void XMLWriter::selfLoop(const int loc, const double initialAngle, const Edge& edge)
 {  // four loops in PI/2
     const auto pi_8 = M_PI / 8;
     auto begin = initialAngle + pi_8 * selfLoops[loc] + 0.1;
@@ -263,7 +263,7 @@ void XMLWriter::nail(int x, int y)
 }
 
 /* writes a transition */
-void XMLWriter::transition(const edge_t& edge)
+void XMLWriter::transition(const Edge& edge)
 {
     startElement("transition");
     // source and target
@@ -282,7 +282,7 @@ void XMLWriter::transition(const edge_t& edge)
     endElement();  // end of the "transition" element
 }
 
-void XMLWriter::labels(int x, int y, const edge_t& edge)
+void XMLWriter::labels(int x, int y, const Edge& edge)
 {
     std::string str;
     if (edge.select.get_size() > 0) {
@@ -304,7 +304,7 @@ void XMLWriter::labels(int x, int y, const edge_t& edge)
 }
 
 /** writes a template */
-void XMLWriter::taTempl(const template_t& templ)
+void XMLWriter::taTempl(const Template& templ)
 {
     if (!templ.is_TA) {
         return;
@@ -336,7 +336,7 @@ void XMLWriter::system_instantiation()
 {  // TODO proc priority
     auto str = std::string{};
     auto proc = std::string{};
-    for (const instance_t& p : doc->get_processes()) {
+    for (const Instance& p : doc->get_processes()) {
         if (p.uid.get_name() != p.templ->uid.get_name())
             str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
         proc += p.uid.get_name() + ", ";
@@ -353,7 +353,7 @@ void XMLWriter::project()
     startElement("nta");
     declaration();  // global declarations
 
-    for (const template_t& t : doc->get_templates())
+    for (const Template& t : doc->get_templates())
         taTempl(t);
     system_instantiation();
     endElement();  // close the "nta" element

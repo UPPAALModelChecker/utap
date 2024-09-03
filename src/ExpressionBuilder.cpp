@@ -299,7 +299,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
 {
     auto e = Expression{};
     auto type = Type{};
-    const auto* instance = static_cast<instance_t*>(nullptr);
+    const auto* instance = static_cast<Instance*>(nullptr);
 
     // n+1'th element from the top is the identifier.
     auto id = fragments[n];
@@ -328,7 +328,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
     case PROCESS_SET:
         if (expr.size() - 1 != id.get_type().size())
             handle_error(TypeException{"$Wrong_number_of_arguments"});
-        instance = static_cast<const instance_t*>(id.get_symbol().get_data());
+        instance = static_cast<const Instance*>(id.get_symbol().get_data());
 
         /* Process set lookups are represented as expressions indexing
          * into an array. To satisfy the type checker, we create a
@@ -399,12 +399,12 @@ void ExpressionBuilder::expr_pre_decrement()
     fragments[0] = Expression::create_unary(PRE_DECREMENT, fragments[0], position, fragments[0].get_type());
 }
 
-void ExpressionBuilder::expr_builtin_function1(kind_t kind)
+void ExpressionBuilder::expr_builtin_function1(Kind kind)
 {
     fragments[0] = Expression::create_unary(kind, fragments[0], position);
 }
 
-void ExpressionBuilder::expr_builtin_function2(kind_t kind)
+void ExpressionBuilder::expr_builtin_function2(Kind kind)
 {
     Expression lvalue = fragments[1];
     Expression rvalue = fragments[0];
@@ -412,7 +412,7 @@ void ExpressionBuilder::expr_builtin_function2(kind_t kind)
     fragments[0] = Expression::create_binary(kind, lvalue, rvalue, position, lvalue.get_type());
 }
 
-void ExpressionBuilder::expr_builtin_function3(kind_t kind)
+void ExpressionBuilder::expr_builtin_function3(Kind kind)
 {
     Expression value1 = fragments[2];
     Expression value2 = fragments[1];
@@ -421,7 +421,7 @@ void ExpressionBuilder::expr_builtin_function3(kind_t kind)
     fragments[0] = Expression::create_ternary(kind, value1, value2, value3, position, value1.get_type());
 }
 
-void ExpressionBuilder::expr_assignment(kind_t op)  // 2 expr
+void ExpressionBuilder::expr_assignment(Kind op)  // 2 expr
 {
     Expression lvalue = fragments[1];
     Expression rvalue = fragments[0];
@@ -429,7 +429,7 @@ void ExpressionBuilder::expr_assignment(kind_t op)  // 2 expr
     fragments.push(Expression::create_binary(op, lvalue, rvalue, position, lvalue.get_type()));
 }
 
-void ExpressionBuilder::expr_unary(kind_t unaryop)  // 1 expr
+void ExpressionBuilder::expr_unary(Kind unaryop)  // 1 expr
 {
     switch (unaryop) {
     case PLUS:
@@ -442,10 +442,10 @@ void ExpressionBuilder::expr_unary(kind_t unaryop)  // 1 expr
     }
 }
 
-void ExpressionBuilder::expr_binary(kind_t binaryop)  // 2 expr
+void ExpressionBuilder::expr_binary(Kind binaryop)  // 2 expr
 {
-    kind_t mitlop = (binaryop == AND ? MITL_CONJ : MITL_DISJ);
-    kind_t op = binaryop;
+    Kind mitlop = (binaryop == AND ? MITL_CONJ : MITL_DISJ);
+    Kind op = binaryop;
     Expression left = fragments[1];
     Expression right = fragments[0];
     if (isMITL(left) || isMITL(right)) {
@@ -464,7 +464,7 @@ void ExpressionBuilder::expr_binary(kind_t binaryop)  // 2 expr
     fragments.push(Expression::create_binary(op, left, right, position));
 }
 
-void ExpressionBuilder::expr_nary(kind_t kind, uint32_t num)
+void ExpressionBuilder::expr_nary(Kind kind, uint32_t num)
 {
     // Pop fields
     auto fields = std::vector<Expression>(num);
@@ -505,7 +505,7 @@ Expression ExpressionBuilder::exprScenario()
     return Expression::create_binary(SCENARIO2, left, right, position);
 }
 
-void ExpressionBuilder::expr_ternary(kind_t ternaryop, bool firstMissing)  // 3 expr
+void ExpressionBuilder::expr_ternary(Kind ternaryop, bool firstMissing)  // 3 expr
 {
     Expression first = firstMissing ? make_constant(1) : fragments[2];
     Expression second = fragments[1];
@@ -560,7 +560,7 @@ void ExpressionBuilder::expr_dot(std::string_view id)
         }
     } else if (type.is_process()) {
         Symbol name = expr.get_symbol();
-        auto* process = static_cast<instance_t*>(name.get_data());
+        auto* process = static_cast<Instance*>(name.get_data());
         auto i = type.find_index_of(id);
         if (!i) {
             handle_error(has_no_such_member_error(id));
@@ -655,7 +655,7 @@ void ExpressionBuilder::expr_sum_end(std::string_view name)
     pop_frame();
 }
 
-void ExpressionBuilder::expr_proba_qualitative(Constants::kind_t pathType, Constants::kind_t comp, double probBound)
+void ExpressionBuilder::expr_proba_qualitative(Constants::Kind pathType, Constants::Kind comp, double probBound)
 {
     auto invert = (comp == LE);
     auto& boundTypeOrBoundedExpr = fragments[3];
@@ -673,7 +673,7 @@ void ExpressionBuilder::expr_proba_qualitative(Constants::kind_t pathType, Const
                                            std::move(args), position));
 }
 
-void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptype, Constants::kind_t goal_type)
+void ExpressionBuilder::expr_optimize_exp(Constants::Kind kind, PRICETYPE ptype, Constants::Kind goal_type)
 {
     if (goal_type != Constants::DIAMOND)
         handle_error(TypeException{"$Wrong_path_quantifier"});
@@ -729,7 +729,7 @@ void ExpressionBuilder::expr_save_strategy(std::string_view strategy_name)
     fragments[0] = Expression::create_binary(SAVE_STRAT, fragments[0], make_constant(strategy_name), position);
 }
 
-void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)
+void ExpressionBuilder::expr_proba_quantitative(Constants::Kind pathType)
 {
     auto& boundTypeOrBoundedExpr = fragments[4];
     auto& bound = fragments[3];
@@ -742,7 +742,7 @@ void ExpressionBuilder::expr_proba_quantitative(Constants::kind_t pathType)
     fragments.push(Expression::create_nary((pathType == BOX ? PROBA_BOX : PROBA_DIAMOND), std::move(args), position));
 }
 
-void ExpressionBuilder::expr_proba_compare(Constants::kind_t pathType1, Constants::kind_t pathType2)
+void ExpressionBuilder::expr_proba_compare(Constants::Kind pathType1, Constants::Kind pathType2)
 {
     auto& boundTypeOrBoundedExpr1 = fragments[7];
     auto& bound1 = fragments[6];
@@ -951,7 +951,7 @@ void ExpressionBuilder::expr_forall_dynamic_begin(std::string_view name, std::st
 {
     push_frame(frames.top().make_sub());
     frames.top().add_symbol(name, Type::create_primitive(PROCESS_VAR, position), position);
-    template_t* templ = document.find_dynamic_template(temp);
+    Template* templ = document.find_dynamic_template(temp);
     if (templ == nullptr)
         throw unknown_dynamic_template_error(temp);
     // dynamicFrames[name]=templ->frame;
@@ -984,7 +984,7 @@ void ExpressionBuilder::expr_exists_dynamic_begin(std::string_view name, std::st
 {
     push_frame(frames.top().make_sub());
     frames.top().add_symbol(name, Type::create_primitive(Constants::PROCESS_VAR, position), position);
-    if (template_t* templ = document.find_dynamic_template(temp); templ == nullptr)
+    if (Template* templ = document.find_dynamic_template(temp); templ == nullptr)
         throw unknown_dynamic_template_error(temp);
     else {
         // dynamicFrames [name]=templ->frame;
@@ -1016,7 +1016,7 @@ void ExpressionBuilder::expr_sum_dynamic_begin(std::string_view name, std::strin
 {
     push_frame(frames.top().make_sub());
     frames.top().add_symbol(name, Type::create_primitive(Constants::PROCESS_VAR, position), position);
-    template_t* templ = document.find_dynamic_template(temp);
+    Template* templ = document.find_dynamic_template(temp);
     if (templ == nullptr)
         throw unknown_dynamic_template_error(temp);
     // dynamicFrames [name]=templ->frame;
@@ -1059,7 +1059,7 @@ void ExpressionBuilder::expr_foreach_dynamic_end(std::string_view name)
     pop_dynamic_frame_of(name);
 }
 
-void ExpressionBuilder::push_dynamic_frame_of(template_t* t, std::string_view name)
+void ExpressionBuilder::push_dynamic_frame_of(Template* t, std::string_view name)
 {
     if (!t->is_defined)
         throw TypeException("Template referenced before used");

@@ -51,7 +51,7 @@ class Symbol;
    types are inner nodes.
 
    All types have a kind - a type for the type. The kind is a
-   value of kind_t. In anticipation of a future homogeneous AST,
+   value of Kind. In anticipation of a future homogeneous AST,
    this kind is defined in the same enumerable as the kind of
    expressions.
 
@@ -98,7 +98,7 @@ private:
     std::shared_ptr<type_data> data;
 
 public:
-    explicit Type(Constants::kind_t kind, const position_t& pos, size_t size);
+    explicit Type(Constants::Kind kind, const position_t& pos, size_t size);
     /// Default constructor creates a null-type.
     Type() = default;
 
@@ -109,7 +109,7 @@ public:
     bool operator!=(const Type&) const;
 
     /// Returns the kind of type object.
-    Constants::kind_t get_kind() const;
+    Constants::Kind get_kind() const;
 
     /**
      * Returns the position of the type in the input file. This
@@ -305,7 +305,7 @@ public:
     /** Returns true if the type has kind \a kind or if type is a
      * prefix, RANGE or REF type and the getChild().is(kind)
      * returns true. */
-    bool is(Constants::kind_t kind) const;
+    bool is(Constants::Kind kind) const;
 
     /** Returns true if two types are compatible for equality operator.
      * Types are compatible if they are structurally
@@ -364,7 +364,7 @@ public:
      * could be anything and it is the responsibility of the
      * caller to make sure that the given kind is a valid prefix.
      */
-    Type create_prefix(Constants::kind_t kind, position_t = position_t()) const;
+    Type create_prefix(Constants::Kind kind, position_t = position_t()) const;
 
     /// Creates a LABEL.
     Type create_label(std::string_view, position_t = position_t()) const;
@@ -373,7 +373,7 @@ public:
     static Type create_range(Type primitive, Expression from, Expression till, position_t = position_t());
 
     /// Creates a primitive type
-    static Type create_primitive(Constants::kind_t, position_t = position_t());
+    static Type create_primitive(Constants::Kind, position_t = position_t());
 
     /// Creates an array type.
     static Type create_array(Type sub, Type size, position_t = position_t());

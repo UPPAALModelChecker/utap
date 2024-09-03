@@ -151,7 +151,7 @@ struct PropInfo
     int no{0};                                    /**< No. in input file, zero-indexed */
     quant_t type{};                               /**< Type of quantification */
     UTAP::Expression intermediate{};              /**< State property as Expression */
-    UTAP::options_t options{};                    /**< Options associated with the query */
+    UTAP::Options options{};                      /**< Options associated with the query */
     StrategyType result_type{};                   /**< which type the property returns*/
     std::vector<PropInfo*> subjections{};         /**< which strategies to evaluate under*/
     PropInfo* imitation = nullptr;                /**< which strategies to sample from*/
@@ -229,7 +229,7 @@ public:
     // parse queries in file
     void parse(FILE* file);
     // parse single query
-    void parse(const char* buf, const std::string& xpath, const UTAP::options_t&);
+    void parse(const char* buf, const std::string& xpath, const UTAP::Options&);
 
     const_iterator begin() const;
     const_iterator end() const;
@@ -261,7 +261,7 @@ public:
     TigaPropertyBuilder(const UTAP::Document& doc): PropertyBuilder{doc} {}
 
     /* Should be implemented by verifier/property.h at some point.
-       virtual void paramProperty(size_t, UTAP::Constants::kind_t);
+       virtual void paramProperty(size_t, UTAP::Constants::Kind);
        virtual void declParamId(std::string_view);
     */
 };

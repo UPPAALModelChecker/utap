@@ -57,19 +57,19 @@ public:                      // was private - needed for derived class SBMLtoXML
     void writeString(const char* content);
     void xmlwriteString(const xmlChar* content);
 
-    void taTempl(const template_t& templ);
-    void location(const location_t& loc);
-    void init(const template_t& templ);
-    void name(const location_t& state, int x, int y);
-    void writeStateAttributes(const location_t& state, int x, int y);
-    void transition(const edge_t& edge);
+    void taTempl(const Template& templ);
+    void location(const Location& loc);
+    void init(const Template& templ);
+    void name(const Location& state, int x, int y);
+    void writeStateAttributes(const Location& state, int x, int y);
+    void transition(const Edge& edge);
     void nail(int x, int y);
 
     void label(const char* kind, std::string data, int x, int y);
-    int source(const edge_t& edge);
-    int target(const edge_t& edge);
-    void selfLoop(int loc, double initialAngle, const edge_t& edge);
-    void labels(int x, int y, const edge_t& edge);
+    int source(const Edge& edge);
+    int target(const Edge& edge);
+    void selfLoop(int loc, double initialAngle, const Edge& edge);
+    void labels(int x, int y, const Edge& edge);
 
     void declaration();
     std::string getChanPriority() const;

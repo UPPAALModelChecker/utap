@@ -22,7 +22,7 @@
 
  /*********************************************************************
   * This bison grammar file contains both grammars for old and new XTA
-  * formats plus entry points for various productions used in the XML
+  * formats plus Entry points for various productions used in the XML
   * parser.
   *
   * There are numerous problems with parser error recognition and
@@ -213,7 +213,7 @@ const char* utap_msg(const char *msg)
 /* Control Synthesis */
 %token T_CONTROL T_CONTROL_T T_SIMULATION
 
-/* Expectation optimization */
+/* ExpectationKind optimization */
 %token T_MINEXP T_MAXEXP T_MINPR T_MAXPR T_STRATEGY T_LOAD_STRAT T_SAVE_STRAT
 
 /* Strategy subjection */
@@ -303,7 +303,7 @@ const char* utap_msg(const char *msg)
     bool flag;
     int number;
     ParserBuilder::TypePrefix prefix;
-    kind_t kind;
+    Kind kind;
     char string[MAXLEN];
     double floating;
 }
@@ -1961,7 +1961,7 @@ static void utap_error(const char* msg)
     ch->handle_error(TypeException{msg});
 }
 
-static void setStartToken(xta_part_t part, bool newxta)
+static void setStartToken(XTAPart part, bool newxta)
 {
     switch (part)
     {
@@ -2033,7 +2033,7 @@ static void setStartToken(xta_part_t part, bool newxta)
 }
 
 static int32_t parse_XTA(ParserBuilder& aParserBuilder,
-                bool newxta, xta_part_t part, std::string_view xpath)
+                bool newxta, XTAPart part, std::string_view xpath)
 {
     // Select syntax
     syntax = newxta ? syntax_t::NEW_GUIDING : syntax_t::OLD_GUIDING;
@@ -2071,7 +2071,7 @@ static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xp
 }
 
 int32_t parse_XTA(const char *str, ParserBuilder& builder,
-             bool newxta, xta_part_t part, std::string_view xpath)
+             bool newxta, XTAPart part, std::string_view xpath)
 {
     utap__scan_string(str);
     int32_t res = parse_XTA(builder, newxta, part, xpath);

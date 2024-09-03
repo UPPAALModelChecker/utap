@@ -62,23 +62,23 @@ struct position_t
  * essence, the whole input file is treated as if it were a single
  * XML element.
  */
-class position_index_t
+class PositionIndex
 {
 public:
-    struct line_t
+    struct Line
     {
         uint32_t position;
         uint32_t offset;
         uint32_t line;
         std::shared_ptr<std::string> path;
-        line_t(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path):
+        Line(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path):
             position(position), offset(offset), line(line), path{std::move(path)}
         {}
     };
 
 private:
-    std::vector<line_t> lines;
-    const line_t& find(uint32_t position, uint32_t first, uint32_t last) const;
+    std::vector<Line> lines;
+    const Line& find(uint32_t position, uint32_t first, uint32_t last) const;
 
 public:
     /** Add information about a line to the container. */
@@ -89,28 +89,28 @@ public:
      * position. The last line in the container is considered to
      * extend to inifinity (until another line is added).
      */
-    const line_t& find(uint32_t position) const;
+    const Line& find(uint32_t position) const;
 
     /** Dump table to stdout. */
     std::ostream& print(std::ostream&) const;
 };
 
-struct error_t
+struct Error
 {
-    using line_t = position_index_t::line_t;
-    line_t start;
-    line_t end;
+    using Line = PositionIndex::Line;
+    Line start;
+    Line end;
     position_t position;
     std::string msg;
     std::string context;
 
-    error_t(line_t start, line_t end, position_t pos, std::string msg, std::string ctx = {}):
+    Error(Line start, Line end, position_t pos, std::string msg, std::string ctx = {}):
         start{std::move(start)}, end{std::move(end)}, position{pos}, msg{std::move(msg)}, context{std::move(ctx)}
     {}
     std::string str() const;
 };
 }  // namespace UTAP
 
-std::ostream& operator<<(std::ostream& out, const UTAP::error_t&);
+std::ostream& operator<<(std::ostream& out, const UTAP::Error&);
 
 #endif

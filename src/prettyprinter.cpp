@@ -201,7 +201,7 @@ void PrettyPrinter::decl_init_list(uint32_t num)
 
 void PrettyPrinter::expr_scenario(std::string_view name) { st.push_back("scenario:" + std::string{name}); }
 
-void PrettyPrinter::expr_nary(kind_t kind, uint32_t num)
+void PrettyPrinter::expr_nary(Kind kind, uint32_t num)
 {
     auto opString = std::string{};
     switch (kind) {
@@ -492,7 +492,7 @@ void PrettyPrinter::proc_select(std::string_view id)
 
 void PrettyPrinter::proc_guard() { guard = st.size(); }
 
-void PrettyPrinter::proc_sync(synchronisation_t type)
+void PrettyPrinter::proc_sync(Synchronisation type)
 {
     switch (type) {
     case SYNC_QUE: st.back() += '?'; break;
@@ -658,7 +658,7 @@ void PrettyPrinter::expr_post_decrement() { st.back() += "--"; }
 
 void PrettyPrinter::expr_pre_decrement() { st.back() = "--" + st.back(); }
 
-static std::string_view get_builtin_fun_name(kind_t kind)
+static std::string_view get_builtin_fun_name(Kind kind)
 {
     // the order must match declarations in include/utap/common.h
     static std::string_view funNames[] = {"abs",
@@ -728,25 +728,25 @@ static std::string_view get_builtin_fun_name(kind_t kind)
     return funNames[kind - ABS_F];
 }
 
-void PrettyPrinter::expr_builtin_function1(kind_t kind)
+void PrettyPrinter::expr_builtin_function1(Kind kind)
 {
     st.back() = std::string(get_builtin_fun_name(kind)) + '(' + st.back() + ')';
 }
 
-void PrettyPrinter::expr_builtin_function2(kind_t kind)
+void PrettyPrinter::expr_builtin_function2(Kind kind)
 {
     auto arg2 = pop_back(st);
     st.back() = std::string(get_builtin_fun_name(kind)) + '(' + st.back() + ',' + arg2 + ')';
 }
 
-void PrettyPrinter::expr_builtin_function3(kind_t kind)
+void PrettyPrinter::expr_builtin_function3(Kind kind)
 {
     auto arg3 = pop_back(st);
     auto arg2 = pop_back(st);
     st.back() = std::string(get_builtin_fun_name(kind)) + '(' + st.back() + ',' + arg2 + ',' + arg3 + ')';
 }
 
-void PrettyPrinter::expr_assignment(kind_t op)
+void PrettyPrinter::expr_assignment(Kind op)
 {
     auto rhs = pop_back(st);
     auto lhs = pop_back(st);
@@ -767,7 +767,7 @@ void PrettyPrinter::expr_assignment(kind_t op)
     }
 }
 
-void PrettyPrinter::expr_unary(kind_t op)
+void PrettyPrinter::expr_unary(Kind op)
 {
     auto exp = pop_back(st);
     st.emplace_back();
@@ -783,7 +783,7 @@ void PrettyPrinter::expr_unary(kind_t op)
     }
 }
 
-void PrettyPrinter::expr_binary(kind_t op)
+void PrettyPrinter::expr_binary(Kind op)
 {
     auto exp2 = pop_back(st);
     auto exp1 = pop_back(st);
@@ -817,7 +817,7 @@ void PrettyPrinter::expr_binary(kind_t op)
     }
 }
 
-void PrettyPrinter::expr_ternary(kind_t op, bool firstMissing)
+void PrettyPrinter::expr_ternary(Kind op, bool firstMissing)
 {
     auto exp3 = pop_back(st);
     auto exp2 = pop_back(st);
@@ -964,7 +964,7 @@ void PrettyPrinter::exprProba2(bool isTimedBound, int type)
     st.push_back(ss.str());
 }
 */
-void PrettyPrinter::expr_proba_quantitative(Constants::kind_t type)
+void PrettyPrinter::expr_proba_quantitative(Constants::Kind type)
 {
     const auto pred2 = pop_back(st);
     const auto pred1 = pop_back(st);

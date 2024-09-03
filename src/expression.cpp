@@ -48,17 +48,17 @@ using namespace Constants;
 struct Expression::expression_data : public std::enable_shared_from_this<Expression::expression_data>
 {
     position_t position;  ///< The position of the expression
-    kind_t kind;          ///< The kind of the node
+    Kind kind;            ///< The kind of the node
 
-    std::variant<int32_t, synchronisation_t, double, StringIndex> value;
+    std::variant<int32_t, Synchronisation, double, StringIndex> value;
 
     Symbol symbol;                ///< The symbol of the node
     Type type;                    ///< The type of the expression
     std::vector<Expression> sub;  ///< Subexpressions
-    expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
+    expression_data(const position_t& p, Kind kind, int32_t value): position{p}, kind{kind}, value{value} {}
 };
 
-Expression::Expression(kind_t kind, const position_t& pos) { data = std::make_shared<expression_data>(pos, kind, 0); }
+Expression::Expression(Kind kind, const position_t& pos) { data = std::make_shared<expression_data>(pos, kind, 0); }
 
 Expression Expression::clone() const
 {
@@ -142,7 +142,7 @@ Expression Expression::subst(const Symbol& symbol, Expression expr) const
     }
 }
 
-kind_t Expression::get_kind() const
+Kind Expression::get_kind() const
 {
     assert(data);
     return data->kind;
@@ -529,11 +529,11 @@ int32_t Expression::get_index() const
     return std::get<int32_t>(data->value);
 }
 
-synchronisation_t Expression::get_sync() const
+Synchronisation Expression::get_sync() const
 {
     assert(data);
     assert(data->kind == SYNC);
-    return std::get<synchronisation_t>(data->value);
+    return std::get<Synchronisation>(data->value);
 }
 
 std::string_view Expression::get_string_value() const
@@ -756,7 +756,7 @@ bool Expression::depends_on(const std::set<Symbol>& symbols) const
 
 int Expression::get_precedence() const { return get_precedence(data->kind); }
 
-int Expression::get_precedence(kind_t kind)
+int Expression::get_precedence(Kind kind)
 {
     switch (kind) {
     case PLUS:
@@ -973,7 +973,7 @@ std::ostream& Expression::print_bound_type(std::ostream& os, const Expression& e
     return os;
 }
 
-static const char* get_builtin_fun_name(kind_t kind)
+static const char* get_builtin_fun_name(Kind kind)
 {
     // the order must match declarations in include/utap/common.h
     static const char* funNames[] = {"abs",
@@ -1104,13 +1104,13 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         os << "Pr[";
         print_bound_type(os, get(0));
         get(1).print(os, old) << "] (";
-        os << (get(2).get_value() == kind_t::BOX ? "[] " : "<> ");
+        os << (get(2).get_value() == Kind::BOX ? "[] " : "<> ");
         get(3).print(os, old) << ") >= ";
 
         os << "Pr[";
         print_bound_type(os, get(4));
         get(5).print(os, old) << "] (";
-        os << (get(6).get_value() == kind_t::BOX ? "[] " : "<> ");
+        os << (get(6).get_value() == Kind::BOX ? "[] " : "<> ");
         get(7).print(os, old) << ")";
         break;
     case BOX: os << "[]"; break;
@@ -1720,7 +1720,7 @@ void Expression::collect_possible_writes(std::set<Symbol>& symbols) const
         if (auto symbol = get(0).get_symbol();
             (symbol.get_type().is_function() || symbol.get_type().is_function_external()) &&
             symbol.get_data() != nullptr) {
-            auto* fun = (function_t*)symbol.get_data();
+            auto* fun = (Function*)symbol.get_data();
             symbols.insert(fun->changes.begin(), fun->changes.end());
 
             // Add arguments to non-constant reference parameters
@@ -1753,7 +1753,7 @@ void Expression::collect_possible_reads(std::set<Symbol>& symbols, bool collectR
         auto symbol = get(0).get_symbol();
         if (const auto& t = symbol.get_type(); t.is_function() || t.is_function_external()) {
             if (auto* d = symbol.get_data(); d != nullptr) {
-                const auto* fn = static_cast<const function_t*>(d);
+                const auto* fn = static_cast<const Function*>(d);
                 symbols.insert(fn->depends.begin(), fn->depends.end());
             }
         }
@@ -1839,7 +1839,7 @@ Expression Expression::create_identifier(const Symbol& symbol, position_t pos)
     return expr;
 }
 
-Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, position_t pos, Type type)
+Expression Expression::create_nary(Kind kind, std::vector<Expression> sub, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->value = static_cast<int32_t>(sub.size());
@@ -1848,7 +1848,7 @@ Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, pos
     return expr;
 }
 
-Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos, Type type)
+Expression Expression::create_unary(Kind kind, Expression sub, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.push_back(std::move(sub));
@@ -1856,7 +1856,7 @@ Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos,
     return expr;
 }
 
-Expression Expression::create_binary(kind_t kind, Expression left, Expression right, position_t pos, Type type)
+Expression Expression::create_binary(Kind kind, Expression left, Expression right, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.reserve(2);
@@ -1866,8 +1866,7 @@ Expression Expression::create_binary(kind_t kind, Expression left, Expression ri
     return expr;
 }
 
-Expression Expression::create_ternary(kind_t kind, Expression e1, Expression e2, Expression e3, position_t pos,
-                                      Type type)
+Expression Expression::create_ternary(Kind kind, Expression e1, Expression e2, Expression e3, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.reserve(3);
@@ -1887,7 +1886,7 @@ Expression Expression::create_dot(Expression e, int32_t idx, position_t pos, Typ
     return expr;
 }
 
-Expression Expression::create_sync(Expression e, synchronisation_t s, position_t pos)
+Expression Expression::create_sync(Expression e, Synchronisation s, position_t pos)
 {
     auto expr = Expression{SYNC, pos};
     expr.data->value = s;

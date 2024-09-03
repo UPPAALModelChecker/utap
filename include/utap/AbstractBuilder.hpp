@@ -121,7 +121,7 @@ public:
     // 1 epxr,1sync,1expr
     void proc_select(std::string_view id) override;
     void proc_guard() override;
-    void proc_sync(Constants::synchronisation_t type) override;  // 1 expr
+    void proc_sync(Constants::Synchronisation type) override;  // 1 expr
     void proc_update() override;
     void proc_prob() override;
     /************************************************************
@@ -132,7 +132,7 @@ public:
     void instance_name_begin(std::string_view name) override;
     void instance_name_end(std::string_view name, uint32_t arguments) override;
     void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
-    void proc_message(Constants::synchronisation_t type) override;  // 1 expr
+    void proc_message(Constants::Synchronisation type) override;  // 1 expr
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                         const bool hot) override;
     void proc_condition() override;  // Label
@@ -181,21 +181,21 @@ public:
     void expr_identifier(std::string_view varName) override;
     void expr_nat(int32_t) override;  // natural number
     void expr_call_begin() override;
-    void expr_call_end(uint32_t n) override;                // n exprs as arguments
-    void expr_array() override;                             // 2 expr
-    void expr_post_increment() override;                    // 1 expr
-    void expr_pre_increment() override;                     // 1 expr
-    void expr_post_decrement() override;                    // 1 expr
-    void expr_pre_decrement() override;                     // 1 expr
-    void expr_assignment(Constants::kind_t op) override;    // 2 expr
-    void expr_unary(Constants::kind_t unaryop) override;    // 1 expr
-    void expr_binary(Constants::kind_t binaryop) override;  // 2 expr
-    void expr_nary(Constants::kind_t, uint32_t num) override;
+    void expr_call_end(uint32_t n) override;              // n exprs as arguments
+    void expr_array() override;                           // 2 expr
+    void expr_post_increment() override;                  // 1 expr
+    void expr_pre_increment() override;                   // 1 expr
+    void expr_post_decrement() override;                  // 1 expr
+    void expr_pre_decrement() override;                   // 1 expr
+    void expr_assignment(Constants::Kind op) override;    // 2 expr
+    void expr_unary(Constants::Kind unaryop) override;    // 1 expr
+    void expr_binary(Constants::Kind binaryop) override;  // 2 expr
+    void expr_nary(Constants::Kind, uint32_t num) override;
     void expr_scenario(std::string_view name) override;
-    void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;  // 3 expr
-    void expr_inline_if() override;                                              // 3 expr
-    void expr_comma() override;                                                  // 2 expr
-    void expr_dot(std::string_view) override;                                    // 1 expr
+    void expr_ternary(Constants::Kind ternaryop, bool firstMissing) override;  // 3 expr
+    void expr_inline_if() override;                                            // 3 expr
+    void expr_comma() override;                                                // 2 expr
+    void expr_dot(std::string_view) override;                                  // 1 expr
     void expr_deadlock() override;
     void expr_forall_begin(std::string_view name) override;
     void expr_forall_end(std::string_view name) override;
@@ -204,15 +204,15 @@ public:
     void expr_sum_begin(std::string_view name) override;
     void expr_sum_end(std::string_view name) override;
 
-    void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) override;
-    void expr_proba_quantitative(Constants::kind_t) override;
-    void expr_proba_compare(Constants::kind_t, Constants::kind_t) override;
+    void expr_proba_qualitative(Constants::Kind, Constants::Kind, double) override;
+    void expr_proba_quantitative(Constants::Kind) override;
+    void expr_proba_compare(Constants::Kind, Constants::Kind) override;
     void expr_proba_expected(std::string_view identifier) override;
     void expr_simulate(int no_of_exprs, bool = false, int = 0) override;
-    void expr_builtin_function1(Constants::kind_t) override;
-    void expr_builtin_function2(Constants::kind_t) override;
-    void expr_builtin_function3(Constants::kind_t) override;
-    void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+    void expr_builtin_function1(Constants::Kind) override;
+    void expr_builtin_function2(Constants::Kind) override;
+    void expr_builtin_function3(Constants::Kind) override;
+    void expr_optimize_exp(Constants::Kind, PRICETYPE, Constants::Kind) override;
     void expr_load_strategy() override;
     void expr_save_strategy(std::string_view strategy_name) override;
 

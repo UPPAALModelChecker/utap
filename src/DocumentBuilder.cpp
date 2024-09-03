@@ -53,7 +53,7 @@ bool DocumentBuilder::addFunction(Type type, std::string_view name, position_t p
     return getCurrentDeclarationBlock()->add_function(type, name, pos, currentFun);
 }
 
-declarations_t* DocumentBuilder::getCurrentDeclarationBlock()
+Declarations* DocumentBuilder::getCurrentDeclarationBlock()
 {
     return (currentTemplate != nullptr ? currentTemplate : &document.get_globals());
 }
@@ -81,7 +81,7 @@ void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, Frame& frame, 
 
 void DocumentBuilder::gantt_decl_begin(std::string_view name)
 {
-    currentGantt = std::make_unique<gantt_t>(name);
+    currentGantt = std::make_unique<GanttEntry>(name);
     push_frame(frames.top().make_sub());
 }
 
@@ -241,7 +241,7 @@ void DocumentBuilder::proc_guard()
     currentEdge->guard = fragments.pop();
 }
 
-void DocumentBuilder::proc_sync(synchronisation_t type)
+void DocumentBuilder::proc_sync(Synchronisation type)
 {
     if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
@@ -304,7 +304,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
      */
     auto id = Symbol{};
     if (resolve(templ_name, id) && (id.get_type().get_kind() == INSTANCE || id.get_type().get_kind() == LSC_INSTANCE)) {
-        auto* old_instance = static_cast<instance_t*>(id.get_data());
+        auto* old_instance = static_cast<Instance*>(id.get_data());
         // Check number of arguments. If too many arguments, pop the rest.
         auto expected = id.get_type().size();
         if (arguments < expected) {
@@ -318,9 +318,9 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
                 exprs[arguments] = fragments.pop();
             arguments = 0;
             // Create template composition.
-            instance_t& new_instance = (id.get_type().get_kind() == INSTANCE)
-                                           ? document.add_instance(name, *old_instance, params, exprs, position)
-                                           : document.add_LSC_instance(name, *old_instance, params, exprs, position);
+            Instance& new_instance = (id.get_type().get_kind() == INSTANCE)
+                                         ? document.add_instance(name, *old_instance, params, exprs, position)
+                                         : document.add_LSC_instance(name, *old_instance, params, exprs, position);
 
             /* Propagate information about restricted variables. The
              * variables used in arguments to restricted parameters of
@@ -353,7 +353,7 @@ void DocumentBuilder::process(std::string_view name)
     if (type.size() > 0) {
         // FIXME: Check type of unbound parameters
     }
-    auto& instance = *static_cast<instance_t*>(symbol.get_data());
+    auto& instance = *static_cast<Instance*>(symbol.get_data());
     instance.templ->is_instantiated = true;
     document.add_process(instance, position);
     proc_priority(name);
@@ -412,7 +412,7 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
             handle_error(not_a_template_error(templName));
     } else {
         if (resolve(name, uid) && (uid.get_type().get_kind() == INSTANCE)) {
-            const auto* t = static_cast<template_t*>(uid.get_data());
+            const auto* t = static_cast<Template*>(uid.get_data());
             if (t->parameters.get_size() > 0) {
                 handle_error(TypeException{"$Wrong_number_of_arguments_in_instance_line_name"});
             }
@@ -441,7 +441,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
 
     // Lookup symbol. In case of failure, instance_name_begin already reported the problem.
     if (auto id = Symbol{}; resolve(name, id) && id.get_type().get_kind() == INSTANCE) {
-        auto* old_instance = static_cast<instance_t*>(id.get_data());
+        auto* old_instance = static_cast<Instance*>(id.get_data());
 
         /* Check number of arguments. If too many arguments, pop the
          * rest.
@@ -495,7 +495,7 @@ void DocumentBuilder::proc_message(std::string_view from, std::string_view to, c
     }
 }
 
-void DocumentBuilder::proc_message(synchronisation_t type)  // Label
+void DocumentBuilder::proc_message(Synchronisation type)  // Label
 {
     if (currentMessage != nullptr)
         currentMessage->label = Expression::create_sync(fragments[0], type, position);
@@ -582,7 +582,7 @@ void DocumentBuilder::decl_dynamic_template(std::string_view name)
     params = Frame::make();  // reset params
 }
 
-void DocumentBuilder::query_begin() { currentQuery = std::make_unique<query_t>(); }
+void DocumentBuilder::query_begin() { currentQuery = std::make_unique<Query>(); }
 void DocumentBuilder::query_formula(std::string_view formula, std::string_view location)
 {
     currentQuery->formula = formula;
@@ -596,7 +596,7 @@ void DocumentBuilder::query_options(std::string_view key, std::string_view value
     currentQuery->options.emplace_back(std::string{key}, std::string{value});
 }
 
-void DocumentBuilder::expectation_begin() { currentExpectation = std::make_unique<expectation_t>(); }
+void DocumentBuilder::expectation_begin() { currentExpectation = std::make_unique<Expectation>(); }
 
 void DocumentBuilder::expectation_end()
 {
@@ -606,30 +606,30 @@ void DocumentBuilder::expectation_end()
 
 void DocumentBuilder::expectation_value(std::string_view res, std::string_view type, std::string_view value)
 {
-    auto _type = expectation_type{};
+    auto _type = ExpectationKind{};
     if (type.empty()) {
-        _type = expectation_type::_ErrorValue;
+        _type = ExpectationKind::_ErrorValue;
     } else if (type == "probability"sv) {
-        _type = expectation_type::Probability;
+        _type = ExpectationKind::Probability;
     } else if (type == "symbolic"sv) {
-        _type = expectation_type::Symbolic;
+        _type = ExpectationKind::Symbolic;
     } else if (type == "value"sv) {
-        _type = expectation_type::NumericValue;
+        _type = ExpectationKind::NumericValue;
     } else {
-        _type = expectation_type::_ErrorValue;
+        _type = ExpectationKind::_ErrorValue;
     }
     if (res.empty()) {
-        currentExpectation->status = query_status_t::Unknown;
+        currentExpectation->status = QueryStatus::Unknown;
     } else if (res == "success"sv) {
-        currentExpectation->status = query_status_t::True;
+        currentExpectation->status = QueryStatus::True;
     } else if (res == "failure"sv) {
-        currentExpectation->status = query_status_t::False;
+        currentExpectation->status = QueryStatus::False;
     } else if (res == "maybe_true"sv) {
-        currentExpectation->status = query_status_t::MaybeTrue;
+        currentExpectation->status = QueryStatus::MaybeTrue;
     } else if (res == "maybe_false"sv) {
-        currentExpectation->status = query_status_t::MaybeFalse;
+        currentExpectation->status = QueryStatus::MaybeFalse;
     } else {
-        currentExpectation->status = query_status_t::Unknown;
+        currentExpectation->status = QueryStatus::Unknown;
     }
     currentExpectation->value_type = _type;
     currentExpectation->value = value;

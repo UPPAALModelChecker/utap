@@ -135,7 +135,7 @@ TEST_CASE("SMC bounds in queries")
 
 TEST_CASE("Parsing implicit goals for learning queries")
 {
-    using Constants::kind_t;
+    using Constants::Kind;
     auto doc = read_document("simpleSystem.xml");
     auto builder = QueryBuilder(doc);
 
@@ -206,7 +206,7 @@ TEST_CASE("Multiple functions despite early failure variable decl")
 
     auto doc = f.parse();
     CHECK(doc.get_globals().functions.size() == 2);
-    for (const function_t& func : doc.get_globals().functions)
+    for (const Function& func : doc.get_globals().functions)
         CHECK(func.body != nullptr);
 }
 
@@ -217,7 +217,7 @@ TEST_CASE("Multiple functions despite early failure type def")
 
     auto doc = f.parse();
     CHECK(doc.get_globals().functions.size() == 2);
-    for (const function_t& func : doc.get_globals().functions)
+    for (const Function& func : doc.get_globals().functions)
         CHECK(func.body != nullptr);
 }
 

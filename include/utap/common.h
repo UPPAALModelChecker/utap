@@ -25,7 +25,7 @@
 
 namespace UTAP {
 namespace Constants {
-enum kind_t {
+enum Kind {
     PLUS,
     MINUS,
     MULT,
@@ -295,11 +295,11 @@ enum kind_t {
 /**********************************************************
  * Synchronisations:
  */
-enum synchronisation_t { SYNC_QUE, SYNC_BANG, SYNC_CSP };
+enum Synchronisation { SYNC_QUE, SYNC_BANG, SYNC_CSP };
 }  // namespace Constants
 
 /** Type for specifying which XTA part to parse (syntax switch) */
-enum xta_part_t {
+enum XTAPart {
     S_XTA,  // entire document
     S_DECLARATION,
     S_LOCAL_DECL,

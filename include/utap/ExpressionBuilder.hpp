@@ -124,7 +124,7 @@ protected:
     Document& document;
 
     /** The template currently being parsed. */
-    template_t* currentTemplate{nullptr};
+    Template* currentTemplate{nullptr};
 
     /** Counter for creating unique scalarset names. */
     int32_t scalar_count;
@@ -199,13 +199,13 @@ public:
     void expr_pre_increment() override;
     void expr_post_decrement() override;
     void expr_pre_decrement() override;
-    void expr_assignment(Constants::kind_t op) override;
-    void expr_unary(Constants::kind_t unaryop) override;
-    void expr_binary(Constants::kind_t binaryop) override;
-    void expr_nary(Constants::kind_t op, uint32_t num) override;
+    void expr_assignment(Constants::Kind op) override;
+    void expr_unary(Constants::Kind unaryop) override;
+    void expr_binary(Constants::Kind binaryop) override;
+    void expr_nary(Constants::Kind op, uint32_t num) override;
     void expr_scenario(std::string_view name) override;
     Expression exprScenario();
-    void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;
+    void expr_ternary(Constants::Kind ternaryop, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;
     void expr_dot(std::string_view) override;
@@ -217,14 +217,14 @@ public:
     void expr_sum_begin(std::string_view name) override;
     void expr_sum_end(std::string_view name) override;
 
-    void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) override;
-    void expr_proba_quantitative(Constants::kind_t) override;
-    void expr_proba_compare(Constants::kind_t, Constants::kind_t) override;
+    void expr_proba_qualitative(Constants::Kind, Constants::Kind, double) override;
+    void expr_proba_quantitative(Constants::Kind) override;
+    void expr_proba_compare(Constants::Kind, Constants::Kind) override;
     void expr_proba_expected(std::string_view) override;
-    void expr_builtin_function1(Constants::kind_t) override;
-    void expr_builtin_function2(Constants::kind_t) override;
-    void expr_builtin_function3(Constants::kind_t) override;
-    void expr_optimize_exp(Constants::kind_t, PRICETYPE, Constants::kind_t) override;
+    void expr_builtin_function1(Constants::Kind) override;
+    void expr_builtin_function2(Constants::Kind) override;
+    void expr_builtin_function3(Constants::Kind) override;
+    void expr_optimize_exp(Constants::Kind, PRICETYPE, Constants::Kind) override;
     void expr_save_strategy(std::string_view strategy_name) override;
     void expr_load_strategy() override;
 
@@ -251,7 +251,7 @@ public:
     void expr_sum_dynamic_end(std::string_view name) override;
     void expr_foreach_dynamic_begin(std::string_view, std::string_view) override;
     void expr_foreach_dynamic_end(std::string_view name) override;
-    void push_dynamic_frame_of(template_t* t, std::string_view name);  // no override
+    void push_dynamic_frame_of(Template* t, std::string_view name);  // no override
     void pop_dynamic_frame_of(std::string_view name);
 };
 }  // namespace UTAP

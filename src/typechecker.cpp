@@ -567,7 +567,7 @@ void CompileTimeComputableValues::visit_variable(Variable& variable)
     }
 }
 
-void CompileTimeComputableValues::visit_instance(instance_t& temp)
+void CompileTimeComputableValues::visit_instance(Instance& temp)
 {
     for (const auto& param : temp.parameters) {
         const Type& type = param.get_type();
@@ -823,7 +823,7 @@ void TypeChecker::checkType(const Type& type, bool initialisable, bool inStruct)
 
 void TypeChecker::visit_doc_after(Document& doc)
 {
-    for (chan_priority_t& i : doc.get_chan_priorities()) {
+    for (ChanPriority& i : doc.get_chan_priorities()) {
         const bool i_default = (i.head == Expression());
         if (!i_default && checkExpression(i.head)) {
             Expression expr = i.head;
@@ -847,7 +847,7 @@ void TypeChecker::visit_doc_after(Document& doc)
             }
         }
 
-        for (chan_priority_t::entry& j : i.tail) {
+        for (ChanPriority::Entry& j : i.tail) {
             const bool j_default = (j.second == Expression());
             if (!j_default && checkExpression(j.second)) {
                 Expression expr = j.second;
@@ -884,7 +884,7 @@ void TypeChecker::visitHybridClock(Expression& e)
     }
 }
 
-void TypeChecker::visit_io_decl(iodecl_t& iodecl)
+void TypeChecker::visit_io_decl(IODecl& iodecl)
 {
     for (auto& e : iodecl.param) {
         if (checkExpression(e)) {
@@ -961,7 +961,7 @@ void TypeChecker::visit_io_decl(iodecl_t& iodecl)
     }
 }
 
-void TypeChecker::visit_process(instance_t& process)
+void TypeChecker::visit_process(Instance& process)
 {
     for (uint32_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
@@ -993,7 +993,7 @@ void TypeChecker::visit_variable(Variable& variable)
     }
 }
 
-void TypeChecker::visit_location(location_t& loc)
+void TypeChecker::visit_location(Location& loc)
 {
     DocumentVisitor::visit_location(loc);
 
@@ -1033,7 +1033,7 @@ void TypeChecker::visit_location(location_t& loc)
         handleWarning(deprecated_reset(loc.uid));
 }
 
-void TypeChecker::visit_edge(edge_t& edge)
+void TypeChecker::visit_edge(Edge& edge)
 {
     DocumentVisitor::visit_edge(edge);
 
@@ -1171,9 +1171,9 @@ void TypeChecker::visit_edge(edge_t& edge)
     }
 }
 
-void TypeChecker::visit_instance_line(instance_line_t& instance) { DocumentVisitor::visit_instance_line(instance); }
+void TypeChecker::visit_instance_line(LSCInstanceLine& instance) { DocumentVisitor::visit_instance_line(instance); }
 
-void TypeChecker::visit_message(message_t& message)
+void TypeChecker::visit_message(LSCMessage& message)
 {
     DocumentVisitor::visit_message(message);
 
@@ -1187,7 +1187,7 @@ void TypeChecker::visit_message(message_t& message)
         }
     }
 }
-void TypeChecker::visit_condition(condition_t& condition)
+void TypeChecker::visit_condition(LSCCondition& condition)
 {
     DocumentVisitor::visit_condition(condition);
     if (!condition.label.empty()) {
@@ -1199,7 +1199,7 @@ void TypeChecker::visit_condition(condition_t& condition)
         }
     }
 }
-void TypeChecker::visit_update(update_t& update)
+void TypeChecker::visit_update(LSCUpdate& update)
 {
     DocumentVisitor::visit_update(update);
     if (!update.label.empty()) {
@@ -1217,7 +1217,7 @@ void TypeChecker::visit_progress(progress_t& progress)
         handleError(progress_measure_must_evaluate_to_integer(progress.measure));
 }
 
-void TypeChecker::visit_gantt(gantt_t& gc)
+void TypeChecker::visit_gantt(GanttEntry& gc)
 {
     for (auto& param : gc.parameters)
         checkType(param.get_type());
@@ -1233,7 +1233,7 @@ void TypeChecker::visit_gantt(gantt_t& gc)
     }
 }
 
-void TypeChecker::visit_instance(instance_t& instance)
+void TypeChecker::visit_instance(Instance& instance)
 {
     DocumentVisitor::visit_instance(instance);
 
@@ -1422,7 +1422,7 @@ void TypeChecker::checkObservationConstraints(const Expression& expr)
     }
 }
 
-void TypeChecker::visit_function(function_t& fn)
+void TypeChecker::visit_function(Function& fn)
 {
     DocumentVisitor::visit_function(fn);
     /* Check that the return type is consistent and is a valid return
@@ -1841,7 +1841,7 @@ bool TypeChecker::checkExpression(Expression& expr)
         break;
 
     case SPAWN: {
-        template_t* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
+        Template* temp = document.find_dynamic_template(expr[0].get_symbol().get_name());
         if (temp == nullptr) {
             handleError(cannot_spawn_a_non_dynamic_template(expr));
             return false;
@@ -2709,14 +2709,14 @@ Expression parseExpression(const char* str, Document& doc, bool newxtr)
     return expr;
 }
 
-bool TypeChecker::visit_template_before(template_t& t)
+bool TypeChecker::visit_template_before(Template& t)
 {
     assert(!temp);
     temp = &t;
     return true;
 }
 
-void TypeChecker::visit_template_after(template_t& t)
+void TypeChecker::visit_template_after(Template& t)
 {
     assert(&t == temp);
     temp = nullptr;
@@ -2795,7 +2795,7 @@ bool TypeChecker::checkProbBound(const Expression& probBound)
     return true;
 }
 
-bool TypeChecker::checkUntilCond(kind_t kind, const Expression& untilCond)
+bool TypeChecker::checkUntilCond(Kind kind, const Expression& untilCond)
 {
     bool ok = true;
     if (kind == PROBA_DIAMOND && !is_integral(untilCond) && !is_constraint(untilCond)) {

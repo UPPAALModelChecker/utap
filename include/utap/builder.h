@@ -251,10 +251,10 @@ public:
     virtual void proc_edge_begin(std::string_view from, std::string_view to, const bool control,
                                  std::string_view actname = "") = 0;
     virtual void proc_edge_end(std::string_view from, std::string_view to) = 0;
-    virtual void proc_select(std::string_view id) = 0;              // 1 expr
-    virtual void proc_guard() = 0;                                  // 1 expr
-    virtual void proc_sync(Constants::synchronisation_t type) = 0;  // 1 expr
-    virtual void proc_update() = 0;                                 // 1 expr
+    virtual void proc_select(std::string_view id) = 0;            // 1 expr
+    virtual void proc_guard() = 0;                                // 1 expr
+    virtual void proc_sync(Constants::Synchronisation type) = 0;  // 1 expr
+    virtual void proc_update() = 0;                               // 1 expr
     virtual void proc_prob() = 0;
     virtual void proc_branchpoint(std::string_view name) = 0;
     /************************************************************
@@ -265,7 +265,7 @@ public:
     virtual void instance_name_begin(std::string_view name) = 0;
     virtual void instance_name_end(std::string_view name, uint32_t arguments) = 0;
     virtual void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) = 0;
-    virtual void proc_message(Constants::synchronisation_t type) = 0;
+    virtual void proc_message(Constants::Synchronisation type) = 0;
     virtual void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                                 const bool hot) = 0;
     virtual void proc_condition() = 0;  // 1 expr
@@ -324,18 +324,18 @@ public:
     virtual void expr_location() = 0;
     virtual void expr_nat(int32_t) = 0;  // natural number
     virtual void expr_call_begin() = 0;
-    virtual void expr_call_end(uint32_t n) = 0;                   // n exprs as arguments
-    virtual void expr_array() = 0;                                // 2 expr
-    virtual void expr_post_increment() = 0;                       // 1 expr
-    virtual void expr_pre_increment() = 0;                        // 1 expr
-    virtual void expr_post_decrement() = 0;                       // 1 expr
-    virtual void expr_pre_decrement() = 0;                        // 1 expr
-    virtual void expr_assignment(Constants::kind_t op) = 0;       // 2 expr
-    virtual void expr_unary(Constants::kind_t unaryop) = 0;       // 1 expr
-    virtual void expr_binary(Constants::kind_t binaryop) = 0;     // 2 expr
-    virtual void expr_nary(Constants::kind_t, uint32_t num) = 0;  // n expr
-    virtual void expr_scenario(std::string_view name) = 0;        // LSC
-    virtual void expr_ternary(Constants::kind_t ternaryop,
+    virtual void expr_call_end(uint32_t n) = 0;                 // n exprs as arguments
+    virtual void expr_array() = 0;                              // 2 expr
+    virtual void expr_post_increment() = 0;                     // 1 expr
+    virtual void expr_pre_increment() = 0;                      // 1 expr
+    virtual void expr_post_decrement() = 0;                     // 1 expr
+    virtual void expr_pre_decrement() = 0;                      // 1 expr
+    virtual void expr_assignment(Constants::Kind op) = 0;       // 2 expr
+    virtual void expr_unary(Constants::Kind unaryop) = 0;       // 1 expr
+    virtual void expr_binary(Constants::Kind binaryop) = 0;     // 2 expr
+    virtual void expr_nary(Constants::Kind, uint32_t num) = 0;  // n expr
+    virtual void expr_scenario(std::string_view name) = 0;      // LSC
+    virtual void expr_ternary(Constants::Kind ternaryop,
                               bool firstMissing = false) = 0;  // 3 expr
     virtual void expr_inline_if() = 0;                         // 3 expr
     virtual void expr_comma() = 0;                             // 2 expr
@@ -349,19 +349,19 @@ public:
     virtual void expr_sum_end(std::string_view name) = 0;
 
     // Extensions for SMC:
-    virtual void expr_proba_qualitative(Constants::kind_t, Constants::kind_t, double) = 0;  ///< estimate Pr
-    virtual void expr_proba_quantitative(Constants::kind_t) = 0;                            ///< evaluate if Pr >= value
-    virtual void expr_proba_compare(Constants::kind_t, Constants::kind_t) = 0;              ///< compare two Prs
-    virtual void expr_proba_expected(std::string_view identifier) = 0;                      ///< estimate mean value
+    virtual void expr_proba_qualitative(Constants::Kind, Constants::Kind, double) = 0;  ///< estimate Pr
+    virtual void expr_proba_quantitative(Constants::Kind) = 0;                          ///< evaluate if Pr >= value
+    virtual void expr_proba_compare(Constants::Kind, Constants::Kind) = 0;              ///< compare two Prs
+    virtual void expr_proba_expected(std::string_view identifier) = 0;                  ///< estimate mean value
     virtual void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) = 0;
-    virtual void expr_builtin_function1(Constants::kind_t) = 0;
-    virtual void expr_builtin_function2(Constants::kind_t) = 0;
-    virtual void expr_builtin_function3(Constants::kind_t) = 0;
+    virtual void expr_builtin_function1(Constants::Kind) = 0;
+    virtual void expr_builtin_function2(Constants::Kind) = 0;
+    virtual void expr_builtin_function3(Constants::Kind) = 0;
 
     // Extensions for learning:
     enum PRICETYPE { TIMEPRICE, EXPRPRICE, PROBAPRICE };
-    virtual void expr_optimize_exp(Constants::kind_t, PRICETYPE,
-                                   Constants::kind_t) = 0;  ///< minimize/maximize expected value query
+    virtual void expr_optimize_exp(Constants::Kind, PRICETYPE,
+                                   Constants::Kind) = 0;  ///< minimize/maximize expected value query
     virtual void expr_load_strategy() = 0;
     virtual void expr_save_strategy(std::string_view strategy_name) = 0;
 
@@ -481,7 +481,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta, UTAP::xta_part_t part, std::string_view xpath);
+int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta, UTAP::XTAPart part, std::string_view xpath);
 
 /**
  * Parse a buffer in the XML format, reporting the document to the given

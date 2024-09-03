@@ -38,7 +38,7 @@ namespace UTAP {
     A reference to an expression.
 
     An expression is a tree of operations and is identified by the
-    root of the tree. There are many kinds of operations (see kind_t),
+    root of the tree. There are many kinds of operations (see Kind),
     some are leafs in the tree (identifers, constants), some are
     unary operations (unary minus, negation), some are binary (plus,
     minus, etc.), and some are n-ary (lists, function calls).
@@ -72,7 +72,7 @@ class Expression
 private:
     struct expression_data;
     std::shared_ptr<expression_data> data = nullptr;  // PIMPL pattern with cheap/shallow copying
-    Expression(Constants::kind_t, const position_t&);
+    Expression(Constants::Kind, const position_t&);
 
 public:
     /// Default constructor creates an empty expression.
@@ -98,7 +98,7 @@ public:
     Expression clone_deeper(const Frame& frame, const Frame& select = {}) const;
 
     /// Returns the kind of the expression.
-    Constants::kind_t get_kind() const;
+    Constants::Kind get_kind() const;
 
     /// Returns the number of subexpression.
     uint32_t get_size() const;
@@ -134,7 +134,7 @@ public:
     bool empty() const;
 
     /// Returns the synchronisation type of SYNC operations.
-    Constants::synchronisation_t get_sync() const;
+    Constants::Synchronisation get_sync() const;
 
     /// Outputs a textual representation of the expression.
     std::ostream& print(std::ostream& os, bool old = false) const;
@@ -214,7 +214,7 @@ public:
     Expression subst(const Symbol&, Expression) const;
 
     /// Precedence of expression type, higher precedence goes before low precedence
-    static int get_precedence(Constants::kind_t);
+    static int get_precedence(Constants::Kind);
 
     /// Create a CONSTANT expression.
     static Expression create_constant(int32_t, position_t = {});
@@ -228,22 +228,22 @@ public:
     static Expression create_identifier(const Symbol&, position_t = {});
 
     /// Create a unary expression
-    static Expression create_unary(Constants::kind_t, Expression, position_t = {}, Type = {});
+    static Expression create_unary(Constants::Kind, Expression, position_t = {}, Type = {});
 
     /** Create a binary expression */
-    static Expression create_binary(Constants::kind_t, Expression, Expression, position_t = {}, Type = {});
+    static Expression create_binary(Constants::Kind, Expression, Expression, position_t = {}, Type = {});
 
     /** Create a ternary expression */
-    static Expression create_ternary(Constants::kind_t, Expression, Expression, Expression, position_t = {}, Type = {});
+    static Expression create_ternary(Constants::Kind, Expression, Expression, Expression, position_t = {}, Type = {});
 
     /** Create an n-ary expression */
-    static Expression create_nary(Constants::kind_t, std::vector<Expression> sub, position_t = {}, Type = {});
+    static Expression create_nary(Constants::Kind, std::vector<Expression> sub, position_t = {}, Type = {});
 
     /** Create a DOT expression */
     static Expression create_dot(Expression, int32_t index, position_t = {}, Type = {});
 
     /** Create a SYNC expression */
-    static Expression create_sync(Expression, Constants::synchronisation_t, position_t = {});
+    static Expression create_sync(Expression, Constants::Synchronisation, position_t = {});
 
     /** Create a DEADLOCK expression */
     static Expression create_deadlock(position_t = {});

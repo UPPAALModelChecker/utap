@@ -41,7 +41,7 @@ FeatureChecker::FeatureChecker(Document& document)
     }
 }
 
-bool FeatureChecker::visit_template_before(template_t& templ)
+bool FeatureChecker::visit_template_before(Template& templ)
 {
     // Only check features if template is actually used in the system
     return templ.is_instantiated;
@@ -53,7 +53,7 @@ void FeatureChecker::visit_variable(Variable& var)
         supported_methods.symbolic = false;
 }
 
-void FeatureChecker::visit_edge(edge_t& edge)
+void FeatureChecker::visit_edge(Edge& edge)
 {
     visit_assignment(edge.assign);
     visit_guard(edge.guard);
@@ -88,7 +88,7 @@ void FeatureChecker::visit_assignment(Expression& ass)
     }
 }
 
-void FeatureChecker::visit_location(location_t& location)
+void FeatureChecker::visit_location(Location& location)
 {
     const auto& invariant = location.invariant;
     if (invariant.empty())

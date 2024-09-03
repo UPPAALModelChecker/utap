@@ -44,7 +44,7 @@ protected:
     Frame params{Frame::make()};
 
     /** The function currently being parsed. */
-    function_t* currentFun{nullptr};
+    Function* currentFun{nullptr};
 
     /** Stack of nested statement blocks. */
     std::vector<std::unique_ptr<BlockStatement>> blocks;

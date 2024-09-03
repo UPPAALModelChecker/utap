@@ -174,7 +174,7 @@ protected:
 /// Collection of statements with its own declarations and frame.
 class BlockStatement : public CompositeStatement
 {
-    declarations_t decl;
+    Declarations decl;
 
 public:
     explicit BlockStatement(Frame frame) { decl.frame = std::move(frame); }

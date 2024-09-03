@@ -41,7 +41,7 @@ using namespace UTAP;
 using namespace Constants;
 
 template <typename Item>
-std::string stringify_t<Item>::str() const
+std::string Stringify<Item>::str() const
 {
     auto os = std::ostringstream{};
     static_cast<const Item*>(this)->print(os);
@@ -49,7 +49,7 @@ std::string stringify_t<Item>::str() const
 }
 
 template <typename Item>
-std::string stringify_indent_t<Item>::str(const std::string& indent) const
+std::string StringifyIndent<Item>::str(const std::string& indent) const
 {
     auto os = std::ostringstream{};
     static_cast<const Item*>(this)->print(os, indent);
@@ -57,17 +57,17 @@ std::string stringify_indent_t<Item>::str(const std::string& indent) const
 }
 
 namespace UTAP {  // Explicit instantiations to generate implementation
-template struct stringify_t<chan_priority_t>;
-template struct stringify_t<Variable>;
-template struct stringify_t<location_t>;
-template struct stringify_t<edge_t>;
-template struct stringify_t<function_t>;
-template struct stringify_t<declarations_t>;
-template struct stringify_t<simregion_t>;
-template struct stringify_t<cut_t>;
+template struct Stringify<ChanPriority>;
+template struct Stringify<Variable>;
+template struct Stringify<Location>;
+template struct Stringify<Edge>;
+template struct Stringify<Function>;
+template struct Stringify<Declarations>;
+template struct Stringify<LSCSimRegion>;
+template struct Stringify<LSCCut>;
 }  // namespace UTAP
 
-std::ostream& location_t::print(std::ostream& os) const
+std::ostream& Location::print(std::ostream& os) const
 {
     os << "LOCATION (" << uid.get_name() << ", ";
     invariant.print(os) << ", ";
@@ -75,7 +75,7 @@ std::ostream& location_t::print(std::ostream& os) const
     return os;
 }
 
-std::ostream& edge_t::print(std::ostream& os) const
+std::ostream& Edge::print(std::ostream& os) const
 {
     os << "EDGE (";
     src->print(os) << ' ';
@@ -87,7 +87,7 @@ std::ostream& edge_t::print(std::ostream& os) const
     return os;
 }
 
-std::ostream& function_t::print(std::ostream& os) const
+std::ostream& Function::print(std::ostream& os) const
 {
     auto type = uid.get_type();                                         // the function type/signature
     type.get(0).print(os) << ' '                                        // return type
@@ -119,7 +119,7 @@ std::ostream& Variable::print(std::ostream& os) const
     return os;
 }
 
-bool declarations_t::add_function(Type type, std::string_view name, position_t pos, function_t*& fun)
+bool Declarations::add_function(Type type, std::string_view name, position_t pos, Function*& fun)
 {
     bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
@@ -127,7 +127,7 @@ bool declarations_t::add_function(Type type, std::string_view name, position_t p
     return !duplicate;
 }
 
-std::ostream& declarations_t::print(std::ostream& os, bool global) const
+std::ostream& Declarations::print(std::ostream& os, bool global) const
 {
     print_constants(os) << "\n";
     print_typedefs(os) << "\n";
@@ -136,14 +136,14 @@ std::ostream& declarations_t::print(std::ostream& os, bool global) const
     return os;
 }
 
-std::string declarations_t::str(bool global) const
+std::string Declarations::str(bool global) const
 {
     auto os = std::ostringstream{};
     print(os, global);
     return os.str();
 }
 
-std::ostream& declarations_t::print_constants(std::ostream& os) const
+std::ostream& Declarations::print_constants(std::ostream& os) const
 {
     if (!variables.empty()) {
         bool first = true;
@@ -160,7 +160,7 @@ std::ostream& declarations_t::print_constants(std::ostream& os) const
     return os;
 }
 
-std::ostream& declarations_t::print_typedefs(std::ostream& os) const
+std::ostream& Declarations::print_typedefs(std::ostream& os) const
 {
     bool first = true;
     for (const auto& symbol : frame) {
@@ -175,7 +175,7 @@ std::ostream& declarations_t::print_typedefs(std::ostream& os) const
     return os;
 }
 
-std::ostream& declarations_t::print_variables(std::ostream& os, bool global) const
+std::ostream& Declarations::print_variables(std::ostream& os, bool global) const
 {
     if (!variables.empty()) {
         os << "// variables\n";
@@ -186,7 +186,7 @@ std::ostream& declarations_t::print_variables(std::ostream& os, bool global) con
     return os;
 }
 
-std::ostream& declarations_t::print_functions(std::ostream& os) const
+std::ostream& Declarations::print_functions(std::ostream& os) const
 {
     if (!functions.empty()) {
         os << "// functions\n";
@@ -196,14 +196,14 @@ std::ostream& declarations_t::print_functions(std::ostream& os) const
     return os;
 }
 
-std::ostream& instance_t::print_mapping(std::ostream& os) const
+std::ostream& Instance::print_mapping(std::ostream& os) const
 {
     for (const auto& [symbol, expr] : mapping)
         os << symbol.get_name() << " = " << expr.str() << "\n";
     return os;
 }
 
-std::ostream& instance_t::print_parameters(std::ostream& os) const
+std::ostream& Instance::print_parameters(std::ostream& os) const
 {
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
@@ -214,7 +214,7 @@ std::ostream& instance_t::print_parameters(std::ostream& os) const
     return os;
 }
 
-std::ostream& instance_t::print_arguments(std::ostream& os) const
+std::ostream& Instance::print_arguments(std::ostream& os) const
 {
     auto b = std::begin(parameters), e = std::end(parameters);
     if (b != e) {
@@ -230,28 +230,28 @@ std::ostream& instance_t::print_arguments(std::ostream& os) const
     return os;
 }
 
-std::string instance_t::mapping_str() const
+std::string Instance::mapping_str() const
 {
     auto os = std::ostringstream{};
     print_mapping(os);
     return os.str();
 }
 
-std::string instance_t::parameters_str() const
+std::string Instance::parameters_str() const
 {
     auto os = std::ostringstream{};
     print_parameters(os);
     return os.str();
 }
 
-std::string instance_t::arguments_str() const
+std::string Instance::arguments_str() const
 {
     auto os = std::ostringstream{};
     print_arguments(os);
     return os.str();
 }
 
-location_t& template_t::add_location(std::string_view name, Expression inv, Expression er, position_t pos)
+Location& Template::add_location(std::string_view name, Expression inv, Expression er, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
@@ -266,7 +266,7 @@ location_t& template_t::add_location(std::string_view name, Expression inv, Expr
 
 // FIXME: like for unnamed locations, a name is autegenerated
 // this name may conflict with user-defined names
-branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos)
+Branchpoint& Template::add_branchpoint(std::string_view name, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
@@ -277,23 +277,23 @@ branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos
     return branchpoint;
 }
 
-edge_t& template_t::add_edge(Symbol src, Symbol dst, bool control, std::string_view actname)
+Edge& Template::add_edge(Symbol src, Symbol dst, bool control, std::string_view actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
-    edge_t& edge = edges.emplace_back();
+    Edge& edge = edges.emplace_back();
     if (src.get_type().is_location()) {
-        edge.src = static_cast<location_t*>(src.get_data());
+        edge.src = static_cast<Location*>(src.get_data());
         edge.srcb = nullptr;
     } else {
         edge.src = nullptr;
-        edge.srcb = static_cast<branchpoint_t*>(src.get_data());
+        edge.srcb = static_cast<Branchpoint*>(src.get_data());
     }
     if (dst.get_type().is_location()) {
-        edge.dst = static_cast<location_t*>(dst.get_data());
+        edge.dst = static_cast<Location*>(dst.get_data());
         edge.dstb = nullptr;
     } else {
         edge.dst = nullptr;
-        edge.dstb = static_cast<branchpoint_t*>(dst.get_data());
+        edge.dstb = static_cast<Branchpoint*>(dst.get_data());
     }
 
     edge.control = control;
@@ -303,11 +303,11 @@ edge_t& template_t::add_edge(Symbol src, Symbol dst, bool control, std::string_v
 }
 
 // LSC
-instance_line_t& template_t::add_instance_line()
+LSCInstanceLine& Template::add_instance_line()
 {
     // bool duplicate = frame.get_index_of(name) != -1;
 
-    instance_line_t& instance = instances.emplace_back();
+    LSCInstanceLine& instance = instances.emplace_back();
     // instance.uid = frame.add_symbol(name, Type::create_primitive(INSTANCELINE), &instance);
     instance.instance_nr = instances.size() - 1;
 
@@ -319,34 +319,34 @@ instance_line_t& template_t::add_instance_line()
     return instance;
 }
 
-message_t& template_t::add_message(Symbol src, Symbol dst, int loc, bool pch)
+LSCMessage& Template::add_message(Symbol src, Symbol dst, int loc, bool pch)
 {
     int32_t nr = messages.empty() ? 0 : messages.back().nr + 1;
     auto& message = messages.emplace_back(nr);
-    message.src = static_cast<instance_line_t*>(src.get_data());
-    message.dst = static_cast<instance_line_t*>(dst.get_data());
+    message.src = static_cast<LSCInstanceLine*>(src.get_data());
+    message.dst = static_cast<LSCInstanceLine*>(dst.get_data());
     message.location = loc;
     message.is_in_prechart = pch;
     return message;
 }
 
-update_t& template_t::add_update(Symbol anchor, int loc, bool pch)
+LSCUpdate& Template::add_update(Symbol anchor, int loc, bool pch)
 {
     int32_t nr = updates.empty() ? 0 : updates.back().nr + 1;
     auto& update = updates.emplace_back(nr);
-    update.anchor = static_cast<instance_line_t*>(anchor.get_data());
+    update.anchor = static_cast<LSCInstanceLine*>(anchor.get_data());
     update.location = loc;
     update.is_in_prechart = pch;
     return update;
 }
 
-condition_t& template_t::add_condition(std::vector<Symbol> anchors, int loc, bool pch, bool isHot)
+LSCCondition& Template::add_condition(std::vector<Symbol> anchors, int loc, bool pch, bool isHot)
 {
     int32_t nr = conditions.empty() ? 0 : conditions.back().nr + 1;
     auto& condition = conditions.emplace_back(nr);
 
     for (auto& anchor : anchors) {
-        condition.anchors.push_back(static_cast<instance_line_t*>(anchor.get_data()));  // TODO
+        condition.anchors.push_back(static_cast<LSCInstanceLine*>(anchor.get_data()));  // TODO
     }
     condition.location = loc;
     condition.is_in_prechart = pch;
@@ -371,24 +371,24 @@ std::deque<Res> collect(Fn&& fn, const std::deque<Element>& elements)
  * at the same location.
  * a message, update or condition must be in only one simregion.
  */
-std::vector<simregion_t> template_t::get_simregions()
+std::vector<LSCSimRegion> Template::get_simregions()
 {
     // cout <<"=======LSC: get_simregions=======\n";
     // Copy the numbers of messages, conditions and updates from the scenario
-    auto m_nr = collect(std::mem_fn(&message_t::get_nr), messages);
-    auto c_nr = collect(std::mem_fn(&condition_t::get_nr), conditions);
-    auto u_nr = collect(std::mem_fn(&update_t::get_nr), updates);
+    auto m_nr = collect(std::mem_fn(&LSCMessage::get_nr), messages);
+    auto c_nr = collect(std::mem_fn(&LSCCondition::get_nr), conditions);
+    auto u_nr = collect(std::mem_fn(&LSCUpdate::get_nr), updates);
 
-    auto simregions = std::vector<simregion_t>{};
+    auto simregions = std::vector<LSCSimRegion>{};
     simregions.reserve(m_nr.size());
 
     /// iterate over messages
     for (auto& message_nr : m_nr) {
-        simregion_t s = simregion_t();
+        LSCSimRegion s = LSCSimRegion();
         s.set_message(messages, message_nr);
 
-        instance_line_t* source = s.message->src;
-        instance_line_t* target = s.message->dst;
+        LSCInstanceLine* source = s.message->src;
+        LSCInstanceLine* target = s.message->dst;
         int y = s.message->location;
         /**
          * we give priority to the condition on the target, if there is also one
@@ -430,7 +430,7 @@ std::vector<simregion_t> template_t::get_simregions()
 
     /// iterate over remaining conditions
     for (auto& c_itr : c_nr) {
-        auto s = simregion_t{};
+        auto s = LSCSimRegion{};
         s.set_condition(conditions, c_itr);
 
         int y = s.condition->location;
@@ -448,7 +448,7 @@ std::vector<simregion_t> template_t::get_simregions()
 
     /// iterate over remaining updates
     for (auto& u_itr : u_nr) {
-        auto s = simregion_t();
+        auto s = LSCSimRegion();
         s.set_update(updates, u_itr);
         s.nr = simregions.size();
         simregions.push_back(s);
@@ -466,12 +466,12 @@ std::vector<simregion_t> template_t::get_simregions()
  * gets the condition on the given instance, at y location,
  * returns false if there isn't any
  */
-bool template_t::get_condition(instance_line_t& instance, int y, condition_t*& simCondition)
+bool Template::get_condition(LSCInstanceLine& instance, int y, LSCCondition*& simCondition)
 {
     for (auto& condition : conditions) {
         if (condition.location == y) {
             for (auto& anchor : condition.anchors) {
-                instance_line_t* instancej = anchor;
+                LSCInstanceLine* instancej = anchor;
                 if (instancej->instance_nr == instance.instance_nr) {
                     simCondition = &condition;
                     return true;
@@ -486,7 +486,7 @@ bool template_t::get_condition(instance_line_t& instance, int y, condition_t*& s
  * gets the update on the given instance at y location,
  * returns false if there isn't any
  */
-bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpdate)
+bool Template::get_update(LSCInstanceLine& instance, int y, LSCUpdate*& simUpdate)
 {
     for (auto& update : updates) {
         if (update.location == y) {
@@ -503,7 +503,7 @@ bool template_t::get_update(instance_line_t& instance, int y, update_t*& simUpda
  * gets the first update on one of the given instances, at y location
  * (in simUpdate), returns false if there isn't any
  */
-bool template_t::get_update(std::vector<instance_line_t*>& instances, int y, update_t*& simUpdate)
+bool Template::get_update(std::vector<LSCInstanceLine*>& instances, int y, LSCUpdate*& simUpdate)
 {
     for (auto& instance : instances) {
         if (get_update(*instance, y, simUpdate))
@@ -512,7 +512,7 @@ bool template_t::get_update(std::vector<instance_line_t*>& instances, int y, upd
     return false;
 }
 
-void instance_line_t::add_parameters(instance_t& inst, Frame params, const std::vector<Expression>& arguments1)
+void LSCInstanceLine::add_parameters(Instance& inst, Frame params, const std::vector<Expression>& arguments1)
 {
     unbound = params.get_size();
     parameters = std::move(params);
@@ -527,24 +527,24 @@ void instance_line_t::add_parameters(instance_t& inst, Frame params, const std::
  * return the simregions anchored to this instance,
  * ordered by location number
  */
-std::vector<simregion_t> instance_line_t::getSimregions(const std::vector<simregion_t>& simregions)
+std::vector<LSCSimRegion> LSCInstanceLine::getSimregions(const std::vector<LSCSimRegion>& simregions)
 {
-    auto i_simregions = std::vector<simregion_t>{};
+    auto i_simregions = std::vector<LSCSimRegion>{};
     // get the simregions anchored to this instance
     for (const auto& reg : simregions) {
-        const message_t* m = reg.message;
+        const LSCMessage* m = reg.message;
         if ((m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr)) {
             i_simregions.push_back(reg);
             continue;
         }
 
-        const update_t* u = reg.update;
+        const LSCUpdate* u = reg.update;
         if (u->anchor->instance_nr == this->instance_nr) {
             i_simregions.push_back(reg);
             continue;
         }
 
-        const condition_t* c = reg.condition;
+        const LSCCondition* c = reg.condition;
         for (auto* instance : c->anchors) {
             if (instance->instance_nr == this->instance_nr) {
                 i_simregions.push_back(reg);
@@ -553,7 +553,7 @@ std::vector<simregion_t> instance_line_t::getSimregions(const std::vector<simreg
         }
     }
     // ordering the simregions by location number
-    sort(i_simregions.begin(), i_simregions.end(), compare_simregion());
+    sort(i_simregions.begin(), i_simregions.end(), LSCSimRegionComparator());
 
     //    std::cout << "--------instance--------\n";
     //    for (auto& reg : i_simregions) {
@@ -563,7 +563,7 @@ std::vector<simregion_t> instance_line_t::getSimregions(const std::vector<simreg
     return i_simregions;
 }
 
-int simregion_t::get_loc() const
+int LSCSimRegion::get_loc() const
 {
     if (has_message())
         return message->location;
@@ -575,7 +575,7 @@ int simregion_t::get_loc() const
     return -1;  // should not happen
 }
 
-bool simregion_t::is_in_prechart() const
+bool LSCSimRegion::is_in_prechart() const
 {
     if (has_message())
         return message->is_in_prechart;
@@ -587,7 +587,7 @@ bool simregion_t::is_in_prechart() const
     return false;  // should not happen
 }
 
-void simregion_t::set_message(std::deque<message_t>& messages, uint32_t nr)
+void LSCSimRegion::set_message(std::deque<LSCMessage>& messages, uint32_t nr)
 {
     for (auto& message : messages) {
         if (message.nr == nr) {
@@ -597,7 +597,7 @@ void simregion_t::set_message(std::deque<message_t>& messages, uint32_t nr)
     }
 }
 
-void simregion_t::set_condition(std::deque<condition_t>& conditions, uint32_t nr)
+void LSCSimRegion::set_condition(std::deque<LSCCondition>& conditions, uint32_t nr)
 {
     for (auto& condition : conditions) {
         if (condition.nr == nr) {
@@ -607,7 +607,7 @@ void simregion_t::set_condition(std::deque<condition_t>& conditions, uint32_t nr
     }
 }
 
-void simregion_t::set_update(std::deque<update_t>& updates, uint32_t nr)
+void LSCSimRegion::set_update(std::deque<LSCUpdate>& updates, uint32_t nr)
 {
     for (auto& update : updates) {
         if (update.nr == nr) {
@@ -617,7 +617,7 @@ void simregion_t::set_update(std::deque<update_t>& updates, uint32_t nr)
     }
 }
 
-std::ostream& simregion_t::print(std::ostream& os) const
+std::ostream& LSCSimRegion::print(std::ostream& os) const
 {
     os << "s(";
     auto need_sep = false;
@@ -645,15 +645,15 @@ std::ostream& simregion_t::print(std::ostream& os) const
 
 inline auto find_simregion_by_nr(uint32_t nr)
 {
-    return [nr](const simregion_t& reg) { return reg.nr == nr; };
+    return [nr](const LSCSimRegion& reg) { return reg.nr == nr; };
 }
 
-void cut_t::erase(const simregion_t& s)
+void LSCCut::erase(const LSCSimRegion& s)
 {
     simregions.erase(std::remove_if(simregions.begin(), simregions.end(), find_simregion_by_nr(s.nr)),
                      simregions.end());
 }
-bool cut_t::contains(const simregion_t& s) const
+bool LSCCut::contains(const LSCSimRegion& s) const
 {
     return std::find_if(simregions.begin(), simregions.end(), find_simregion_by_nr(s.nr)) != simregions.end();
 }
@@ -668,7 +668,7 @@ bool cut_t::contains(const simregion_t& s) const
  * that are in the prechart, if it is the limit between the prechart
  * and the mainchart)
  */
-bool cut_t::is_in_prechart(const simregion_t& fSimregion) const
+bool LSCCut::is_in_prechart(const LSCSimRegion& fSimregion) const
 {
     if (!is_in_prechart())
         return false;
@@ -677,12 +677,12 @@ bool cut_t::is_in_prechart(const simregion_t& fSimregion) const
     return true;
 }
 
-bool cut_t::is_in_prechart() const
+bool LSCCut::is_in_prechart() const
 {
     return std::all_of(simregions.begin(), simregions.end(), [](auto& sr) { return sr.is_in_prechart(); });
 }
 
-bool cut_t::equals(const cut_t& y) const
+bool LSCCut::equals(const LSCCut& y) const
 {
     if (simregions.size() != y.simregions.size())
         return false;
@@ -692,7 +692,7 @@ bool cut_t::equals(const cut_t& y) const
     return ycopy.empty();
 }
 
-std::ostream& cut_t::print(std::ostream& os) const
+std::ostream& LSCCut::print(std::ostream& os) const
 {
     os << "CUT(";
     if (auto b = simregions.begin(), e = simregions.end(); b != e) {
@@ -706,14 +706,14 @@ std::ostream& cut_t::print(std::ostream& os) const
 /**
  * return true if the LSC is of invariant mode
  */
-bool template_t::is_invariant() const
+bool Template::is_invariant() const
 {
     if (is_TA)
         return false;
     return mode == "invariant";
 }
 
-std::ostream& chan_priority_t::print(std::ostream& os) const
+std::ostream& ChanPriority::print(std::ostream& os) const
 {
     os << "chan priority ";
     auto head_s = head.str();
@@ -752,16 +752,16 @@ Library& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(std::string_view name, const Frame& params, position_t position, const bool is_TA,
-                                   std::string_view typeLSC, std::string_view mode)
+Template& Document::add_template(std::string_view name, const Frame& params, position_t position, const bool is_TA,
+                                 std::string_view typeLSC, std::string_view mode)
 {
     Type type = (is_TA) ? Type::create_instance(params) : Type::create_LSC_instance(params);
-    template_t& templ = templates.emplace_back();
+    Template& templ = templates.emplace_back();
     templ.parameters = params;
     templ.frame = global.frame.make_sub();
     templ.frame.add(params);
     templ.templ = &templ;
-    templ.uid = global.frame.add_symbol(name, type, position, (instance_t*)&templ);
+    templ.uid = global.frame.add_symbol(name, type, position, (Instance*)&templ);
     templ.arguments = 0;
     templ.unbound = params.get_size();
     templ.is_TA = is_TA;
@@ -772,16 +772,16 @@ template_t& Document::add_template(std::string_view name, const Frame& params, p
     return templ;
 }
 
-template_t& Document::add_dynamic_template(std::string_view name, const Frame& params, position_t pos)
+Template& Document::add_dynamic_template(std::string_view name, const Frame& params, position_t pos)
 {
     Type type = Type::create_instance(params);
     dyn_templates.emplace_back();
-    template_t& templ = dyn_templates.back();
+    Template& templ = dyn_templates.back();
     templ.parameters = params;
     templ.frame = global.frame.make_sub();
     templ.frame.add(params);
     templ.templ = &templ;
-    templ.uid = global.frame.add_symbol(name, type, pos, (instance_t*)&templ);
+    templ.uid = global.frame.add_symbol(name, type, pos, (Instance*)&templ);
     templ.arguments = 0;
     templ.unbound = params.get_size();
     templ.is_TA = true;
@@ -791,7 +791,7 @@ template_t& Document::add_dynamic_template(std::string_view name, const Frame& p
     return templ;
 }
 
-std::vector<template_t*>& Document::get_dynamic_templates()
+std::vector<Template*>& Document::get_dynamic_templates()
 {
     if (dyn_templates_vec.size() != dyn_templates.size()) {
         dyn_templates_vec.clear();
@@ -807,7 +807,7 @@ inline auto equal_name(std::string_view name)
     return [name](const auto& e) { return (e.uid.get_name() == name); };
 }
 
-const template_t* Document::find_template(std::string_view name) const
+const Template* Document::find_template(std::string_view name) const
 {
     auto has_name = equal_name(name);
     auto it = std::find_if(templates.begin(), templates.end(), has_name);
@@ -819,7 +819,7 @@ const template_t* Document::find_template(std::string_view name) const
     return &(*it);
 }
 
-template_t* Document::find_dynamic_template(std::string_view name)
+Template* Document::find_dynamic_template(std::string_view name)
 {
     auto it = std::find_if(dyn_templates.begin(), dyn_templates.end(), equal_name(name));
     if (it == std::end(dyn_templates))
@@ -827,11 +827,11 @@ template_t* Document::find_dynamic_template(std::string_view name)
     return &(*it);
 }
 
-instance_t& Document::add_instance(std::string_view name, instance_t& inst, Frame params,
-                                   const std::vector<Expression>& arguments, position_t pos)
+Instance& Document::add_instance(std::string_view name, Instance& inst, Frame params,
+                                 const std::vector<Expression>& arguments, position_t pos)
 {
     Type type = Type::create_instance(params);
-    instance_t& instance = instances.emplace_back();
+    Instance& instance = instances.emplace_back();
     instance.uid = global.frame.add_symbol(name, type, pos, &instance);
     instance.unbound = params.get_size();
     instance.parameters = std::move(params);
@@ -844,8 +844,8 @@ instance_t& Document::add_instance(std::string_view name, instance_t& inst, Fram
     return instance;
 }
 
-instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, Frame params,
-                                       const std::vector<Expression>& arguments, position_t pos)
+Instance& Document::add_LSC_instance(std::string_view name, Instance& inst, Frame params,
+                                     const std::vector<Expression>& arguments, position_t pos)
 {
     auto type = Type::create_LSC_instance(params);
     auto& instance = lsc_instances.emplace_back();
@@ -861,7 +861,7 @@ instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, 
     return instance;
 }
 
-void Document::remove_process(instance_t& instance)
+void Document::remove_process(Instance& instance)
 {
     get_globals().frame.remove(instance.uid);
     for (auto itr = processes.cbegin(); itr != processes.cend(); ++itr) {
@@ -872,10 +872,10 @@ void Document::remove_process(instance_t& instance)
     }
 }
 
-void Document::add_process(instance_t& instance, position_t pos)
+void Document::add_process(Instance& instance, position_t pos)
 {
     Type type;
-    instance_t& process = processes.emplace_back(instance);
+    Instance& process = processes.emplace_back(instance);
     if (process.unbound == 0)
         type = Type::create_process(process.templ->frame);
     else
@@ -885,16 +885,16 @@ void Document::add_process(instance_t& instance, position_t pos)
 
 bool Document::queries_empty() const { return queries.empty(); }
 
-void Document::add_gantt(declarations_t* context, gantt_t g) { context->ganttChart.push_back(std::move(g)); }
+void Document::add_gantt(Declarations* context, GanttEntry g) { context->ganttChart.push_back(std::move(g)); }
 
-void Document::add_query(query_t query) { queries.push_back(std::move(query)); }
+void Document::add_query(Query query) { queries.push_back(std::move(query)); }
 
-options_t& Document::get_options() { return model_options; }
+Options& Document::get_options() { return model_options; }
 
-void Document::set_options(const options_t& options) { model_options = options; }
+void Document::set_options(const Options& options) { model_options = options; }
 
 // Add a regular variable
-Variable* Document::add_variable(declarations_t* context, Type type, std::string_view name, Expression initial,
+Variable* Document::add_variable(Declarations* context, Type type, std::string_view name, Expression initial,
                                  position_t pos)
 {
     auto* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
@@ -902,7 +902,7 @@ Variable* Document::add_variable(declarations_t* context, Type type, std::string
     return var;
 }
 
-Variable* Document::add_variable_to_function(function_t* function, Frame frame, Type type, std::string_view name,
+Variable* Document::add_variable_to_function(Function* function, Frame frame, Type type, std::string_view name,
                                              Expression initial, position_t pos)
 {
     Variable* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
@@ -924,7 +924,7 @@ Variable* Document::add_variable(std::list<Variable>& variables, Frame frame, Ty
     return &var;
 }
 
-void Document::copy_variables_from_to(const template_t* from, template_t* to) const
+void Document::copy_variables_from_to(const Template* from, Template* to) const
 {
     for (auto&& var : from->variables) {
         to->variables.push_back(var);
@@ -932,12 +932,12 @@ void Document::copy_variables_from_to(const template_t* from, template_t* to) co
     }
 }
 
-void Document::copy_functions_from_to(const template_t* from, template_t* to) const
+void Document::copy_functions_from_to(const Template* from, Template* to) const
 {
     // TODO to be implemented and to be used in Translator::lscProcBegin (see Translator.cpp)
 }
 
-void Document::add_progress_measure(declarations_t* context, Expression guard, Expression measure)
+void Document::add_progress_measure(Declarations* context, Expression guard, Expression measure)
 {
     context->progress.emplace_back(std::move(guard), std::move(measure));
 }
@@ -961,20 +961,20 @@ static void visit(DocumentVisitor& visitor, Frame& frame)
         {
             visitor.visit_variable(*static_cast<Variable*>(data));
         } else if (type.is(LOCATION)) {
-            visitor.visit_location(*static_cast<location_t*>(data));
+            visitor.visit_location(*static_cast<Location*>(data));
         } else if (type.is(LOCATION_EXPR)) {
-            visitor.visit_location(*static_cast<location_t*>(data));
+            visitor.visit_location(*static_cast<Location*>(data));
         } else if (type.is(FUNCTION)) {
-            visitor.visit_function(*static_cast<function_t*>(data));
+            visitor.visit_function(*static_cast<Function*>(data));
         } else if (type.is(FUNCTION_EXTERNAL)) {
             // we cannot look inside a external function, skip.
         } else if (type.is(INSTANCE_LINE)) {
-            visitor.visit_instance_line(*static_cast<instance_line_t*>(data));
+            visitor.visit_instance_line(*static_cast<LSCInstanceLine*>(data));
         }
     }
 }
 
-void visitTemplate(template_t& t, DocumentVisitor& visitor)
+void visitTemplate(Template& t, DocumentVisitor& visitor)
 {
     if (visitor.visit_template_before(t)) {
         visit(visitor, t.frame);
@@ -1004,11 +1004,11 @@ void Document::accept(DocumentVisitor& visitor)
         void* data = global.frame[i].get_data();
         type = type.strip_array();
         if (type.is(PROCESS) || type.is(PROCESS_SET)) {
-            visitor.visit_process(*static_cast<instance_t*>(data));
+            visitor.visit_process(*static_cast<Instance*>(data));
         } else if (type.is(INSTANCE)) {
-            visitor.visit_instance(*static_cast<instance_t*>(data));
+            visitor.visit_instance(*static_cast<Instance*>(data));
         } else if (type.is(LSC_INSTANCE)) {
-            visitor.visit_instance(*static_cast<instance_t*>(data));
+            visitor.visit_instance(*static_cast<Instance*>(data));
         }
     }
 
@@ -1028,7 +1028,7 @@ void Document::accept(DocumentVisitor& visitor)
 void Document::begin_chan_priority(Expression chan)
 {
     has_priorities |= true;
-    chan_priority_t priorities;
+    ChanPriority priorities;
     priorities.head = std::move(chan);
     chan_priorities.push_back(priorities);
 }
@@ -1036,7 +1036,7 @@ void Document::begin_chan_priority(Expression chan)
 void Document::add_chan_priority(char separator, Expression chan)
 {
     assert(separator == ',' || separator == '<');
-    chan_priority_t::tail_t& tail = chan_priorities.back().tail;
+    ChanPriority::Tail& tail = chan_priorities.back().tail;
     tail.emplace_back(separator, std::move(chan));
 }
 
@@ -1058,7 +1058,7 @@ void Document::add_position(uint32_t position, uint32_t offset, uint32_t line, s
     positions.add(position, offset, line, std::move(path));
 }
 
-const position_index_t::line_t& Document::find_position(uint32_t position) const { return positions.find(position); }
+const PositionIndex::Line& Document::find_position(uint32_t position) const { return positions.find(position); }
 
 void Document::add_channel(bool is_broadcast) { has_non_broadcast_chan |= !is_broadcast; }
 
@@ -1074,7 +1074,7 @@ void Document::add_warning(position_t position, std::string msg, std::string con
                           std::move(context));
 }
 
-iodecl_t* Document::add_io_decl()
+IODecl* Document::add_io_decl()
 {
     global.iodecl.emplace_back();
     return &global.iodecl.back();

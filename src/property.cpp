@@ -268,7 +268,7 @@ void PropertyBuilder::parse(FILE* file)
     parse_property(file, *this);
 }
 
-void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::options_t& options)
+void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::Options& options)
 {
     size_t num_props = properties.size();
     parse_property(buf, *this, xpath);
@@ -292,7 +292,7 @@ bool PropertyBuilder::isSMC(UTAP::Expression* expr)
 {
     if (expr == nullptr)
         expr = &(fragments[0]);
-    kind_t k = expr->get_kind();
+    Kind k = expr->get_kind();
     return (k == PMAX || k == PROBA_MIN_BOX || k == PROBA_MIN_DIAMOND || k == PROBA_BOX || k == PROBA_DIAMOND ||
             k == PROBA_CMP || k == PROBA_EXP || k == SIMULATE || k == SIMULATEREACH || k == MITL_FORMULA ||
             k == MIN_EXP || k == MAX_EXP);

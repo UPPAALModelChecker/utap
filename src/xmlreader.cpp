@@ -355,7 +355,7 @@ private:
     /** Returns the name of a location. */
     const std::string& get_name(const char* id) const;
     /** Invokes the bison generated parser to parse the given string. */
-    int parse(const xmlChar*, xta_part_t syntax);
+    int parse(const xmlChar*, XTAPart syntax);
     /** Parse optional declaration. */
     bool declaration();
     /** Parse optional label. */
@@ -555,7 +555,7 @@ const std::string& XMLReader::get_name(const char* id) const
     throw XMLDocError("Missing reference");
 }
 
-int XMLReader::parse(const xmlChar* text, xta_part_t syntax)
+int XMLReader::parse(const xmlChar* text, XTAPart syntax)
 {
     return parse_XTA((const char*)text, parser, newxta, syntax, path.str());
 }
@@ -583,7 +583,7 @@ bool XMLReader::label(bool required, const std::string& s_kind)
         /* Read the text and push it to the parser. */
         if (getNodeType() == XML_READER_TYPE_TEXT) {
             const xmlChar* text = xmlTextReaderConstValue(reader.get());
-            static const auto map = std::map<std::string_view, xta_part_t>{
+            static const auto map = std::map<std::string_view, XTAPart>{
                 {"invariant", S_INVARIANT},  {"select", S_SELECT},     {"guard", S_GUARD},
                 {"synchronisation", S_SYNC}, {"assignment", S_ASSIGN}, {"probability", S_PROBABILITY},
                 {"message", S_MESSAGE},      {"update", S_UPDATE},     {"condition", S_CONDITION},

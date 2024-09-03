@@ -71,28 +71,28 @@ protected:
     int32_t currentProcPriority{0};
 
     /** The edge under construction. */
-    edge_t* currentEdge{nullptr};
+    Edge* currentEdge{nullptr};
 
     /** The gantt map under construction. */
-    std::unique_ptr<gantt_t> currentGantt{nullptr};
+    std::unique_ptr<GanttEntry> currentGantt{nullptr};
 
     /** The condition under construction. */
-    condition_t* currentCondition{nullptr};
+    LSCCondition* currentCondition{nullptr};
 
     /** The update under construction. */
-    update_t* currentUpdate{nullptr};
+    LSCUpdate* currentUpdate{nullptr};
     /** The message under construction. */
-    message_t* currentMessage{nullptr};
+    LSCMessage* currentMessage{nullptr};
     /** The instance line under construction. */
-    instance_line_t* currentInstanceLine{nullptr};
+    LSCInstanceLine* currentInstanceLine{nullptr};
 
-    std::unique_ptr<iodecl_t> currentIODecl{nullptr};
-    std::unique_ptr<query_t> currentQuery{nullptr};
+    std::unique_ptr<IODecl> currentIODecl{nullptr};
+    std::unique_ptr<Query> currentQuery{nullptr};
 
-    std::unique_ptr<results_t> currentResults{nullptr};
-    std::unique_ptr<expectation_t> currentExpectation;
+    std::unique_ptr<QueryResults> currentResults{nullptr};
+    std::unique_ptr<Expectation> currentExpectation;
 
-    declarations_t* getCurrentDeclarationBlock();
+    Declarations* getCurrentDeclarationBlock();
 
     Variable* addVariable(Type type, std::string_view name, Expression init, position_t pos) override;
     bool addFunction(Type type, std::string_view name, position_t pos) override;
@@ -122,7 +122,7 @@ public:
     void proc_edge_end(std::string_view from = {}, std::string_view to = {}) override;
     void proc_select(std::string_view id) override;
     void proc_guard() override;
-    void proc_sync(Constants::synchronisation_t type) override;
+    void proc_sync(Constants::Synchronisation type) override;
     void proc_update() override;
     void proc_prob() override;
     void instantiation_begin(std::string_view, uint32_t, std::string_view) override;
@@ -142,7 +142,7 @@ public:
     void instance_name_begin(std::string_view name) override;
     void instance_name_end(std::string_view name, uint32_t arguments) override;
     void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
-    void proc_message(Constants::synchronisation_t type) override;
+    void proc_message(Constants::Synchronisation type) override;
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                         const bool hot) override;
     void proc_condition() override;  // Label

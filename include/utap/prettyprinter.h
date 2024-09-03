@@ -114,7 +114,7 @@ public:
     void proc_location_init(std::string_view id) override;
     void proc_select(std::string_view id) override;
     void proc_guard() override;
-    void proc_sync(Constants::synchronisation_t type) override;
+    void proc_sync(Constants::Synchronisation type) override;
     void proc_update() override;
     void proc_edge_begin(std::string_view source, std::string_view target, const bool control);
     void proc_edge_begin(std::string_view source, std::string_view target, const bool control,
@@ -135,12 +135,12 @@ public:
     void expr_pre_increment() override;
     void expr_post_decrement() override;
     void expr_pre_decrement() override;
-    void expr_assignment(Constants::kind_t op) override;
-    void expr_unary(Constants::kind_t op) override;
-    void expr_binary(Constants::kind_t op) override;
-    void expr_nary(Constants::kind_t op, uint32_t num) override;
+    void expr_assignment(Constants::Kind op) override;
+    void expr_unary(Constants::Kind op) override;
+    void expr_binary(Constants::Kind op) override;
+    void expr_nary(Constants::Kind op, uint32_t num) override;
     void expr_scenario(std::string_view name) override;
-    void expr_ternary(Constants::kind_t op, bool firstMissing) override;
+    void expr_ternary(Constants::Kind op, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;
     void expr_dot(std::string_view) override;
@@ -151,13 +151,13 @@ public:
     void expr_exists_end(std::string_view name) override;
     void expr_sum_begin(std::string_view name) override;
     void expr_sum_end(std::string_view name) override;
-    void expr_proba_quantitative(Constants::kind_t) override;
+    void expr_proba_quantitative(Constants::Kind) override;
     void expr_MITL_diamond(int, int) override;
     void expr_MITL_box(int, int) override;
     void expr_simulate(int no_of_expr, bool filter_prop, int max_accept_runs) override;
-    void expr_builtin_function1(Constants::kind_t kind) override;
-    void expr_builtin_function2(Constants::kind_t kind) override;
-    void expr_builtin_function3(Constants::kind_t kind) override;
+    void expr_builtin_function1(Constants::Kind kind) override;
+    void expr_builtin_function2(Constants::Kind kind) override;
+    void expr_builtin_function3(Constants::Kind kind) override;
     void before_update() override;
     void after_update() override;
     void instantiation_begin(std::string_view, uint32_t, std::string_view) override;

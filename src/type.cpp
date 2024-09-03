@@ -42,14 +42,14 @@ struct child_t
 
 struct Type::type_data
 {
-    kind_t kind;          // Kind of type object
+    Kind kind;            // Kind of type object
     position_t position;  // Position in the input file
     Expression expr;      //
     std::vector<child_t> children;
-    type_data(kind_t kind, position_t position): kind{kind}, position{position} {}
+    type_data(Kind kind, position_t position): kind{kind}, position{position} {}
 };
 
-Type::Type(kind_t kind, const position_t& pos, size_t size)
+Type::Type(Kind kind, const position_t& pos, size_t size)
 {
     data = std::make_shared<type_data>(kind, pos);
     data->children.resize(size);
@@ -98,7 +98,7 @@ std::optional<uint32_t> Type::find_index_of(std::string_view label) const
     return {};
 }
 
-kind_t Type::get_kind() const { return unknown() ? UNKNOWN : data->kind; }
+Kind Type::get_kind() const { return unknown() ? UNKNOWN : data->kind; }
 
 bool Type::is_prefix() const
 {
@@ -148,7 +148,7 @@ bool Type::is_prefix() const
 
 bool Type::unknown() const { return data == nullptr || data->kind == UNKNOWN; }
 
-bool Type::is(kind_t kind) const
+bool Type::is(Kind kind) const
 {
     using namespace Constants;
     const auto k = get_kind();
@@ -525,9 +525,9 @@ Type Type::create_process_set(const Type& instance, position_t pos)
     return type;
 }
 
-Type Type::create_primitive(kind_t kind, position_t pos) { return Type(kind, pos, 0); }
+Type Type::create_primitive(Kind kind, position_t pos) { return Type(kind, pos, 0); }
 
-Type Type::create_prefix(kind_t kind, position_t pos) const
+Type Type::create_prefix(Kind kind, position_t pos) const
 {
     auto type = Type{kind, pos, 1};
     type.data->children[0].child = *this;
