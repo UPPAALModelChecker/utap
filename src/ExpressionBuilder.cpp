@@ -99,7 +99,7 @@ Expression ExpressionBuilder::make_constant(std::string_view value) const
     return Expression::create_string(str, position);
 }
 
-type_t ExpressionBuilder::apply_prefix(TypePrefix prefix, type_t type)
+Type ExpressionBuilder::apply_prefix(TypePrefix prefix, Type type)
 {
     switch (prefix) {
     case TypePrefix::CONST: return type.create_prefix(CONSTANT, position);
@@ -121,15 +121,15 @@ void ExpressionBuilder::type_pop() { typeFragments.pop(); }
 
 void ExpressionBuilder::type_bool(TypePrefix prefix)
 {
-    type_t type = type_t::create_primitive(Constants::BOOL, position);
+    Type type = Type::create_primitive(Constants::BOOL, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
 
 void ExpressionBuilder::type_int(TypePrefix prefix)
 {
-    type_t type = type_t::create_primitive(Constants::INT, position);
+    Type type = Type::create_primitive(Constants::INT, position);
     if (prefix != TypePrefix::CONST) {
-        type = type_t::create_range(type, make_constant(defaultIntMin), make_constant(defaultIntMax), position);
+        type = Type::create_range(type, make_constant(defaultIntMin), make_constant(defaultIntMax), position);
     }
     typeFragments.push(apply_prefix(prefix, type));
 }
@@ -137,23 +137,23 @@ void ExpressionBuilder::type_int(TypePrefix prefix)
 void ExpressionBuilder::type_string(TypePrefix prefix)
 {
     if (prefix != TypePrefix::CONST) {
-        typeFragments.push(type_t::create_primitive(VOID_TYPE));
+        typeFragments.push(Type::create_primitive(VOID_TYPE));
         throw TypeException("$Strings_should_always_be_const");
     }
-    type_t type = type_t::create_primitive(Constants::STRING, position);
+    Type type = Type::create_primitive(Constants::STRING, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
 
 void ExpressionBuilder::type_double(TypePrefix prefix)
 {
-    type_t type = type_t::create_primitive(Constants::DOUBLE, position);
+    Type type = Type::create_primitive(Constants::DOUBLE, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
 
 void ExpressionBuilder::type_bounded_int(TypePrefix prefix)
 {
-    type_t type = type_t::create_primitive(Constants::INT, position);
-    type = type_t::create_range(type, fragments[1], fragments[0], position);
+    Type type = Type::create_primitive(Constants::INT, position);
+    type = Type::create_range(type, fragments[1], fragments[0], position);
     fragments.pop(2);
     typeFragments.push(apply_prefix(prefix, type));
 }
@@ -162,19 +162,19 @@ void ExpressionBuilder::type_channel(TypePrefix prefix)
 {
     bool is_broadcast = prefix == TypePrefix::BROADCAST || prefix == TypePrefix::URGENT_BROADCAST;
     document.add_channel(is_broadcast);
-    type_t type = type_t::create_primitive(CHANNEL, position);
+    Type type = Type::create_primitive(CHANNEL, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
 
 void ExpressionBuilder::type_clock(TypePrefix prefix)
 {
-    type_t type = type_t::create_primitive(CLOCK, position);
+    Type type = Type::create_primitive(CLOCK, position);
     typeFragments.push(apply_prefix(prefix, type));
 }
 
 void ExpressionBuilder::type_void()
 {
-    type_t type = type_t::create_primitive(VOID_TYPE, position);
+    Type type = Type::create_primitive(VOID_TYPE, position);
     typeFragments.push(type);
 }
 
@@ -205,8 +205,8 @@ void ExpressionBuilder::type_scalar(TypePrefix prefix)
     lower = make_constant(0);
     fragments.pop();
 
-    auto type = type_t::create_primitive(SCALAR, position);
-    type = type_t::create_range(type, lower, upper, position);
+    auto type = Type::create_primitive(SCALAR, position);
+    type = Type::create_range(type, lower, upper, position);
     type = apply_prefix(prefix, type);
 
     auto count = std::to_string(scalar_count++);
@@ -238,11 +238,11 @@ void ExpressionBuilder::type_name(TypePrefix prefix, std::string_view name)
     assert(resolve(name, uid));
 
     if (!resolve(name, uid) || uid.get_type().get_kind() != TYPEDEF) {
-        typeFragments.push(type_t::create_primitive(VOID_TYPE));
+        typeFragments.push(Type::create_primitive(VOID_TYPE));
         throw TypeException("$Identifier_is_undeclared_or_not_a_type_name");
     }
 
-    type_t type = uid.get_type()[0];
+    Type type = uid.get_type()[0];
 
     /* We create a label here such that we can track the
      * position. This is not needed for type checking (we only use
@@ -256,21 +256,21 @@ void ExpressionBuilder::type_name(TypePrefix prefix, std::string_view name)
 void ExpressionBuilder::expr_true()
 {
     Expression expr = make_constant(1);
-    expr.set_type(type_t::create_primitive(Constants::BOOL));
+    expr.set_type(Type::create_primitive(Constants::BOOL));
     fragments.push(expr);
 }
 
 void ExpressionBuilder::expr_false()
 {
     Expression expr = make_constant(0);
-    expr.set_type(type_t::create_primitive(Constants::BOOL));
+    expr.set_type(Type::create_primitive(Constants::BOOL));
     fragments.push(expr);
 }
 
 void ExpressionBuilder::expr_double(double d)
 {
     Expression expr = Expression::create_double(d, position);
-    expr.set_type(type_t::create_primitive(Constants::DOUBLE));
+    expr.set_type(Type::create_primitive(Constants::DOUBLE));
     fragments.push(expr);
 }
 
@@ -298,7 +298,7 @@ void ExpressionBuilder::expr_call_begin() {}
 void ExpressionBuilder::expr_call_end(uint32_t n)
 {
     auto e = Expression{};
-    auto type = type_t{};
+    auto type = Type{};
     const auto* instance = static_cast<instance_t*>(nullptr);
 
     // n+1'th element from the top is the identifier.
@@ -334,9 +334,9 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
          * into an array. To satisfy the type checker, we create a
          * type matching this structure.
          */
-        type = type_t::create_process(instance->templ->frame);
+        type = Type::create_process(instance->templ->frame);
         for (size_t i = 0; i < instance->unbound; ++i) {
-            type = type_t::create_array(type, instance->parameters[instance->unbound - i - 1].get_type());
+            type = Type::create_array(type, instance->parameters[instance->unbound - i - 1].get_type());
         }
 
         /* Now create the expression. Each argument to the process set
@@ -367,12 +367,12 @@ void ExpressionBuilder::expr_array()
     Expression index = fragments[0];
     fragments.pop(2);
 
-    type_t element;
-    type_t type = var.get_type();
+    Type element;
+    Type type = var.get_type();
     if (type.is_array()) {
         element = type.get_sub();
     } else {
-        element = type_t();
+        element = Type();
     }
 
     fragments.push(Expression::create_binary(ARRAY, var, index, position, element));
@@ -495,13 +495,13 @@ Expression ExpressionBuilder::exprScenario()
     auto i = obs.get_type().find_index_of("lmin");
     Expression left =
         Expression::create_dot(obs, i.value_or(-1), position,
-                               type_t::create_primitive(Constants::BOOL));  // std::cout << left << std::endl;
+                               Type::create_primitive(Constants::BOOL));  // std::cout << left << std::endl;
 
     obs = Expression::create_identifier(uid);
     i = obs.get_type().find_index_of("lmax");
     Expression right =
         Expression::create_dot(obs, i.value_or(-1), position,
-                               type_t::create_primitive(Constants::BOOL));  // std::cout << right << std::endl;
+                               Type::create_primitive(Constants::BOOL));  // std::cout << right << std::endl;
     return Expression::create_binary(SCENARIO2, left, right, position);
 }
 
@@ -535,12 +535,12 @@ void ExpressionBuilder::expr_comma()
 void ExpressionBuilder::expr_location()
 {
     Expression expr = fragments[0];
-    type_t type = expr.get_type();
+    Type type = expr.get_type();
     if (type.is_process()) {
         // TODO: create a separate type for location expressions and get rid of magical constants
         // we use special max-value to denote this special "meta-variable"
         expr = Expression::create_dot(expr, std::numeric_limits<int32_t>::max(), position,
-                                      type_t::create_primitive(Constants::LOCATION_EXPR));
+                                      Type::create_primitive(Constants::LOCATION_EXPR));
     } else {
         handle_error(not_a_process_error(expr.str(true)));
     }
@@ -550,7 +550,7 @@ void ExpressionBuilder::expr_location()
 void ExpressionBuilder::expr_dot(std::string_view id)
 {
     Expression expr = fragments[0];
-    type_t type = expr.get_type();
+    Type type = expr.get_type();
     if (type.is_record()) {
         auto i = type.find_index_of(id);
         if (!i) {
@@ -565,7 +565,7 @@ void ExpressionBuilder::expr_dot(std::string_view id)
         if (!i) {
             handle_error(has_no_such_member_error(id));
         } else if (type.get_sub(*i).is_location()) {
-            expr = Expression::create_dot(expr, *i, position, type_t::create_primitive(Constants::BOOL));
+            expr = Expression::create_dot(expr, *i, position, Type::create_primitive(Constants::BOOL));
         } else {
             type = type.get_sub(*i).rename(process->templ->uid.get_name() + "::", name.get_name() + "::");
             for (const auto& [s, e] : process->mapping)
@@ -590,8 +590,8 @@ void ExpressionBuilder::expr_dot(std::string_view id)
         expr = (Expression::create_nary(
             DYNAMIC_EVAL, {identifier, expr}, position,
             identifier.get_type().is_location()
-                ? type_t::create_primitive(Constants::BOOL, position)
-                : identifier.get_type()));  // type_t::createPrimitive (Constants::BOOL,position)));
+                ? Type::create_primitive(Constants::BOOL, position)
+                : identifier.get_type()));  // Type::createPrimitive (Constants::BOOL,position)));
     } else {
         handle_error(is_not_a_struct_error(expr.str(true)));
     }
@@ -600,7 +600,7 @@ void ExpressionBuilder::expr_dot(std::string_view id)
 
 void ExpressionBuilder::expr_forall_begin(std::string_view name)
 {
-    type_t type = typeFragments[0];
+    Type type = typeFragments[0];
     typeFragments.pop();
 
     if (!type.is(CONSTANT)) {
@@ -685,8 +685,8 @@ void ExpressionBuilder::expr_optimize_exp(Constants::kind_t kind, PRICETYPE ptyp
     auto goal = fragments[0];
 
     if (!discrete.is_true() && !cont.is_true()) {
-        discrete.set_type(type_t::create_primitive(LIST, position));
-        cont.set_type(type_t::create_primitive(LIST, position));
+        discrete.set_type(Type::create_primitive(LIST, position));
+        cont.set_type(Type::create_primitive(LIST, position));
     }
     Expression price;
     Expression level = make_constant(0);
@@ -716,8 +716,8 @@ void ExpressionBuilder::expr_load_strategy()
     Expression cont = fragments[1];
     Expression strat = fragments[0];
     if (!discrete.is_true() && !cont.is_true()) {
-        discrete.set_type(type_t::create_primitive(LIST, position));
-        cont.set_type(type_t::create_primitive(LIST, position));
+        discrete.set_type(Type::create_primitive(LIST, position));
+        cont.set_type(Type::create_primitive(LIST, position));
     }
     fragments.pop(3);
     fragments.push(Expression::create_ternary(LOAD_STRAT, strat, discrete, cont, position));
@@ -942,7 +942,7 @@ void ExpressionBuilder::expr_exit() { fragments.push(Expression::create_exit(pos
 void ExpressionBuilder::expr_numof()
 {
     Expression id = fragments[0];
-    type_t t = type_t::create_primitive(Constants::INT, position);
+    Type t = Type::create_primitive(Constants::INT, position);
     fragments.pop();
     fragments.push(Expression::create_unary(NUMOF, id, position, t));
 }
@@ -950,7 +950,7 @@ void ExpressionBuilder::expr_numof()
 void ExpressionBuilder::expr_forall_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frames.top().make_sub());
-    frames.top().add_symbol(name, type_t::create_primitive(PROCESS_VAR, position), position);
+    frames.top().add_symbol(name, Type::create_primitive(PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
     if (templ == nullptr)
         throw unknown_dynamic_template_error(temp);
@@ -976,14 +976,14 @@ void ExpressionBuilder::expr_forall_dynamic_end(std::string_view name)
     auto exprs = std::vector<Expression>{identifier, process, expr};
     fragments.pop(2);
     fragments.push(Expression::create_nary((mitl ? MITL_FORALL : FORALL_DYNAMIC), std::move(exprs), position,
-                                           type_t::create_primitive(Constants::BOOL, position)));
+                                           Type::create_primitive(Constants::BOOL, position)));
     pop_frame();
     pop_dynamic_frame_of(name);
 }
 void ExpressionBuilder::expr_exists_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frames.top().make_sub());
-    frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
+    frames.top().add_symbol(name, Type::create_primitive(Constants::PROCESS_VAR, position), position);
     if (template_t* templ = document.find_dynamic_template(temp); templ == nullptr)
         throw unknown_dynamic_template_error(temp);
     else {
@@ -1007,7 +1007,7 @@ void ExpressionBuilder::expr_exists_dynamic_end(std::string_view name)
     auto exprs = std::vector<Expression>{identifier, process, expr};
     fragments.pop(2);
     fragments.push(Expression::create_nary((mitl ? MITL_EXISTS : EXISTS_DYNAMIC), std::move(exprs), position,
-                                           type_t::create_primitive(Constants::BOOL, position)));
+                                           Type::create_primitive(Constants::BOOL, position)));
     pop_frame();
     pop_dynamic_frame_of(name);
 }
@@ -1015,7 +1015,7 @@ void ExpressionBuilder::expr_exists_dynamic_end(std::string_view name)
 void ExpressionBuilder::expr_sum_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frames.top().make_sub());
-    frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
+    frames.top().add_symbol(name, Type::create_primitive(Constants::PROCESS_VAR, position), position);
     template_t* templ = document.find_dynamic_template(temp);
     if (templ == nullptr)
         throw unknown_dynamic_template_error(temp);
@@ -1038,7 +1038,7 @@ void ExpressionBuilder::expr_sum_dynamic_end(std::string_view name)
 void ExpressionBuilder::expr_foreach_dynamic_begin(std::string_view name, std::string_view temp)
 {
     push_frame(frames.top().make_sub());
-    frames.top().add_symbol(name, type_t::create_primitive(Constants::PROCESS_VAR, position), position);
+    frames.top().add_symbol(name, Type::create_primitive(Constants::PROCESS_VAR, position), position);
     if (auto* t = document.find_dynamic_template(temp); t != nullptr) {
         // dynamicFrames [name]=document->find_dynamic_template(temp)->frame;
         push_dynamic_frame_of(document.find_dynamic_template(temp), name);
@@ -1054,7 +1054,7 @@ void ExpressionBuilder::expr_foreach_dynamic_end(std::string_view name)
     auto exprs = std::vector<Expression>{identifier, process, expr};
     fragments.pop(2);
     fragments.push(Expression::create_nary(FOREACH_DYNAMIC, std::move(exprs), position,
-                                           type_t::create_primitive(Constants::INT, position)));
+                                           Type::create_primitive(Constants::INT, position)));
     pop_frame();
     pop_dynamic_frame_of(name);
 }

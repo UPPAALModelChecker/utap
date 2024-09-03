@@ -153,12 +153,12 @@ public:
     void strategy_declaration(std::string_view strategy_name) override {}
     void typecheck() { checker.checkExpression(query); }
     [[nodiscard]] UTAP::Expression getQuery() const { return query; }
-    UTAP::Variable* addVariable(UTAP::type_t type, std::string_view name, UTAP::Expression init,
+    UTAP::Variable* addVariable(UTAP::Type type, std::string_view name, UTAP::Expression init,
                                 UTAP::position_t pos) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }
-    bool addFunction(UTAP::type_t type, std::string_view name, UTAP::position_t pos) override
+    bool addFunction(UTAP::Type type, std::string_view name, UTAP::position_t pos) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }

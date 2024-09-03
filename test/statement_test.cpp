@@ -39,7 +39,7 @@ TEST_CASE("Empty")
 
 TEST_CASE("Composite")
 {
-    auto int_type = type_t::create_primitive(UTAP::Constants::INT);
+    auto int_type = Type::create_primitive(UTAP::Constants::INT);
     auto global = Frame::make();
     auto var_a = global.add_symbol("a", int_type, {});
     auto id_a = Expression::create_identifier(var_a);
@@ -110,7 +110,7 @@ TEST_CASE("Composite")
     }
     SUBCASE("Ranged loop")
     {
-        auto int_0_5 = type_t::create_range(int_type, val0, val5);
+        auto int_0_5 = Type::create_range(int_type, val0, val5);
         auto var_i = global.add_symbol("i", int_0_5);
         auto id_i = Expression::create_identifier(var_i);
         auto comp = Expression::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);

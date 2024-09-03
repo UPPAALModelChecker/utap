@@ -64,8 +64,7 @@ public:
         TypeError(const position_t& position, std::string message, std::string context):
             position{position}, message{std::move(message)}, context{std::move(context)}
         {}
-        TypeError(const type_t& type, std::string message):
-            TypeError{type.get_position(), std::move(message), type.str()}
+        TypeError(const Type& type, std::string message): TypeError{type.get_position(), std::move(message), type.str()}
         {}
         TypeError(const Expression& expr, std::string message):
             TypeError{expr.get_position(), std::move(message), expr.str()}
@@ -108,7 +107,7 @@ public:
     bool checkDynamicExpressions(Statement& stat);
     /** Type check an expression */
     bool checkExpression(Expression&);
-    bool checkSpawnParameterCompatible(const type_t& param, const Expression& arg);
+    bool checkSpawnParameterCompatible(const Type& param, const Expression& arg);
 
 private:
     int syncUsed{0};  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
@@ -121,20 +120,20 @@ private:
     void handleError(TypeError error);
     void handleWarning(TypeError error);
 
-    Expression checkInitialiser(const type_t& type, const Expression& init);
-    type_t getInlineIfCommonType(const type_t& t1, const type_t& t2) const;
+    Expression checkInitialiser(const Type& type, const Expression& init);
+    Type getInlineIfCommonType(const Type& t1, const Type& t2) const;
     bool isLValue(const Expression&) const;
     bool isModifiableLValue(const Expression&) const;
     bool isUniqueReference(const Expression& expr) const;
-    bool isParameterCompatible(const type_t& param, const Expression& arg) const;
-    bool checkParameterCompatible(const type_t& param, const Expression& arg);
+    bool isParameterCompatible(const Type& param, const Expression& arg) const;
+    bool checkParameterCompatible(const Type& param, const Expression& arg);
     void checkIgnoredValue(const Expression& expr);
     bool checkAssignmentExpression(Expression&);
     bool checkConditionalExpressionInFunction(const Expression&);
     void checkObservationConstraints(const Expression&);
 
     bool isCompileTimeComputable(const Expression& expr) const;
-    void checkType(const type_t&, bool initialisable = false, bool inStruct = false);
+    void checkType(const Type&, bool initialisable = false, bool inStruct = false);
 
     /** check expressions used in (SMC) properties, these functions provide:
         1) consistent semantic checks by code reuse,

@@ -108,7 +108,7 @@ class ExpressionBuilder : public AbstractBuilder
 {
 public:
     using ExpressionFragments = FragmentStack<Expression>;
-    using TypeFragments = FragmentStack<type_t>;
+    using TypeFragments = FragmentStack<Type>;
 
 protected:
     /** Expression stack. */
@@ -151,7 +151,7 @@ protected:
      * by applying the prefix. TypeExceptions might be thrown if
      * the combination of the prefix and the type is illegal.
      */
-    type_t apply_prefix(TypePrefix, type_t type);
+    Type apply_prefix(TypePrefix, Type type);
 
     /**
      * If this method returns true, it is allowed to access the

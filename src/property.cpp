@@ -247,7 +247,7 @@ void PropertyBuilder::scenario(std::string_view name)
     Symbol symbol, i_symbol;
     if (!resolve(name, symbol))
         throw std::runtime_error("$No_such_scenario: " + std::string{name});
-    type_t type = symbol.get_type();
+    Type type = symbol.get_type();
     if (type.get_kind() != LSC_INSTANCE)
         throw std::runtime_error("$Not_a_LSC_template: " + symbol.get_name());
 }
@@ -278,12 +278,12 @@ void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTA
         properties.back().options = options;
 }
 
-Variable* PropertyBuilder::addVariable(type_t type, std::string_view name, Expression init, position_t pos)
+Variable* PropertyBuilder::addVariable(Type type, std::string_view name, Expression init, position_t pos)
 {
     throw UTAP::NotSupportedException("addVariable is not supported");
 }
 
-bool PropertyBuilder::addFunction(type_t type, std::string_view name, position_t pos)
+bool PropertyBuilder::addFunction(Type type, std::string_view name, position_t pos)
 {
     throw UTAP::NotSupportedException("addFunction is not supported");
 }

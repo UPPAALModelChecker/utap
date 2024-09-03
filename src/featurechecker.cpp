@@ -144,7 +144,7 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const Expression& e)
 void FeatureChecker::visit_frame(const Frame& frame)
 {
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
-        type_t t = frame.get_symbol(i).get_type();
+        Type t = frame.get_symbol(i).get_type();
         if (t.is_channel() && !t.is(Constants::BROADCAST))
             supported_methods.stochastic = false;
     }

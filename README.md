@@ -254,15 +254,15 @@ ParserBuilder class).
 
 A TAS object represents the templates, variables, locations,
 transitions and processes of a model. Symbols are represented by
-`symbol_t` objects (see the API documentation). A symbol is a name (a
-string) with a type. The type is represented by a `type_t`
-object. Symbols are grouped into frames (represented by `frame_t`
+`Symbol` objects (see the API documentation). A symbol is a name (a
+string) with a type. The type is represented by a `Type`
+object. Symbols are grouped into frames (represented by `Frame`
 objects). Frames are used to represent scopes and other collections of
 symbols such as records or parameters of templates and functions.
 
 All expressions are represented using a tree structure where the
 leaves represent values or variables and the inner nodes represent
-operations. Each node is referenced using an `expression_t` object.
+operations. Each node is referenced using an `Expression` object.
 
 ## 6. Issues
 

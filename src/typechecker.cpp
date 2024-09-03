@@ -72,7 +72,7 @@ bool is_integer(const Expression& expr) { return expr.get_type().is_integer(); }
 
 bool is_const_integer(const Expression& expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
 
-bool is_default_int(const type_t& type)
+bool is_default_int(const Type& type)
 {
     if (type.is_integral()) {
         auto range = type.get_range();
@@ -184,7 +184,7 @@ bool is_invariant_wr(const Expression& expr) { return is_invariant(expr) || (exp
  * case for integers, booleans, clocks, cost, scalars and arrays and
  * records of these. E.g. channels and processes are not assignable.
  */
-bool is_assignable(const type_t& type)
+bool is_assignable(const Type& type)
 {
     switch (type.get_kind()) {
     case Constants::INT:
@@ -213,27 +213,24 @@ using Error = TypeChecker::TypeError;
 
 Error expression_has_no_effect(const Expression& expr) { return {expr, "$Expression_does_not_have_any_effect"}; }
 
-Error urgent_only_for_locations_and_channels(const type_t& type)
+Error urgent_only_for_locations_and_channels(const Type& type)
 {
     return {type, "$Prefix_urgent_only_allowed_for_locations_and_channels"};
 }
 
-Error broadcast_only_for_channels(const type_t& type) { return {type, "$Prefix_broadcast_only_allowed_for_channels"}; }
+Error broadcast_only_for_channels(const Type& type) { return {type, "$Prefix_broadcast_only_allowed_for_channels"}; }
 
-Error committed_only_for_locations(const type_t& type)
-{
-    return {type, "$Prefix_committed_only_allowed_for_locations"};
-}
+Error committed_only_for_locations(const Type& type) { return {type, "$Prefix_committed_only_allowed_for_locations"}; }
 
-Error hybrid_only_for_clocks(const type_t& type) { return {type, "$Prefix_hybrid_only_allowed_for_clocks"}; }
+Error hybrid_only_for_clocks(const Type& type) { return {type, "$Prefix_hybrid_only_allowed_for_clocks"}; }
 
-Error const_not_allowed_for_clocks(const type_t& type) { return {type, "$Prefix_const_not_allowed_for_clocks"}; }
+Error const_not_allowed_for_clocks(const Type& type) { return {type, "$Prefix_const_not_allowed_for_clocks"}; }
 
-Error meta_not_allowed_for_clocks(const type_t& type) { return {type, "$Prefix_meta_not_allowed_for_clocks"}; }
+Error meta_not_allowed_for_clocks(const Type& type) { return {type, "$Prefix_meta_not_allowed_for_clocks"}; }
 
-Error reference_is_not_allowed(const type_t& type) { return {type, "$Reference_to_this_type_is_not_allowed"}; }
+Error reference_is_not_allowed(const Type& type) { return {type, "$Reference_to_this_type_is_not_allowed"}; }
 
-Error range_is_not_allowed(const type_t& type) { return {type, "$Range_over_this_type_is_not_allowed"}; }
+Error range_is_not_allowed(const Type& type) { return {type, "$Range_over_this_type_is_not_allowed"}; }
 
 Error must_be_computable_at_compile_time(const Expression& expr)
 {
@@ -242,13 +239,13 @@ Error must_be_computable_at_compile_time(const Expression& expr)
 
 Error must_be_false(const Expression& expr) { return {expr, "$Must_be_false"}; }
 
-Error invalid_array_size(const type_t& type) { return {type, "$Invalid_array_size"}; }
+Error invalid_array_size(const Type& type) { return {type, "$Invalid_array_size"}; }
 
-Error invalid_return_type(const type_t& type) { return {type, "$Invalid_return_type"}; }
+Error invalid_return_type(const Type& type) { return {type, "$Invalid_return_type"}; }
 
-Error cannot_be_inside_struct(const type_t& type) { return {type, "$Type_cannot_be_declared_inside_a_struct"}; }
+Error cannot_be_inside_struct(const Type& type) { return {type, "$Type_cannot_be_declared_inside_a_struct"}; }
 
-Error cannot_be_const_or_meta(const type_t& type) { return {type, "$Type_cannot_be_declared_const_or_meta"}; }
+Error cannot_be_const_or_meta(const Type& type) { return {type, "$Type_cannot_be_declared_const_or_meta"}; }
 
 Error must_be_side_effect_free(const Expression& expr) { return {expr, "$Expression_must_be_side-effect_free"}; }
 
@@ -292,9 +289,9 @@ Error channel_expected(const Expression& expr) { return {expr, "$Channel_expecte
 
 Error clock_expected(const Expression& expr) { return {expr, "$Clock_expected"}; }
 
-Error scalar_or_integer_expected(const type_t& type) { return {type, "$Scalar_set_or_integer_expected"}; }
+Error scalar_or_integer_expected(const Type& type) { return {type, "$Scalar_set_or_integer_expected"}; }
 
-Error range_expected(const type_t& type) { return {type, "$Range_expected"}; }
+Error range_expected(const Type& type) { return {type, "$Range_expected"}; }
 
 Error csp_and_io_cannot_be_mixed(const Expression& expr)
 {
@@ -527,7 +524,7 @@ bool has_spawn_or_exit(const Expression& expr)
     return hasIt;
 }
 
-bool valid_return_type(const type_t& type)
+bool valid_return_type(const Type& type)
 {
     switch (type.get_kind()) {
     case Constants::RECORD:
@@ -573,7 +570,7 @@ void CompileTimeComputableValues::visit_variable(Variable& variable)
 void CompileTimeComputableValues::visit_instance(instance_t& temp)
 {
     for (const auto& param : temp.parameters) {
-        const type_t& type = param.get_type();
+        const Type& type = param.get_type();
         if (!type.is(REF) && type.is_constant() && !type.is_double()) {
             variables.insert(param);
         }
@@ -613,7 +610,7 @@ void RateDecomposer::decompose(const Expression& expr, bool inforall)
             invariant = invariant.empty()
                             ? expr
                             : invariant = Expression::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                    type_t::create_primitive(INVARIANT));
+                                                                    Type::create_primitive(INVARIANT));
         }
     } else if (expr.get_kind() == AND) {
         decompose(expr[0], inforall);
@@ -639,7 +636,7 @@ void RateDecomposer::decompose(const Expression& expr, bool inforall)
             if (!inforall) {
                 invariant = invariant.empty() ? expr
                                               : Expression::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                          type_t::create_primitive(INVARIANT_WR));
+                                                                          Type::create_primitive(INVARIANT_WR));
             }
         }
     } else {
@@ -650,7 +647,7 @@ void RateDecomposer::decompose(const Expression& expr, bool inforall)
         decompose(expr[1], true);
         invariant = invariant.empty() ? expr
                                       : invariant = Expression::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                              type_t::create_primitive(INVARIANT_WR));
+                                                                              Type::create_primitive(INVARIANT_WR));
     }
 }
 
@@ -725,11 +722,11 @@ bool TypeChecker::isCompileTimeComputable(const Expression& expr) const
  * If \a initialisable is true, then this method also checks that \a
  * type is initialisable.
  */
-void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruct)
+void TypeChecker::checkType(const Type& type, bool initialisable, bool inStruct)
 {
     Expression l;
     Expression u;
-    type_t size;
+    Type size;
 
     switch (type.get_kind()) {
     case LABEL: checkType(type[0], initialisable, inStruct); break;
@@ -830,7 +827,7 @@ void TypeChecker::visit_doc_after(Document& doc)
         const bool i_default = (i.head == Expression());
         if (!i_default && checkExpression(i.head)) {
             Expression expr = i.head;
-            type_t channel = expr.get_type();
+            Type channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
             while (channel.is_array()) {
@@ -854,7 +851,7 @@ void TypeChecker::visit_doc_after(Document& doc)
             const bool j_default = (j.second == Expression());
             if (!j_default && checkExpression(j.second)) {
                 Expression expr = j.second;
-                type_t channel = expr.get_type();
+                Type channel = expr.get_type();
 
                 // Check that chanElement is a channel, or an array of channels.
                 while (channel.is_array())
@@ -923,7 +920,7 @@ void TypeChecker::visit_io_decl(iodecl_t& iodecl)
 
     for (auto expr : iodecl.inputs) {  // intentional copy
         if (checkExpression(expr)) {
-            type_t channel = expr.get_type();
+            Type channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
             while (channel.is_array())
@@ -944,7 +941,7 @@ void TypeChecker::visit_io_decl(iodecl_t& iodecl)
 
     for (auto expr : iodecl.outputs) {  // intentional copy
         if (checkExpression(expr)) {
-            type_t channel = expr.get_type();
+            Type channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
             while (channel.is_array())
@@ -969,7 +966,7 @@ void TypeChecker::visit_process(instance_t& process)
     for (uint32_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
         const Symbol& parameter = process.parameters[i];
-        const type_t& type = parameter.get_type();
+        const Type& type = parameter.get_type();
         if (!(type.is_scalar() || type.is_range()) || type.is(REF) || is_default_int(type))
             handleError(free_param_must_be_int_or_scalar(parameter));
         /* Unbound parameters must not be used either directly or indirectly in any array size declarations.
@@ -1067,7 +1064,7 @@ void TypeChecker::visit_edge(edge_t& edge)
     // sync
     if (!edge.sync.empty()) {
         if (checkExpression(edge.sync)) {
-            const type_t& channel = edge.sync.get(0).get_type();
+            const Type& channel = edge.sync.get(0).get_type();
             if (!channel.is_channel())
                 handleError(channel_expected(edge.sync.get(0)));
             else if (edge.sync.changes_any_variable())
@@ -1182,7 +1179,7 @@ void TypeChecker::visit_message(message_t& message)
 
     if (!message.label.empty()) {
         if (checkExpression(message.label)) {
-            const type_t& channel = message.label.get(0).get_type();
+            const Type& channel = message.label.get(0).get_type();
             if (!channel.is_channel())
                 handleError(channel_expected(message.label.get(0)));
             else if (message.label.changes_any_variable())
@@ -1241,7 +1238,7 @@ void TypeChecker::visit_instance(instance_t& instance)
     DocumentVisitor::visit_instance(instance);
 
     // Check the parameters of the instance.
-    const type_t& type = instance.uid.get_type();
+    const Type& type = instance.uid.get_type();
     for (uint32_t i = 0; i < type.size(); i++)
         checkType(type[i]);
 
@@ -1431,7 +1428,7 @@ void TypeChecker::visit_function(function_t& fn)
     /* Check that the return type is consistent and is a valid return
      * type.
      */
-    const type_t& return_type = fn.uid.get_type()[0];
+    const Type& return_type = fn.uid.get_type()[0];
     checkType(return_type);
     if (!return_type.is_void() && !valid_return_type(return_type))
         handleError(invalid_return_type(return_type));
@@ -1497,7 +1494,7 @@ int32_t TypeChecker::visit_for_statement(ForStatement& stat)
 
 int32_t TypeChecker::visit_iteration_statement(RangeStatement& stat)
 {
-    const type_t& type = stat.symbol.get_type();
+    const Type& type = stat.symbol.get_type();
     checkType(type);
 
     /* We only support iteration over scalars and integers.
@@ -1577,7 +1574,7 @@ int32_t TypeChecker::visit_return_statement(ReturnStatement& stat)
         /* The only valid return types are integers and records. For these
          * two types, the type rules are the same as for parameters.
          */
-        const type_t& return_type = function->uid.get_type()[0];
+        const Type& return_type = function->uid.get_type()[0];
         checkParameterCompatible(return_type, stat.value);
     }
     return 0;
@@ -1586,12 +1583,12 @@ int32_t TypeChecker::visit_return_statement(ReturnStatement& stat)
 /**
  * Returns true iff argument type is compatible with parameter type.
  */
-bool TypeChecker::isParameterCompatible(const type_t& paramType, const Expression& arg) const
+bool TypeChecker::isParameterCompatible(const Type& paramType, const Expression& arg) const
 {
     const bool ref = paramType.is(REF);
     const bool constant = paramType.is_constant();
     const bool lvalue = isModifiableLValue(arg);
-    const type_t& argType = arg.get_type();
+    const Type& argType = arg.get_type();
     // For non-const reference parameters, we require a modifiable
     // lvalue argument
     if (ref && !constant && !lvalue) {
@@ -1610,7 +1607,7 @@ bool TypeChecker::isParameterCompatible(const type_t& paramType, const Expressio
 /**
  * Checks whether argument type is compatible with parameter type.
  */
-bool TypeChecker::checkParameterCompatible(const type_t& paramType, const Expression& arg)
+bool TypeChecker::checkParameterCompatible(const Type& paramType, const Expression& arg)
 {
     if (!isParameterCompatible(paramType, arg)) {
         handleError(incompatible_argument(arg));
@@ -1626,7 +1623,7 @@ bool TypeChecker::checkParameterCompatible(const type_t& paramType, const Expres
  * returned. REVISIT: Can a record initialiser have side-effects? Then
  * such reordering is not valid.
  */
-Expression TypeChecker::checkInitialiser(const type_t& type, const Expression& init)
+Expression TypeChecker::checkInitialiser(const Type& type, const Expression& init)
 {
     if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
@@ -1679,14 +1676,14 @@ Expression TypeChecker::checkInitialiser(const type_t& type, const Expression& i
     return init;
 }
 
-type_t TypeChecker::getInlineIfCommonType(const type_t& t1, const type_t& t2) const
+Type TypeChecker::getInlineIfCommonType(const Type& t1, const Type& t2) const
 {
     if (t1.is_record())
         return t1;
     else if (t2.is_record())
         return t2;
     else if ((t1.is_clock() && !t2.is_clock()) || (!t1.is_clock() && t2.is_clock()))
-        return type_t{DOUBLE, {}, 0};
+        return Type{DOUBLE, {}, 0};
     else if (t1.is_assignment_compatible(t2))
         return t1;
     else if (t2.is_assignment_compatible(t1))
@@ -1694,7 +1691,7 @@ type_t TypeChecker::getInlineIfCommonType(const type_t& t1, const type_t& t2) co
     else if (t2.is_equivalent(t1))
         return t1;
     else
-        return type_t{};
+        return Type{};
 }
 
 /** Type check and checkExpression the expression. This function performs
@@ -1731,10 +1728,10 @@ bool TypeChecker::checkExpression(Expression& expr)
     /* CheckExpression the expression. This depends on the kind of expression
      * we are dealing with.
      */
-    type_t type;
-    // type_t arg1;
-    // type_t arg2;
-    // type_t arg3;
+    Type type;
+    // Type arg1;
+    // Type arg2;
+    // Type arg3;
     switch (expr.get_kind()) {
         // It is possible to have DOT expressions as data.x
         // with data being an array of struct. The type checker
@@ -1759,7 +1756,7 @@ bool TypeChecker::checkExpression(Expression& expr)
         if (is_integral(expr[2]) || is_double_value(expr[2])) {
             type = expr[2].get_type();
         } else if (is_invariant(expr[2]) || is_guard(expr[2])) {
-            type = type_t::create_primitive(Constants::DOUBLE_INV_GUARD);
+            type = Type::create_primitive(Constants::DOUBLE_INV_GUARD);
         } else {
             handleError(invalid_sum(expr));
             return false;
@@ -1767,79 +1764,79 @@ bool TypeChecker::checkExpression(Expression& expr)
         break;
     case FRACTION:
         if (is_integral(expr[0]) && is_integral(expr[1]))
-            type = type_t::create_primitive(Constants::FRACTION);
+            type = Type::create_primitive(Constants::FRACTION);
         break;
 
     case PLUS:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else if ((is_integer(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_integer(expr[1]))) {
-            type = type_t::create_primitive(CLOCK);
+            type = Type::create_primitive(CLOCK);
         } else if ((is_diff(expr[0]) && is_integer(expr[1])) || (is_integer(expr[0]) && is_diff(expr[1]))) {
-            type = type_t::create_primitive(DIFF);
+            type = Type::create_primitive(DIFF);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
             // SMC extension.
-            type = type_t::create_primitive(Constants::DOUBLE);
+            type = Type::create_primitive(Constants::DOUBLE);
         }
         break;
 
     case MINUS:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else if (is_clock(expr[0]) && is_integer(expr[1]))
         // removed  "|| is_integer(expr[0].type) && is_clock(expr[1].type)"
         // in order to be able to convert into ClockGuards
         {
-            type = type_t::create_primitive(CLOCK);
+            type = Type::create_primitive(CLOCK);
         } else if ((is_diff(expr[0]) && is_integer(expr[1])) || (is_integer(expr[0]) && is_diff(expr[1])) ||
                    (is_clock(expr[0]) && is_clock(expr[1]))) {
-            type = type_t::create_primitive(DIFF);
+            type = Type::create_primitive(DIFF);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
             // SMC extension.
             // x-y with that semantic should be written x+(-y)
-            type = type_t::create_primitive(Constants::DOUBLE);
+            type = Type::create_primitive(Constants::DOUBLE);
         }
         break;
 
     case AND:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if (is_invariant(expr[0]) && is_invariant(expr[1])) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_invariant_wr(expr[0]) && is_invariant_wr(expr[1])) {
-            type = type_t::create_primitive(INVARIANT_WR);
+            type = Type::create_primitive(INVARIANT_WR);
         } else if (is_guard(expr[0]) && is_guard(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_constraint(expr[0]) && is_constraint(expr[1])) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         } else if (is_formula(expr[0]) && is_formula(expr[1])) {
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         }
         break;
 
     case OR:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if (is_integral(expr[0]) && is_invariant(expr[1])) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_invariant(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_integral(expr[0]) && is_invariant_wr(expr[1])) {
-            type = type_t::create_primitive(INVARIANT_WR);
+            type = Type::create_primitive(INVARIANT_WR);
         } else if (is_invariant_wr(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(INVARIANT_WR);
+            type = Type::create_primitive(INVARIANT_WR);
         } else if (is_integral(expr[0]) && is_guard(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_guard(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_constraint(expr[0]) && is_constraint(expr[1])) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         }
         break;
 
     case XOR:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         }
         break;
 
@@ -1864,13 +1861,13 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(template_only_declared_and_undefined(expr));
             return false;
         }
-        type = type_t::create_primitive(Constants::INT);
+        type = Type::create_primitive(Constants::INT);
         break;
     }
 
     case NUMOF: {
         if (document.find_dynamic_template(expr[0].get_symbol().get_name()) != nullptr) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else {
             handleError(not_dynamic_template(expr));
             return false;
@@ -1885,7 +1882,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             return false;
         }
 
-        type = type_t::create_primitive(Constants::INT);
+        type = Type::create_primitive(Constants::INT);
 
         break;
     }
@@ -1893,17 +1890,17 @@ bool TypeChecker::checkExpression(Expression& expr)
     case LT:
     case LE:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_bound(expr[1])) ||
                    (is_clock(expr[1]) && is_bound(expr[0])) || (is_diff(expr[0]) && is_bound(expr[1])) ||
                    (is_bound(expr[0]) && is_diff(expr[1]))) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_number(expr[0]) && is_clock(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_clock(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         }
         break;
 
@@ -1913,43 +1910,43 @@ bool TypeChecker::checkExpression(Expression& expr)
         if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_number(expr[1])) ||
             (is_number(expr[0]) && is_clock(expr[1])) || (is_diff(expr[0]) && is_number(expr[1])) ||
             (is_number(expr[0]) && is_diff(expr[1]))) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (expr[0].get_type().is_equality_compatible(expr[1].get_type())) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if ((expr[0].get_type().is(RATE) && (is_integral(expr[1]) || is_double_value(expr[1]))) ||
                    ((is_integral(expr[0]) || is_double_value(expr[0])) && expr[1].get_type().is(RATE))) {
-            type = type_t::create_primitive(INVARIANT_WR);
+            type = Type::create_primitive(INVARIANT_WR);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         }
         break;
 
     case NEQ:
         if (expr[0].get_type().is_equality_compatible(expr[1].get_type())) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_clock(expr[0]) && is_integer(expr[1])) ||
                    (is_integer(expr[0]) && is_clock(expr[1])) || (is_diff(expr[0]) && is_integer(expr[1])) ||
                    (is_integer(expr[0]) && is_diff(expr[1]))) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         }
         break;
 
     case GE:
     case GT:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if ((is_clock(expr[0]) && is_clock(expr[1])) || (is_integer(expr[0]) && is_clock(expr[1])) ||
                    (is_integer(expr[1]) && is_clock(expr[0])) || (is_diff(expr[0]) && is_integer(expr[1])) ||
                    (is_integer(expr[0]) && is_diff(expr[1]))) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_number(expr[0]) && is_clock(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_clock(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         }
         break;
 
@@ -1959,9 +1956,9 @@ bool TypeChecker::checkExpression(Expression& expr)
     case MIN:
     case MAX:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else if (is_number(expr[0]) && is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::DOUBLE);
+            type = Type::create_primitive(Constants::DOUBLE);
         }
         break;
 
@@ -1972,29 +1969,29 @@ bool TypeChecker::checkExpression(Expression& expr)
     case BIT_LSHIFT:
     case BIT_RSHIFT:
         if (is_integral(expr[0]) && is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         }
         break;
 
     case NOT:
         if (is_integral(expr[0])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if (is_constraint(expr[0])) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         }
         break;
 
     case UNARY_MINUS:
         if (is_integral(expr[0])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else if (is_number(expr[0])) {
-            type = type_t::create_primitive(Constants::DOUBLE);
+            type = Type::create_primitive(Constants::DOUBLE);
         }
         break;
 
     case RATE:
         if (is_cost(expr[0]) || is_clock(expr[0])) {
-            type = type_t::create_primitive(RATE);
+            type = Type::create_primitive(RATE);
         }
         break;
 
@@ -2047,7 +2044,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(integer_expected(expr));
             return false;
         }
-        type = type_t::create_primitive(Constants::INT);
+        type = Type::create_primitive(Constants::INT);
         break;
 
     case FMA_F:
@@ -2114,7 +2111,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(number_expected(expr[0]));
             return false;
         }
-        type = type_t::create_primitive(Constants::DOUBLE);
+        type = Type::create_primitive(Constants::DOUBLE);
         break;
 
     case LDEXP_F:
@@ -2126,7 +2123,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(number_expected(expr[0]));
             return false;
         }
-        type = type_t::create_primitive(Constants::DOUBLE);
+        type = Type::create_primitive(Constants::DOUBLE);
         break;
 
     case ABS_F:
@@ -2135,7 +2132,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(integer_expected(expr[0]));
             return false;
         }
-        type = type_t::create_primitive(Constants::INT);
+        type = Type::create_primitive(Constants::INT);
         break;
 
     case ILOGB_F:
@@ -2144,7 +2141,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(number_expected(expr[0]));
             return false;
         }
-        type = type_t::create_primitive(Constants::INT);
+        type = Type::create_primitive(Constants::INT);
         break;
 
     case IS_FINITE_F:
@@ -2157,7 +2154,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             handleError(number_expected(expr[0]));
             return false;
         }
-        type = type_t::create_primitive(Constants::BOOL);
+        type = Type::create_primitive(Constants::BOOL);
         break;
 
     case INLINE_IF:
@@ -2191,10 +2188,10 @@ bool TypeChecker::checkExpression(Expression& expr)
         checkExpression(expr[0]);
 
         bool result = true;
-        const type_t& t = expr[0].get_type();
+        const Type& t = expr[0].get_type();
         const uint32_t parameters = t.size() - 1;
         for (uint32_t i = 0; i < parameters; i++) {
-            const type_t& parameter = t[i + 1];
+            const Type& parameter = t[i + 1];
             const Expression& argument = expr[i + 1];
             result &= checkParameterCompatible(parameter, argument);
         }
@@ -2202,8 +2199,8 @@ bool TypeChecker::checkExpression(Expression& expr)
     }
 
     case ARRAY: {
-        const type_t& arg1 = expr[0].get_type();
-        const type_t& arg2 = expr[1].get_type();
+        const Type& arg1 = expr[0].get_type();
+        const Type& arg2 = expr[1].get_type();
 
         // The left side must be an array.
         if (!arg1.is_array()) {
@@ -2229,15 +2226,15 @@ bool TypeChecker::checkExpression(Expression& expr)
         checkType(expr[0].get_symbol().get_type());
 
         if (is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if (is_invariant(expr[1])) {
-            type = type_t::create_primitive(INVARIANT);
+            type = Type::create_primitive(INVARIANT);
         } else if (is_invariant_wr(expr[1])) {
-            type = type_t::create_primitive(INVARIANT_WR);
+            type = Type::create_primitive(INVARIANT_WR);
         } else if (is_guard(expr[1])) {
-            type = type_t::create_primitive(GUARD);
+            type = Type::create_primitive(GUARD);
         } else if (is_constraint(expr[1])) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         } else {
             handleError(boolean_expected(expr[1]));
         }
@@ -2252,9 +2249,9 @@ bool TypeChecker::checkExpression(Expression& expr)
         checkType(expr[0].get_symbol().get_type());
 
         if (is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::BOOL);
+            type = Type::create_primitive(Constants::BOOL);
         } else if (is_constraint(expr[1])) {
-            type = type_t::create_primitive(CONSTRAINT);
+            type = Type::create_primitive(CONSTRAINT);
         } else {
             handleError(boolean_expected(expr[1]));
         }
@@ -2269,9 +2266,9 @@ bool TypeChecker::checkExpression(Expression& expr)
         checkType(expr[0].get_symbol().get_type());
 
         if (is_integral(expr[1])) {
-            type = type_t::create_primitive(Constants::INT);
+            type = Type::create_primitive(Constants::INT);
         } else if (is_number(expr[1])) {
-            type = type_t::create_primitive(Constants::DOUBLE);
+            type = Type::create_primitive(Constants::DOUBLE);
         } else {
             handleError(number_expected(expr[1]));
         }
@@ -2292,13 +2289,13 @@ bool TypeChecker::checkExpression(Expression& expr)
     case CONTROL_TOPT_DEF2:
     case PMAX:
         if (is_formula(expr[0])) {
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         }
         break;
 
     case PO_CONTROL:
         if (is_formula_list(expr[0]) && is_formula(expr[1])) {
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         }
         break;
 
@@ -2308,11 +2305,11 @@ bool TypeChecker::checkExpression(Expression& expr)
     case A_WEAK_UNTIL:
     case A_BUCHI:
         if (is_formula(expr[0]) && is_formula(expr[1])) {
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         }
         break;
 
-    case SCENARIO: type = type_t::create_primitive(FORMULA); break;
+    case SCENARIO: type = Type::create_primitive(FORMULA); break;
 
     case SIMULATEREACH:
     case SIMULATE: {
@@ -2363,7 +2360,7 @@ bool TypeChecker::checkExpression(Expression& expr)
                 return false;
             }
         }
-        type = type_t::create_primitive(FORMULA);
+        type = Type::create_primitive(FORMULA);
         break;
     }
 
@@ -2386,7 +2383,7 @@ bool TypeChecker::checkExpression(Expression& expr)
                     return false;
                 }
             }
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         }
         break;
 
@@ -2397,7 +2394,7 @@ bool TypeChecker::checkExpression(Expression& expr)
     case MITL_UNTIL:
     case MITL_RELEASE:
     case MITL_ATOM:
-        type = type_t::create_primitive(FORMULA);
+        type = Type::create_primitive(FORMULA);
         // TODO
         break;
     case MIN_EXP:
@@ -2415,7 +2412,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             return false;
 
         if (is_formula(expr[2]))
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
 
         for (uint32_t i = 3; i < expr.get_size(); ++i) {
             if (expr[i].changes_any_variable()) {
@@ -2431,7 +2428,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             if (!ok)
                 return false;
             if (is_formula(expr[2])) {
-                type = type_t::create_primitive(FORMULA);
+                type = Type::create_primitive(FORMULA);
             }
         } else {
             handleError(bug_wrong_number_of_args(expr));
@@ -2454,7 +2451,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             ok &= checkProbBound(expr[4]);
             if (!ok)
                 return false;
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         } else {
             handleError(bug_wrong_number_of_args(expr));
             return false;
@@ -2472,7 +2469,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             ok &= checkUntilCond(expr.get_kind(), expr[4]);
             if (!ok)
                 return false;
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         } else {
             handleError(bug_wrong_number_of_args(expr));
             return false;
@@ -2494,7 +2491,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             ok &= checkPredicate(expr[7]);
             if (!ok)
                 return false;
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         } else {
             handleError(bug_wrong_number_of_args(expr));
             return false;
@@ -2510,7 +2507,7 @@ bool TypeChecker::checkExpression(Expression& expr)
             ok &= checkMonitoredExpr(expr[4]);
             if (!ok)
                 return false;
-            type = type_t::create_primitive(FORMULA);
+            type = Type::create_primitive(FORMULA);
         } else {
             handleError(bug_wrong_number_of_args(expr));
             return false;
@@ -2725,7 +2722,7 @@ void TypeChecker::visit_template_after(template_t& t)
     temp = nullptr;
 }
 
-bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const Expression& arg)
+bool TypeChecker::checkSpawnParameterCompatible(const Type& param, const Expression& arg)
 {
     return checkParameterCompatible(param, arg);
 }

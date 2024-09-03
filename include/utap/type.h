@@ -40,13 +40,13 @@ class Symbol;
    A reference to a type.
 
    Types are represented as trees of types. The type cannot be
-   access directly. You need to use an instance of type_t to
+   access directly. You need to use an instance of Type to
    access a type. Internally, types are reference counted and do
    not need to be deallocated manually. Types are immutable.
 
    Types are either primitive such as clocks or channels, or
    contructed types such as structs and array. Constructed types
-   are created using one of the factory methods in the type_t
+   are created using one of the factory methods in the Type
    class. Primitive types are leaves in the tree, constructed
    types are inner nodes.
 
@@ -91,22 +91,22 @@ class Symbol;
    - REF; a reference - the first child is the type from which the
      reference type is formed.
 */
-class type_t
+class Type
 {
 private:
     struct type_data;
     std::shared_ptr<type_data> data;
 
 public:
-    explicit type_t(Constants::kind_t kind, const position_t& pos, size_t size);
+    explicit Type(Constants::kind_t kind, const position_t& pos, size_t size);
     /// Default constructor creates a null-type.
-    type_t() = default;
+    Type() = default;
 
     /// Checks if types are equal
-    bool operator==(const type_t&) const;
+    bool operator==(const Type&) const;
 
     /// Checks if types are not equal
-    bool operator!=(const type_t&) const;
+    bool operator!=(const Type&) const;
 
     /// Returns the kind of type object.
     Constants::kind_t get_kind() const;
@@ -121,13 +121,13 @@ public:
     uint32_t size() const;
 
     /// Less-than operator.
-    bool operator<(const type_t&) const;
+    bool operator<(const Type&) const;
 
     /// Returns the \a i'th child.
-    const type_t& operator[](uint32_t) const;
+    const Type& operator[](uint32_t) const;
 
     /// Returns the \a i'th child.
-    const type_t& get(uint32_t) const;
+    const Type& get(uint32_t) const;
 
     /// Returns the \a i'th label.
     const std::string& get_label(uint32_t) const;
@@ -136,16 +136,16 @@ public:
     const Expression& get_expression() const;
 
     /// Returns the size of an array (this is itself a type). @pre is_array().
-    const type_t& get_array_size() const;
+    const Type& get_array_size() const;
 
     /// Returns the element type of an array. Preserves any prefixes. @pre is_array();
-    type_t get_sub() const;
+    Type get_sub() const;
 
     /**
      * Returns the \i'th field of a record or process. Preserves
      * any prefixes. @pre is_record() or is_process().
      */
-    type_t get_sub(uint32_t) const;
+    Type get_sub(uint32_t) const;
 
     /// Returns the number of fields of a record. @pre is_record().
     uint32_t get_record_size() const;
@@ -281,13 +281,13 @@ public:
      * Removes any leading prefixes, RANGE, REF and LABEL types
      * and returns the result.
      */
-    type_t strip() const;
+    Type strip() const;
 
     /**
      * Removes any leading prefixes, RANGE, REF, LABEL and ARRAY
      * types and returns the result.
      */
-    type_t strip_array() const;
+    Type strip_array() const;
 
     /**
      * Returns false for non-prefix types and true
@@ -315,20 +315,20 @@ public:
      * Clocks are not handled by this method: If t1 or t2 are clock-types,
      * then false is returned.
      * TODO: REVISIT: This should be updated. */
-    bool is_equality_compatible(const type_t& other) const;
+    bool is_equality_compatible(const Type& other) const;
 
     /** Returns true if this type and rhs are assignment compatible.
      * This is the case when an expression of type rvalue can be assigned to
      * this type. It does not check whether this is actually a left-hand side value.
      * In case of integers, it does not check the range of the expressions. */
-    bool is_assignment_compatible(const type_t& rhs, bool init = false) const;
+    bool is_assignment_compatible(const Type& rhs, bool init = false) const;
 
     /** Returns true if arguments of an inline if are compatible.
      * The 'then' and 'else' arguments are compatible if and only if they
      * have the same base type. In case of arrays, they must have the
      * same size and the subtypes must be compatible. In case of records,
      * they must have the same type name. */
-    bool is_inline_if_compatible(const type_t& alt1, const type_t& alt2) const;
+    bool is_inline_if_compatible(const Type& alt1, const Type& alt2) const;
 
     /** Returns a value indicating the capabilities of a channel type. For
      * urgent channels this is 0, for non-urgent broadcast channels this
@@ -336,12 +336,12 @@ public:
     int channel_capability() const;
 
     /// Returns true if this and other are name-equivalent scalar types.
-    bool is_same_scalar(const type_t& other) const;
+    bool is_same_scalar(const Type& other) const;
 
     /** Returns true iff this and other are structurally equivalent.
      * However, CONST, SYSTEM_META, and REF are ignored.
      * Scalar sets are checked using named equivalence.  */
-    bool is_equivalent(const type_t& other) const;
+    bool is_equivalent(const Type& other) const;
 
     /// Returns true if this is null-type or of kind UNKNOWN.
     bool unknown() const;
@@ -351,59 +351,59 @@ public:
      * with a LABEL \a to. As always, a type is immutable, so a
      * copy of the type will be created.
      */
-    type_t rename(const std::string& from, const std::string& to) const;
+    Type rename(const std::string& from, const std::string& to) const;
 
     /**
      * Substitutes any occurence of \a symbol in any expression in
      * the type (expressions that occur as ranges either on
      * array sizes, scalars or integers) with \a expr.
      */
-    type_t subst(const Symbol& symbol, const Expression& expr) const;
+    Type subst(const Symbol& symbol, const Expression& expr) const;
     /**
      * Creates a new type by adding a prefix to it. The prefix
      * could be anything and it is the responsibility of the
      * caller to make sure that the given kind is a valid prefix.
      */
-    type_t create_prefix(Constants::kind_t kind, position_t = position_t()) const;
+    Type create_prefix(Constants::kind_t kind, position_t = position_t()) const;
 
     /// Creates a LABEL.
-    type_t create_label(std::string_view, position_t = position_t()) const;
+    Type create_label(std::string_view, position_t = position_t()) const;
 
     /// Creates a range based on primitive
-    static type_t create_range(type_t primitive, Expression from, Expression till, position_t = position_t());
+    static Type create_range(Type primitive, Expression from, Expression till, position_t = position_t());
 
     /// Creates a primitive type
-    static type_t create_primitive(Constants::kind_t, position_t = position_t());
+    static Type create_primitive(Constants::kind_t, position_t = position_t());
 
     /// Creates an array type.
-    static type_t create_array(type_t sub, type_t size, position_t = position_t());
+    static Type create_array(Type sub, Type size, position_t = position_t());
 
     /// Creates a new type definition.
-    static type_t create_typedef(std::string, type_t, position_t = position_t());
+    static Type create_typedef(std::string, Type, position_t = position_t());
 
     /// Creates a new process type.
-    static type_t create_process(const Frame&, position_t = position_t());
+    static Type create_process(const Frame&, position_t = position_t());
 
     /// Creates a new process-set type.
-    static type_t create_process_set(const type_t& instance, position_t = position_t());
+    static Type create_process_set(const Type& instance, position_t = position_t());
 
     /// Creates a new record type
-    static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = position_t());
+    static Type create_record(const std::vector<Type>&, const std::vector<std::string>&, position_t = position_t());
 
     /// Creates a new function type
-    static type_t create_function(type_t, const std::vector<type_t>&, const std::vector<std::string>&,
-                                  position_t = position_t());
+    static Type create_function(Type, const std::vector<Type>&, const std::vector<std::string>&,
+                                position_t = position_t());
 
-    static type_t create_external_function(type_t rt, const std::vector<type_t>&, const std::vector<std::string>&,
-                                           position_t = position_t());
+    static Type create_external_function(Type rt, const std::vector<Type>&, const std::vector<std::string>&,
+                                         position_t = position_t());
 
     /// Creates a new instance type
-    static type_t create_instance(const Frame&, position_t = position_t());
+    static Type create_instance(const Frame&, position_t = position_t());
     /// Creates a new LSC instance type
-    static type_t create_LSC_instance(const Frame&, position_t = position_t());
+    static Type create_LSC_instance(const Frame&, position_t = position_t());
 };
 }  // namespace UTAP
 
-std::ostream& operator<<(std::ostream& o, const UTAP::type_t& t);
+std::ostream& operator<<(std::ostream& o, const UTAP::Type& t);
 
 #endif  // UTAP_TYPE_HH

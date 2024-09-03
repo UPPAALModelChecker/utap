@@ -50,7 +50,7 @@ protected:
     std::vector<std::unique_ptr<BlockStatement>> blocks;
 
     /** The types of a struct. */
-    std::vector<type_t> fields;
+    std::vector<Type> fields;
 
     /** The labels of a struct. */
     std::vector<std::string> labels;
@@ -58,11 +58,11 @@ protected:
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 
-    virtual Variable* addVariable(type_t type, std::string_view name, Expression init, position_t pos) = 0;
-    virtual bool addFunction(type_t type, std::string_view name, position_t pos) = 0;
+    virtual Variable* addVariable(Type type, std::string_view name, Expression init, position_t pos) = 0;
+    virtual bool addFunction(Type type, std::string_view name, position_t pos) = 0;
 
     static void collectDependencies(std::set<Symbol>&, const Expression&);
-    static void collectDependencies(std::set<Symbol>&, const type_t&);
+    static void collectDependencies(std::set<Symbol>&, const Type&);
 
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
@@ -76,7 +76,7 @@ public:
     void struct_field(std::string_view name) override;
     void decl_typedef(std::string_view name) override;
     void decl_var(std::string_view name, bool init) override;
-    Expression make_initialiser(const type_t& type, const Expression& init);
+    Expression make_initialiser(const Type& type, const Expression& init);
     void decl_init_list(uint32_t num) override;
     void decl_field_init(std::string_view name) override;
     void decl_parameter(std::string_view name, bool) override;

@@ -53,7 +53,7 @@ struct Expression::expression_data : public std::enable_shared_from_this<Express
     std::variant<int32_t, synchronisation_t, double, StringIndex> value;
 
     Symbol symbol;                ///< The symbol of the node
-    type_t type;                  ///< The type of the expression
+    Type type;                    ///< The type of the expression
     std::vector<Expression> sub;  ///< Subexpressions
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
 };
@@ -489,13 +489,13 @@ uint32_t Expression::get_size() const
     }
 }
 
-const type_t& Expression::get_type() const
+const Type& Expression::get_type() const
 {
     assert(data);
     return data->type;
 }
 
-void Expression::set_type(type_t type)
+void Expression::set_type(Type type)
 {
     assert(data);
     data->type = std::move(type);
@@ -1791,7 +1791,7 @@ Expression Expression::create_constant(int32_t value, position_t pos)
 {
     auto expr = Expression{CONSTANT, pos};
     expr.data->value = value;
-    expr.data->type = type_t::create_primitive(Constants::INT);
+    expr.data->type = Type::create_primitive(Constants::INT);
     return expr;
 }
 
@@ -1799,7 +1799,7 @@ Expression Expression::create_var_index(int32_t value, position_t pos)
 {
     auto expr = Expression{VAR_INDEX, pos};
     expr.data->value = value;
-    expr.data->type = type_t::create_primitive(Constants::INT);
+    expr.data->type = Type::create_primitive(Constants::INT);
     return expr;
 }
 
@@ -1807,7 +1807,7 @@ Expression Expression::create_exit(position_t pos)
 {
     auto expr = Expression{EXIT, pos};
     expr.data->value = 0;
-    expr.data->type = type_t::create_primitive(Constants::VOID_TYPE);
+    expr.data->type = Type::create_primitive(Constants::VOID_TYPE);
     return expr;
 }
 
@@ -1815,7 +1815,7 @@ Expression Expression::create_double(double value, position_t pos)
 {
     auto expr = Expression{CONSTANT, pos};
     expr.data->value = value;
-    expr.data->type = type_t::create_primitive(Constants::DOUBLE);
+    expr.data->type = Type::create_primitive(Constants::DOUBLE);
     return expr;
 }
 
@@ -1823,7 +1823,7 @@ Expression Expression::create_string(StringIndex str, position_t pos)
 {
     auto expr = Expression{CONSTANT, pos};
     expr.data->value = str;
-    expr.data->type = type_t::create_primitive(Constants::STRING);
+    expr.data->type = Type::create_primitive(Constants::STRING);
     return expr;
 }
 
@@ -1834,12 +1834,12 @@ Expression Expression::create_identifier(const Symbol& symbol, position_t pos)
     if (symbol != Symbol()) {
         expr.data->type = symbol.get_type();
     } else {
-        expr.data->type = type_t();
+        expr.data->type = Type();
     }
     return expr;
 }
 
-Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, position_t pos, type_t type)
+Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->value = static_cast<int32_t>(sub.size());
@@ -1848,7 +1848,7 @@ Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, pos
     return expr;
 }
 
-Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos, type_t type)
+Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.push_back(std::move(sub));
@@ -1856,7 +1856,7 @@ Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos,
     return expr;
 }
 
-Expression Expression::create_binary(kind_t kind, Expression left, Expression right, position_t pos, type_t type)
+Expression Expression::create_binary(kind_t kind, Expression left, Expression right, position_t pos, Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.reserve(2);
@@ -1867,7 +1867,7 @@ Expression Expression::create_binary(kind_t kind, Expression left, Expression ri
 }
 
 Expression Expression::create_ternary(kind_t kind, Expression e1, Expression e2, Expression e3, position_t pos,
-                                      type_t type)
+                                      Type type)
 {
     auto expr = Expression{kind, pos};
     expr.data->sub.reserve(3);
@@ -1878,7 +1878,7 @@ Expression Expression::create_ternary(kind_t kind, Expression e1, Expression e2,
     return expr;
 }
 
-Expression Expression::create_dot(Expression e, int32_t idx, position_t pos, type_t type)
+Expression Expression::create_dot(Expression e, int32_t idx, position_t pos, Type type)
 {
     auto expr = Expression{DOT, pos};
     expr.data->value = idx;
@@ -1898,6 +1898,6 @@ Expression Expression::create_sync(Expression e, synchronisation_t s, position_t
 Expression Expression::create_deadlock(position_t pos)
 {
     auto expr = Expression{DEADLOCK, pos};
-    expr.data->type = type_t::create_primitive(CONSTRAINT);
+    expr.data->type = Type::create_primitive(CONSTRAINT);
     return expr;
 }

@@ -119,7 +119,7 @@ std::ostream& Variable::print(std::ostream& os) const
     return os;
 }
 
-bool declarations_t::add_function(type_t type, std::string_view name, position_t pos, function_t*& fun)
+bool declarations_t::add_function(Type type, std::string_view name, position_t pos, function_t*& fun)
 {
     bool duplicate = frame.contains(name);
     fun = &functions.emplace_back();
@@ -255,7 +255,7 @@ location_t& template_t::add_location(std::string_view name, Expression inv, Expr
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
-    loc.uid = frame.add_symbol(name, type_t::create_primitive(LOCATION), pos, &loc);
+    loc.uid = frame.add_symbol(name, Type::create_primitive(LOCATION), pos, &loc);
     loc.nr = locations.size() - 1;
     loc.invariant = std::move(inv);
     loc.exp_rate = std::move(er);
@@ -270,7 +270,7 @@ branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos
 {
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
-    branchpoint.uid = frame.add_symbol(name, type_t::create_primitive(BRANCHPOINT), pos, &branchpoint);
+    branchpoint.uid = frame.add_symbol(name, Type::create_primitive(BRANCHPOINT), pos, &branchpoint);
     branchpoint.bpNr = branchpoints.size() - 1;
     if (duplicate)
         throw duplicate_definition_error(name);
@@ -308,7 +308,7 @@ instance_line_t& template_t::add_instance_line()
     // bool duplicate = frame.get_index_of(name) != -1;
 
     instance_line_t& instance = instances.emplace_back();
-    // instance.uid = frame.add_symbol(name, type_t::create_primitive(INSTANCELINE), &instance);
+    // instance.uid = frame.add_symbol(name, Type::create_primitive(INSTANCELINE), &instance);
     instance.instance_nr = instances.size() - 1;
 
     //    if (duplicate)
@@ -734,7 +734,7 @@ Document::Document()
 {
     global.frame = Frame::make();
 #ifdef ENABLE_CORA
-    addVariable(&global, type_t::create_primitive(COST), "cost", Expression());
+    addVariable(&global, Type::create_primitive(COST), "cost", Expression());
 #endif
 }
 
@@ -755,7 +755,7 @@ Library& Document::last_library()
 template_t& Document::add_template(std::string_view name, const Frame& params, position_t position, const bool is_TA,
                                    std::string_view typeLSC, std::string_view mode)
 {
-    type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
+    Type type = (is_TA) ? Type::create_instance(params) : Type::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
     templ.frame = global.frame.make_sub();
@@ -774,7 +774,7 @@ template_t& Document::add_template(std::string_view name, const Frame& params, p
 
 template_t& Document::add_dynamic_template(std::string_view name, const Frame& params, position_t pos)
 {
-    type_t type = type_t::create_instance(params);
+    Type type = Type::create_instance(params);
     dyn_templates.emplace_back();
     template_t& templ = dyn_templates.back();
     templ.parameters = params;
@@ -830,7 +830,7 @@ template_t* Document::find_dynamic_template(std::string_view name)
 instance_t& Document::add_instance(std::string_view name, instance_t& inst, Frame params,
                                    const std::vector<Expression>& arguments, position_t pos)
 {
-    type_t type = type_t::create_instance(params);
+    Type type = Type::create_instance(params);
     instance_t& instance = instances.emplace_back();
     instance.uid = global.frame.add_symbol(name, type, pos, &instance);
     instance.unbound = params.get_size();
@@ -847,7 +847,7 @@ instance_t& Document::add_instance(std::string_view name, instance_t& inst, Fram
 instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, Frame params,
                                        const std::vector<Expression>& arguments, position_t pos)
 {
-    auto type = type_t::create_LSC_instance(params);
+    auto type = Type::create_LSC_instance(params);
     auto& instance = lsc_instances.emplace_back();
     instance.uid = global.frame.add_symbol(name, type, pos, &instance);
     instance.unbound = params.get_size();
@@ -874,12 +874,12 @@ void Document::remove_process(instance_t& instance)
 
 void Document::add_process(instance_t& instance, position_t pos)
 {
-    type_t type;
+    Type type;
     instance_t& process = processes.emplace_back(instance);
     if (process.unbound == 0)
-        type = type_t::create_process(process.templ->frame);
+        type = Type::create_process(process.templ->frame);
     else
-        type = type_t::create_process_set(instance.uid.get_type());
+        type = Type::create_process_set(instance.uid.get_type());
     process.uid = global.frame.add_symbol(instance.uid.get_name(), type, pos, &process);
 }
 
@@ -894,7 +894,7 @@ options_t& Document::get_options() { return model_options; }
 void Document::set_options(const options_t& options) { model_options = options; }
 
 // Add a regular variable
-Variable* Document::add_variable(declarations_t* context, type_t type, std::string_view name, Expression initial,
+Variable* Document::add_variable(declarations_t* context, Type type, std::string_view name, Expression initial,
                                  position_t pos)
 {
     auto* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
@@ -902,7 +902,7 @@ Variable* Document::add_variable(declarations_t* context, type_t type, std::stri
     return var;
 }
 
-Variable* Document::add_variable_to_function(function_t* function, Frame frame, type_t type, std::string_view name,
+Variable* Document::add_variable_to_function(function_t* function, Frame frame, Type type, std::string_view name,
                                              Expression initial, position_t pos)
 {
     Variable* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
@@ -911,7 +911,7 @@ Variable* Document::add_variable_to_function(function_t* function, Frame frame, 
 }
 
 // Add a regular variable
-Variable* Document::add_variable(std::list<Variable>& variables, Frame frame, type_t type, std::string_view name,
+Variable* Document::add_variable(std::list<Variable>& variables, Frame frame, Type type, std::string_view name,
                                  position_t pos)
 {
     bool duplicate = frame.contains(name);
@@ -945,7 +945,7 @@ void Document::add_progress_measure(declarations_t* context, Expression guard, E
 static void visit(DocumentVisitor& visitor, Frame& frame)
 {
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
-        type_t type = frame[i].get_type();
+        Type type = frame[i].get_type();
         if (type.get_kind() == TYPEDEF) {
             visitor.visit_typedef(frame[i]);
             continue;
@@ -1000,7 +1000,7 @@ void Document::accept(DocumentVisitor& visitor)
         visitTemplate(templ, visitor);
 
     for (size_t i = 0; i < global.frame.get_size(); ++i) {
-        type_t type = global.frame[i].get_type();
+        Type type = global.frame[i].get_type();
         void* data = global.frame[i].get_data();
         type = type.strip_array();
         if (type.is(PROCESS) || type.is(PROCESS_SET)) {

@@ -27,11 +27,11 @@ TEST_SUITE_BEGIN("Expressions");
 
 TEST_CASE("Expression")
 {
-    using UTAP::type_t;
+    using UTAP::Type;
     using exp_t = UTAP::Expression;
-    const auto i_prim_type = type_t::create_primitive(UTAP::Constants::INT);
+    const auto i_prim_type = Type::create_primitive(UTAP::Constants::INT);
     REQUIRE(i_prim_type.get_kind() == UTAP::Constants::INT);
-    const auto d_prim_type = type_t::create_primitive(UTAP::Constants::DOUBLE);
+    const auto d_prim_type = Type::create_primitive(UTAP::Constants::DOUBLE);
     REQUIRE(d_prim_type.get_kind() == UTAP::Constants::DOUBLE);
 
     const auto i0 = exp_t::create_constant(0);
@@ -55,17 +55,17 @@ TEST_CASE("Expression")
 
     SUBCASE("Types")
     {
-        const auto i02 = type_t::create_range(i_prim_type, i0, i2);
+        const auto i02 = Type::create_range(i_prim_type, i0, i2);
         REQUIRE(i02.get_kind() == UTAP::Constants::RANGE);
         const auto i02_range = i02.get_range();
         CHECK(i02_range.first == i0);
         CHECK(i02_range.second == i2);
-        const auto i25 = type_t::create_range(i_prim_type, i2, i5);
+        const auto i25 = Type::create_range(i_prim_type, i2, i5);
         REQUIRE(i25.get_kind() == UTAP::Constants::RANGE);
         const auto i25_range = i25.get_range();
         CHECK(i25_range.first == i2);
         CHECK(i25_range.second == i5);
-        const auto i52 = type_t::create_range(i_prim_type, i5, i2);  // no checks
+        const auto i52 = Type::create_range(i_prim_type, i5, i2);  // no checks
     }
 
     SUBCASE("Operator precedence")

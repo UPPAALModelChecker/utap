@@ -355,7 +355,7 @@ TEST_CASE("Chaining disjunctive conjunctions with outer conjunction")
 TEST_CASE("Post incrementing an identifier should not require parenthesis")
 {
     auto frame = Frame::make();
-    auto test_symbol = frame.add_symbol("foo", type_t::create_primitive(Constants::INT), {});
+    auto test_symbol = frame.add_symbol("foo", Type::create_primitive(Constants::INT), {});
     auto id = Expression::create_identifier(test_symbol);
     auto expr = Expression::create_unary(Constants::POST_INCREMENT, id);
 

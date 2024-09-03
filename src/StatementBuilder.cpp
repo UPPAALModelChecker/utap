@@ -65,7 +65,7 @@ void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const
     }
 }
 
-void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const type_t& type)
+void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const Type& type)
 {
     if (type.get_kind() == RANGE) {
         auto [lower, upper] = type.get_range();
@@ -94,8 +94,8 @@ void StatementBuilder::type_array_of_size(uint32_t n)
 
 void StatementBuilder::type_array_of_type(uint32_t n)
 {
-    type_t size = typeFragments.pop();
-    typeFragments[n - 1] = type_t::create_array(typeFragments[n - 1], size, position);
+    Type size = typeFragments.pop();
+    typeFragments[n - 1] = Type::create_array(typeFragments[n - 1], size, position);
 
     /* If template local declaration, then mark all symbols in 'size'
      * and those that they depend on as restricted. Otherwise we would
@@ -118,11 +118,11 @@ void StatementBuilder::type_array_of_type(uint32_t n)
  */
 void StatementBuilder::type_struct(TypePrefix prefix, uint32_t n)
 {
-    auto f = std::vector<type_t>(fields.end() - n, fields.end());
+    auto f = std::vector<Type>(fields.end() - n, fields.end());
     auto l = std::vector<std::string>(labels.end() - n, labels.end());
     fields.erase(fields.end() - n, fields.end());
     labels.erase(labels.end() - n, labels.end());
-    typeFragments.push(apply_prefix(prefix, type_t::create_record(f, l, position)));
+    typeFragments.push(apply_prefix(prefix, Type::create_record(f, l, position)));
 }
 
 /**
@@ -159,14 +159,14 @@ void StatementBuilder::struct_field(std::string_view name)
 void StatementBuilder::decl_typedef(std::string_view name)
 {
     bool duplicate = frames.top().contains(name);
-    type_t type = type_t::create_typedef(std::string{name}, typeFragments[0], position);
+    Type type = Type::create_typedef(std::string{name}, typeFragments[0], position);
     typeFragments.pop();
     if (duplicate)
         throw duplicate_definition_error(name);
     frames.top().add_symbol(name, type, position);
 }
 
-static bool initialisable(type_t type)
+static bool initialisable(Type type)
 {
     type = type.strip();
     switch (type.get_kind()) {
@@ -188,7 +188,7 @@ static bool initialisable(type_t type)
     }
 }
 
-static bool mustInitialise(const type_t& type)
+static bool mustInitialise(const Type& type)
 {
     const auto k = type.get_kind();
     assert(k != FUNCTION);
@@ -225,7 +225,7 @@ void StatementBuilder::decl_var(std::string_view name, bool hasInit)
         init = fragments.pop();
 
     // Construct type
-    type_t type = typeFragments[0];
+    Type type = typeFragments[0];
     typeFragments.pop();
 
     // Check whether initialiser is allowed/required
@@ -275,11 +275,11 @@ void StatementBuilder::decl_var(std::string_view name, bool hasInit)
 
 void StatementBuilder::decl_field_init(std::string_view name)
 {
-    type_t type = fragments[0].get_type().create_label(name, position);
+    Type type = fragments[0].get_type().create_label(name, position);
     fragments[0].set_type(type);
 }
 
-Expression StatementBuilder::make_initialiser(const type_t& type, const Expression& init)
+Expression StatementBuilder::make_initialiser(const Type& type, const Expression& init)
 {
     if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
@@ -331,7 +331,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
     fragments.pop(num);
 
     // Compute new type (each field has a label type, see decl_field_init())
-    auto types = std::vector<type_t>{};
+    auto types = std::vector<Type>{};
     types.reserve(num);
     auto labels = std::vector<std::string>{};
     labels.reserve(num);
@@ -342,7 +342,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
         fields[i].set_type(type[0]);
     }
     // Create list expression
-    fragments.push(Expression::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
+    fragments.push(Expression::create_nary(LIST, fields, position, Type::create_record(types, labels, position)));
 }
 
 /********************************************************************
@@ -350,7 +350,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
  */
 void StatementBuilder::decl_parameter(std::string_view name, bool ref)
 {
-    type_t type = typeFragments.pop();
+    Type type = typeFragments.pop();
     if (ref)
         type = type.create_prefix(REF);
     params.add_symbol(name, type, position);
@@ -373,7 +373,7 @@ void StatementBuilder::decl_func_begin(std::string_view name)
     }
 
     auto return_type = typeFragments.pop();
-    auto types = std::vector<type_t>{};
+    auto types = std::vector<Type>{};
     types.reserve(params.get_size());
     auto labels = std::vector<std::string>{};
     labels.reserve(params.get_size());
@@ -381,7 +381,7 @@ void StatementBuilder::decl_func_begin(std::string_view name)
         types.push_back(param.get_type());
         labels.push_back(param.get_name());
     }
-    auto type = type_t::create_function(return_type, types, labels, position);
+    auto type = Type::create_function(return_type, types, labels, position);
     if (!addFunction(type, name, {}))
         handle_error(duplicate_definition_error(name));
 
@@ -455,7 +455,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
 
     auto return_type = typeFragments.pop();
 
-    auto types = std::vector<type_t>{};
+    auto types = std::vector<Type>{};
     types.reserve(params.get_size());
     auto labels = std::vector<std::string>{};
     labels.reserve(params.get_size());
@@ -471,7 +471,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
         handle_error(TypeException{ex.what()});
     }
 
-    auto type = type_t::create_external_function(return_type, types, labels, position);
+    auto type = Type::create_external_function(return_type, types, labels, position);
     if (!addFunction(type, alias, position_t()))
         handle_error(duplicate_definition_error(alias));
     push_frame(frames.top().make_sub());
@@ -517,7 +517,7 @@ void StatementBuilder::for_end()
 
 void StatementBuilder::iteration_begin(std::string_view name)
 {
-    type_t type = typeFragments.pop();
+    Type type = typeFragments.pop();
     // The iterator cannot be modified.
     if (!type.is(CONSTANT)) {
         type = type.create_prefix(CONSTANT);
@@ -588,7 +588,7 @@ void StatementBuilder::return_statement(bool args)
         /* Only functions with non-void return type are allowed to have
          * arguments on return.
          */
-        const type_t& return_type = currentFun->uid.get_type()[0];
+        const Type& return_type = currentFun->uid.get_type()[0];
         if (return_type.is_void() && args) {
             handle_error(TypeException{"$return_with_a_value_in_function_returning_void"});
         } else if (!return_type.is_void() && !args) {

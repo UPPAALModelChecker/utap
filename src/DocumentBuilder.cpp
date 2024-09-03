@@ -39,7 +39,7 @@ DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::pat
 /************************************************************
  * Variable and function declarations
  */
-Variable* DocumentBuilder::addVariable(type_t type, std::string_view name, Expression init, position_t pos)
+Variable* DocumentBuilder::addVariable(Type type, std::string_view name, Expression init, position_t pos)
 {
     if (currentFun != nullptr) {
         return document.add_variable_to_function(currentFun, frames.top(), type, name, init, pos);
@@ -48,7 +48,7 @@ Variable* DocumentBuilder::addVariable(type_t type, std::string_view name, Expre
     }
 }
 
-bool DocumentBuilder::addFunction(type_t type, std::string_view name, position_t pos)
+bool DocumentBuilder::addFunction(Type type, std::string_view name, position_t pos)
 {
     return getCurrentDeclarationBlock()->add_function(type, name, pos, currentFun);
 }
@@ -419,7 +419,7 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
         }
     }
     currentInstanceLine->uid =
-        currentTemplate->frame.add_symbol(name, type_t::create_primitive(INSTANCE_LINE), position, currentInstanceLine);
+        currentTemplate->frame.add_symbol(name, Type::create_primitive(INSTANCE_LINE), position, currentInstanceLine);
 }
 
 void DocumentBuilder::instance_name_begin(std::string_view name)

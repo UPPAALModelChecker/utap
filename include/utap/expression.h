@@ -107,10 +107,10 @@ public:
     const position_t& get_position() const;
 
     /// Returns the type of the expression.
-    const type_t& get_type() const;
+    const Type& get_type() const;
 
     /// Sets the type of the expression.
-    void set_type(type_t);
+    void set_type(Type);
 
     /** Returns the value field of this expression. This
         call is not valid for all expressions. */
@@ -228,20 +228,19 @@ public:
     static Expression create_identifier(const Symbol&, position_t = {});
 
     /// Create a unary expression
-    static Expression create_unary(Constants::kind_t, Expression, position_t = {}, type_t = {});
+    static Expression create_unary(Constants::kind_t, Expression, position_t = {}, Type = {});
 
     /** Create a binary expression */
-    static Expression create_binary(Constants::kind_t, Expression, Expression, position_t = {}, type_t = {});
+    static Expression create_binary(Constants::kind_t, Expression, Expression, position_t = {}, Type = {});
 
     /** Create a ternary expression */
-    static Expression create_ternary(Constants::kind_t, Expression, Expression, Expression, position_t = {},
-                                     type_t = {});
+    static Expression create_ternary(Constants::kind_t, Expression, Expression, Expression, position_t = {}, Type = {});
 
     /** Create an n-ary expression */
-    static Expression create_nary(Constants::kind_t, std::vector<Expression> sub, position_t = {}, type_t = {});
+    static Expression create_nary(Constants::kind_t, std::vector<Expression> sub, position_t = {}, Type = {});
 
     /** Create a DOT expression */
-    static Expression create_dot(Expression, int32_t index, position_t = {}, type_t = {});
+    static Expression create_dot(Expression, int32_t index, position_t = {}, Type = {});
 
     /** Create a SYNC expression */
     static Expression create_sync(Expression, Constants::synchronisation_t, position_t = {});

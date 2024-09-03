@@ -191,7 +191,7 @@ struct declarations_t : stringify_t<declarations_t>
     std::list<gantt_t> ganttChart;
 
     /** Add function declaration. */
-    bool add_function(type_t type, std::string_view name, position_t, function_t*&);
+    bool add_function(Type type, std::string_view name, position_t, function_t*&);
     /** The following methods are used to write the declarations in an XML file */
     std::string str(bool global) const;
     std::ostream& print(std::ostream&, bool global = false) const;
@@ -540,8 +540,8 @@ public:
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
 
-    Variable* add_variable_to_function(function_t*, Frame, type_t, std::string_view, Expression initital, position_t);
-    Variable* add_variable(declarations_t*, type_t type, std::string_view name, Expression initial, position_t);
+    Variable* add_variable_to_function(function_t*, Frame, Type, std::string_view, Expression initital, position_t);
+    Variable* add_variable(declarations_t*, Type type, std::string_view name, Expression initial, position_t);
     void add_progress_measure(declarations_t*, Expression guard, Expression measure);
 
     template_t& add_template(std::string_view name, const Frame& params, position_t, bool isTA = true,
@@ -655,7 +655,7 @@ protected:
     options_t model_options;
     queries_t queries;
 
-    Variable* add_variable(std::list<Variable>& variables, Frame frame, type_t type, std::string_view, position_t);
+    Variable* add_variable(std::list<Variable>& variables, Frame frame, Type type, std::string_view, position_t);
 
     std::string location;
     std::vector<Library> libraries;

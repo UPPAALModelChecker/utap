@@ -39,16 +39,16 @@ using namespace Constants;
 struct Symbol::Data : public std::enable_shared_from_this<Symbol::Data>
 {
     Frame::Data* frame = nullptr;  // Uncounted pointer to containing frame // TODO: consider removing
-    type_t type;                   // The type of the symbol
+    Type type;                     // The type of the symbol
     void* user = nullptr;          // User data
     std::string name;              // The name of the symbol
     position_t position;           // the position of the symbol definition in the original document
-    Data(Frame::Data* frame, type_t type, void* user, std::string_view name, position_t position):
+    Data(Frame::Data* frame, Type type, void* user, std::string_view name, position_t position):
         frame{frame}, type{std::move(type)}, user{user}, name{name}, position{position}
     {}
 };
 
-Symbol::Symbol(Frame& frame, type_t type, std::string_view name, position_t position, void* user)
+Symbol::Symbol(Frame& frame, Type type, std::string_view name, position_t position, void* user)
 {
     data = std::make_shared<Data>(frame.data.get(), std::move(type), user, name, position);
 }
@@ -67,9 +67,9 @@ bool Symbol::operator<(const Symbol& symbol) const { return data < symbol.data; 
 Frame Symbol::get_frame() const { return Frame(data->frame); }
 
 /* Returns the type of this symbol. */
-const type_t& Symbol::get_type() const { return data->type; }
+const Type& Symbol::get_type() const { return data->type; }
 
-void Symbol::set_type(type_t type) { data->type = std::move(type); }
+void Symbol::set_type(Type type) { data->type = std::move(type); }
 
 position_t Symbol::get_position() const { return data->position; }
 
@@ -128,7 +128,7 @@ Frame::iterator Frame::begin() { return std::begin(data->symbols); }
 Frame::iterator Frame::end() { return std::end(data->symbols); }
 
 /* Adds a symbol of the given name and type to the frame */
-Symbol Frame::add_symbol(std::string_view name, type_t type, position_t position, void* user)
+Symbol Frame::add_symbol(std::string_view name, Type type, position_t position, void* user)
 {
     auto symbol = Symbol{*this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);

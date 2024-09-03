@@ -65,7 +65,7 @@ private:
 
 protected:
     friend class Frame;
-    Symbol(Frame& frame, type_t type, std::string_view name, position_t position, void* user);
+    Symbol(Frame& frame, Type type, std::string_view name, position_t position, void* user);
 
 public:
     /// Default constructor
@@ -91,10 +91,10 @@ public:
     Frame get_frame() const;  // TODO: consider removing this method (mostly unused)
 
     /// Returns the type of this symbol.
-    const type_t& get_type() const;
+    const Type& get_type() const;
 
     /// Alters the type of this symbol
-    void set_type(type_t);
+    void set_type(Type);
 
     /// Returns the position of the symbol definition in the original source file
     position_t get_position() const;
@@ -196,7 +196,7 @@ public:
     bool empty() const;
 
     /// Adds a symbol of the given name and type to the frame
-    Symbol add_symbol(std::string_view name, type_t, position_t position = {}, void* user = nullptr);
+    Symbol add_symbol(std::string_view name, Type, position_t position = {}, void* user = nullptr);
 
     /// Add all symbols from the given frame
     void add(Symbol);

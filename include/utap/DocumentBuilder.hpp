@@ -94,8 +94,8 @@ protected:
 
     declarations_t* getCurrentDeclarationBlock();
 
-    Variable* addVariable(type_t type, std::string_view name, Expression init, position_t pos) override;
-    bool addFunction(type_t type, std::string_view name, position_t pos) override;
+    Variable* addVariable(Type type, std::string_view name, Expression init, position_t pos) override;
+    bool addFunction(Type type, std::string_view name, position_t pos) override;
 
     void addSelectSymbolToFrame(std::string_view name, Frame&, position_t pos);
 
