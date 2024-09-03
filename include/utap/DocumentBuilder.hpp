@@ -94,10 +94,10 @@ protected:
 
     declarations_t* getCurrentDeclarationBlock();
 
-    variable_t* addVariable(type_t type, std::string_view name, expression_t init, position_t pos) override;
+    Variable* addVariable(type_t type, std::string_view name, Expression init, position_t pos) override;
     bool addFunction(type_t type, std::string_view name, position_t pos) override;
 
-    void addSelectSymbolToFrame(std::string_view name, frame_t&, position_t pos);
+    void addSelectSymbolToFrame(std::string_view name, Frame&, position_t pos);
 
 public:
     DocumentBuilder(Document&, std::vector<std::filesystem::path> paths = {});

@@ -28,7 +28,7 @@ TEST_SUITE_BEGIN("Expressions");
 TEST_CASE("Expression")
 {
     using UTAP::type_t;
-    using exp_t = UTAP::expression_t;
+    using exp_t = UTAP::Expression;
     const auto i_prim_type = type_t::create_primitive(UTAP::Constants::INT);
     REQUIRE(i_prim_type.get_kind() == UTAP::Constants::INT);
     const auto d_prim_type = type_t::create_primitive(UTAP::Constants::DOUBLE);
@@ -177,7 +177,7 @@ TEST_CASE("Expression")
 
 TEST_CASE("Expression to string conversion")
 {
-    using exp_t = UTAP::expression_t;
+    using exp_t = UTAP::Expression;
     const auto i2 = exp_t::create_constant(2);
     const auto i3 = exp_t::create_constant(3);
     const auto i5 = exp_t::create_constant(5);

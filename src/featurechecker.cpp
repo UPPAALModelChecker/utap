@@ -32,7 +32,7 @@ using namespace UTAP;
 FeatureChecker::FeatureChecker(Document& document)
 {
     document.accept(*this);
-    visitFrame(document.get_globals().frame);
+    visit_frame(document.get_globals().frame);
     if (document.has_dynamic_templates())
         supported_methods.symbolic = false;
     if (document.has_priority_declaration()) {
@@ -47,7 +47,7 @@ bool FeatureChecker::visit_template_before(template_t& templ)
     return templ.is_instantiated;
 }
 
-void FeatureChecker::visit_variable(variable_t& var)
+void FeatureChecker::visit_variable(Variable& var)
 {
     if (var.uid.get_type().is_clock() && !var.init.empty() && var.init.uses_fp())
         supported_methods.symbolic = false;
@@ -59,7 +59,7 @@ void FeatureChecker::visit_edge(edge_t& edge)
     visit_guard(edge.guard);
 }
 
-void FeatureChecker::visit_guard(expression_t& guard)
+void FeatureChecker::visit_guard(Expression& guard)
 {
     switch (guard.get_kind()) {
     case Constants::LT:
@@ -73,7 +73,7 @@ void FeatureChecker::visit_guard(expression_t& guard)
     }
 }
 
-void FeatureChecker::visit_assignment(expression_t& ass)
+void FeatureChecker::visit_assignment(Expression& ass)
 {
     switch (ass.get_kind()) {
     case Constants::ASSIGN:
@@ -101,13 +101,13 @@ void FeatureChecker::visit_location(location_t& location)
  * Checks whether an expression sets the rate of a clock
  * to something that is different from one or zero
  */
-bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
+bool FeatureChecker::isRateDisallowedInSymbolic(const Expression& e)
 {
     if (e.get_kind() == Constants::EQ) {
         assert(e.get_size() >= 2);
 
-        expression_t rate;
-        expression_t clock;
+        Expression rate;
+        Expression clock;
 
         if (e.get(0).get_kind() == Constants::RATE) {
             clock = e.get(0);
@@ -132,7 +132,7 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
     }
 
     if (e.get_kind() == Constants::AND) {
-        for (size_t i = 0; i < e.get_size(); ++i) {
+        for (uint32_t i = 0; i < e.get_size(); ++i) {
             if (isRateDisallowedInSymbolic(e.get(i)))
                 return true;
         }
@@ -141,9 +141,9 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const expression_t& e)
     return false;
 }
 
-void FeatureChecker::visitFrame(const frame_t& frame)
+void FeatureChecker::visit_frame(const Frame& frame)
 {
-    for (size_t i = 0; i < frame.get_size(); ++i) {
+    for (uint32_t i = 0; i < frame.get_size(); ++i) {
         type_t t = frame.get_symbol(i).get_type();
         if (t.is_channel() && !t.is(Constants::BROADCAST))
             supported_methods.stochastic = false;

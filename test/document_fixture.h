@@ -137,7 +137,7 @@ private:
 
 class QueryBuilder : public UTAP::StatementBuilder
 {
-    UTAP::expression_t query;
+    UTAP::Expression query;
     UTAP::TypeChecker checker;
 
 public:
@@ -152,9 +152,9 @@ public:
     }
     void strategy_declaration(std::string_view strategy_name) override {}
     void typecheck() { checker.checkExpression(query); }
-    [[nodiscard]] UTAP::expression_t getQuery() const { return query; }
-    UTAP::variable_t* addVariable(UTAP::type_t type, std::string_view name, UTAP::expression_t init,
-                                  UTAP::position_t pos) override
+    [[nodiscard]] UTAP::Expression getQuery() const { return query; }
+    UTAP::Variable* addVariable(UTAP::type_t type, std::string_view name, UTAP::Expression init,
+                                UTAP::position_t pos) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }

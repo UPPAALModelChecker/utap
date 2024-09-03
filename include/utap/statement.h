@@ -62,8 +62,8 @@ public:
 class ExprStatement final : public Statement
 {
 public:
-    expression_t expr;
-    explicit ExprStatement(expression_t expr): expr{std::move(expr)} {}
+    Expression expr;
+    explicit ExprStatement(Expression expr): expr{std::move(expr)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -72,8 +72,8 @@ public:
 class AssertStatement final : public Statement
 {
 public:
-    expression_t expr;
-    explicit AssertStatement(expression_t expr): expr{std::move(expr)} {}
+    Expression expr;
+    explicit AssertStatement(Expression expr): expr{std::move(expr)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -82,10 +82,10 @@ public:
 class IfStatement final : public Statement
 {
 public:
-    expression_t cond;
+    Expression cond;
     std::unique_ptr<Statement> trueCase;
     std::unique_ptr<Statement> falseCase;
-    IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase = nullptr);
+    IfStatement(Expression cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase = nullptr);
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -94,11 +94,11 @@ public:
 class ForStatement final : public Statement
 {
 public:
-    expression_t init;
-    expression_t cond;
-    expression_t step;
+    Expression init;
+    Expression cond;
+    Expression step;
     std::unique_ptr<Statement> stat;
-    ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> statement);
+    ForStatement(Expression init, Expression cond, Expression step, std::unique_ptr<Statement> statement);
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -108,15 +108,15 @@ public:
 class RangeStatement final : public Statement
 {
 private:
-    frame_t frame;
+    Frame frame;
 
 public:
-    symbol_t symbol;
+    Symbol symbol;
     std::unique_ptr<Statement> stat;
-    RangeStatement(symbol_t symbol, frame_t frame, std::unique_ptr<Statement> statement):
+    RangeStatement(Symbol symbol, Frame frame, std::unique_ptr<Statement> statement):
         frame{std::move(frame)}, symbol{std::move(symbol)}, stat{std::move(statement)}
     {}
-    const frame_t& get_frame() const { return frame; }
+    const Frame& get_frame() const { return frame; }
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -125,9 +125,9 @@ public:
 class WhileStatement final : public Statement
 {
 public:
-    expression_t cond;
+    Expression cond;
     std::unique_ptr<Statement> stat;
-    WhileStatement(expression_t condition, std::unique_ptr<Statement> statement);
+    WhileStatement(Expression condition, std::unique_ptr<Statement> statement);
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -137,8 +137,8 @@ class DoWhileStatement final : public Statement
 {
 public:
     std::unique_ptr<Statement> stat;
-    expression_t cond;
-    DoWhileStatement(std::unique_ptr<Statement>, expression_t);
+    Expression cond;
+    DoWhileStatement(std::unique_ptr<Statement>, Expression);
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return stat->returns(); }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -177,17 +177,17 @@ class BlockStatement : public CompositeStatement
     declarations_t decl;
 
 public:
-    explicit BlockStatement(frame_t frame) { decl.frame = std::move(frame); }
+    explicit BlockStatement(Frame frame) { decl.frame = std::move(frame); }
     int32_t accept(StatementVisitor&) override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
-    const frame_t& get_frame() const { return decl.frame; }
-    frame_t& get_frame() { return decl.frame; }
+    const Frame& get_frame() const { return decl.frame; }
+    Frame& get_frame() { return decl.frame; }
 };
 
 class ExternalBlockStatement final : public BlockStatement
 {
 public:
-    ExternalBlockStatement(frame_t frame, void* fp, bool ret):
+    ExternalBlockStatement(Frame frame, void* fp, bool ret):
         BlockStatement{std::move(frame)}, function{fp}, doesReturn{ret}
     {}
     bool returns() const override { return doesReturn; }
@@ -201,8 +201,8 @@ private:
 class SwitchStatement : public CompositeStatement
 {
 public:
-    expression_t cond;
-    SwitchStatement(expression_t expr): CompositeStatement{}, cond{std::move(expr)} {}
+    Expression cond;
+    SwitchStatement(Expression expr): CompositeStatement{}, cond{std::move(expr)} {}
     int32_t accept(StatementVisitor& v) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -211,9 +211,9 @@ public:
 class CaseStatement final : public Statement
 {
 public:
-    expression_t cond;
+    Expression cond;
     std::unique_ptr<Statement> stat;
-    CaseStatement(expression_t value): cond{std::move(value)} {}
+    CaseStatement(Expression value): cond{std::move(value)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -250,9 +250,9 @@ public:
 class ReturnStatement final : public Statement
 {
 public:
-    expression_t value;
+    Expression value;
     ReturnStatement() = default;
-    explicit ReturnStatement(expression_t expr): value{std::move(expr)} {}
+    explicit ReturnStatement(Expression expr): value{std::move(expr)} {}
     int32_t accept(StatementVisitor& visitor) override;
     bool returns() const override { return true; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -324,7 +324,7 @@ public:
 class ExpressionVisitor : public AbstractStatementVisitor
 {
 protected:
-    virtual void visit_expression(expression_t&) = 0;
+    virtual void visit_expression(Expression&) = 0;
 
 public:
     int32_t visit_expr_statement(ExprStatement& stat) override;
@@ -341,13 +341,13 @@ public:
 };
 
 /// Collects symbols that the statement changes
-std::set<symbol_t> collect_changes(Statement& stat);
+std::set<Symbol> collect_changes(Statement& stat);
 
 /// Collects symbols that the statement reads
-std::set<symbol_t> collect_dependencies(Statement& stat);
+std::set<Symbol> collect_dependencies(Statement& stat);
 
 /// Collects dynamic expressions within the statement
-std::vector<expression_t> collect_dynamic_expressions(Statement& stat);
+std::vector<Expression> collect_dynamic_expressions(Statement& stat);
 
 }  // namespace UTAP
 #endif  // UTAP_STATEMENT_H

@@ -150,14 +150,14 @@ struct PropInfo
     int line{0};                                  /**< Line no. in input file */
     int no{0};                                    /**< No. in input file, zero-indexed */
     quant_t type{};                               /**< Type of quantification */
-    UTAP::expression_t intermediate{};            /**< State property as expression_t */
+    UTAP::Expression intermediate{};              /**< State property as Expression */
     UTAP::options_t options{};                    /**< Options associated with the query */
     StrategyType result_type{};                   /**< which type the property returns*/
     std::vector<PropInfo*> subjections{};         /**< which strategies to evaluate under*/
     PropInfo* imitation = nullptr;                /**< which strategies to sample from*/
     std::string declaration{};                    /**< which strategy the property declares*/
     std::unique_ptr<expectation> expect{nullptr}; /**< expected result */
-    PropInfo(int line, int no, UTAP::expression_t intermediate): line{line}, no{no}, intermediate{intermediate} {}
+    PropInfo(int line, int no, UTAP::Expression intermediate): line{line}, no{no}, intermediate{intermediate} {}
     /** TODO: refactor ModelChecker::modifySystem() to get rid of PropInfo copies */
     PropInfo(const PropInfo& o):
         line{o.line}, no{o.no}, type{o.type}, intermediate{o.intermediate}, options{o.options},
@@ -207,14 +207,14 @@ private:
 protected:
     std::list<PropInfo> properties{};  // TigaPropertyBuilder assumes stable list and stores pointers.
 
-    UTAP::variable_t* addVariable(UTAP::type_t type, std::string_view name, UTAP::expression_t init,
-                                  UTAP::position_t pos) override;
+    UTAP::Variable* addVariable(UTAP::type_t type, std::string_view name, UTAP::Expression init,
+                                UTAP::position_t pos) override;
     bool addFunction(UTAP::type_t type, std::string_view name, UTAP::position_t pos) override;
 
-    void typeCheck(UTAP::expression_t& expr);
+    void typeCheck(UTAP::Expression& expr);
     bool allowProcessReferences() override;
 
-    virtual void typeProperty(UTAP::expression_t);
+    virtual void typeProperty(UTAP::Expression);
 
 public:
     explicit PropertyBuilder(const UTAP::Document& doc):
@@ -238,7 +238,7 @@ public:
     void scenario(std::string_view) override;
     void handle_expect(std::string_view text) override;
 
-    bool isSMC(UTAP::expression_t* expr = nullptr);
+    bool isSMC(UTAP::Expression* expr = nullptr);
 };
 
 class TigaPropertyBuilder final : public PropertyBuilder
@@ -251,7 +251,7 @@ protected:
     std::vector<PropInfo*> subjections{};
     PropInfo* _imitation{nullptr};
 
-    void typeProperty(UTAP::expression_t) override;
+    void typeProperty(UTAP::Expression) override;
     void strategy_declaration(std::string_view) override;
     void subjection(std::string_view) override;
     void imitation(std::string_view) override;

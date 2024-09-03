@@ -32,9 +32,9 @@
 #include <cstdint>
 
 namespace UTAP {
-class expression_t;
-class frame_t;
-class symbol_t;
+class Expression;
+class Frame;
+class Symbol;
 
 /**
    A reference to a type.
@@ -133,7 +133,7 @@ public:
     const std::string& get_label(uint32_t) const;
 
     /// Returns the expression associated with the type.
-    const expression_t& get_expression() const;
+    const Expression& get_expression() const;
 
     /// Returns the size of an array (this is itself a type). @pre is_array().
     const type_t& get_array_size() const;
@@ -161,7 +161,7 @@ public:
     std::optional<uint32_t> find_index_of(std::string_view) const;
 
     /// Returns the range of a RANGE type. @pre is_range().
-    std::pair<expression_t, expression_t> get_range() const;
+    std::pair<Expression, Expression> get_range() const;
 
     /// Prints textual representation of the type.
     std::ostream& print(std::ostream&) const;
@@ -358,7 +358,7 @@ public:
      * the type (expressions that occur as ranges either on
      * array sizes, scalars or integers) with \a expr.
      */
-    type_t subst(const symbol_t& symbol, const expression_t& expr) const;
+    type_t subst(const Symbol& symbol, const Expression& expr) const;
     /**
      * Creates a new type by adding a prefix to it. The prefix
      * could be anything and it is the responsibility of the
@@ -370,7 +370,7 @@ public:
     type_t create_label(std::string_view, position_t = position_t()) const;
 
     /// Creates a range based on primitive
-    static type_t create_range(type_t primitive, expression_t from, expression_t till, position_t = position_t());
+    static type_t create_range(type_t primitive, Expression from, Expression till, position_t = position_t());
 
     /// Creates a primitive type
     static type_t create_primitive(Constants::kind_t, position_t = position_t());
@@ -382,7 +382,7 @@ public:
     static type_t create_typedef(std::string, type_t, position_t = position_t());
 
     /// Creates a new process type.
-    static type_t create_process(frame_t, position_t = position_t());
+    static type_t create_process(const Frame&, position_t = position_t());
 
     /// Creates a new process-set type.
     static type_t create_process_set(const type_t& instance, position_t = position_t());
@@ -398,9 +398,9 @@ public:
                                            position_t = position_t());
 
     /// Creates a new instance type
-    static type_t create_instance(frame_t, position_t = position_t());
+    static type_t create_instance(const Frame&, position_t = position_t());
     /// Creates a new LSC instance type
-    static type_t create_LSC_instance(frame_t, position_t = position_t());
+    static type_t create_LSC_instance(const Frame&, position_t = position_t());
 };
 }  // namespace UTAP
 

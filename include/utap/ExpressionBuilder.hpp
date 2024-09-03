@@ -107,7 +107,7 @@ T pop_back(std::vector<T>& vec)
 class ExpressionBuilder : public AbstractBuilder
 {
 public:
-    using ExpressionFragments = FragmentStack<expression_t>;
+    using ExpressionFragments = FragmentStack<Expression>;
     using TypeFragments = FragmentStack<type_t>;
 
 protected:
@@ -118,7 +118,7 @@ protected:
     TypeFragments typeFragments;
 
     /** Frame stack. */
-    std::stack<frame_t> frames;
+    std::stack<Frame> frames;
 
     /** Pointer to the document under construction. */
     Document& document;
@@ -130,21 +130,21 @@ protected:
     int32_t scalar_count;
 
     /** Push a new frame. */
-    void push_frame(frame_t);
+    void push_frame(Frame);
 
     /** Pop the topmost frame. */
-    frame_t pop_frame()
+    Frame pop_frame()
     {
         auto res = std::move(frames.top());
         frames.pop();
         return res;
     }
 
-    bool resolve(std::string_view, symbol_t&) const;
+    bool resolve(std::string_view, Symbol&) const;
 
-    expression_t make_constant(int value) const;
-    expression_t make_constant(double value) const;
-    expression_t make_constant(std::string_view value) const;
+    Expression make_constant(int value) const;
+    Expression make_constant(double value) const;
+    Expression make_constant(std::string_view value) const;
 
     /**
      * Given a prefix and a type, this method creates a new type
@@ -162,7 +162,7 @@ protected:
      * case the method should be overridden by a sub class.
      */
     virtual bool allowProcessReferences() { return false; }
-    std::map<std::string, frame_t, std::less<>> dynamicFrames;
+    std::map<std::string, Frame, std::less<>> dynamicFrames;
 
 public:
     explicit ExpressionBuilder(Document& doc);
@@ -204,7 +204,7 @@ public:
     void expr_binary(Constants::kind_t binaryop) override;
     void expr_nary(Constants::kind_t op, uint32_t num) override;
     void expr_scenario(std::string_view name) override;
-    expression_t exprScenario();
+    Expression exprScenario();
     void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;

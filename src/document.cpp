@@ -58,7 +58,7 @@ std::string stringify_indent_t<Item>::str(const std::string& indent) const
 
 namespace UTAP {  // Explicit instantiations to generate implementation
 template struct stringify_t<chan_priority_t>;
-template struct stringify_t<variable_t>;
+template struct stringify_t<Variable>;
 template struct stringify_t<location_t>;
 template struct stringify_t<edge_t>;
 template struct stringify_t<function_t>;
@@ -104,7 +104,7 @@ std::ostream& function_t::print(std::ostream& os) const
     return os << "}";
 }
 
-std::ostream& variable_t::print(std::ostream& os) const
+std::ostream& Variable::print(std::ostream& os) const
 {
     std::string type = uid.get_type().declaration();
     if (uid.get_type().is_array()) {
@@ -251,7 +251,7 @@ std::string instance_t::arguments_str() const
     return os.str();
 }
 
-location_t& template_t::add_location(std::string_view name, expression_t inv, expression_t er, position_t pos)
+location_t& template_t::add_location(std::string_view name, Expression inv, Expression er, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
@@ -277,7 +277,7 @@ branchpoint_t& template_t::add_branchpoint(std::string_view name, position_t pos
     return branchpoint;
 }
 
-edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, std::string_view actname)
+edge_t& template_t::add_edge(Symbol src, Symbol dst, bool control, std::string_view actname)
 {
     int32_t nr = edges.empty() ? 0 : edges.back().nr + 1;
     edge_t& edge = edges.emplace_back();
@@ -319,7 +319,7 @@ instance_line_t& template_t::add_instance_line()
     return instance;
 }
 
-message_t& template_t::add_message(symbol_t src, symbol_t dst, int loc, bool pch)
+message_t& template_t::add_message(Symbol src, Symbol dst, int loc, bool pch)
 {
     int32_t nr = messages.empty() ? 0 : messages.back().nr + 1;
     auto& message = messages.emplace_back(nr);
@@ -330,7 +330,7 @@ message_t& template_t::add_message(symbol_t src, symbol_t dst, int loc, bool pch
     return message;
 }
 
-update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
+update_t& template_t::add_update(Symbol anchor, int loc, bool pch)
 {
     int32_t nr = updates.empty() ? 0 : updates.back().nr + 1;
     auto& update = updates.emplace_back(nr);
@@ -340,7 +340,7 @@ update_t& template_t::add_update(symbol_t anchor, int loc, bool pch)
     return update;
 }
 
-condition_t& template_t::add_condition(std::vector<symbol_t> anchors, int loc, bool pch, bool isHot)
+condition_t& template_t::add_condition(std::vector<Symbol> anchors, int loc, bool pch, bool isHot)
 {
     int32_t nr = conditions.empty() ? 0 : conditions.back().nr + 1;
     auto& condition = conditions.emplace_back(nr);
@@ -512,7 +512,7 @@ bool template_t::get_update(std::vector<instance_line_t*>& instances, int y, upd
     return false;
 }
 
-void instance_line_t::add_parameters(instance_t& inst, frame_t params, const std::vector<expression_t>& arguments1)
+void instance_line_t::add_parameters(instance_t& inst, Frame params, const std::vector<Expression>& arguments1)
 {
     unbound = params.get_size();
     parameters = std::move(params);
@@ -732,9 +732,9 @@ std::ostream& chan_priority_t::print(std::ostream& os) const
 
 Document::Document()
 {
-    global.frame = frame_t::create();
+    global.frame = Frame::make();
 #ifdef ENABLE_CORA
-    addVariable(&global, type_t::create_primitive(COST), "cost", expression_t());
+    addVariable(&global, type_t::create_primitive(COST), "cost", Expression());
 #endif
 }
 
@@ -752,13 +752,13 @@ Library& Document::last_library()
  *  method does not check for duplicate declarations. An instance with
  *  the same name and parameters is added as well.
  */
-template_t& Document::add_template(std::string_view name, const frame_t& params, position_t position, const bool is_TA,
+template_t& Document::add_template(std::string_view name, const Frame& params, position_t position, const bool is_TA,
                                    std::string_view typeLSC, std::string_view mode)
 {
     type_t type = (is_TA) ? type_t::create_instance(params) : type_t::create_LSC_instance(params);
     template_t& templ = templates.emplace_back();
     templ.parameters = params;
-    templ.frame = frame_t::create(global.frame);
+    templ.frame = global.frame.make_sub();
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.add_symbol(name, type, position, (instance_t*)&templ);
@@ -772,13 +772,13 @@ template_t& Document::add_template(std::string_view name, const frame_t& params,
     return templ;
 }
 
-template_t& Document::add_dynamic_template(std::string_view name, const frame_t& params, position_t pos)
+template_t& Document::add_dynamic_template(std::string_view name, const Frame& params, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     dyn_templates.emplace_back();
     template_t& templ = dyn_templates.back();
     templ.parameters = params;
-    templ.frame = frame_t::create(global.frame);
+    templ.frame = global.frame.make_sub();
     templ.frame.add(params);
     templ.templ = &templ;
     templ.uid = global.frame.add_symbol(name, type, pos, (instance_t*)&templ);
@@ -827,8 +827,8 @@ template_t* Document::find_dynamic_template(std::string_view name)
     return &(*it);
 }
 
-instance_t& Document::add_instance(std::string_view name, instance_t& inst, frame_t params,
-                                   const std::vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_instance(std::string_view name, instance_t& inst, Frame params,
+                                   const std::vector<Expression>& arguments, position_t pos)
 {
     type_t type = type_t::create_instance(params);
     instance_t& instance = instances.emplace_back();
@@ -844,8 +844,8 @@ instance_t& Document::add_instance(std::string_view name, instance_t& inst, fram
     return instance;
 }
 
-instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, frame_t params,
-                                       const std::vector<expression_t>& arguments, position_t pos)
+instance_t& Document::add_LSC_instance(std::string_view name, instance_t& inst, Frame params,
+                                       const std::vector<Expression>& arguments, position_t pos)
 {
     auto type = type_t::create_LSC_instance(params);
     auto& instance = lsc_instances.emplace_back();
@@ -894,29 +894,29 @@ options_t& Document::get_options() { return model_options; }
 void Document::set_options(const options_t& options) { model_options = options; }
 
 // Add a regular variable
-variable_t* Document::add_variable(declarations_t* context, type_t type, std::string_view name, expression_t initial,
-                                   position_t pos)
+Variable* Document::add_variable(declarations_t* context, type_t type, std::string_view name, Expression initial,
+                                 position_t pos)
 {
     auto* var = add_variable(context->variables, context->frame, std::move(type), name, pos);
     var->init = std::move(initial);
     return var;
 }
 
-variable_t* Document::add_variable_to_function(function_t* function, frame_t frame, type_t type, std::string_view name,
-                                               expression_t initial, position_t pos)
+Variable* Document::add_variable_to_function(function_t* function, Frame frame, type_t type, std::string_view name,
+                                             Expression initial, position_t pos)
 {
-    variable_t* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
+    Variable* var = add_variable(function->variables, std::move(frame), std::move(type), name, pos);
     var->init = std::move(initial);
     return var;
 }
 
 // Add a regular variable
-variable_t* Document::add_variable(std::list<variable_t>& variables, frame_t frame, type_t type, std::string_view name,
-                                   position_t pos)
+Variable* Document::add_variable(std::list<Variable>& variables, Frame frame, type_t type, std::string_view name,
+                                 position_t pos)
 {
     bool duplicate = frame.contains(name);
     // Add variable
-    variable_t& var = variables.emplace_back();
+    Variable& var = variables.emplace_back();
     // Add symbol
     var.uid = frame.add_symbol(name, std::move(type), pos, &var);
     if (duplicate)
@@ -937,12 +937,12 @@ void Document::copy_functions_from_to(const template_t* from, template_t* to) co
     // TODO to be implemented and to be used in Translator::lscProcBegin (see Translator.cpp)
 }
 
-void Document::add_progress_measure(declarations_t* context, expression_t guard, expression_t measure)
+void Document::add_progress_measure(declarations_t* context, Expression guard, Expression measure)
 {
     context->progress.emplace_back(std::move(guard), std::move(measure));
 }
 
-static void visit(DocumentVisitor& visitor, frame_t& frame)
+static void visit(DocumentVisitor& visitor, Frame& frame)
 {
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
         type_t type = frame[i].get_type();
@@ -959,7 +959,7 @@ static void visit(DocumentVisitor& visitor, frame_t& frame)
              type.get_kind() == RECORD) &&
             data != nullptr)  // <--- ignore parameters
         {
-            visitor.visit_variable(*static_cast<variable_t*>(data));
+            visitor.visit_variable(*static_cast<Variable*>(data));
         } else if (type.is(LOCATION)) {
             visitor.visit_location(*static_cast<location_t*>(data));
         } else if (type.is(LOCATION_EXPR)) {
@@ -1025,7 +1025,7 @@ void Document::accept(DocumentVisitor& visitor)
     visitor.visit_doc_after(*this);
 }
 
-void Document::begin_chan_priority(expression_t chan)
+void Document::begin_chan_priority(Expression chan)
 {
     has_priorities |= true;
     chan_priority_t priorities;
@@ -1033,7 +1033,7 @@ void Document::begin_chan_priority(expression_t chan)
     chan_priorities.push_back(priorities);
 }
 
-void Document::add_chan_priority(char separator, expression_t chan)
+void Document::add_chan_priority(char separator, Expression chan)
 {
     assert(separator == ',' || separator == '<');
     chan_priority_t::tail_t& tail = chan_priorities.back().tail;

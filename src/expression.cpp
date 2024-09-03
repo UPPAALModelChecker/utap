@@ -45,27 +45,24 @@
 using namespace UTAP;
 using namespace Constants;
 
-struct expression_t::expression_data : public std::enable_shared_from_this<expression_t::expression_data>
+struct Expression::expression_data : public std::enable_shared_from_this<Expression::expression_data>
 {
     position_t position;  ///< The position of the expression
     kind_t kind;          ///< The kind of the node
 
     std::variant<int32_t, synchronisation_t, double, StringIndex> value;
 
-    symbol_t symbol;                ///< The symbol of the node
-    type_t type;                    ///< The type of the expression
-    std::vector<expression_t> sub;  ///< Subexpressions
+    Symbol symbol;                ///< The symbol of the node
+    type_t type;                  ///< The type of the expression
+    std::vector<Expression> sub;  ///< Subexpressions
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
 };
 
-expression_t::expression_t(kind_t kind, const position_t& pos)
-{
-    data = std::make_shared<expression_data>(pos, kind, 0);
-}
+Expression::Expression(kind_t kind, const position_t& pos) { data = std::make_shared<expression_data>(pos, kind, 0); }
 
-expression_t expression_t::clone() const
+Expression Expression::clone() const
 {
-    auto expr = expression_t{data->kind, data->position};
+    auto expr = Expression{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
@@ -74,9 +71,9 @@ expression_t expression_t::clone() const
     return expr;
 }
 
-expression_t expression_t::clone_deeper() const
+Expression Expression::clone_deeper() const
 {
-    auto expr = expression_t{data->kind, data->position};
+    auto expr = Expression{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = data->symbol;
@@ -88,9 +85,9 @@ expression_t expression_t::clone_deeper() const
     return expr;
 }
 
-expression_t expression_t::clone_deeper(const symbol_t& from, symbol_t& to) const
+Expression Expression::clone_deeper(const Symbol& from, Symbol& to) const
 {
-    auto expr = expression_t{data->kind, data->position};
+    auto expr = Expression{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
     expr.data->symbol = (data->symbol == from) ? to : data->symbol;
@@ -103,15 +100,15 @@ expression_t expression_t::clone_deeper(const symbol_t& from, symbol_t& to) cons
     return expr;
 }
 
-expression_t expression_t::clone_deeper(const frame_t& frame, const frame_t& select) const
+Expression Expression::clone_deeper(const Frame& frame, const Frame& select) const
 {
-    auto expr = expression_t{data->kind, data->position};
+    auto expr = Expression{data->kind, data->position};
     expr.data->value = data->value;
     expr.data->type = data->type;
-    symbol_t uid;
-    if (data->symbol != symbol_t()) {
+    Symbol uid;
+    if (data->symbol != Symbol()) {
         bool res = frame.resolve(data->symbol.get_name(), uid);
-        if (!res && select != frame_t()) {
+        if (!res && select != Frame()) {
             res = select.resolve(data->symbol.get_name(), uid);
         }
         assert(res);
@@ -128,7 +125,7 @@ expression_t expression_t::clone_deeper(const frame_t& frame, const frame_t& sel
     return expr;
 }
 
-expression_t expression_t::subst(const symbol_t& symbol, expression_t expr) const
+Expression Expression::subst(const Symbol& symbol, Expression expr) const
 {
     if (empty()) {
         return *this;
@@ -137,7 +134,7 @@ expression_t expression_t::subst(const symbol_t& symbol, expression_t expr) cons
     } else if (get_size() == 0) {
         return *this;
     } else {
-        expression_t e = clone();
+        Expression e = clone();
         for (uint32_t i = 0; i < get_size(); i++) {
             e[i] = e[i].subst(symbol, expr);
         }
@@ -145,19 +142,19 @@ expression_t expression_t::subst(const symbol_t& symbol, expression_t expr) cons
     }
 }
 
-kind_t expression_t::get_kind() const
+kind_t Expression::get_kind() const
 {
     assert(data);
     return data->kind;
 }
 
-const position_t& expression_t::get_position() const
+const position_t& Expression::get_position() const
 {
     assert(data);
     return data->position;
 }
 
-bool expression_t::uses_fp() const
+bool Expression::uses_fp() const
 {
     if (empty()) {
         return false;
@@ -240,7 +237,7 @@ bool expression_t::uses_fp() const
     return false;
 }
 
-bool expression_t::uses_hybrid() const
+bool Expression::uses_hybrid() const
 {
     if (empty()) {
         return false;
@@ -257,7 +254,7 @@ bool expression_t::uses_hybrid() const
     return false;
 }
 
-bool expression_t::uses_clock() const
+bool Expression::uses_clock() const
 {
     if (empty()) {
         return false;
@@ -274,7 +271,7 @@ bool expression_t::uses_clock() const
     return false;
 }
 
-bool expression_t::is_dynamic() const
+bool Expression::is_dynamic() const
 {
     if (empty()) {
         return false;
@@ -292,7 +289,7 @@ bool expression_t::is_dynamic() const
     return false;
 }
 
-bool expression_t::has_dynamic_sub() const
+bool Expression::has_dynamic_sub() const
 {
     bool hasIt = false;
     const auto n = get_size();
@@ -306,7 +303,7 @@ bool expression_t::has_dynamic_sub() const
     return hasIt;
 }
 
-uint32_t expression_t::get_size() const
+uint32_t Expression::get_size() const
 {
     if (empty())
         return 0;
@@ -492,32 +489,32 @@ uint32_t expression_t::get_size() const
     }
 }
 
-const type_t& expression_t::get_type() const
+const type_t& Expression::get_type() const
 {
     assert(data);
     return data->type;
 }
 
-void expression_t::set_type(type_t type)
+void Expression::set_type(type_t type)
 {
     assert(data);
     data->type = std::move(type);
 }
 
-int32_t expression_t::get_value() const
+int32_t Expression::get_value() const
 {
     assert(data && data->kind == CONSTANT && (data->type.is_integral() || data->kind == VAR_INDEX));
     const auto value = std::get<int32_t>(data->value);
     return data->type.is_integer() ? value : (value != 0 ? 1 : 0);
 }
 
-int32_t expression_t::get_record_label_index() const
+int32_t Expression::get_record_label_index() const
 {
     assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
     return std::get<int32_t>(data->value);
 }
 
-double expression_t::get_double_value() const
+double Expression::get_double_value() const
 {
     assert(data);
     assert(data->kind == CONSTANT);
@@ -525,21 +522,21 @@ double expression_t::get_double_value() const
     return std::get<double>(data->value);
 }
 
-int32_t expression_t::get_index() const
+int32_t Expression::get_index() const
 {
     assert(data);
     assert(data->kind == DOT);
     return std::get<int32_t>(data->value);
 }
 
-synchronisation_t expression_t::get_sync() const
+synchronisation_t Expression::get_sync() const
 {
     assert(data);
     assert(data->kind == SYNC);
     return std::get<synchronisation_t>(data->value);
 }
 
-std::string_view expression_t::get_string_value() const
+std::string_view Expression::get_string_value() const
 {
     assert(data);
     assert(data->kind == CONSTANT);
@@ -547,7 +544,7 @@ std::string_view expression_t::get_string_value() const
     return std::get<StringIndex>(data->value).str();
 }
 
-size_t expression_t::get_string_index() const
+size_t Expression::get_string_index() const
 {
     assert(data);
     assert(data->kind == CONSTANT);
@@ -555,33 +552,33 @@ size_t expression_t::get_string_index() const
     return std::get<StringIndex>(data->value).index();
 }
 
-expression_t& expression_t::operator[](uint32_t i)
+Expression& Expression::operator[](uint32_t i)
 {
     assert(i < get_size());
     return data->sub[i];
 }
 
-const expression_t& expression_t::operator[](uint32_t i) const
+const Expression& Expression::operator[](uint32_t i) const
 {
     assert(i < get_size());
     return data->sub[i];
 }
 
-expression_t& expression_t::get(uint32_t i)
+Expression& Expression::get(uint32_t i)
 {
     assert(i < get_size());
     return data->sub[i];
 }
 
-const expression_t& expression_t::get(uint32_t i) const
+const Expression& Expression::get(uint32_t i) const
 {
     assert(i < get_size());
     return data->sub[i];
 }
 
-bool expression_t::empty() const { return data == nullptr; }
+bool Expression::empty() const { return data == nullptr; }
 
-bool expression_t::is_true() const
+bool Expression::is_true() const
 {
     return data == nullptr || (get_type().is_integral() && data->kind == CONSTANT && get_value() == 1);
 }
@@ -604,7 +601,7 @@ struct ValueTypeEquality
 /** Two expressions are identical iff all the sub expressions
     are identical and if the kind, value and symbol of the
     root are identical. */
-bool expression_t::equal(const expression_t& e) const
+bool Expression::equal(const Expression& e) const
 {
     if (data == e.data) {
         return true;
@@ -631,9 +628,9 @@ bool expression_t::equal(const expression_t& e) const
    case of inline if, the symbol referenced by the 'true' part is
    returned.
 */
-symbol_t expression_t::get_symbol() const
+Symbol Expression::get_symbol() const
 {
-    static auto blank = symbol_t{};
+    static auto blank = Symbol{};
     assert(data);
 
     switch (get_kind()) {
@@ -673,7 +670,7 @@ symbol_t expression_t::get_symbol() const
     }
 }
 
-void expression_t::get_symbols(std::set<symbol_t>& symbols) const
+void Expression::get_symbols(std::set<Symbol>& symbols) const
 {
     if (empty()) {
         return;
@@ -718,14 +715,14 @@ void expression_t::get_symbols(std::set<symbol_t>& symbols) const
 
 /** Returns true if expr might be a reference to a symbol in the
     set. */
-bool expression_t::is_reference_to(const std::set<symbol_t>& symbols) const
+bool Expression::is_reference_to(const std::set<Symbol>& symbols) const
 {
-    std::set<symbol_t> s;
+    std::set<Symbol> s;
     get_symbols(s);
     return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end()) != symbols.end();
 }
 
-bool expression_t::contains_deadlock() const
+bool Expression::contains_deadlock() const
 {
     if (get_kind() == UTAP::Constants::DEADLOCK)
         return true;
@@ -736,30 +733,30 @@ bool expression_t::contains_deadlock() const
     return false;
 }
 
-bool expression_t::changes_variable(const std::set<symbol_t>& symbols) const
+bool Expression::changes_variable(const std::set<Symbol>& symbols) const
 {
-    auto changes = std::set<symbol_t>{};
+    auto changes = std::set<Symbol>{};
     collect_possible_writes(changes);
     return find_first_of(symbols.begin(), symbols.end(), changes.begin(), changes.end()) != symbols.end();
 }
 
-bool expression_t::changes_any_variable() const
+bool Expression::changes_any_variable() const
 {
-    auto changes = std::set<symbol_t>{};
+    auto changes = std::set<Symbol>{};
     collect_possible_writes(changes);
     return !changes.empty();
 }
 
-bool expression_t::depends_on(const std::set<symbol_t>& symbols) const
+bool Expression::depends_on(const std::set<Symbol>& symbols) const
 {
-    std::set<symbol_t> dependencies;
+    std::set<Symbol> dependencies;
     collect_possible_reads(dependencies);
     return find_first_of(symbols.begin(), symbols.end(), dependencies.begin(), dependencies.end()) != symbols.end();
 }
 
-int expression_t::get_precedence() const { return get_precedence(data->kind); }
+int Expression::get_precedence() const { return get_precedence(data->kind); }
 
-int expression_t::get_precedence(kind_t kind)
+int Expression::get_precedence(kind_t kind)
 {
     switch (kind) {
     case PLUS:
@@ -961,7 +958,7 @@ int expression_t::get_precedence(kind_t kind)
     return 0;
 }
 
-std::ostream& expression_t::print_bound_type(std::ostream& os, const expression_t& e) const
+std::ostream& Expression::print_bound_type(std::ostream& os, const Expression& e) const
 {
     if (e.get_kind() == CONSTANT) {
         assert(e.get_type().is(Constants::INT));  // Encoding used here.
@@ -1045,7 +1042,7 @@ static const char* get_builtin_fun_name(kind_t kind)
     return funNames[kind - ABS_F];
 }
 
-static inline std::ostream& embrace_strict(std::ostream& os, bool old, const expression_t& expr, int precedence)
+static inline std::ostream& embrace_strict(std::ostream& os, bool old, const Expression& expr, int precedence)
 {
     if (precedence > expr.get_precedence())
         return expr.print(os << '(', old) << ')';
@@ -1053,7 +1050,7 @@ static inline std::ostream& embrace_strict(std::ostream& os, bool old, const exp
         return expr.print(os, old);
 }
 
-static inline std::ostream& embrace(std::ostream& os, bool old, const expression_t& expr, int precedence)
+static inline std::ostream& embrace(std::ostream& os, bool old, const Expression& expr, int precedence)
 {
     if (precedence >= expr.get_precedence())
         return expr.print(os << '(', old) << ')';
@@ -1061,7 +1058,7 @@ static inline std::ostream& embrace(std::ostream& os, bool old, const expression
         return expr.print(os, old);
 }
 
-static int get_precedence_or_default(const expression_t& expr)
+static int get_precedence_or_default(const Expression& expr)
 {
     try {
         return expr.get_precedence();
@@ -1070,7 +1067,7 @@ static int get_precedence_or_default(const expression_t& expr)
     }
 }
 
-std::ostream& expression_t::print(std::ostream& os, bool old) const
+std::ostream& Expression::print(std::ostream& os, bool old) const
 {
     const int precedence = get_precedence_or_default(*this);
 
@@ -1677,24 +1674,21 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
     return os;
 }
 
-bool expression_t::operator<(const expression_t& e) const
-{
-    return data != nullptr && e.data != nullptr && data < e.data;
-}
+bool Expression::operator<(const Expression& e) const { return data != nullptr && e.data != nullptr && data < e.data; }
 
-bool expression_t::operator==(const expression_t& e) const { return data == e.data; }
+bool Expression::operator==(const Expression& e) const { return data == e.data; }
 
 /** Returns a string representation of the expression. The string
     returned must be deallocated with delete[]. Returns empty is the
     expression is empty. */
-std::string expression_t::str(bool old) const
+std::string Expression::str(bool old) const
 {
     auto os = std::ostringstream{};
     print(os, old);
     return os.str();
 }
 
-void expression_t::collect_possible_writes(std::set<symbol_t>& symbols) const
+void Expression::collect_possible_writes(std::set<Symbol>& symbols) const
 {
     if (empty())
         return;
@@ -1743,7 +1737,7 @@ void expression_t::collect_possible_writes(std::set<symbol_t>& symbols) const
     }
 }
 
-void expression_t::collect_possible_reads(std::set<symbol_t>& symbols, bool collectRandom) const
+void Expression::collect_possible_reads(std::set<Symbol>& symbols, bool collectRandom) const
 {
     if (empty())
         return;
@@ -1768,7 +1762,7 @@ void expression_t::collect_possible_reads(std::set<symbol_t>& symbols, bool coll
     case RANDOM_F:
     case RANDOM_POISSON_F:
         if (collectRandom) {
-            symbols.insert(symbol_t());  // TODO: revisit, should register the argument?
+            symbols.insert(Symbol());  // TODO: revisit, should register the argument?
         }
         break;
     case RANDOM_ARCSINE_F:
@@ -1777,67 +1771,67 @@ void expression_t::collect_possible_reads(std::set<symbol_t>& symbols, bool coll
     case RANDOM_NORMAL_F:
     case RANDOM_WEIBULL_F:
         if (collectRandom) {
-            symbols.insert(symbol_t());  // TODO: revisit, should register the arguments?
-            symbols.insert(symbol_t());
+            symbols.insert(Symbol());  // TODO: revisit, should register the arguments?
+            symbols.insert(Symbol());
         }
         break;
 
     case RANDOM_TRI_F:
         if (collectRandom) {
-            symbols.insert(symbol_t());  // TODO: revisit, should register the argument?
-            symbols.insert(symbol_t());
-            symbols.insert(symbol_t());
+            symbols.insert(Symbol());  // TODO: revisit, should register the argument?
+            symbols.insert(Symbol());
+            symbols.insert(Symbol());
         }
         break;
     default: break;
     }
 }
 
-expression_t expression_t::create_constant(int32_t value, position_t pos)
+Expression Expression::create_constant(int32_t value, position_t pos)
 {
-    auto expr = expression_t{CONSTANT, pos};
+    auto expr = Expression{CONSTANT, pos};
     expr.data->value = value;
     expr.data->type = type_t::create_primitive(Constants::INT);
     return expr;
 }
 
-expression_t expression_t::create_var_index(int32_t value, position_t pos)
+Expression Expression::create_var_index(int32_t value, position_t pos)
 {
-    auto expr = expression_t{VAR_INDEX, pos};
+    auto expr = Expression{VAR_INDEX, pos};
     expr.data->value = value;
     expr.data->type = type_t::create_primitive(Constants::INT);
     return expr;
 }
 
-expression_t expression_t::create_exit(position_t pos)
+Expression Expression::create_exit(position_t pos)
 {
-    auto expr = expression_t{EXIT, pos};
+    auto expr = Expression{EXIT, pos};
     expr.data->value = 0;
     expr.data->type = type_t::create_primitive(Constants::VOID_TYPE);
     return expr;
 }
 
-expression_t expression_t::create_double(double value, position_t pos)
+Expression Expression::create_double(double value, position_t pos)
 {
-    auto expr = expression_t{CONSTANT, pos};
+    auto expr = Expression{CONSTANT, pos};
     expr.data->value = value;
     expr.data->type = type_t::create_primitive(Constants::DOUBLE);
     return expr;
 }
 
-expression_t expression_t::create_string(StringIndex str, position_t pos)
+Expression Expression::create_string(StringIndex str, position_t pos)
 {
-    auto expr = expression_t{CONSTANT, pos};
+    auto expr = Expression{CONSTANT, pos};
     expr.data->value = str;
     expr.data->type = type_t::create_primitive(Constants::STRING);
     return expr;
 }
 
-expression_t expression_t::create_identifier(const symbol_t& symbol, position_t pos)
+Expression Expression::create_identifier(const Symbol& symbol, position_t pos)
 {
-    auto expr = expression_t{IDENTIFIER, pos};
+    auto expr = Expression{IDENTIFIER, pos};
     expr.data->symbol = symbol;
-    if (symbol != symbol_t()) {
+    if (symbol != Symbol()) {
         expr.data->type = symbol.get_type();
     } else {
         expr.data->type = type_t();
@@ -1845,27 +1839,26 @@ expression_t expression_t::create_identifier(const symbol_t& symbol, position_t 
     return expr;
 }
 
-expression_t expression_t::create_nary(kind_t kind, std::vector<expression_t> sub, position_t pos, type_t type)
+Expression Expression::create_nary(kind_t kind, std::vector<Expression> sub, position_t pos, type_t type)
 {
-    auto expr = expression_t{kind, pos};
+    auto expr = Expression{kind, pos};
     expr.data->value = static_cast<int32_t>(sub.size());
     expr.data->sub = std::move(sub);
     expr.data->type = std::move(type);
     return expr;
 }
 
-expression_t expression_t::create_unary(kind_t kind, expression_t sub, position_t pos, type_t type)
+Expression Expression::create_unary(kind_t kind, Expression sub, position_t pos, type_t type)
 {
-    auto expr = expression_t{kind, pos};
+    auto expr = Expression{kind, pos};
     expr.data->sub.push_back(std::move(sub));
     expr.data->type = std::move(type);
     return expr;
 }
 
-expression_t expression_t::create_binary(kind_t kind, expression_t left, expression_t right, position_t pos,
-                                         type_t type)
+Expression Expression::create_binary(kind_t kind, Expression left, Expression right, position_t pos, type_t type)
 {
-    auto expr = expression_t{kind, pos};
+    auto expr = Expression{kind, pos};
     expr.data->sub.reserve(2);
     expr.data->sub.push_back(std::move(left));
     expr.data->sub.push_back(std::move(right));
@@ -1873,10 +1866,10 @@ expression_t expression_t::create_binary(kind_t kind, expression_t left, express
     return expr;
 }
 
-expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expression_t e2, expression_t e3,
-                                          position_t pos, type_t type)
+Expression Expression::create_ternary(kind_t kind, Expression e1, Expression e2, Expression e3, position_t pos,
+                                      type_t type)
 {
-    auto expr = expression_t{kind, pos};
+    auto expr = Expression{kind, pos};
     expr.data->sub.reserve(3);
     expr.data->sub.push_back(std::move(e1));
     expr.data->sub.push_back(std::move(e2));
@@ -1885,26 +1878,26 @@ expression_t expression_t::create_ternary(kind_t kind, expression_t e1, expressi
     return expr;
 }
 
-expression_t expression_t::create_dot(expression_t e, int32_t idx, position_t pos, type_t type)
+Expression Expression::create_dot(Expression e, int32_t idx, position_t pos, type_t type)
 {
-    auto expr = expression_t{DOT, pos};
+    auto expr = Expression{DOT, pos};
     expr.data->value = idx;
     expr.data->sub.push_back(std::move(e));
     expr.data->type = std::move(type);
     return expr;
 }
 
-expression_t expression_t::create_sync(expression_t e, synchronisation_t s, position_t pos)
+Expression Expression::create_sync(Expression e, synchronisation_t s, position_t pos)
 {
-    auto expr = expression_t{SYNC, pos};
+    auto expr = Expression{SYNC, pos};
     expr.data->value = s;
     expr.data->sub.push_back(std::move(e));
     return expr;
 }
 
-expression_t expression_t::create_deadlock(position_t pos)
+Expression Expression::create_deadlock(position_t pos)
 {
-    auto expr = expression_t{DEADLOCK, pos};
+    auto expr = Expression{DEADLOCK, pos};
     expr.data->type = type_t::create_primitive(CONSTRAINT);
     return expr;
 }

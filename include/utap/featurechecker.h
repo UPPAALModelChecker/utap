@@ -37,14 +37,14 @@ public:
     SupportedMethods get_supported_methods() { return supported_methods; }
 
     void visit_edge(edge_t& edge) override;
-    void visit_assignment(expression_t& ass);
-    void visit_guard(expression_t& guard);
+    void visit_assignment(Expression& ass);
+    void visit_guard(Expression& guard);
     void visit_location(location_t& state) override;
-    void visit_variable(variable_t&) override;
+    void visit_variable(Variable&) override;
     bool visit_template_before(template_t&) override;
 
-    void visitFrame(const frame_t& frame);
-    bool isRateDisallowedInSymbolic(const expression_t& e);
+    void visit_frame(const Frame& frame);
+    bool isRateDisallowedInSymbolic(const Expression& e);
 };
 
 }  // namespace UTAP

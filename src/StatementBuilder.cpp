@@ -43,19 +43,19 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
     this->libpaths.emplace(this->libpaths.begin(), "");
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const expression_t& expr)
+void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const Expression& expr)
 {
-    auto symbols = std::set<symbol_t>{};
+    auto symbols = std::set<Symbol>{};
     expr.collect_possible_reads(symbols);
     while (!symbols.empty()) {
-        symbol_t s = *symbols.begin();
+        Symbol s = *symbols.begin();
         symbols.erase(s);
         if (dependencies.find(s) == dependencies.end()) {
             dependencies.insert(s);
             if (auto* d = s.get_data(); d != nullptr) {
                 if (auto t = s.get_type(); !(t.is_function() || t.is_function_external())) {
                     // assume is its variable, which is not always true
-                    auto* v = static_cast<variable_t*>(d);
+                    auto* v = static_cast<Variable*>(d);
                     v->init.collect_possible_reads(symbols);
                 } else {
                     // TODO; fixme.
@@ -65,7 +65,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, con
     }
 }
 
-void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, const type_t& type)
+void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const type_t& type)
 {
     if (type.get_kind() == RANGE) {
         auto [lower, upper] = type.get_range();
@@ -81,7 +81,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, con
 void StatementBuilder::type_array_of_size(uint32_t n)
 {
     // Pop array size of fragments stack.
-    expression_t expr = fragments.pop();
+    Expression expr = fragments.pop();
 
     // Create type.
     expr_nat(0);
@@ -220,7 +220,7 @@ static bool mustInitialise(const type_t& type)
 void StatementBuilder::decl_var(std::string_view name, bool hasInit)
 {
     // Pop initial value
-    expression_t init;
+    Expression init;
     if (hasInit)
         init = fragments.pop();
 
@@ -279,21 +279,21 @@ void StatementBuilder::decl_field_init(std::string_view name)
     fragments[0].set_type(type);
 }
 
-expression_t StatementBuilder::make_initialiser(const type_t& type, const expression_t& init)
+Expression StatementBuilder::make_initialiser(const type_t& type, const Expression& init)
 {
     if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
     } else if (type.is_array() && init.get_kind() == LIST) {
         auto subtype = type.get_sub();
-        auto result = std::vector<expression_t>(init.get_size());
+        auto result = std::vector<Expression>(init.get_size());
         for (uint32_t i = 0; i < init.get_type().size(); i++)
             result[i] = make_initialiser(subtype, init[i]);
-        return expression_t::create_nary(LIST, result, init.get_position(), type);
+        return Expression::create_nary(LIST, result, init.get_position(), type);
     } else if (type.is_record() && init.get_kind() == LIST) {
         /* In order to access the record labels we have to strip any
          * prefixes and labels from the record type.
          */
-        auto result = std::vector<expression_t>(type.get_record_size());
+        auto result = std::vector<Expression>(type.get_record_size());
         auto current = uint32_t{0};
         for (uint32_t i = 0; i < init.get_type().size(); ++i, ++current) {
             const auto& label = init.get_type().get_label(i);
@@ -316,7 +316,7 @@ expression_t StatementBuilder::make_initialiser(const type_t& type, const expres
             }
             result[current] = make_initialiser(type.get_sub(current), init[i]);
         }
-        return expression_t::create_nary(LIST, result, init.get_position(), type);
+        return Expression::create_nary(LIST, result, init.get_position(), type);
     }
     document.add_error(init.get_position(), "$Invalid_initialiser", type.str());
     return init;
@@ -325,7 +325,7 @@ expression_t StatementBuilder::make_initialiser(const type_t& type, const expres
 void StatementBuilder::decl_init_list(uint32_t num)
 {
     // Pop fields
-    auto fields = std::vector<expression_t>(num);
+    auto fields = std::vector<Expression>(num);
     for (uint32_t i = 0; i < num; ++i)
         fields[i] = fragments[num - 1 - i];
     fragments.pop(num);
@@ -342,7 +342,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
         fields[i].set_type(type[0]);
     }
     // Create list expression
-    fragments.push(expression_t::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
+    fragments.push(Expression::create_nary(LIST, fields, position, type_t::create_record(types, labels, position)));
 }
 
 /********************************************************************
@@ -388,7 +388,7 @@ void StatementBuilder::decl_func_begin(std::string_view name)
     /* We maintain a stack of frames. As the function has a local
      * scope, we push a new frame and move the parameters to it.
      */
-    push_frame(frame_t::create(frames.top()));
+    push_frame(frames.top().make_sub());
     params.move_to(frames.top());  // params is emptied here
 
     // Create function block.
@@ -474,7 +474,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
     auto type = type_t::create_external_function(return_type, types, labels, position);
     if (!addFunction(type, alias, position_t()))
         handle_error(duplicate_definition_error(alias));
-    push_frame(frame_t::create(frames.top()));
+    push_frame(frames.top().make_sub());
     params.move_to(frames.top());  // params is emptied here
     currentFun->body = std::make_unique<ExternalBlockStatement>(frames.top(), fp, !return_type.is_void());
     decl_func_end();
@@ -485,7 +485,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
  */
 void StatementBuilder::block_begin()
 {
-    push_frame(frame_t::create(frames.top()));
+    push_frame(frames.top().make_sub());
     blocks.push_back(std::make_unique<BlockStatement>(frames.top()));
 }
 
@@ -524,10 +524,10 @@ void StatementBuilder::iteration_begin(std::string_view name)
     }
 
     // The iteration statement has a local scope for the iterator.
-    push_frame(frame_t::create(frames.top()));
+    push_frame(frames.top().make_sub());
 
     // Add variable.
-    variable_t* variable = addVariable(type, name, expression_t(), position_t());
+    Variable* variable = addVariable(type, name, Expression(), position_t());
 
     /* Create a new statement for the loop. We need to already create
      * this here as the statement is the only thing that can keep the

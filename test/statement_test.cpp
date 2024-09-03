@@ -40,33 +40,33 @@ TEST_CASE("Empty")
 TEST_CASE("Composite")
 {
     auto int_type = type_t::create_primitive(UTAP::Constants::INT);
-    auto global = frame_t::create();
+    auto global = Frame::make();
     auto var_a = global.add_symbol("a", int_type, {});
-    auto id_a = expression_t::create_identifier(var_a);
-    auto val0 = expression_t::create_constant(0);
-    auto val1 = expression_t::create_constant(1);
-    auto val5 = expression_t::create_constant(5);
+    auto id_a = Expression::create_identifier(var_a);
+    auto val0 = Expression::create_constant(0);
+    auto val1 = Expression::create_constant(1);
+    auto val5 = Expression::create_constant(5);
     SUBCASE("Trivial")
     {
-        auto val2 = expression_t::create_constant(2);
-        auto plus = expression_t::create_binary(Constants::PLUS, val1, val2);
+        auto val2 = Expression::create_constant(2);
+        auto plus = Expression::create_binary(Constants::PLUS, val1, val2);
         SUBCASE("Assignment")
         {
-            auto assign = expression_t::create_binary(UTAP::Constants::ASSIGN, id_a, plus);
+            auto assign = Expression::create_binary(UTAP::Constants::ASSIGN, id_a, plus);
             auto s = ExprStatement{assign};
             CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "a = 1 + 2;");
         }
         SUBCASE("Equality")
         {
-            auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
+            auto equal = Expression::create_binary(UTAP::Constants::EQ, id_a, plus);
             auto s = ExprStatement{equal};
             CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "a == 1 + 2;");
         }
         SUBCASE("Assertion")
         {
-            auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
+            auto equal = Expression::create_binary(UTAP::Constants::EQ, id_a, plus);
             auto s = AssertStatement{equal};
             CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "assert(a == 1 + 2);");
@@ -75,11 +75,11 @@ TEST_CASE("Composite")
     SUBCASE("Conditional")
     {
         auto var_i = global.add_symbol("i", int_type);
-        auto id_i = expression_t::create_identifier(var_i);
-        auto step_i = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_i);
-        auto step_a = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
-        auto cond_i = expression_t::create_binary(UTAP::Constants::LT, id_i, val5);
-        auto cond_a = expression_t::create_binary(UTAP::Constants::LT, id_a, val5);
+        auto id_i = Expression::create_identifier(var_i);
+        auto step_i = Expression::create_unary(UTAP::Constants::PRE_INCREMENT, id_i);
+        auto step_a = Expression::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
+        auto cond_i = Expression::create_binary(UTAP::Constants::LT, id_i, val5);
+        auto cond_a = Expression::create_binary(UTAP::Constants::LT, id_a, val5);
         SUBCASE("If")
         {
             auto s =
@@ -90,7 +90,7 @@ TEST_CASE("Composite")
         }
         SUBCASE("For loop")
         {
-            auto init = expression_t::create_binary(UTAP::Constants::ASSIGN, id_i, val0);
+            auto init = Expression::create_binary(UTAP::Constants::ASSIGN, id_i, val0);
             auto s = ForStatement{init, cond_i, step_i, std::make_unique<ExprStatement>(step_a)};
             CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "for (i = 0; i < 5; ++i)\n"s + indent + INDENT + "a += i;\n");
@@ -112,8 +112,8 @@ TEST_CASE("Composite")
     {
         auto int_0_5 = type_t::create_range(int_type, val0, val5);
         auto var_i = global.add_symbol("i", int_0_5);
-        auto id_i = expression_t::create_identifier(var_i);
-        auto comp = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
+        auto id_i = Expression::create_identifier(var_i);
+        auto comp = Expression::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
         auto s = RangeStatement{var_i, global, std::make_unique<ExprStatement>(comp)};
         CHECK(s.returns() == false);
         CHECK(s.to_string(indent) == indent + "for (i : int[0,5])\n"s + indent + INDENT + "a += i;\n");
@@ -121,9 +121,9 @@ TEST_CASE("Composite")
     SUBCASE("Block")
     {
         auto var_i = global.add_symbol("i", int_type);
-        auto id_i = expression_t::create_identifier(var_i);
-        auto e1 = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
-        auto e2 = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_a);
+        auto id_i = Expression::create_identifier(var_i);
+        auto e1 = Expression::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
+        auto e2 = Expression::create_unary(UTAP::Constants::PRE_INCREMENT, id_a);
         auto s = BlockStatement{global};
         CHECK(s.returns() == true);
         CHECK(s.to_string(indent) == "{\n" + indent + "}");

@@ -25,6 +25,8 @@
 
 TEST_SUITE_BEGIN("parser");
 
+using namespace UTAP;
+
 TEST_CASE("Double Serialization Test")
 {
     const auto doc = read_document("if_statement.xml");
@@ -68,7 +70,7 @@ TEST_CASE("External functions")
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
     // TypeChecker is not run when errors are present, so we do it on our own:
-    auto checker = UTAP::TypeChecker{doc};
+    auto checker = TypeChecker{doc};
     doc.accept(checker);
     REQUIRE(errs.size() == 3);  // no new errors
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
@@ -95,7 +97,7 @@ TEST_CASE("Error location")
 
 TEST_CASE("SMC bounds in queries")
 {
-    auto doc = std::make_unique<UTAP::Document>();
+    auto doc = std::make_unique<Document>();
     auto builder = QueryBuilder{*doc};
     SUBCASE("Probability estimation query with 7 runs")
     {
@@ -133,7 +135,7 @@ TEST_CASE("SMC bounds in queries")
 
 TEST_CASE("Parsing implicit goals for learning queries")
 {
-    using UTAP::Constants::kind_t;
+    using Constants::kind_t;
     auto doc = read_document("simpleSystem.xml");
     auto builder = QueryBuilder(doc);
 
@@ -204,7 +206,7 @@ TEST_CASE("Multiple functions despite early failure variable decl")
 
     auto doc = f.parse();
     CHECK(doc.get_globals().functions.size() == 2);
-    for (const UTAP::function_t& func : doc.get_globals().functions)
+    for (const function_t& func : doc.get_globals().functions)
         CHECK(func.body != nullptr);
 }
 
@@ -215,7 +217,7 @@ TEST_CASE("Multiple functions despite early failure type def")
 
     auto doc = f.parse();
     CHECK(doc.get_globals().functions.size() == 2);
-    for (const UTAP::function_t& func : doc.get_globals().functions)
+    for (const function_t& func : doc.get_globals().functions)
         CHECK(func.body != nullptr);
 }
 
@@ -225,7 +227,7 @@ TEST_CASE("variable declaration failure shouldn't shadow declarations")
     f.add_global_decl("int x = 0;int asdf\nint z = 0;");
 
     auto doc = f.parse();
-    UTAP::symbol_t sym;
+    Symbol sym;
     CHECK(doc.get_globals().frame.resolve("x", sym));
     CHECK(doc.get_globals().frame.resolve("z", sym));
 }
@@ -236,7 +238,7 @@ TEST_CASE("variable declaration failure shouldn't shadow declarations")
     f.add_global_decl("typedef int x;\ntypedef int y\ntypedef int z;");
 
     auto doc = f.parse();
-    UTAP::symbol_t sym;
+    Symbol sym;
     CHECK(doc.get_globals().frame.resolve("x", sym));
     CHECK(doc.get_globals().frame.resolve("z", sym));
 }

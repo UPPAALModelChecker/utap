@@ -41,7 +41,7 @@ protected:
      * The \a params frame is used temporarily during parameter
      * parsing.
      */
-    frame_t params{frame_t::create()};
+    Frame params{Frame::make()};
 
     /** The function currently being parsed. */
     function_t* currentFun{nullptr};
@@ -58,11 +58,11 @@ protected:
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 
-    virtual variable_t* addVariable(type_t type, std::string_view name, expression_t init, position_t pos) = 0;
+    virtual Variable* addVariable(type_t type, std::string_view name, Expression init, position_t pos) = 0;
     virtual bool addFunction(type_t type, std::string_view name, position_t pos) = 0;
 
-    static void collectDependencies(std::set<symbol_t>&, const expression_t&);
-    static void collectDependencies(std::set<symbol_t>&, const type_t&);
+    static void collectDependencies(std::set<Symbol>&, const Expression&);
+    static void collectDependencies(std::set<Symbol>&, const type_t&);
 
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
@@ -76,7 +76,7 @@ public:
     void struct_field(std::string_view name) override;
     void decl_typedef(std::string_view name) override;
     void decl_var(std::string_view name, bool init) override;
-    expression_t make_initialiser(const type_t& type, const expression_t& init);
+    Expression make_initialiser(const type_t& type, const Expression& init);
     void decl_init_list(uint32_t num) override;
     void decl_field_init(std::string_view name) override;
     void decl_parameter(std::string_view name, bool) override;

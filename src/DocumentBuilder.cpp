@@ -39,7 +39,7 @@ DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::pat
 /************************************************************
  * Variable and function declarations
  */
-variable_t* DocumentBuilder::addVariable(type_t type, std::string_view name, expression_t init, position_t pos)
+Variable* DocumentBuilder::addVariable(type_t type, std::string_view name, Expression init, position_t pos)
 {
     if (currentFun != nullptr) {
         return document.add_variable_to_function(currentFun, frames.top(), type, name, init, pos);
@@ -58,7 +58,7 @@ declarations_t* DocumentBuilder::getCurrentDeclarationBlock()
     return (currentTemplate != nullptr ? currentTemplate : &document.get_globals());
 }
 
-void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, frame_t& frame, position_t pos)
+void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, Frame& frame, position_t pos)
 {
     auto type = typeFragments.pop();
     if (!type.is(CONSTANT)) {
@@ -69,7 +69,7 @@ void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, frame_t& frame
     } else if (!type.is(RANGE)) {
         handle_error(TypeException{"$Range_expected"});
     } else {
-        if (auto uid = symbol_t{}; resolve(id, uid))
+        if (auto uid = Symbol{}; resolve(id, uid))
             handle_warning(shadows_a_variable_warning(id));
         frame.add_symbol(id, type, pos);
     }
@@ -82,7 +82,7 @@ void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, frame_t& frame
 void DocumentBuilder::gantt_decl_begin(std::string_view name)
 {
     currentGantt = std::make_unique<gantt_t>(name);
-    push_frame(frame_t::create(frames.top()));
+    push_frame(frames.top().make_sub());
 }
 
 void DocumentBuilder::gantt_decl_select(std::string_view id) { addSelectSymbolToFrame(id, frames.top(), position); }
@@ -94,7 +94,7 @@ void DocumentBuilder::gantt_decl_end()
     currentGantt.reset();
 }
 
-void DocumentBuilder::gantt_entry_begin() { push_frame(frame_t::create(frames.top())); }
+void DocumentBuilder::gantt_entry_begin() { push_frame(frames.top().make_sub()); }
 
 void DocumentBuilder::gantt_entry_select(std::string_view id) { addSelectSymbolToFrame(id, frames.top(), position); }
 
@@ -112,7 +112,7 @@ void DocumentBuilder::gantt_entry_end()
 void DocumentBuilder::decl_progress(bool hasGuard)
 {
     auto measure = fragments.pop();
-    auto guard = expression_t{};
+    auto guard = Expression{};
     if (hasGuard)
         guard = fragments.pop();
     document.add_progress_measure(getCurrentDeclarationBlock(), guard, measure);
@@ -149,7 +149,7 @@ void DocumentBuilder::proc_begin(std::string_view name, const bool isTA, std::st
     }
 
     push_frame(currentTemplate->frame);
-    params = frame_t::create();
+    params = Frame::make();
 }
 
 void DocumentBuilder::proc_end()  // 1 ProcBody
@@ -165,8 +165,8 @@ void DocumentBuilder::proc_end()  // 1 ProcBody
  */
 void DocumentBuilder::proc_location(std::string_view name, bool hasInvariant, bool hasER)  // 1 expr
 {
-    expression_t e;
-    expression_t f;
+    Expression e;
+    Expression f;
     if (hasER)
         f = fragments.pop();
     if (hasInvariant)
@@ -176,7 +176,7 @@ void DocumentBuilder::proc_location(std::string_view name, bool hasInvariant, bo
 
 void DocumentBuilder::proc_location_commit(std::string_view name)
 {
-    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = Symbol{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else if (uid.get_type().is(URGENT)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
@@ -187,7 +187,7 @@ void DocumentBuilder::proc_location_commit(std::string_view name)
 
 void DocumentBuilder::proc_location_urgent(std::string_view name)
 {
-    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = Symbol{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else if (uid.get_type().is(COMMITTED)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
@@ -200,7 +200,7 @@ void DocumentBuilder::proc_branchpoint(std::string_view name) { currentTemplate-
 
 void DocumentBuilder::proc_location_init(std::string_view name)
 {
-    if (auto uid = symbol_t{}; !resolve(name, uid) || !uid.get_type().is_location()) {
+    if (auto uid = Symbol{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
     } else {
         currentTemplate->init = uid;
@@ -210,21 +210,21 @@ void DocumentBuilder::proc_location_init(std::string_view name)
 void DocumentBuilder::proc_edge_begin(std::string_view from, std::string_view to, const bool control,
                                       std::string_view actname)
 {
-    if (auto fid = symbol_t{};
+    if (auto fid = Symbol{};
         !resolve(from, fid) || (!fid.get_type().is_location() && !fid.get_type().is_branchpoint())) {
         handle_error(TypeException{"$No_such_location_or_branchpoint_(source)"});
-        push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
-    } else if (auto tid = symbol_t{};
+        push_frame(frames.top().make_sub());  // dummy frame for upcoming popFrame
+    } else if (auto tid = Symbol{};
                !resolve(to, tid) || (!tid.get_type().is_location() && !tid.get_type().is_branchpoint())) {
         handle_error(TypeException{"$No_such_location_or_branchpoint_(destination)"});
-        push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
+        push_frame(frames.top().make_sub());  // dummy frame for upcoming popFrame
     } else {
         currentEdge = &currentTemplate->add_edge(fid, tid, control, actname);
         currentEdge->guard = make_constant(1);
         currentEdge->assign = make_constant(1);
         // default "probability" weight is 1.
         currentEdge->prob = make_constant(1);
-        push_frame(currentEdge->select = frame_t::create(frames.top()));
+        push_frame(currentEdge->select = frames.top().make_sub());
     }
 }
 
@@ -247,7 +247,7 @@ void DocumentBuilder::proc_sync(synchronisation_t type)
         handle_error(TypeException("Must be declared inside of an edge"));
         return;
     }
-    currentEdge->sync = expression_t::create_sync(fragments.pop(), type, position);
+    currentEdge->sync = Expression::create_sync(fragments.pop(), type, position);
 }
 
 void DocumentBuilder::proc_update()
@@ -279,17 +279,17 @@ void DocumentBuilder::instantiation_begin(std::string_view name, uint32_t parame
         handle_error(duplicate_definition_error(name));
 
     // Lookup symbol.
-    auto id = symbol_t{};
+    auto id = Symbol{};
     if (!resolve(templ_name, id) ||
         (id.get_type().get_kind() != INSTANCE && id.get_type().get_kind() != LSC_INSTANCE)) {
         handle_error(TypeException{"$Not_a_template"});
     }
 
     // Push parameters to frame stack.
-    auto frame = frame_t::create(frames.top());
+    auto frame = frames.top().make_sub();
     frame.add(params);
     push_frame(frame);
-    params = frame_t::create();
+    params = Frame::make();
 }
 
 void DocumentBuilder::instantiation_end(std::string_view name, uint32_t parameters, std::string_view templ_name,
@@ -302,7 +302,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
     /* Lookup symbol. In case of failure, instantiationBegin already
      * reported the problem.
      */
-    auto id = symbol_t{};
+    auto id = Symbol{};
     if (resolve(templ_name, id) && (id.get_type().get_kind() == INSTANCE || id.get_type().get_kind() == LSC_INSTANCE)) {
         auto* old_instance = static_cast<instance_t*>(id.get_data());
         // Check number of arguments. If too many arguments, pop the rest.
@@ -313,7 +313,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
             // Collect arguments from expression stack.
-            auto exprs = std::vector<expression_t>(arguments);
+            auto exprs = std::vector<Expression>(arguments);
             while (arguments-- > 0)
                 exprs[arguments] = fragments.pop();
             arguments = 0;
@@ -328,7 +328,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
              *
              * REVISIT: Move to document.cpp?
              */
-            std::set<symbol_t>& restricted = old_instance->restricted;
+            std::set<Symbol>& restricted = old_instance->restricted;
             for (uint32_t i = 0; i < expected; i++) {
                 if (restricted.find(old_instance->parameters[i]) != restricted.end()) {
                     collectDependencies(new_instance.restricted, exprs[i]);
@@ -343,7 +343,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
 // Checks for duplicate entries
 void DocumentBuilder::process(std::string_view name)
 {
-    auto symbol = symbol_t{};
+    auto symbol = Symbol{};
     if (!resolve(name, symbol))
         throw no_such_process_error(name);
 
@@ -375,13 +375,13 @@ void DocumentBuilder::chan_priority_begin() { document.begin_chan_priority(fragm
 
 void DocumentBuilder::chan_priority_add(char separator) { document.add_chan_priority(separator, fragments.pop()); }
 
-void DocumentBuilder::chan_priority_default() { fragments.push(expression_t()); }
+void DocumentBuilder::chan_priority_default() { fragments.push(Expression()); }
 
 void DocumentBuilder::proc_priority_inc() { currentProcPriority++; }
 
 void DocumentBuilder::proc_priority(std::string_view name)
 {
-    symbol_t symbol;
+    Symbol symbol;
     if (!resolve(name, symbol)) {
         handle_error(no_such_process_error(name));
     } else {
@@ -404,7 +404,7 @@ void DocumentBuilder::proc_instance_line() { currentInstanceLine = &currentTempl
  */
 void DocumentBuilder::instance_name(std::string_view name, bool templ)
 {
-    symbol_t uid;
+    Symbol uid;
     if (templ) {
         auto instName = std::string{name};
         auto templName = instName.substr(0, instName.find('('));
@@ -425,10 +425,10 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
 void DocumentBuilder::instance_name_begin(std::string_view name)
 {
     // Push parameters to frame stack.
-    auto frame = frame_t::create(frames.top());
+    auto frame = frames.top().make_sub();
     frame.add(params);
     push_frame(frame);
-    params = frame_t::create();
+    params = Frame::make();
 }
 
 void DocumentBuilder::instance_name_end(std::string_view name, uint32_t arguments)
@@ -440,7 +440,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
     // assert(parameters == params.get_size());
 
     // Lookup symbol. In case of failure, instance_name_begin already reported the problem.
-    if (auto id = symbol_t{}; resolve(name, id) && id.get_type().get_kind() == INSTANCE) {
+    if (auto id = Symbol{}; resolve(name, id) && id.get_type().get_kind() == INSTANCE) {
         auto* old_instance = static_cast<instance_t*>(id.get_data());
 
         /* Check number of arguments. If too many arguments, pop the
@@ -453,7 +453,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
             handle_error(TypeException{"$Too_many_arguments"});
         } else {
             // Collect arguments from expression stack.
-            auto exprs = std::vector<expression_t>(arguments);
+            auto exprs = std::vector<Expression>(arguments);
             while (arguments-- > 0)
                 exprs[arguments] = fragments.pop();
             arguments = 0;
@@ -468,7 +468,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
              *
              * REVISIT: Move to document.cpp?
              */
-            std::set<symbol_t>& restricted = old_instance->restricted;
+            std::set<Symbol>& restricted = old_instance->restricted;
             for (uint32_t i = 0; i < expected; i++) {
                 if (restricted.find(old_instance->parameters[i]) != restricted.end()) {
                     collectDependencies(currentInstanceLine->restricted, exprs[i]);
@@ -484,8 +484,8 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
  */
 void DocumentBuilder::proc_message(std::string_view from, std::string_view to, const int loc, const bool pch)
 {
-    auto fid = symbol_t{};
-    auto tid = symbol_t{};
+    auto fid = Symbol{};
+    auto tid = Symbol{};
     if (!resolve(from, fid) || !fid.get_type().is_instance_line()) {
         handle_error(TypeException{"$No_such_instance_line_(source)"});
     } else if (!resolve(to, tid) || !tid.get_type().is_instance_line()) {
@@ -498,7 +498,7 @@ void DocumentBuilder::proc_message(std::string_view from, std::string_view to, c
 void DocumentBuilder::proc_message(synchronisation_t type)  // Label
 {
     if (currentMessage != nullptr)
-        currentMessage->label = expression_t::create_sync(fragments[0], type, position);
+        currentMessage->label = Expression::create_sync(fragments[0], type, position);
     fragments.pop();
 }
 
@@ -508,12 +508,12 @@ void DocumentBuilder::proc_message(synchronisation_t type)  // Label
 void DocumentBuilder::proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                                      const bool hot)
 {
-    auto v_anchorid = std::vector<symbol_t>{};
+    auto v_anchorid = std::vector<Symbol>{};
     auto error = false;
     auto isHot = hot;
 
     for (const auto& anchor : anchors) {
-        symbol_t anchorid;
+        Symbol anchorid;
         if (!resolve(anchor.c_str(), anchorid) || !anchorid.get_type().is_instance_line()) {
             handle_error(TypeException{"$No_such_instance_line_(anchor)"});
             error = true;
@@ -543,7 +543,7 @@ void DocumentBuilder::proc_condition()
  */
 void DocumentBuilder::proc_LSC_update(std::string_view anchor, const int loc, const bool pch)
 {
-    auto anchorid = symbol_t{};
+    auto anchorid = Symbol{};
 
     if (!resolve(anchor, anchorid) || !anchorid.get_type().is_instance_line()) {
         handle_error(TypeException{"$No_such_instance_line_(anchor)"});
@@ -579,7 +579,7 @@ void DocumentBuilder::decl_dynamic_template(std::string_view name)
 
     document.add_dynamic_template(name, params, position);
 
-    params = frame_t::create();  // reset params
+    params = Frame::make();  // reset params
 }
 
 void DocumentBuilder::query_begin() { currentQuery = std::make_unique<query_t>(); }

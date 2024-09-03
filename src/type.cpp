@@ -44,7 +44,7 @@ struct type_t::type_data
 {
     kind_t kind;          // Kind of type object
     position_t position;  // Position in the input file
-    expression_t expr;    //
+    Expression expr;      //
     std::vector<child_t> children;
     type_data(kind_t kind, position_t position): kind{kind}, position{position} {}
 };
@@ -224,7 +224,7 @@ const std::string& type_t::get_record_label(uint32_t i) const
     }
 }
 
-std::pair<expression_t, expression_t> type_t::get_range() const
+std::pair<Expression, Expression> type_t::get_range() const
 {
     assert(is(RANGE));
     if (get_kind() == RANGE) {
@@ -234,7 +234,7 @@ std::pair<expression_t, expression_t> type_t::get_range() const
     }
 }
 
-const expression_t& type_t::get_expression() const
+const Expression& type_t::get_expression() const
 {
     assert(data);
     return data->expr;
@@ -273,7 +273,7 @@ type_t type_t::rename(const std::string& from, const std::string& to) const
     return type;
 }
 
-type_t type_t::subst(const symbol_t& symbol, const expression_t& expr) const
+type_t type_t::subst(const Symbol& symbol, const Expression& expr) const
 {
     auto type = type_t{get_kind(), get_position(), size()};
     for (size_t i = 0; i < size(); i++) {
@@ -421,7 +421,7 @@ bool type_t::is_equivalent(const type_t& o) const
     return false;
 }
 
-type_t type_t::create_range(type_t type, expression_t lower, expression_t upper, position_t pos)
+type_t type_t::create_range(type_t type, Expression lower, Expression upper, position_t pos)
 {
     auto t = type_t{RANGE, pos, 3};
     t.data->children[0].child = std::move(type);
@@ -485,7 +485,7 @@ type_t type_t::create_typedef(std::string label, type_t type, position_t pos)
     return t;
 }
 
-type_t type_t::create_instance(frame_t parameters, position_t pos)
+type_t type_t::create_instance(const Frame& parameters, position_t pos)
 {
     auto type = type_t{INSTANCE, pos, parameters.get_size()};
     for (size_t i = 0; i < parameters.get_size(); ++i) {
@@ -495,7 +495,7 @@ type_t type_t::create_instance(frame_t parameters, position_t pos)
     return type;
 }
 
-type_t type_t::create_LSC_instance(frame_t parameters, position_t pos)
+type_t type_t::create_LSC_instance(const Frame& parameters, position_t pos)
 {
     auto type = type_t{LSC_INSTANCE, pos, parameters.get_size()};
     for (size_t i = 0; i < parameters.get_size(); ++i) {
@@ -505,7 +505,7 @@ type_t type_t::create_LSC_instance(frame_t parameters, position_t pos)
     return type;
 }
 
-type_t type_t::create_process(frame_t frame, position_t pos)
+type_t type_t::create_process(const Frame& frame, position_t pos)
 {
     auto type = type_t{PROCESS, pos, frame.get_size()};
     for (size_t i = 0; i < frame.get_size(); ++i) {

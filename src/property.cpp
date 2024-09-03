@@ -29,12 +29,12 @@
 #include <cctype>
 #include <cmath>
 
-using UTAP::expression_t;
+using UTAP::Expression;
 
 using namespace UTAP::Constants;
 using namespace UTAP;
 
-void PropertyBuilder::typeCheck(expression_t& expr) { tc.visitProperty(expr); }
+void PropertyBuilder::typeCheck(Expression& expr) { tc.visitProperty(expr); }
 
 void PropertyBuilder::clear() { properties.clear(); }
 
@@ -104,9 +104,8 @@ static void parseExpect(std::string_view expect, PropInfo& info)
 
 void PropertyBuilder::property()
 {
-    /* Construct expression. */
-    expression_t expr = fragments[0];
-    fragments.pop(1);
+    // Construct expression
+    Expression expr = fragments.pop();
 
     /* Type check expression. */
     tc.visitProperty(expr);
@@ -146,7 +145,7 @@ void PropertyBuilder::property()
     typeProperty(expr);
 }
 
-static bool symbolicProperty(const expression_t& expr)
+static bool symbolicProperty(const Expression& expr)
 {
     switch (expr.get_kind()) {
     case EF:
@@ -177,7 +176,7 @@ static bool symbolicProperty(const expression_t& expr)
 // Should not lint, because TigaPropertyBuilder::typeProperty does
 // change the argument.
 // Ideally TigaPropertyBuilder::typeProperty should just be fixed as well
-void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
+void PropertyBuilder::typeProperty(Expression expr)  // NOLINT
 {
     bool prob = false;
 
@@ -245,7 +244,7 @@ void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
 
 void PropertyBuilder::scenario(std::string_view name)
 {
-    symbol_t symbol, i_symbol;
+    Symbol symbol, i_symbol;
     if (!resolve(name, symbol))
         throw std::runtime_error("$No_such_scenario: " + std::string{name});
     type_t type = symbol.get_type();
@@ -279,7 +278,7 @@ void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTA
         properties.back().options = options;
 }
 
-variable_t* PropertyBuilder::addVariable(type_t type, std::string_view name, expression_t init, position_t pos)
+Variable* PropertyBuilder::addVariable(type_t type, std::string_view name, Expression init, position_t pos)
 {
     throw UTAP::NotSupportedException("addVariable is not supported");
 }
@@ -289,7 +288,7 @@ bool PropertyBuilder::addFunction(type_t type, std::string_view name, position_t
     throw UTAP::NotSupportedException("addFunction is not supported");
 }
 
-bool PropertyBuilder::isSMC(UTAP::expression_t* expr)
+bool PropertyBuilder::isSMC(UTAP::Expression* expr)
 {
     if (expr == nullptr)
         expr = &(fragments[0]);
@@ -299,7 +298,7 @@ bool PropertyBuilder::isSMC(UTAP::expression_t* expr)
             k == MIN_EXP || k == MAX_EXP);
 }
 
-void TigaPropertyBuilder::typeProperty(expression_t expr)
+void TigaPropertyBuilder::typeProperty(Expression expr)
 {
     bool potigaProp = false;
     bool titiga = false;
@@ -353,8 +352,8 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
                 properties.back().intermediate = expr;
                 properties.back().type = quant_t::control_AB;
             } else if (expr[0].get_kind() == AND && expr[0][1].get_kind() == AF) {
-                expr = expression_t::create_binary(A_BUCHI, expr[0][0], expr[0][1][0], expr[0].get_position(),
-                                                   expr[0].get_type());
+                expr = Expression::create_binary(A_BUCHI, expr[0][0], expr[0][1][0], expr[0].get_position(),
+                                                 expr[0].get_type());
                 properties.back().intermediate = expr;
                 properties.back().type = quant_t::control_ABuchi;
             } else {

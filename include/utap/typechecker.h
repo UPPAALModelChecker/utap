@@ -39,13 +39,13 @@ namespace UTAP {
 class CompileTimeComputableValues : public DocumentVisitor
 {
 private:
-    std::set<symbol_t> variables;
+    std::set<Symbol> variables;
 
 public:
-    void visit_variable(variable_t&) override;
+    void visit_variable(Variable&) override;
     void visit_instance(instance_t&) override;
-    void add_symbol(symbol_t);
-    bool contains(const symbol_t&) const;
+    void add_symbol(Symbol);
+    bool contains(const Symbol&) const;
 };
 
 /**
@@ -67,10 +67,10 @@ public:
         TypeError(const type_t& type, std::string message):
             TypeError{type.get_position(), std::move(message), type.str()}
         {}
-        TypeError(const expression_t& expr, std::string message):
+        TypeError(const Expression& expr, std::string message):
             TypeError{expr.get_position(), std::move(message), expr.str()}
         {}
-        TypeError(const symbol_t& symbol, std::string message, std::string context):
+        TypeError(const Symbol& symbol, std::string message, std::string context):
             TypeError{symbol.get_position(), std::move(message), std::move(context)}
         {}
     };
@@ -79,14 +79,14 @@ public:
     void visit_doc_after(Document&) override;
     void visit_template_after(template_t&) override;
     bool visit_template_before(template_t&) override;
-    void visit_variable(variable_t&) override;
+    void visit_variable(Variable&) override;
     void visit_location(location_t&) override;
     void visit_edge(edge_t&) override;
     void visit_instance(instance_t&) override;
-    virtual void visitProperty(expression_t&);  // FIXME: does not override?!
+    virtual void visitProperty(Expression&);  // FIXME: does not override?!
     void visit_function(function_t&) override;
     void visit_progress(progress_t&) override;
-    virtual void visitHybridClock(expression_t&);  // FIXME: does not override?!
+    virtual void visitHybridClock(Expression&);  // FIXME: does not override?!
     void visit_io_decl(iodecl_t&) override;
     void visit_gantt(gantt_t&) override;
     void visit_process(instance_t&) override;
@@ -107,8 +107,8 @@ public:
 
     bool checkDynamicExpressions(Statement& stat);
     /** Type check an expression */
-    bool checkExpression(expression_t&);
-    bool checkSpawnParameterCompatible(const type_t& param, const expression_t& arg);
+    bool checkExpression(Expression&);
+    bool checkSpawnParameterCompatible(const type_t& param, const Expression& arg);
 
 private:
     int syncUsed{0};  // Keep track of sync declarations, 0->nothing, 1->IO, 2->CSP, -1->error.
@@ -121,34 +121,34 @@ private:
     void handleError(TypeError error);
     void handleWarning(TypeError error);
 
-    expression_t checkInitialiser(const type_t& type, const expression_t& init);
+    Expression checkInitialiser(const type_t& type, const Expression& init);
     type_t getInlineIfCommonType(const type_t& t1, const type_t& t2) const;
-    bool isLValue(const expression_t&) const;
-    bool isModifiableLValue(const expression_t&) const;
-    bool isUniqueReference(const expression_t& expr) const;
-    bool isParameterCompatible(const type_t& param, const expression_t& arg) const;
-    bool checkParameterCompatible(const type_t& param, const expression_t& arg);
-    void checkIgnoredValue(const expression_t& expr);
-    bool checkAssignmentExpression(expression_t&);
-    bool checkConditionalExpressionInFunction(const expression_t&);
-    void checkObservationConstraints(const expression_t&);
+    bool isLValue(const Expression&) const;
+    bool isModifiableLValue(const Expression&) const;
+    bool isUniqueReference(const Expression& expr) const;
+    bool isParameterCompatible(const type_t& param, const Expression& arg) const;
+    bool checkParameterCompatible(const type_t& param, const Expression& arg);
+    void checkIgnoredValue(const Expression& expr);
+    bool checkAssignmentExpression(Expression&);
+    bool checkConditionalExpressionInFunction(const Expression&);
+    void checkObservationConstraints(const Expression&);
 
-    bool isCompileTimeComputable(const expression_t& expr) const;
+    bool isCompileTimeComputable(const Expression& expr) const;
     void checkType(const type_t&, bool initialisable = false, bool inStruct = false);
 
     /** check expressions used in (SMC) properties, these functions provide:
         1) consistent semantic checks by code reuse,
         2) meaningful names to the otherwise anonymous expressions.
      */
-    bool checkNrOfRuns(const expression_t& expr);
-    bool checkBoundTypeOrBoundedExpr(const expression_t& expr);
-    bool checkBound(const expression_t& expr);
-    bool checkPredicate(const expression_t& expr);
-    bool checkProbBound(const expression_t& expr);
-    bool checkUntilCond(Constants::kind_t kind, const expression_t& expr);
-    bool checkMonitoredExpr(const expression_t& expr);
-    bool checkPathQuant(const expression_t& expr);
-    bool checkAggregationOp(const expression_t& expr);
+    bool checkNrOfRuns(const Expression& expr);
+    bool checkBoundTypeOrBoundedExpr(const Expression& expr);
+    bool checkBound(const Expression& expr);
+    bool checkPredicate(const Expression& expr);
+    bool checkProbBound(const Expression& expr);
+    bool checkUntilCond(Constants::kind_t kind, const Expression& expr);
+    bool checkMonitoredExpr(const Expression& expr);
+    bool checkPathQuant(const Expression& expr);
+    bool checkAggregationOp(const Expression& expr);
 };
 }  // namespace UTAP
 

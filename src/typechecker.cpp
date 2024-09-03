@@ -51,26 +51,26 @@ using namespace std::string_literals;
 namespace {  // anonymous namespace is preferred over `static` (C++ standard)
 
 /// The following are simple helper functions for testing the type of expressions.
-bool is_cost(const expression_t& expr) { return expr.get_type().is(COST); }
+bool is_cost(const Expression& expr) { return expr.get_type().is(COST); }
 
-bool is_void(const expression_t& expr) { return expr.get_type().is_void(); }
+bool is_void(const Expression& expr) { return expr.get_type().is_void(); }
 
-bool is_double(const expression_t& expr) { return expr.get_type().is_double(); }
+bool is_double(const Expression& expr) { return expr.get_type().is_double(); }
 
 /*
-bool is_string(expression_t expr)
+bool is_string(Expression expr)
 {
     return expr.get_type().is_string();
 }
 */
-// bool is_scalar(expression_t expr)
+// bool is_scalar(Expression expr)
 // {
 //     return expr.get_type().is_scalar();
 // }
 
-bool is_integer(const expression_t& expr) { return expr.get_type().is_integer(); }
+bool is_integer(const Expression& expr) { return expr.get_type().is_integer(); }
 
-bool is_const_integer(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
+bool is_const_integer(const Expression& expr) { return expr.get_kind() == CONSTANT && is_integer(expr); }
 
 bool is_default_int(const type_t& type)
 {
@@ -82,31 +82,31 @@ bool is_default_int(const type_t& type)
     return false;
 }
 
-bool is_bound(const expression_t& expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
+bool is_bound(const Expression& expr) { return expr.get_type().is_integer() || expr.get_type().is_double(); }
 
-bool is_integral(const expression_t& expr) { return expr.get_type().is_integral(); }
+bool is_integral(const Expression& expr) { return expr.get_type().is_integral(); }
 
-bool is_clock(const expression_t& expr) { return expr.get_type().is_clock(); }
+bool is_clock(const Expression& expr) { return expr.get_type().is_clock(); }
 
-bool is_diff(const expression_t& expr) { return expr.get_type().is_diff(); }
+bool is_diff(const Expression& expr) { return expr.get_type().is_diff(); }
 
-bool is_double_value(const expression_t& expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
+bool is_double_value(const Expression& expr) { return is_double(expr) || is_clock(expr) || is_diff(expr); }
 
-bool is_number(const expression_t& expr) { return is_double_value(expr) || is_integral(expr); }
+bool is_number(const Expression& expr) { return is_double_value(expr) || is_integral(expr); }
 
-bool is_const_double(const expression_t& expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
+bool is_const_double(const Expression& expr) { return expr.get_kind() == CONSTANT && is_double(expr); }
 
-bool is_invariant(const expression_t& expr) { return expr.get_type().is_invariant(); }
+bool is_invariant(const Expression& expr) { return expr.get_type().is_invariant(); }
 
-bool is_guard(const expression_t& expr) { return expr.get_type().is_guard(); }
+bool is_guard(const Expression& expr) { return expr.get_type().is_guard(); }
 
-bool is_probability(const expression_t& expr) { return expr.get_type().is_probability(); }
+bool is_probability(const Expression& expr) { return expr.get_type().is_probability(); }
 
-bool is_constraint(const expression_t& expr) { return expr.get_type().is_constraint(); }
+bool is_constraint(const Expression& expr) { return expr.get_type().is_constraint(); }
 
-bool is_formula(const expression_t& expr) { return expr.get_type().is_formula(); }
+bool is_formula(const Expression& expr) { return expr.get_type().is_formula(); }
 
-bool is_formula_list(const expression_t& expr)
+bool is_formula_list(const Expression& expr)
 {
     if (expr.get_kind() != LIST) {
         return false;
@@ -121,7 +121,7 @@ bool is_formula_list(const expression_t& expr)
     return true;
 }
 
-bool hasStrictLowerBound(const expression_t& expr)
+bool hasStrictLowerBound(const Expression& expr)
 {
     for (uint32_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictLowerBound(expr[i])) {
@@ -147,7 +147,7 @@ bool hasStrictLowerBound(const expression_t& expr)
     return false;
 }
 
-bool hasStrictUpperBound(const expression_t& expr)
+bool hasStrictUpperBound(const Expression& expr)
 {
     for (uint32_t i = 0; i < expr.get_size(); ++i) {
         if (hasStrictUpperBound(expr[i])) {
@@ -177,7 +177,7 @@ bool hasStrictUpperBound(const expression_t& expr)
  * Returns true iff type is a valid invariant. A valid invariant is
  * either an invariant expression or an integer expression.
  */
-bool is_invariant_wr(const expression_t& expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
+bool is_invariant_wr(const Expression& expr) { return is_invariant(expr) || (expr.get_type().is(INVARIANT_WR)); }
 
 /**
  * Returns true if values of this type can be assigned. This is the
@@ -211,7 +211,7 @@ bool is_assignable(const type_t& type)
 
 using Error = TypeChecker::TypeError;
 
-Error expression_has_no_effect(const expression_t& expr) { return {expr, "$Expression_does_not_have_any_effect"}; }
+Error expression_has_no_effect(const Expression& expr) { return {expr, "$Expression_does_not_have_any_effect"}; }
 
 Error urgent_only_for_locations_and_channels(const type_t& type)
 {
@@ -235,12 +235,12 @@ Error reference_is_not_allowed(const type_t& type) { return {type, "$Reference_t
 
 Error range_is_not_allowed(const type_t& type) { return {type, "$Range_over_this_type_is_not_allowed"}; }
 
-Error must_be_computable_at_compile_time(const expression_t& expr)
+Error must_be_computable_at_compile_time(const Expression& expr)
 {
     return {expr, "$Must_be_computable_at_compile_time"};
 }
 
-Error must_be_false(const expression_t& expr) { return {expr, "$Must_be_false"}; }
+Error must_be_false(const Expression& expr) { return {expr, "$Must_be_false"}; }
 
 Error invalid_array_size(const type_t& type) { return {type, "$Invalid_array_size"}; }
 
@@ -250,71 +250,68 @@ Error cannot_be_inside_struct(const type_t& type) { return {type, "$Type_cannot_
 
 Error cannot_be_const_or_meta(const type_t& type) { return {type, "$Type_cannot_be_declared_const_or_meta"}; }
 
-Error must_be_side_effect_free(const expression_t& expr) { return {expr, "$Expression_must_be_side-effect_free"}; }
+Error must_be_side_effect_free(const Expression& expr) { return {expr, "$Expression_must_be_side-effect_free"}; }
 
-Error must_be_valid_formula(const expression_t& expr) { return {expr, "$Property_must_be_a_valid_formula"}; }
+Error must_be_valid_formula(const Expression& expr) { return {expr, "$Property_must_be_a_valid_formula"}; }
 
-Error progress_guard_must_evaluate_to_boolean(const expression_t& expr)
+Error progress_guard_must_evaluate_to_boolean(const Expression& expr)
 {
     return {expr, "$Progress_guard_must_evaluate_to_a_boolean_value"};
 }
 
-Error progress_measure_must_evaluate_to_integer(const expression_t& expr)
+Error progress_measure_must_evaluate_to_integer(const Expression& expr)
 {
     return {expr, "$Progress_measure_must_evaluate_to_a_integer_value"};
 }
 
-Error boolean_expected(const expression_t& expr) { return {expr, "$Boolean_expected"}; }
+Error boolean_expected(const Expression& expr) { return {expr, "$Boolean_expected"}; }
 
-Error integer_expected(const expression_t& expr) { return {expr, "$Integer_expected"}; }
+Error integer_expected(const Expression& expr) { return {expr, "$Integer_expected"}; }
 
-Error integer_or_clock_expected(const expression_t& expr) { return {expr, "$Integer_or_clock_expected"}; }
+Error integer_or_clock_expected(const Expression& expr) { return {expr, "$Integer_or_clock_expected"}; }
 
-Error array_expected(const expression_t& expr) { return {expr, "$Array_expected"}; }
+Error array_expected(const Expression& expr) { return {expr, "$Array_expected"}; }
 
-Error floating_point_expected(const expression_t& expr) { return {expr, "$Floating_point_expected"}; }
+Error floating_point_expected(const Expression& expr) { return {expr, "$Floating_point_expected"}; }
 
-Error loadStrategy_and_saveStrategy_expect_string(const expression_t& expr)
+Error loadStrategy_and_saveStrategy_expect_string(const Expression& expr)
 {
     return {expr, "$loadStrategy_and_saveStrategy_expect_a_string"};
 }
 
-Error incompatible_argument(const expression_t& expr) { return {expr, "$Incompatible_argument"}; }
+Error incompatible_argument(const Expression& expr) { return {expr, "$Incompatible_argument"}; }
 
-Error incompatible_arguments_to_inline_if(const expression_t& expr)
+Error incompatible_arguments_to_inline_if(const Expression& expr)
 {
     return {expr, "$Incompatible_arguments_to_inline_if"};
 }
 
-Error incompatible_type_for_comma(const expression_t& expr)
-{
-    return {expr, "$Incompatible_type_for_comma_expression"};
-}
+Error incompatible_type_for_comma(const Expression& expr) { return {expr, "$Incompatible_type_for_comma_expression"}; }
 
-Error channel_expected(const expression_t& expr) { return {expr, "$Channel_expected"}; }
+Error channel_expected(const Expression& expr) { return {expr, "$Channel_expected"}; }
 
-Error clock_expected(const expression_t& expr) { return {expr, "$Clock_expected"}; }
+Error clock_expected(const Expression& expr) { return {expr, "$Clock_expected"}; }
 
 Error scalar_or_integer_expected(const type_t& type) { return {type, "$Scalar_set_or_integer_expected"}; }
 
 Error range_expected(const type_t& type) { return {type, "$Range_expected"}; }
 
-Error csp_and_io_cannot_be_mixed(const expression_t& expr)
+Error csp_and_io_cannot_be_mixed(const Expression& expr)
 {
     return {expr, "$CSP_and_IO_synchronisations_cannot_be_mixed"};
 }
 
-Error csp_sync_is_incompatible_with_refinement_checking(const expression_t& expr)
+Error csp_sync_is_incompatible_with_refinement_checking(const Expression& expr)
 {
     return {expr, "$CSP_synchronisations_are_incompatible_with_refinement_checking"};
 }
 
-Error free_param_must_be_int_or_scalar(const symbol_t& symbol)
+Error free_param_must_be_int_or_scalar(const Symbol& symbol)
 {
     return {symbol, "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar", symbol.get_type().str()};
 }
 
-Error free_param_must_not_be_used_in_array_or_select(const symbol_t& symbol)
+Error free_param_must_not_be_used_in_array_or_select(const Symbol& symbol)
 {
     return {symbol,
             "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_"
@@ -322,179 +319,179 @@ Error free_param_must_not_be_used_in_array_or_select(const symbol_t& symbol)
             symbol.get_name()};
 }
 
-Error dynamic_constructions_cannot_initialize(const expression_t& expr)
+Error dynamic_constructions_cannot_initialize(const Expression& expr)
 {
     return {expr, "Dynamic constructions cannot be used as initialisers"};
 }
 
-Error cannot_be_used_as_invariant(const expression_t& expr)
+Error cannot_be_used_as_invariant(const Expression& expr)
 {
     return {expr, "$Expression_of_type "s + expr.get_type().str() + " $cannot_be_used_as_an_invariant"};
 }
 
-Error cannot_be_used_as_guard(const expression_t& expr)
+Error cannot_be_used_as_guard(const Expression& expr)
 {
     return {expr, "$Expression_of_type "s + expr.get_type().str() + " $cannot_be_used_as_a_guard"};
 }
 
-Error cannot_be_used_as_probability(const expression_t& expr)
+Error cannot_be_used_as_probability(const Expression& expr)
 {
     return {expr, "$Expression_of_type " + expr.get_type().str() + " $cannot_be_used_as_a_probability"};
 }
 
-Error cannot_be_used_as_condition(const expression_t& expr)
+Error cannot_be_used_as_condition(const Expression& expr)
 {
     return {expr, "$Expression_of_type " + expr.get_type().str() + " $cannot_be_used_as_a_condition"};
 }
 
-Error field_name_not_allowed_in_array_init(const expression_t& expr)
+Error field_name_not_allowed_in_array_init(const Expression& expr)
 {
     return {expr, "$Field_name_not_allowed_in_array_initialiser"};
 }
 
-Error unknown_field_name(const expression_t& expr) { return {expr, "$Unknown_field_name"}; }
+Error unknown_field_name(const Expression& expr) { return {expr, "$Unknown_field_name"}; }
 
-Error too_many_elements_in_initializer(const expression_t& expr) { return {expr, "$Too_many_elements_in_initialiser"}; }
+Error too_many_elements_in_initializer(const Expression& expr) { return {expr, "$Too_many_elements_in_initialiser"}; }
 
-Error multiple_initializers_for_field(const expression_t& expr) { return {expr, "$Multiple_initialisers_for_field"}; }
+Error multiple_initializers_for_field(const Expression& expr) { return {expr, "$Multiple_initialisers_for_field"}; }
 
-Error incomplete_initializer(const expression_t& expr) { return {expr, "$Incomplete_initialiser"}; }
+Error incomplete_initializer(const Expression& expr) { return {expr, "$Incomplete_initialiser"}; }
 
-Error invalid_initializer(const expression_t& expr) { return {expr, "$Invalid_initialiser"}; }
+Error invalid_initializer(const Expression& expr) { return {expr, "$Invalid_initialiser"}; }
 
-Error invalid_sum(const expression_t& expr)
+Error invalid_sum(const Expression& expr)
 {
     return {expr, "$Sum_can_only_be_over_integer,_double,_invariant_or_guard_expressions"};
 }
 
-Error cannot_spawn_a_non_dynamic_template(const expression_t& expr)
+Error cannot_spawn_a_non_dynamic_template(const Expression& expr)
 {
     return {expr, "$Cannot_spawn_a_non-dynamic_template"};
 }
 
-Error wrong_number_of_arguments(const expression_t& expr) { return {expr, "$Wrong_number_of_arguments"}; }
+Error wrong_number_of_arguments(const Expression& expr) { return {expr, "$Wrong_number_of_arguments"}; }
 
-Error bug_wrong_number_of_args(const expression_t& expr) { return {expr, "$Bug:_wrong_number_of_arguments"}; }
+Error bug_wrong_number_of_args(const Expression& expr) { return {expr, "$Bug:_wrong_number_of_arguments"}; }
 
-Error bug_bad_path_quantifier(const expression_t& expr) { return {expr, "$Bug:_bad_path_quantifier"}; }
+Error bug_bad_path_quantifier(const Expression& expr) { return {expr, "$Bug:_bad_path_quantifier"}; }
 
-Error bug_bad_aggregation_expression(const expression_t& expr)
+Error bug_bad_aggregation_expression(const Expression& expr)
 {
     return {expr, "$Bug:_bad_aggregation_operator_expression"};
 }
 
-Error bug_bad_aggregation_value(const expression_t& expr) { return {expr, "$Bug:_bad_aggregation_operator_value"}; }
+Error bug_bad_aggregation_value(const Expression& expr) { return {expr, "$Bug:_bad_aggregation_operator_value"}; }
 
-Error unknown_type(const expression_t& expr) { return {expr, "$Unknown_type_of_the_expression"}; }
+Error unknown_type(const Expression& expr) { return {expr, "$Unknown_type_of_the_expression"}; }
 
-Error explicit_number_of_runs_is_not_supported_here(const expression_t& expr)
+Error explicit_number_of_runs_is_not_supported_here(const Expression& expr)
 {
     return {expr, "$Explicit_number_of_runs_is_not_supported_here"};
 }
 
-Error template_only_declared_and_undefined(const expression_t& expr)
+Error template_only_declared_and_undefined(const Expression& expr)
 {
     return {expr, "$Template_is_only_declared_and_not_defined"};
 }
 
-Error not_dynamic_template(const expression_t& expr) { return {expr, "$Not_a_dynamic_template"}; }
+Error not_dynamic_template(const Expression& expr) { return {expr, "$Not_a_dynamic_template"}; }
 
-Error exit_only_in_dynamic_template(const expression_t& expr)
+Error exit_only_in_dynamic_template(const Expression& expr)
 {
     return {expr, "$Exit_can_only_be_used_in_dynamic_templates"};
 }
 
-Error incompatible_type(const expression_t& expr) { return {expr, "$Incompatible_type"}; }
+Error incompatible_type(const Expression& expr) { return {expr, "$Incompatible_type"}; }
 
-Error incompatible_types(const expression_t& expr) { return {expr, "$Incompatible_types"}; }
+Error incompatible_types(const Expression& expr) { return {expr, "$Incompatible_types"}; }
 
-Error dynamic_constructs_supported_only_on_edges(const expression_t& expr)
+Error dynamic_constructs_supported_only_on_edges(const Expression& expr)
 {
     return {expr, "$Dynamic_constructs_supported_only_on_edges"};
 }
 
-Error lvalue_expected(const expression_t& expr) { return {expr, "$Left_hand_side_value_expected"}; }
+Error lvalue_expected(const Expression& expr) { return {expr, "$Left_hand_side_value_expected"}; }
 
-Error use_regular_assignment_on_non_integer(const expression_t& expr)
+Error use_regular_assignment_on_non_integer(const Expression& expr)
 {
     return {expr, "$Non-integer_types_must_use_regular_assignment_operator"};
 }
 
-Error increment_only_integers_and_cost(const expression_t& expr)
+Error increment_only_integers_and_cost(const Expression& expr)
 {
     return {expr, "$Increment_can_only_be_used_for_integers_and_cost_variables"};
 }
 
-Error only_one_cost_rate_is_allowed(const expression_t& expr) { return {expr, "$Only_one_cost_rate_is_allowed"}; }
+Error only_one_cost_rate_is_allowed(const Expression& expr) { return {expr, "$Only_one_cost_rate_is_allowed"}; }
 
-Error strict_invariant(const expression_t& expr) { return {expr, "$Strict_invariant"}; }
+Error strict_invariant(const Expression& expr) { return {expr, "$Strict_invariant"}; }
 
-Error number_expected(const expression_t& expr) { return {expr, "$Number_expected"}; }
+Error number_expected(const Expression& expr) { return {expr, "$Number_expected"}; }
 
-Error first_argument_of_inline_if_must_be_integer(const expression_t& expr)
+Error first_argument_of_inline_if_must_be_integer(const Expression& expr)
 {
     return {expr, "$First_argument_of_inline_if_must_be_an_integer"};
 }
 
-Error deprecated_reset(const symbol_t& symbol)
+Error deprecated_reset(const Symbol& symbol)
 {
     return {symbol, "Deprecated __RESET__ annotation: use \"{ integers } -> { floats }\" in learning query.",
             symbol.get_name()};
 }
 
-Error clock_guards_not_allowed_on_urgent_edges(const expression_t& expr)
+Error clock_guards_not_allowed_on_urgent_edges(const Expression& expr)
 {
     return {expr, "$Clock_guards_are_not_allowed_on_urgent_edges"};
 }
 
-Error input_edges_must_be_deterministic(const expression_t& expr)
+Error input_edges_must_be_deterministic(const Expression& expr)
 {
     return {expr, "SMC requires input edges to be deterministic"};
 }
 
-Error may_need_guard_involving_target_invariant(const expression_t& expr)
+Error may_need_guard_involving_target_invariant(const Expression& expr)
 {
     return {expr, "$It_may_be_needed_to_add_a_guard_involving_the_target_invariant"};
 }
 
-Error strict_bounds_on_urgent_edges(const expression_t& expr)
+Error strict_bounds_on_urgent_edges(const Expression& expr)
 {
     return {expr, "$Strict_bounds_on_urgent_edges_may_not_make_sense"};
 }
 
-Error outputs_should_be_uncontrollable(const expression_t& expr)
+Error outputs_should_be_uncontrollable(const Expression& expr)
 {
     return {expr, "$Outputs_should_be_uncontrollable_for_refinement_checking"};
 }
 
-Error inputs_should_be_controllable(const expression_t& expr)
+Error inputs_should_be_controllable(const Expression& expr)
 {
     return {expr, "$Inputs_should_be_controllable_for_refinement_checking"};
 }
 
-Error nested_path_quntifiers_not_supported(const expression_t& expr)
+Error nested_path_quntifiers_not_supported(const Expression& expr)
 {
     return {expr, "$Nested_path_quantifiers_are_not_supported"};
 }
 
-Error mitl_inside_forall_or_exists_in_non_mitl(const expression_t& expr)
+Error mitl_inside_forall_or_exists_in_non_mitl(const Expression& expr)
 {
     return {expr, "$Unsupported_MITL_inside_forall_or_exists_in_non_MITL_property"};
 }
 
-Error invalid_assignment(const expression_t& expr) { return {expr, "$Invalid_assignment_expression"}; }
+Error invalid_assignment(const Expression& expr) { return {expr, "$Invalid_assignment_expression"}; }
 
-Error clock_lower_and_upper_bounds(const expression_t& expr)
+Error clock_lower_and_upper_bounds(const Expression& expr)
 {
     return {expr, "$Clock_lower_bound_must_be_weak_and_upper_bound_strict"};
 }
 
-Error clock_difference_is_not_supported(const expression_t& expr)
+Error clock_difference_is_not_supported(const Expression& expr)
 {
     return {expr, "$Clock_differences_are_not_supported"};
 }
 
-bool is_game_property(const expression_t& expr)
+bool is_game_property(const Expression& expr)
 {
     switch (expr.get_kind()) {
     case CONTROL:
@@ -508,7 +505,7 @@ bool is_game_property(const expression_t& expr)
     }
 }
 
-bool has_MITL_in_quantified_sub(const expression_t& expr)
+bool has_MITL_in_quantified_sub(const Expression& expr)
 {
     bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
     if (!hasIt) {
@@ -519,7 +516,7 @@ bool has_MITL_in_quantified_sub(const expression_t& expr)
     return hasIt;
 }
 
-bool has_spawn_or_exit(const expression_t& expr)
+bool has_spawn_or_exit(const Expression& expr)
 {
     bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
     if (!hasIt) {
@@ -566,7 +563,7 @@ void static_analysis(Document& doc)
 
 ///////////////////////////////////////////////////////////////////////////
 
-void CompileTimeComputableValues::visit_variable(variable_t& variable)
+void CompileTimeComputableValues::visit_variable(Variable& variable)
 {
     if (variable.uid.get_type().is_constant()) {
         variables.insert(variable.uid);
@@ -583,9 +580,9 @@ void CompileTimeComputableValues::visit_instance(instance_t& temp)
     }
 }
 
-void CompileTimeComputableValues::add_symbol(symbol_t symbol) { variables.insert(std::move(symbol)); }
+void CompileTimeComputableValues::add_symbol(Symbol symbol) { variables.insert(std::move(symbol)); }
 
-bool CompileTimeComputableValues::contains(const symbol_t& symbol) const
+bool CompileTimeComputableValues::contains(const Symbol& symbol) const
 {
     return (variables.find(symbol) != variables.end());
 }
@@ -596,15 +593,15 @@ class RateDecomposer
 {
 public:
     RateDecomposer() = default;
-    expression_t costRate;
-    expression_t invariant{expression_t::create_constant(1)};
+    Expression costRate;
+    Expression invariant{Expression::create_constant(1)};
     bool hasStrictInvariant{false}, hasClockRates{false};
     size_t countCostRates{0};
 
-    void decompose(const expression_t& expr, bool inforall = false);
+    void decompose(const Expression& expr, bool inforall = false);
 };
 
-void RateDecomposer::decompose(const expression_t& expr, bool inforall)
+void RateDecomposer::decompose(const Expression& expr, bool inforall)
 {
     assert(is_invariant_wr(expr));
 
@@ -615,15 +612,15 @@ void RateDecomposer::decompose(const expression_t& expr, bool inforall)
         if (!inforall) {
             invariant = invariant.empty()
                             ? expr
-                            : invariant = expression_t::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                      type_t::create_primitive(INVARIANT));
+                            : invariant = Expression::create_binary(AND, invariant, expr, expr.get_position(),
+                                                                    type_t::create_primitive(INVARIANT));
         }
     } else if (expr.get_kind() == AND) {
         decompose(expr[0], inforall);
         decompose(expr[1], inforall);
     } else if (expr.get_kind() == EQ) {
-        expression_t left;
-        expression_t right;
+        Expression left;
+        Expression right;
         assert((expr[0].get_type().get_kind() == RATE) ^ (expr[1].get_type().get_kind() == RATE));
 
         if (expr[0].get_type().get_kind() == RATE) {
@@ -641,8 +638,8 @@ void RateDecomposer::decompose(const expression_t& expr, bool inforall)
             hasClockRates = true;
             if (!inforall) {
                 invariant = invariant.empty() ? expr
-                                              : expression_t::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                            type_t::create_primitive(INVARIANT_WR));
+                                              : Expression::create_binary(AND, invariant, expr, expr.get_position(),
+                                                                          type_t::create_primitive(INVARIANT_WR));
             }
         }
     } else {
@@ -651,10 +648,9 @@ void RateDecomposer::decompose(const expression_t& expr, bool inforall)
         // Enter the forall to look for clock rates but don't
         // record them, rather the forall expression.
         decompose(expr[1], true);
-        invariant = invariant.empty()
-                        ? expr
-                        : invariant = expression_t::create_binary(AND, invariant, expr, expr.get_position(),
-                                                                  type_t::create_primitive(INVARIANT_WR));
+        invariant = invariant.empty() ? expr
+                                      : invariant = Expression::create_binary(AND, invariant, expr, expr.get_position(),
+                                                                              type_t::create_primitive(INVARIANT_WR));
     }
 }
 
@@ -688,7 +684,7 @@ void TypeChecker::handleError(TypeError error)
  * this function accepts modifications of local variables as a
  * side-effect.
  */
-void TypeChecker::checkIgnoredValue(const expression_t& expr)
+void TypeChecker::checkIgnoredValue(const Expression& expr)
 {
     if (!expr.changes_any_variable() && expr.get_kind() != FUN_CALL_EXT) {
         handleWarning(expression_has_no_effect(expr));
@@ -697,7 +693,7 @@ void TypeChecker::checkIgnoredValue(const expression_t& expr)
     }
 }
 
-bool TypeChecker::isCompileTimeComputable(const expression_t& expr) const
+bool TypeChecker::isCompileTimeComputable(const Expression& expr) const
 {
     /* An expression is compile time computable if all identifers it
      * could possibly access during an evaluation are compile time
@@ -708,11 +704,11 @@ bool TypeChecker::isCompileTimeComputable(const expression_t& expr) const
      * would increase the class of models we accept while also getting
      * rid of the compileTimeComputableValues object.
      */
-    auto reads = std::set<symbol_t>{};
+    auto reads = std::set<Symbol>{};
     expr.collect_possible_reads(reads, true);
-    return std::all_of(reads.begin(), reads.end(), [this](const symbol_t& s) {
-        return s != symbol_t{} && (s.get_type().is_function() || s.get_type().is_function_external() ||
-                                   compileTimeComputableValues.contains(s));
+    return std::all_of(reads.begin(), reads.end(), [this](const Symbol& s) {
+        return s != Symbol{} && (s.get_type().is_function() || s.get_type().is_function_external() ||
+                                 compileTimeComputableValues.contains(s));
     });
 }
 
@@ -731,8 +727,8 @@ bool TypeChecker::isCompileTimeComputable(const expression_t& expr) const
  */
 void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruct)
 {
-    expression_t l;
-    expression_t u;
+    Expression l;
+    Expression u;
     type_t size;
 
     switch (type.get_kind()) {
@@ -831,9 +827,9 @@ void TypeChecker::checkType(const type_t& type, bool initialisable, bool inStruc
 void TypeChecker::visit_doc_after(Document& doc)
 {
     for (chan_priority_t& i : doc.get_chan_priorities()) {
-        const bool i_default = (i.head == expression_t());
+        const bool i_default = (i.head == Expression());
         if (!i_default && checkExpression(i.head)) {
-            expression_t expr = i.head;
+            Expression expr = i.head;
             type_t channel = expr.get_type();
 
             // Check that chanElement is a channel, or an array of channels.
@@ -855,9 +851,9 @@ void TypeChecker::visit_doc_after(Document& doc)
         }
 
         for (chan_priority_t::entry& j : i.tail) {
-            const bool j_default = (j.second == expression_t());
+            const bool j_default = (j.second == Expression());
             if (!j_default && checkExpression(j.second)) {
-                expression_t expr = j.second;
+                Expression expr = j.second;
                 type_t channel = expr.get_type();
 
                 // Check that chanElement is a channel, or an array of channels.
@@ -879,7 +875,7 @@ void TypeChecker::visit_doc_after(Document& doc)
     }
 }
 
-void TypeChecker::visitHybridClock(expression_t& e)
+void TypeChecker::visitHybridClock(Expression& e)
 {
     if (checkExpression(e)) {
         if (!is_clock(e)) {
@@ -972,7 +968,7 @@ void TypeChecker::visit_process(instance_t& process)
 {
     for (uint32_t i = 0; i < process.unbound; i++) {
         // Unbound parameters of processes must be either scalars or bounded integers.
-        const symbol_t& parameter = process.parameters[i];
+        const Symbol& parameter = process.parameters[i];
         const type_t& type = parameter.get_type();
         if (!(type.is_scalar() || type.is_range()) || type.is(REF) || is_default_int(type))
             handleError(free_param_must_be_int_or_scalar(parameter));
@@ -983,7 +979,7 @@ void TypeChecker::visit_process(instance_t& process)
     }
 }
 
-void TypeChecker::visit_variable(variable_t& variable)
+void TypeChecker::visit_variable(Variable& variable)
 {
     DocumentVisitor::visit_variable(variable);
 
@@ -1251,8 +1247,8 @@ void TypeChecker::visit_instance(instance_t& instance)
 
     // Check arguments.
     for (uint32_t i = type.size(); i < type.size() + instance.arguments; i++) {
-        const symbol_t& parameter = instance.parameters[i];
-        expression_t argument = instance.mapping[parameter];
+        const Symbol& parameter = instance.parameters[i];
+        Expression argument = instance.mapping[parameter];
 
         if (!checkExpression(argument)) {
             continue;
@@ -1283,7 +1279,7 @@ void TypeChecker::visit_instance(instance_t& instance)
     }
 }
 
-void TypeChecker::visitProperty(expression_t& expr)
+void TypeChecker::visitProperty(Expression& expr)
 {
     if (checkExpression(expr)) {
         if (expr.changes_any_variable()) {
@@ -1352,7 +1348,7 @@ void TypeChecker::visitProperty(expression_t& expr)
  *
  *  - expression in the label field of an update (LSC)
  */
-bool TypeChecker::checkAssignmentExpression(expression_t& expr)
+bool TypeChecker::checkAssignmentExpression(Expression& expr)
 {
     if (!checkExpression(expr)) {
         return false;
@@ -1371,7 +1367,7 @@ bool TypeChecker::checkAssignmentExpression(expression_t& expr)
 }
 
 /** Checks that the expression can be used as a condition (e.g. for if). */
-bool TypeChecker::checkConditionalExpressionInFunction(const expression_t& expr)
+bool TypeChecker::checkConditionalExpressionInFunction(const Expression& expr)
 {
     if (!(is_integral(expr) || is_constraint(expr))) {
         handleError(boolean_expected(expr));
@@ -1380,7 +1376,7 @@ bool TypeChecker::checkConditionalExpressionInFunction(const expression_t& expr)
     return true;
 }
 
-void TypeChecker::checkObservationConstraints(const expression_t& expr)
+void TypeChecker::checkObservationConstraints(const Expression& expr)
 {
     for (uint32_t i = 0; i < expr.get_size(); ++i) {
         checkObservationConstraints(expr[i]);
@@ -1516,17 +1512,15 @@ int32_t TypeChecker::visit_iteration_statement(RangeStatement& stat)
 
 int32_t TypeChecker::visit_while_statement(WhileStatement& stat)
 {
-    if (checkExpression(stat.cond)) {
+    if (checkExpression(stat.cond))
         checkConditionalExpressionInFunction(stat.cond);
-    }
     return stat.stat->accept(*this);
 }
 
 int32_t TypeChecker::visit_do_while_statement(DoWhileStatement& stat)
 {
-    if (checkExpression(stat.cond)) {
+    if (checkExpression(stat.cond))
         checkConditionalExpressionInFunction(stat.cond);
-    }
     return stat.stat->accept(*this);
 }
 
@@ -1537,10 +1531,10 @@ int32_t TypeChecker::visit_block_statement(BlockStatement& stat)
      */
     auto frame = stat.get_frame();
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
-        symbol_t symbol = frame[i];
+        Symbol symbol = frame[i];
         checkType(symbol.get_type());
         if (auto* d = symbol.get_data(); d != nullptr) {
-            auto* var = static_cast<variable_t*>(d);
+            auto* var = static_cast<Variable*>(d);
             if (!var->init.empty() && checkExpression(var->init)) {
                 if (var->init.changes_any_variable()) {
                     /* This is stronger than C. However side-effects in
@@ -1592,7 +1586,7 @@ int32_t TypeChecker::visit_return_statement(ReturnStatement& stat)
 /**
  * Returns true iff argument type is compatible with parameter type.
  */
-bool TypeChecker::isParameterCompatible(const type_t& paramType, const expression_t& arg) const
+bool TypeChecker::isParameterCompatible(const type_t& paramType, const Expression& arg) const
 {
     const bool ref = paramType.is(REF);
     const bool constant = paramType.is_constant();
@@ -1616,7 +1610,7 @@ bool TypeChecker::isParameterCompatible(const type_t& paramType, const expressio
 /**
  * Checks whether argument type is compatible with parameter type.
  */
-bool TypeChecker::checkParameterCompatible(const type_t& paramType, const expression_t& arg)
+bool TypeChecker::checkParameterCompatible(const type_t& paramType, const Expression& arg)
 {
     if (!isParameterCompatible(paramType, arg)) {
         handleError(incompatible_argument(arg));
@@ -1632,24 +1626,24 @@ bool TypeChecker::checkParameterCompatible(const type_t& paramType, const expres
  * returned. REVISIT: Can a record initialiser have side-effects? Then
  * such reordering is not valid.
  */
-expression_t TypeChecker::checkInitialiser(const type_t& type, const expression_t& init)
+Expression TypeChecker::checkInitialiser(const type_t& type, const Expression& init)
 {
     if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
     } else if (type.is_array() && init.get_kind() == LIST) {
         auto subtype = type.get_sub();
-        auto result = std::vector<expression_t>(init.get_size());
+        auto result = std::vector<Expression>(init.get_size());
         for (uint32_t i = 0; i < init.get_type().size(); i++) {
             if (!init.get_type().get_label(i).empty())
                 handleError(field_name_not_allowed_in_array_init(init[i]));
             checkInitialiser(subtype, init[i]);
         }
-        return expression_t::create_nary(LIST, result, init.get_position(), type);
+        return Expression::create_nary(LIST, result, init.get_position(), type);
     } else if (type.is_record() && init.get_kind() == LIST) {
         /* In order to access the record labels we have to strip any
          * prefixes and labels from the record type.
          */
-        auto result = std::vector<expression_t>(type.get_record_size());
+        auto result = std::vector<Expression>(type.get_record_size());
         auto current = uint32_t{0};
         for (uint32_t i = 0; i < init.get_type().size(); ++i, ++current) {
             const std::string& label = init.get_type().get_label(i);
@@ -1679,7 +1673,7 @@ expression_t TypeChecker::checkInitialiser(const type_t& type, const expression_
                 break;
             }
         }
-        return expression_t::create_nary(LIST, result, init.get_position(), type);
+        return Expression::create_nary(LIST, result, init.get_position(), type);
     }
     handleError(invalid_initializer(init));
     return init;
@@ -1715,7 +1709,7 @@ type_t TypeChecker::getInlineIfCommonType(const type_t& t1, const type_t& t2) co
     out-of-range errors or warnings. Returns true if no type errors
     were found, false otherwise.
 */
-bool TypeChecker::checkExpression(expression_t& expr)
+bool TypeChecker::checkExpression(Expression& expr)
 {
     /* Do not check empty expressions.
      */
@@ -2201,7 +2195,7 @@ bool TypeChecker::checkExpression(expression_t& expr)
         const uint32_t parameters = t.size() - 1;
         for (uint32_t i = 0; i < parameters; i++) {
             const type_t& parameter = t[i + 1];
-            const expression_t& argument = expr[i + 1];
+            const Expression& argument = expr[i + 1];
             result &= checkParameterCompatible(parameter, argument);
         }
         return result;
@@ -2537,7 +2531,7 @@ bool TypeChecker::checkExpression(expression_t& expr)
 /**
  * Returns true if expression evaluates to a modifiable l-value.
  */
-bool TypeChecker::isModifiableLValue(const expression_t& expr) const
+bool TypeChecker::isModifiableLValue(const Expression& expr) const
 {
     switch (expr.get_kind()) {
     case IDENTIFIER: return expr.get_type().is_mutable();
@@ -2586,7 +2580,7 @@ bool TypeChecker::isModifiableLValue(const expression_t& expr) const
 /**
  * Returns true iff \a expr evaluates to an lvalue.
  */
-bool TypeChecker::isLValue(const expression_t& expr) const
+bool TypeChecker::isLValue(const Expression& expr) const
 {
     switch (expr.get_kind()) {
     case IDENTIFIER:
@@ -2626,7 +2620,7 @@ bool TypeChecker::isLValue(const expression_t& expr) const
     expressions. Thus i[v] is a l-value, but if v is a non-constant
     variable, then it does not result in a unique reference.
 */
-bool TypeChecker::isUniqueReference(const expression_t& expr) const
+bool TypeChecker::isUniqueReference(const Expression& expr) const
 {
     switch (expr.get_kind()) {
     case IDENTIFIER: return true;
@@ -2706,11 +2700,11 @@ int32_t parse_XML_fd(int fd, Document& doc, bool newxta, const std::vector<std::
     return 0;
 }
 
-expression_t parseExpression(const char* str, Document& doc, bool newxtr)
+Expression parseExpression(const char* str, Document& doc, bool newxtr)
 {
     auto builder = ExpressionBuilder{doc};
     parse_XTA(str, builder, newxtr, S_EXPRESSION, "");
-    expression_t expr = builder.getExpressions()[0];
+    Expression expr = builder.getExpressions()[0];
     if (!doc.has_errors()) {
         auto checker = TypeChecker{doc};
         checker.checkExpression(expr);
@@ -2731,7 +2725,7 @@ void TypeChecker::visit_template_after(template_t& t)
     temp = nullptr;
 }
 
-bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const expression_t& arg)
+bool TypeChecker::checkSpawnParameterCompatible(const type_t& param, const Expression& arg)
 {
     return checkParameterCompatible(param, arg);
 }
@@ -2747,7 +2741,7 @@ bool TypeChecker::checkDynamicExpressions(Statement& stat)
     return ok;
 }
 
-bool TypeChecker::checkNrOfRuns(const expression_t& runs)
+bool TypeChecker::checkNrOfRuns(const Expression& runs)
 {
     if (!isCompileTimeComputable(runs)) {
         handleError(must_be_computable_at_compile_time(runs));
@@ -2760,7 +2754,7 @@ bool TypeChecker::checkNrOfRuns(const expression_t& runs)
     return true;
 }
 
-bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExpr)
+bool TypeChecker::checkBoundTypeOrBoundedExpr(const Expression& boundTypeOrExpr)
 {
     if (!is_const_integer(boundTypeOrExpr) && !is_clock(boundTypeOrExpr)) {
         handleError(clock_expected(boundTypeOrExpr));
@@ -2769,7 +2763,7 @@ bool TypeChecker::checkBoundTypeOrBoundedExpr(const expression_t& boundTypeOrExp
     return true;
 }
 
-bool TypeChecker::checkBound(const expression_t& bound)
+bool TypeChecker::checkBound(const Expression& bound)
 {
     if (!isCompileTimeComputable(bound)) {
         handleError(must_be_computable_at_compile_time(bound));
@@ -2782,7 +2776,7 @@ bool TypeChecker::checkBound(const expression_t& bound)
     return true;
 }
 
-bool TypeChecker::checkPredicate(const expression_t& predicate)
+bool TypeChecker::checkPredicate(const Expression& predicate)
 {
     if (!is_integral(predicate) && !is_constraint(predicate)) {  // check reachability expression is a boolean
         handleError(boolean_expected(predicate));
@@ -2795,7 +2789,7 @@ bool TypeChecker::checkPredicate(const expression_t& predicate)
     return true;
 }
 
-bool TypeChecker::checkProbBound(const expression_t& probBound)
+bool TypeChecker::checkProbBound(const Expression& probBound)
 {
     if (!is_const_double(probBound)) {
         handleError(floating_point_expected(probBound));
@@ -2804,7 +2798,7 @@ bool TypeChecker::checkProbBound(const expression_t& probBound)
     return true;
 }
 
-bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond)
+bool TypeChecker::checkUntilCond(kind_t kind, const Expression& untilCond)
 {
     bool ok = true;
     if (kind == PROBA_DIAMOND && !is_integral(untilCond) && !is_constraint(untilCond)) {
@@ -2818,7 +2812,7 @@ bool TypeChecker::checkUntilCond(kind_t kind, const expression_t& untilCond)
     return ok;
 }
 
-bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
+bool TypeChecker::checkMonitoredExpr(const Expression& expr)
 {
     if (!is_integral(expr) && !is_clock(expr) && !is_double_value(expr) &&
         !expr.get_type().is(Constants::DOUBLE_INV_GUARD) && !is_constraint(expr)) {
@@ -2832,7 +2826,7 @@ bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
     return true;
 }
 
-bool TypeChecker::checkPathQuant(const expression_t& expr)
+bool TypeChecker::checkPathQuant(const Expression& expr)
 {
     if (!is_const_integer(expr)) {
         handleError(bug_bad_path_quantifier(expr));
@@ -2841,7 +2835,7 @@ bool TypeChecker::checkPathQuant(const expression_t& expr)
     return true;
 }
 
-bool TypeChecker::checkAggregationOp(const expression_t& expr)
+bool TypeChecker::checkAggregationOp(const Expression& expr)
 {
     if (!is_const_integer(expr)) {
         handleError(bug_bad_aggregation_expression(expr));

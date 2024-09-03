@@ -47,7 +47,7 @@ std::ostream& AssertStatement::print(std::ostream& os, const std::string& indent
     return expr.print(os << indent << "assert(") << ");";
 }
 
-IfStatement::IfStatement(expression_t cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
+IfStatement::IfStatement(Expression cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase):
     cond{std::move(cond)}, trueCase{std::move(trueCase)}, falseCase{std::move(falseCase)}
 {
     assert(this->trueCase);
@@ -65,7 +65,7 @@ std::ostream& IfStatement::print(std::ostream& os, const std::string& indent) co
     return os;
 }
 
-ForStatement::ForStatement(expression_t init, expression_t cond, expression_t step, std::unique_ptr<Statement> stat):
+ForStatement::ForStatement(Expression init, Expression cond, Expression step, std::unique_ptr<Statement> stat):
     init{std::move(init)}, cond{std::move(cond)}, step{std::move(step)}, stat{std::move(stat)}
 {
     assert(this->stat != nullptr);
@@ -87,7 +87,7 @@ std::ostream& RangeStatement::print(std::ostream& os, const std::string& indent)
     return stat->print(os, indent + INDENT) << "\n";
 }
 
-WhileStatement::WhileStatement(expression_t cond, std::unique_ptr<Statement> stat):
+WhileStatement::WhileStatement(Expression cond, std::unique_ptr<Statement> stat):
     cond{std::move(cond)}, stat{std::move(stat)}
 {
     assert(this->stat != nullptr);
@@ -99,7 +99,7 @@ std::ostream& WhileStatement::print(std::ostream& os, const std::string& indent)
     return stat->print(os, indent + INDENT) << '\n';
 }
 
-DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, expression_t cond):
+DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, Expression cond):
     stat{std::move(stat)}, cond{std::move(cond)}
 {
     assert(this->stat != nullptr);
@@ -304,10 +304,10 @@ int32_t ExpressionVisitor::visit_do_while_statement(DoWhileStatement& stat)
 int32_t ExpressionVisitor::visit_block_statement(BlockStatement& stat)
 {
     // Visit variable initialisers.
-    for (symbol_t& symbol : stat.get_frame()) {
+    for (Symbol& symbol : stat.get_frame()) {
         if (auto* data = symbol.get_data(); data) {
             // REVISIT: This will only work if vars[i] is a variable!
-            visit_expression(static_cast<variable_t*>(data)->init);
+            visit_expression(static_cast<Variable*>(data)->init);
         }
     }
     // Visit statements.
@@ -357,14 +357,14 @@ int32_t ExpressionVisitor::visit_return_statement(ReturnStatement& stat)
 class CollectChangesVisitor final : public ExpressionVisitor
 {
 protected:
-    void visit_expression(expression_t& expr) override { expr.collect_possible_writes(changes); }
+    void visit_expression(Expression& expr) override { expr.collect_possible_writes(changes); }
 
 public:
-    std::set<symbol_t> changes;
+    std::set<Symbol> changes;
     CollectChangesVisitor() = default;
 };
 
-std::set<symbol_t> UTAP::collect_changes(Statement& stat)
+std::set<Symbol> UTAP::collect_changes(Statement& stat)
 {
     auto visitor = CollectChangesVisitor{};
     stat.accept(visitor);
@@ -374,14 +374,14 @@ std::set<symbol_t> UTAP::collect_changes(Statement& stat)
 class CollectDependenciesVisitor final : public ExpressionVisitor
 {
 protected:
-    void visit_expression(expression_t& expr) override { expr.collect_possible_reads(dependencies); }
+    void visit_expression(Expression& expr) override { expr.collect_possible_reads(dependencies); }
 
 public:
-    std::set<symbol_t> dependencies;
+    std::set<Symbol> dependencies;
     CollectDependenciesVisitor() = default;
 };
 
-std::set<symbol_t> UTAP::collect_dependencies(Statement& stat)
+std::set<Symbol> UTAP::collect_dependencies(Statement& stat)
 {
     auto visitor = CollectDependenciesVisitor{};
     stat.accept(visitor);
@@ -391,18 +391,18 @@ std::set<symbol_t> UTAP::collect_dependencies(Statement& stat)
 class CollectDynamicExpressions final : public ExpressionVisitor
 {
 protected:
-    void visit_expression(expression_t& expr) override
+    void visit_expression(Expression& expr) override
     {
         if (expr.is_dynamic() || expr.has_dynamic_sub())
             expressions.push_back(expr);
     }
 
 public:
-    std::vector<expression_t> expressions;
+    std::vector<Expression> expressions;
     CollectDynamicExpressions() = default;
 };
 
-std::vector<expression_t> UTAP::collect_dynamic_expressions(Statement& stat)
+std::vector<Expression> UTAP::collect_dynamic_expressions(Statement& stat)
 {
     auto visitor = CollectDynamicExpressions{};
     stat.accept(visitor);

@@ -67,16 +67,16 @@ namespace UTAP {
     Expressions are created by using the static factory methods.
 */
 
-class expression_t
+class Expression
 {
 private:
     struct expression_data;
     std::shared_ptr<expression_data> data = nullptr;  // PIMPL pattern with cheap/shallow copying
-    expression_t(Constants::kind_t, const position_t&);
+    Expression(Constants::kind_t, const position_t&);
 
 public:
     /// Default constructor creates an empty expression.
-    expression_t() = default;
+    Expression() = default;
 
     bool uses_fp() const;
     bool uses_clock() const;
@@ -84,18 +84,18 @@ public:
     bool is_dynamic() const;
     bool has_dynamic_sub() const;
     /// Make a shallow clone of the expression.
-    expression_t clone() const;
+    Expression clone() const;
 
     /// Makes a deep clone of the expression.
-    expression_t clone_deeper() const;
+    Expression clone_deeper() const;
 
     /** Makes a deep clone of the expression and replaces the symbol
      * "from" with the symbol "to". */
-    expression_t clone_deeper(const symbol_t& from, symbol_t& to) const;
+    Expression clone_deeper(const Symbol& from, Symbol& to) const;
 
     /** Makes a deep clone of the expression and replaces each symbol
      * with a symbol from the given frame(s), with the same name */
-    expression_t clone_deeper(const frame_t& frame, const frame_t& select = {}) const;
+    Expression clone_deeper(const Frame& frame, const Frame& select = {}) const;
 
     /// Returns the kind of the expression.
     Constants::kind_t get_kind() const;
@@ -143,19 +143,19 @@ public:
     std::string str(bool old = false) const;
 
     /// Returns the ith subexpression.
-    expression_t& operator[](uint32_t);
+    Expression& operator[](uint32_t);
 
     /// Returns the ith subexpression.
-    const expression_t& operator[](uint32_t) const;
+    const Expression& operator[](uint32_t) const;
 
     /// Returns the ith subexpression.
-    expression_t& get(uint32_t);
+    Expression& get(uint32_t);
 
     /// Returns the ith subexpression.
-    const expression_t& get(uint32_t) const;
+    const Expression& get(uint32_t) const;
 
     /// Equality operator
-    bool equal(const expression_t&) const;
+    bool equal(const Expression&) const;
 
     /** Returns the symbol of a variable reference. The expression
      *  must be a left-hand side value. In case of
@@ -166,7 +166,7 @@ public:
      *  (s.f).get_symbol() returns 's'
      *  (i<1?j:k).get_symbol() returns 'j'
      */
-    // const symbol_t& get_symbol();
+    // const Symbol& get_symbol();
 
     /** Returns the set of symbols this expression might resolve
      * into. In case of inline if, both the 'true' and 'false'
@@ -177,87 +177,87 @@ public:
      * (s.f).get_symbol() returns 's,f'
      * (i<1?j:k).get_symbol() returns 'j,k'
      */
-    void get_symbols(std::set<symbol_t>& symbols) const;
+    void get_symbols(std::set<Symbol>& symbols) const;
 
     /** Returns the symbol this expression evaluates to. Notice
         that not all expression evaluate to a symbol. */
-    symbol_t get_symbol() const;
+    Symbol get_symbol() const;
 
     /** Returns true if this expression is a reference to a
         symbol in the given set. */
-    bool is_reference_to(const std::set<symbol_t>&) const;
+    bool is_reference_to(const std::set<Symbol>&) const;
 
     /// Returns true if the expression contains deadlock expression
     bool contains_deadlock() const;
     /** True if this expression can change any of the variables
             identified by the given symbols. */
-    bool changes_variable(const std::set<symbol_t>&) const;
+    bool changes_variable(const std::set<Symbol>&) const;
 
     /// True if this expression can change any variable at all.
     bool changes_any_variable() const;
 
     /** True if the evaluation of this expression depends on
         any of the symbols in the given set. */
-    bool depends_on(const std::set<symbol_t>&) const;
+    bool depends_on(const std::set<Symbol>&) const;
 
-    void collect_possible_writes(std::set<symbol_t>&) const;
-    void collect_possible_reads(std::set<symbol_t>&, bool collectRandom = false) const;
+    void collect_possible_writes(std::set<Symbol>&) const;
+    void collect_possible_reads(std::set<Symbol>&, bool collectRandom = false) const;
 
-    /** Less-than operator. Makes it possible to put expression_t
+    /** Less-than operator. Makes it possible to put Expression
         objects into an STL set. */
-    bool operator<(const expression_t&) const;
+    bool operator<(const Expression&) const;
 
     /** Equality operator. Returns true if the two references point
         to the same expression object. */
-    bool operator==(const expression_t&) const;
+    bool operator==(const Expression&) const;
 
-    expression_t subst(const symbol_t&, expression_t) const;
+    Expression subst(const Symbol&, Expression) const;
 
     /// Precedence of expression type, higher precedence goes before low precedence
     static int get_precedence(Constants::kind_t);
 
     /// Create a CONSTANT expression.
-    static expression_t create_constant(int32_t, position_t = {});
-    static expression_t create_var_index(int32_t, position_t = {});
+    static Expression create_constant(int32_t, position_t = {});
+    static Expression create_var_index(int32_t, position_t = {});
 
-    static expression_t create_double(double, position_t = {});
+    static Expression create_double(double, position_t = {});
     /// Life time of string reference must outlive expression
-    static expression_t create_string(StringIndex, position_t = {});
+    static Expression create_string(StringIndex, position_t = {});
 
     /// Create an IDENTIFIER expression
-    static expression_t create_identifier(const symbol_t&, position_t = {});
+    static Expression create_identifier(const Symbol&, position_t = {});
 
     /// Create a unary expression
-    static expression_t create_unary(Constants::kind_t, expression_t, position_t = {}, type_t = {});
+    static Expression create_unary(Constants::kind_t, Expression, position_t = {}, type_t = {});
 
     /** Create a binary expression */
-    static expression_t create_binary(Constants::kind_t, expression_t, expression_t, position_t = {}, type_t = {});
+    static Expression create_binary(Constants::kind_t, Expression, Expression, position_t = {}, type_t = {});
 
     /** Create a ternary expression */
-    static expression_t create_ternary(Constants::kind_t, expression_t, expression_t, expression_t, position_t = {},
-                                       type_t = {});
+    static Expression create_ternary(Constants::kind_t, Expression, Expression, Expression, position_t = {},
+                                     type_t = {});
 
     /** Create an n-ary expression */
-    static expression_t create_nary(Constants::kind_t, std::vector<expression_t> sub, position_t = {}, type_t = {});
+    static Expression create_nary(Constants::kind_t, std::vector<Expression> sub, position_t = {}, type_t = {});
 
     /** Create a DOT expression */
-    static expression_t create_dot(expression_t, int32_t index, position_t = {}, type_t = {});
+    static Expression create_dot(Expression, int32_t index, position_t = {}, type_t = {});
 
     /** Create a SYNC expression */
-    static expression_t create_sync(expression_t, Constants::synchronisation_t, position_t = {});
+    static Expression create_sync(Expression, Constants::synchronisation_t, position_t = {});
 
     /** Create a DEADLOCK expression */
-    static expression_t create_deadlock(position_t = {});
+    static Expression create_deadlock(position_t = {});
 
-    static expression_t create_exit(position_t = {});
+    static Expression create_exit(position_t = {});
 
     // true if empty or equal to 1.
     bool is_true() const;
     int get_precedence() const;
-    friend std::ostream& operator<<(std::ostream& o, const UTAP::expression_t& e) { return e.print(o); }
+    friend std::ostream& operator<<(std::ostream& o, const UTAP::Expression& e) { return e.print(o); }
 
 private:
-    std::ostream& print_bound_type(std::ostream& os, const expression_t& e) const;
+    std::ostream& print_bound_type(std::ostream& os, const Expression& e) const;
 };
 
 }  // namespace UTAP

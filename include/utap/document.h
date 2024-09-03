@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2020 Aalborg University.
+   Copyright (C) 2020-2024 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -59,13 +59,13 @@ struct stringify_indent_t : stringify_t<Item>
 };
 
 /** Base type for variables, clocks, etc.  The user data of the
-    corresponding symbol_t points to this structure,
+    corresponding Symbol points to this structure,
     i.e. v.uid.get_data() is a pointer to v.
 */
-struct variable_t : stringify_t<variable_t>
+struct Variable : stringify_t<Variable>
 {
-    symbol_t uid;                             /**< The symbol of the variable */
-    expression_t init;                        /**< The initializer */
+    Symbol uid;                               /**< The symbol of the variable */
+    Expression init;                          /**< The initializer */
     std::ostream& print(std::ostream&) const; /**< outputs a textual representation */
 };
 
@@ -77,12 +77,12 @@ struct variable_t : stringify_t<variable_t>
 */
 struct location_t : stringify_t<location_t>
 {
-    symbol_t uid;           /**< The symbol of the location */
-    expression_t name;      /**< TODO: the location name with its position */
-    expression_t invariant; /**< The invariant */
-    expression_t exp_rate;  /**< the exponential rate controlling the speed of leaving the location */
-    expression_t cost_rate; /**< cost rate/derivative expression */
-    int32_t nr;             /**< Location number in a template */
+    Symbol uid;           /**< The symbol of the location */
+    Expression name;      /**< TODO: the location name with its position */
+    Expression invariant; /**< The invariant */
+    Expression exp_rate;  /**< the exponential rate controlling the speed of leaving the location */
+    Expression cost_rate; /**< cost rate/derivative expression */
+    int32_t nr;           /**< Location number in a template */
     std::ostream& print(std::ostream&) const;
 };
 
@@ -93,7 +93,7 @@ struct location_t : stringify_t<location_t>
  */
 struct branchpoint_t
 {
-    symbol_t uid;
+    Symbol uid;
     int32_t bpNr;
 };
 
@@ -112,11 +112,11 @@ struct edge_t : stringify_t<edge_t>
     branchpoint_t* srcb{nullptr};      /**< Pointer to source branchpoint */
     location_t* dst{nullptr};          /**< Pointer to destination location */
     branchpoint_t* dstb{nullptr};      /**< Pointer to destination branchpoint */
-    frame_t select;                    /**< Frame for non-deterministic select */
-    expression_t guard;                /**< The guard */
-    expression_t assign;               /**< The assignment */
-    expression_t sync;                 /**< The synchronisation */
-    expression_t prob;                 /**< Probability for probabilistic edges. */
+    Frame select;                      /**< Frame for non-deterministic select */
+    Expression guard;                  /**< The guard */
+    Expression assign;                 /**< The assignment */
+    Expression sync;                   /**< The synchronisation */
+    Expression prob;                   /**< Probability for probabilistic edges. */
     std::vector<int32_t> selectValues; /**<The select values, if any */
     std::ostream& print(std::ostream&) const;
 };
@@ -128,10 +128,10 @@ class BlockStatement;  // Forward declaration
 */
 struct function_t : stringify_t<function_t>
 {
-    symbol_t uid;                                  /**< The symbol of the function. */
-    std::set<symbol_t> changes{};                  /**< Variables changed by this function. */
-    std::set<symbol_t> depends{};                  /**< Variables the function depends on. */
-    std::list<variable_t> variables{};             /**< Local variables. List is used for stable pointers. */
+    Symbol uid;                                    /**< The symbol of the function. */
+    std::set<Symbol> changes{};                    /**< Variables changed by this function. */
+    std::set<Symbol> depends{};                    /**< Variables the function depends on. */
+    std::list<Variable> variables{};               /**< Local variables. List is used for stable pointers. */
     std::unique_ptr<BlockStatement> body{nullptr}; /**< Pointer to the block. */
     function_t() = default;
     std::ostream& print(std::ostream& os) const; /**< textual representation, used to write the XML file */
@@ -139,16 +139,16 @@ struct function_t : stringify_t<function_t>
 
 struct progress_t
 {
-    expression_t guard;
-    expression_t measure;
-    progress_t(expression_t guard, expression_t measure): guard{std::move(guard)}, measure{std::move(measure)} {}
+    Expression guard;
+    Expression measure;
+    progress_t(Expression guard, Expression measure): guard{std::move(guard)}, measure{std::move(measure)} {}
 };
 
 struct iodecl_t
 {
     std::string instanceName;
-    std::vector<expression_t> param;
-    std::list<expression_t> inputs, outputs, csp;
+    std::vector<Expression> param;
+    std::list<Expression> inputs, outputs, csp;
 };
 
 /**
@@ -157,10 +157,10 @@ struct iodecl_t
  */
 struct ganttmap_t
 {
-    frame_t parameters;
-    expression_t predicate;
-    expression_t mapping;
-    ganttmap_t(frame_t param, expression_t pred, expression_t m):
+    Frame parameters;
+    Expression predicate;
+    Expression mapping;
+    ganttmap_t(Frame param, Expression pred, Expression m):
         parameters{std::move(param)}, predicate{std::move(pred)}, mapping{std::move(m)}
     {}
 };
@@ -170,8 +170,8 @@ struct ganttmap_t
  */
 struct gantt_t
 {
-    std::string name;   /**< The name */
-    frame_t parameters; /**< The select parameters */
+    std::string name; /**< The name */
+    Frame parameters; /**< The select parameters */
     std::list<ganttmap_t> mapping;
     explicit gantt_t(std::string_view name): name{name} {}
 };
@@ -183,8 +183,8 @@ struct gantt_t
 struct template_t;
 struct declarations_t : stringify_t<declarations_t>
 {
-    frame_t frame;
-    std::list<variable_t> variables; /**< Variables. List is used for stable pointers. */
+    Frame frame;
+    std::list<Variable> variables;   /**< Variables. List is used for stable pointers. */
     std::list<function_t> functions; /**< Functions */
     std::list<progress_t> progress;  /**< Progress measures */
     std::list<iodecl_t> iodecl;
@@ -221,7 +221,7 @@ struct message_t : LSC_element_t
 {
     instance_line_t* src{nullptr}; /**< Pointer to source instance line */
     instance_line_t* dst{nullptr}; /**< Pointer to destination instance line */
-    expression_t label;            /**< The label */
+    Expression label;              /**< The label */
     explicit message_t(uint32_t nr): LSC_element_t{nr} {}
 };
 /** Information about a condition. Conditions have an anchor instance lines.
@@ -230,7 +230,7 @@ struct message_t : LSC_element_t
 struct condition_t : LSC_element_t
 {
     std::vector<instance_line_t*> anchors{}; /**< Pointer to anchor instance lines */
-    expression_t label;                      /**< The label */
+    Expression label;                        /**< The label */
     bool isHot{false};
     explicit condition_t(uint32_t nr): LSC_element_t{nr} {}
 };
@@ -241,7 +241,7 @@ struct condition_t : LSC_element_t
 struct update_t : LSC_element_t
 {
     instance_line_t* anchor{nullptr}; /**< Pointer to anchor instance line */
-    expression_t label;               /**< The label */
+    Expression label;                 /**< The label */
     explicit update_t(uint32_t nr): LSC_element_t{nr} {}
 };
 
@@ -326,13 +326,13 @@ struct cut_t : stringify_t<cut_t>
  */
 struct instance_t
 {
-    symbol_t uid{};                           /**< The name */
-    frame_t parameters{};                     /**< The parameters */
-    std::map<symbol_t, expression_t> mapping; /**< The parameter to argument mapping */
+    Symbol uid{};                          ///< The name
+    Frame parameters{};                    ///< The parameters
+    std::map<Symbol, Expression> mapping;  ///< The parameter to argument mapping
     uint32_t arguments{0};
-    uint32_t unbound{0}; /**< The number of unbound parameters */
+    uint32_t unbound{0};  ///< The number of unbound parameters
     struct template_t* templ{nullptr};
-    std::set<symbol_t> restricted; /**< Restricted variables */
+    std::set<Symbol> restricted;  ///< Restricted variables
 
     std::ostream& print_mapping(std::ostream&) const;
     std::ostream& print_parameters(std::ostream&) const;
@@ -348,36 +348,36 @@ struct instance_line_t : public instance_t
 {
     uint32_t instance_nr; /**< InstanceLine number in template */
     std::vector<simregion_t> getSimregions(const std::vector<simregion_t>& simregions);
-    void add_parameters(instance_t& inst, frame_t params, const std::vector<expression_t>& arguments);
+    void add_parameters(instance_t& inst, Frame params, const std::vector<Expression>& arguments);
 };
 
 struct template_t : public instance_t, declarations_t
 {
-    symbol_t init{};                         ///< The initial location
-    frame_t template_set{};                  ///< Template set decls
+    Symbol init{};                           ///< The initial location
+    Frame template_set{};                    ///< Template set decls
     std::deque<location_t> locations;        ///< Locations
     std::deque<branchpoint_t> branchpoints;  ///< Branchpoints
     std::deque<edge_t> edges;                ///< Edges
-    std::vector<expression_t> dynamic_evals;
+    std::vector<Expression> dynamic_evals;
     bool is_TA{true};
     bool is_instantiated{false}; /**< Is the template used in the system*/
 
-    int add_dynamic_eval(expression_t t)
+    int add_dynamic_eval(Expression t)
     {
         dynamic_evals.push_back(std::move(t));
         return dynamic_evals.size() - 1;
     }
 
-    std::vector<expression_t>& get_dynamic_eval() { return dynamic_evals; }
+    std::vector<Expression>& get_dynamic_eval() { return dynamic_evals; }
 
     /// Add another location to template.
-    location_t& add_location(std::string_view name, expression_t inv, expression_t er, position_t pos);
+    location_t& add_location(std::string_view name, Expression inv, Expression er, position_t pos);
 
     /// Add another branchpoint to template.
     branchpoint_t& add_branchpoint(std::string_view, position_t);
 
     /// Add edge to template.
-    edge_t& add_edge(symbol_t src, symbol_t dst, bool type, std::string_view actname);
+    edge_t& add_edge(Symbol src, Symbol dst, bool type, std::string_view actname);
 
     std::deque<instance_line_t> instances;  ///< Instance Lines
     std::deque<message_t> messages;         ///< Messages
@@ -394,13 +394,13 @@ struct template_t : public instance_t, declarations_t
     instance_line_t& add_instance_line();
 
     /// Add message to template.
-    message_t& add_message(symbol_t src, symbol_t dst, int loc, bool pch);
+    message_t& add_message(Symbol src, Symbol dst, int loc, bool pch);
 
     /// Add condition to template.
-    condition_t& add_condition(std::vector<symbol_t> anchors, int loc, bool pch, bool isHot);
+    condition_t& add_condition(std::vector<Symbol> anchors, int loc, bool pch, bool isHot);
 
     /// Add update to template.
-    update_t& add_update(symbol_t anchor, int loc, bool pch);
+    update_t& add_update(Symbol anchor, int loc, bool pch);
 
     bool is_invariant() const;  // type of the LSC
 
@@ -423,11 +423,11 @@ struct template_t : public instance_t, declarations_t
  */
 struct chan_priority_t : stringify_t<chan_priority_t>
 {
-    using entry = std::pair<char, expression_t>;
+    using entry = std::pair<char, Expression>;
     using tail_t = std::list<entry>;
 
-    expression_t head;  //!< First expression in priority declaration
-    tail_t tail;        //!< Pairs: separator and channel expressions
+    Expression head;  //!< First expression in priority declaration
+    tail_t tail;      //!< Pairs: separator and channel expressions
 
     std::ostream& print(std::ostream&) const;
 };
@@ -491,7 +491,7 @@ public:
     virtual ~DocumentVisitor() noexcept = default;
     virtual void visit_doc_before(Document&) {}
     virtual void visit_doc_after(Document&) {}
-    virtual void visit_variable(variable_t&) {}
+    virtual void visit_variable(Variable&) {}
     virtual bool visit_template_before(template_t&) { return true; }
     virtual void visit_template_after(template_t&) {}
     virtual void visit_location(location_t&) {}
@@ -499,7 +499,7 @@ public:
     virtual void visit_instance(instance_t&) {}
     virtual void visit_process(instance_t&) {}
     virtual void visit_function(function_t&) {}
-    virtual void visit_typedef(symbol_t) {}
+    virtual void visit_typedef(Symbol) {}
     virtual void visit_io_decl(iodecl_t&) {}
     virtual void visit_progress(progress_t&) {}
     virtual void visit_gantt(gantt_t&) {}
@@ -540,20 +540,19 @@ public:
     void add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path);
     const position_index_t::line_t& find_position(uint32_t position) const;
 
-    variable_t* add_variable_to_function(function_t*, frame_t, type_t, std::string_view, expression_t initital,
-                                         position_t);
-    variable_t* add_variable(declarations_t*, type_t type, std::string_view name, expression_t initial, position_t);
-    void add_progress_measure(declarations_t*, expression_t guard, expression_t measure);
+    Variable* add_variable_to_function(function_t*, Frame, type_t, std::string_view, Expression initital, position_t);
+    Variable* add_variable(declarations_t*, type_t type, std::string_view name, Expression initial, position_t);
+    void add_progress_measure(declarations_t*, Expression guard, Expression measure);
 
-    template_t& add_template(std::string_view name, const frame_t& params, position_t, bool isTA = true,
+    template_t& add_template(std::string_view name, const Frame& params, position_t, bool isTA = true,
                              std::string_view type = "", std::string_view mode = "");
-    template_t& add_dynamic_template(std::string_view name, const frame_t& params, position_t pos);
+    template_t& add_dynamic_template(std::string_view name, const Frame& params, position_t pos);
 
-    instance_t& add_instance(std::string_view name, instance_t& instance, frame_t params,
-                             const std::vector<expression_t>& arguments, position_t);
+    instance_t& add_instance(std::string_view name, instance_t& instance, Frame params,
+                             const std::vector<Expression>& arguments, position_t);
 
-    instance_t& add_LSC_instance(std::string_view name, instance_t& instance, frame_t params,
-                                 const std::vector<expression_t>& arguments, position_t);
+    instance_t& add_LSC_instance(std::string_view name, instance_t& instance, Frame params,
+                                 const std::vector<Expression>& arguments, position_t);
     void remove_process(instance_t& instance);  // LSC
 
     void copy_variables_from_to(const template_t* from, template_t* to) const;
@@ -565,10 +564,10 @@ public:
     void add_gantt(declarations_t*, gantt_t);  // copies gantt_t and moves it
     void accept(DocumentVisitor&);
 
-    void set_before_update(expression_t e) { before_update = std::move(e); }
-    expression_t& get_before_update() { return before_update; }
-    void set_after_update(expression_t e) { after_update = std::move(e); }
-    expression_t& get_after_update() { return after_update; }
+    void set_before_update(Expression e) { before_update = std::move(e); }
+    Expression& get_before_update() { return before_update; }
+    void set_after_update(Expression e) { after_update = std::move(e); }
+    Expression& get_after_update() { return after_update; }
 
     void add_query(query_t query);  // creates a copy and moves it
     bool queries_empty() const;
@@ -576,8 +575,8 @@ public:
     /* The default priority for channels is also used for 'tau
      * transitions' (i.e. non-synchronizing transitions).
      */
-    void begin_chan_priority(expression_t chan);
-    void add_chan_priority(char separator, expression_t chan);
+    void begin_chan_priority(Expression chan);
+    void add_chan_priority(char separator, Expression chan);
     const std::list<chan_priority_t>& get_chan_priorities() const { return chan_priorities; }
     std::list<chan_priority_t>& get_chan_priorities() { return chan_priorities; }
 
@@ -651,13 +650,12 @@ protected:
     // Global declarations
     declarations_t global;
 
-    expression_t before_update;
-    expression_t after_update;
+    Expression before_update;
+    Expression after_update;
     options_t model_options;
     queries_t queries;
 
-    variable_t* add_variable(std::list<variable_t>& variables, frame_t frame, type_t type, std::string_view,
-                             position_t);
+    Variable* add_variable(std::list<Variable>& variables, Frame frame, type_t type, std::string_view, position_t);
 
     std::string location;
     std::vector<Library> libraries;
