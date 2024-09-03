@@ -144,32 +144,44 @@ public:
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
-class BlockStatement : public Statement, public declarations_t
+/// Abstract class containing loose collection of statements without additional frame
+class CompositeStatement : public Statement
 {
 public:
     using const_iterator = std::vector<std::unique_ptr<Statement>>::const_iterator;
     using iterator = std::vector<std::unique_ptr<Statement>>::iterator;
-
-protected:
-    std::vector<std::unique_ptr<Statement>> stats;
-    frame_t frame;
-
-public:
-    explicit BlockStatement(frame_t frame): frame{std::move(frame)} {}
-    int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return begin() != end() && back().returns(); }
-    const frame_t& get_frame() const { return frame; }
-    frame_t& get_frame() { return frame; }
-    void push_stat(std::unique_ptr<Statement> stat);
-    std::unique_ptr<Statement> pop_stat();
+    CompositeStatement() = default;
+    std::ostream& print(std::ostream&, const std::string& indent) const override;
+    bool returns() const override { return empty() || back().returns(); }
+    /// pushes the statement to the end of statement list
+    void push(std::unique_ptr<Statement> stat);
+    /// pops the last statement from the list
+    std::unique_ptr<Statement> pop();
+    /// returns the last statement in the list
     const Statement& back() const;
+    /// returns the last statement in the list
     Statement& back();
     const_iterator begin() const { return stats.begin(); }
     const_iterator end() const { return stats.end(); }
     bool empty() const { return stats.empty(); }
     iterator begin() { return stats.begin(); }
     iterator end() { return stats.end(); }
+
+protected:
+    std::vector<std::unique_ptr<Statement>> stats;
+};
+
+/// Collection of statements with its own declarations and frame.
+class BlockStatement : public CompositeStatement
+{
+    declarations_t decl;
+
+public:
+    explicit BlockStatement(frame_t frame) { decl.frame = std::move(frame); }
+    int32_t accept(StatementVisitor&) override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
+    const frame_t& get_frame() const { return decl.frame; }
+    frame_t& get_frame() { return decl.frame; }
 };
 
 class ExternalBlockStatement final : public BlockStatement
@@ -186,30 +198,32 @@ private:
     bool doesReturn;
 };
 
-class SwitchStatement : public BlockStatement
+class SwitchStatement : public CompositeStatement
 {
 public:
     expression_t cond;
-    SwitchStatement(frame_t frame, expression_t expr): BlockStatement{std::move(frame)}, cond{std::move(expr)} {}
+    SwitchStatement(expression_t expr): CompositeStatement{}, cond{std::move(expr)} {}
     int32_t accept(StatementVisitor& v) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
-class CaseStatement final : public BlockStatement
+class CaseStatement final : public Statement
 {
 public:
     expression_t cond;
-    CaseStatement(frame_t frame, expression_t value): BlockStatement{std::move(frame)}, cond{std::move(value)} {}
+    std::unique_ptr<Statement> stat;
+    CaseStatement(expression_t value): cond{std::move(value)} {}
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
-class DefaultStatement final : public BlockStatement
+class DefaultStatement final : public Statement
 {
 public:
-    explicit DefaultStatement(const frame_t& f): BlockStatement{f} {}
+    std::unique_ptr<Statement> stat;
+    DefaultStatement() = default;
     int32_t accept(StatementVisitor&) override;
     bool returns() const override { return false; }
     std::ostream& print(std::ostream&, const std::string& indent) const override;
@@ -286,6 +300,7 @@ class AbstractStatementVisitor : public StatementVisitor
 {
 protected:
     virtual int32_t visit_statement(Statement& stat);
+    virtual int32_t visit_composite_statement(CompositeStatement& stat);
 
 public:
     int32_t visit_empty_statement(EmptyStatement& stat) override;

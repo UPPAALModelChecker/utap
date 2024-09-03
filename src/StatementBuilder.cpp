@@ -495,63 +495,56 @@ void StatementBuilder::block_end()
     // the containing block.
     std::unique_ptr<BlockStatement> block = std::move(blocks.back());
     blocks.pop_back();
-    get_block().push_stat(std::move(block));
+    get_block().push(std::move(block));
 
     // Restore containing frame
     pop_frame();
 }
 
-void StatementBuilder::empty_statement() { get_block().push_stat(std::make_unique<EmptyStatement>()); }
+void StatementBuilder::empty_statement() { get_block().push(std::make_unique<EmptyStatement>()); }
 
 void StatementBuilder::for_begin() {}
 
 void StatementBuilder::for_end()
 {  // 3 expr, 1 stat
-    auto substat = get_block().pop_stat();
-    auto forstat = std::make_unique<ForStatement>(fragments[2], fragments[1], fragments[0], std::move(substat));
-    get_block().push_stat(std::move(forstat));
-
-    fragments.pop(3);
+    auto substat = get_block().pop();
+    auto step = fragments.pop();
+    auto cond = fragments.pop();
+    auto init = fragments.pop();
+    auto forstat = std::make_unique<ForStatement>(init, cond, step, std::move(substat));
+    get_block().push(std::move(forstat));
 }
 
 void StatementBuilder::iteration_begin(std::string_view name)
 {
-    type_t type = typeFragments[0];
-    typeFragments.pop();
-
-    /* The iterator cannot be modified.
-     */
+    type_t type = typeFragments.pop();
+    // The iterator cannot be modified.
     if (!type.is(CONSTANT)) {
         type = type.create_prefix(CONSTANT);
     }
 
-    /* The iteration statement has a local scope for the iterator.
-     */
+    // The iteration statement has a local scope for the iterator.
     push_frame(frame_t::create(frames.top()));
 
-    /* Add variable.
-     */
+    // Add variable.
     variable_t* variable = addVariable(type, name, expression_t(), position_t());
 
     /* Create a new statement for the loop. We need to already create
      * this here as the statement is the only thing that can keep the
      * reference to the frame.
      */
-    get_block().push_stat(std::make_unique<RangeStatement>(variable->uid, frames.top(), nullptr));
+    get_block().push(std::make_unique<RangeStatement>(variable->uid, frames.top(), nullptr));
 }
 
 void StatementBuilder::iteration_end(std::string_view name)
 {
-    /* Retrieve the statement that we iterate over.
-     */
-    auto statement = get_block().pop_stat();
-
+    // Retrieve the statement that we iterate over.
+    auto statement = get_block().pop();
     if (!get_block().empty()) {
         // If the syntax is wrong, we won't have anything in blocks.back()
         /* Add statement to loop construction.  */
         static_cast<RangeStatement&>(get_block().back()).stat = std::move(statement);
     }
-
     // Restore the frame pointer.
     pop_frame();
 }
@@ -560,35 +553,31 @@ void StatementBuilder::while_begin() {}
 
 void StatementBuilder::while_end()
 {  // 1 expr, 1 stat
-    auto whilestat = std::make_unique<WhileStatement>(fragments[0], get_block().pop_stat());
-    get_block().push_stat(std::move(whilestat));
-    fragments.pop();
+    auto whilestat = std::make_unique<WhileStatement>(fragments.pop(), get_block().pop());
+    get_block().push(std::move(whilestat));
 }
 
 void StatementBuilder::do_while_begin() {}
 
 void StatementBuilder::do_while_end()
 {  // 1 stat, 1 expr
-    auto substat = get_block().pop_stat();
-    get_block().push_stat(std::make_unique<DoWhileStatement>(std::move(substat), fragments[0]));
-    fragments.pop();
+    auto substat = get_block().pop();
+    get_block().push(std::make_unique<DoWhileStatement>(std::move(substat), fragments.pop()));
 }
 
 void StatementBuilder::if_end(bool elsePart)
 {  // 1 expr, 1 or 2 statements
     std::unique_ptr<Statement> falseCase;
     if (elsePart)
-        falseCase = get_block().pop_stat();
-    auto trueCase = get_block().pop_stat();
-    auto ifstat = std::make_unique<IfStatement>(fragments[0], std::move(trueCase), std::move(falseCase));
-    get_block().push_stat(std::move(ifstat));
-    fragments.pop();
+        falseCase = get_block().pop();
+    auto trueCase = get_block().pop();
+    auto ifstat = std::make_unique<IfStatement>(fragments.pop(), std::move(trueCase), std::move(falseCase));
+    get_block().push(std::move(ifstat));
 }
 
 void StatementBuilder::expr_statement()
 {  // 1 expr
-    get_block().push_stat(std::make_unique<ExprStatement>(fragments[0]));
-    fragments.pop();
+    get_block().push(std::make_unique<ExprStatement>(fragments.pop()));
 }
 
 void StatementBuilder::return_statement(bool args)
@@ -599,29 +588,22 @@ void StatementBuilder::return_statement(bool args)
         /* Only functions with non-void return type are allowed to have
          * arguments on return.
          */
-        type_t return_type = currentFun->uid.get_type()[0];
+        const type_t& return_type = currentFun->uid.get_type()[0];
         if (return_type.is_void() && args) {
             handle_error(TypeException{"$return_with_a_value_in_function_returning_void"});
         } else if (!return_type.is_void() && !args) {
             handle_error(TypeException{"$return_with_no_value_in_function_returning_non-void"});
         }
-
         std::unique_ptr<ReturnStatement> stat;
-        if (args) {
-            stat = std::make_unique<ReturnStatement>(fragments[0]);
-            fragments.pop();
-        } else {
+        if (args)
+            stat = std::make_unique<ReturnStatement>(fragments.pop());
+        else
             stat = std::make_unique<ReturnStatement>();
-        }
-        get_block().push_stat(std::move(stat));
+        get_block().push(std::move(stat));
     }
 }
 
-void StatementBuilder::assert_statement()
-{
-    get_block().push_stat(std::make_unique<AssertStatement>(fragments[0]));
-    fragments.pop();
-}
+void StatementBuilder::assert_statement() { get_block().push(std::make_unique<AssertStatement>(fragments.pop())); }
 
 /********************************************************************
  * Expressions

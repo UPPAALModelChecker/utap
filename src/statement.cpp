@@ -111,27 +111,42 @@ std::ostream& DoWhileStatement::print(std::ostream& os, const std::string& inden
     return cond.print(os) << ");\n";
 }
 
-void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
+std::ostream& CompositeStatement::print(std::ostream& os, const std::string& indent) const
+{
+    if (stats.empty())
+        os << ";";
+    else if (stats.size() == 1)
+        stats.back()->print(os << "\n", indent + INDENT);
+    else {
+        os << "{\n";
+        for (const auto& s : stats)
+            s->print(os, indent + INDENT) << "\n";
+        os << indent << "}";
+    }
+    return os;
+}
+
+void CompositeStatement::push(std::unique_ptr<Statement> stat)
 {
     assert(stat != nullptr);
     stats.push_back(std::move(stat));
 }
 
-Statement& BlockStatement::back()
+Statement& CompositeStatement::back()
 {
     assert(!stats.empty());
     return *stats.back();
 }
 
-const Statement& BlockStatement::back() const
+const Statement& CompositeStatement::back() const
 {
     assert(!stats.empty());
     return *stats.back();
 }
 
-std::unique_ptr<Statement> BlockStatement::pop_stat()
+std::unique_ptr<Statement> CompositeStatement::pop()
 {
-    std::unique_ptr<Statement> st = std::move(stats.back());
+    auto st = std::move(stats.back());
     stats.pop_back();
     return st;
 }
@@ -147,21 +162,27 @@ std::ostream& BlockStatement::print(std::ostream& os, const std::string& indent)
 std::ostream& SwitchStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << indent << "switch (";
-    cond.print(os) << ") ";
-    return BlockStatement::print(os, indent) << "\n";
+    cond.print(os) << ")";
+    if (stats.empty() || stats.size() > 1)
+        os << " ";
+    return CompositeStatement::print(os, indent) << "\n";
 }
 
 std::ostream& CaseStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << indent << "case ";
-    cond.print(os) << ": ";
-    return BlockStatement::print(os, indent);
+    cond.print(os) << ":\n";
+    if (stat)
+        stat->print(os, indent + INDENT);
+    return os;
 }
 
 std::ostream& DefaultStatement::print(std::ostream& os, const std::string& indent) const
 {
-    os << indent << "default: ";
-    return BlockStatement::print(os, indent);
+    os << indent << "default:\n";
+    if (stat)
+        stat->print(os, indent + INDENT);
+    return os;
 }
 
 std::ostream& BreakStatement::print(std::ostream& os, const std::string& indent) const
@@ -176,7 +197,10 @@ std::ostream& ContinueStatement::print(std::ostream& os, const std::string& inde
 
 std::ostream& ReturnStatement::print(std::ostream& os, const std::string& indent) const
 {
-    return value.print(os << indent << "return ") << ";";
+    os << indent << "return ";
+    if (not value.empty())
+        value.print(os);
+    return os << ";";
 }
 
 int32_t AbstractStatementVisitor::visit_statement(Statement&) { return 0; }
@@ -205,7 +229,7 @@ int32_t AbstractStatementVisitor::visit_while_statement(WhileStatement& stat) { 
 
 int32_t AbstractStatementVisitor::visit_do_while_statement(DoWhileStatement& stat) { return stat.stat->accept(*this); }
 
-int32_t AbstractStatementVisitor::visit_block_statement(BlockStatement& stat)
+int32_t AbstractStatementVisitor::visit_composite_statement(CompositeStatement& stat)
 {
     int result = 0;
     for (const auto& statement : stat)
@@ -213,13 +237,30 @@ int32_t AbstractStatementVisitor::visit_block_statement(BlockStatement& stat)
     return result;
 }
 
-int32_t AbstractStatementVisitor::visit_switch_statement(SwitchStatement& stat) { return visit_block_statement(stat); }
+int32_t AbstractStatementVisitor::visit_block_statement(BlockStatement& stat)
+{
+    return visit_composite_statement(stat);
+}
 
-int32_t AbstractStatementVisitor::visit_case_statement(CaseStatement& stat) { return visit_block_statement(stat); }
+int32_t AbstractStatementVisitor::visit_switch_statement(SwitchStatement& stat)
+{
+    return visit_composite_statement(stat);
+}
+
+int32_t AbstractStatementVisitor::visit_case_statement(CaseStatement& stat)
+{
+    auto res = visit_statement(stat);
+    if (stat.stat)
+        res = stat.stat->accept(*this);
+    return res;
+}
 
 int32_t AbstractStatementVisitor::visit_default_statement(DefaultStatement& stat)
 {
-    return visit_block_statement(stat);
+    auto res = visit_statement(stat);
+    if (stat.stat)
+        res = stat.stat->accept(*this);
+    return res;
 }
 
 int32_t AbstractStatementVisitor::visit_break_statement(BreakStatement& stat) { return visit_statement(stat); }
@@ -278,25 +319,33 @@ int32_t ExpressionVisitor::visit_block_statement(BlockStatement& stat)
 int32_t ExpressionVisitor::visit_switch_statement(SwitchStatement& stat)
 {
     visit_expression(stat.cond);
-    return visit_block_statement(stat);
+    return visit_composite_statement(stat);
 }
 
 int32_t ExpressionVisitor::visit_case_statement(CaseStatement& stat)
 {
     visit_expression(stat.cond);
-    return visit_block_statement(stat);
+    int32_t res = 0;
+    if (stat.stat)
+        res = stat.stat->accept(*this);
+    return res;
 }
 
-int32_t ExpressionVisitor::visit_default_statement(DefaultStatement& stat) { return visit_block_statement(stat); }
+int32_t ExpressionVisitor::visit_default_statement(DefaultStatement& stat)
+{
+    int32_t res = 0;
+    if (stat.stat)
+        res = stat.stat->accept(*this);
+    return res;
+}
 
 int32_t ExpressionVisitor::visit_if_statement(IfStatement& stat)
 {
     visit_expression(stat.cond);
-    stat.trueCase->accept(*this);
-    if (stat.falseCase) {
-        stat.falseCase->accept(*this);
-    }
-    return 0;
+    auto res = stat.trueCase->accept(*this);
+    if (stat.falseCase)
+        res = stat.falseCase->accept(*this);
+    return res;
 }
 
 int32_t ExpressionVisitor::visit_return_statement(ReturnStatement& stat)

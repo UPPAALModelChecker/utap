@@ -37,7 +37,7 @@ TEST_CASE("Empty")
     CHECK(s.to_string(indent) == indent + ";");
 }
 
-TEST_CASE("Composite statements")
+TEST_CASE("Composite")
 {
     auto int_type = type_t::create_primitive(UTAP::Constants::INT);
     auto global = frame_t::create();
@@ -54,18 +54,21 @@ TEST_CASE("Composite statements")
         {
             auto assign = expression_t::create_binary(UTAP::Constants::ASSIGN, id_a, plus);
             auto s = ExprStatement{assign};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "a = 1 + 2;");
         }
         SUBCASE("Equality")
         {
             auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
             auto s = ExprStatement{equal};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "a == 1 + 2;");
         }
         SUBCASE("Assertion")
         {
             auto equal = expression_t::create_binary(UTAP::Constants::EQ, id_a, plus);
             auto s = AssertStatement{equal};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "assert(a == 1 + 2);");
         }
     }
@@ -81,6 +84,7 @@ TEST_CASE("Composite statements")
         {
             auto s =
                 IfStatement{cond_i, std::make_unique<ExprStatement>(step_i), std::make_unique<ExprStatement>(step_a)};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "if (i < 5)\n" + indent + INDENT + "++i;\n" + indent + "else\n" +
                                              indent + INDENT + "a += i;\n");
         }
@@ -88,16 +92,19 @@ TEST_CASE("Composite statements")
         {
             auto init = expression_t::create_binary(UTAP::Constants::ASSIGN, id_i, val0);
             auto s = ForStatement{init, cond_i, step_i, std::make_unique<ExprStatement>(step_a)};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "for (i = 0; i < 5; ++i)\n"s + indent + INDENT + "a += i;\n");
         }
         SUBCASE("While loop")
         {
             auto s = WhileStatement{cond_i, std::make_unique<ExprStatement>(step_i)};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "while (i < 5)\n"s + indent + INDENT + "++i;\n");
         }
         SUBCASE("Do-While loop")
         {
             auto s = DoWhileStatement{std::make_unique<ExprStatement>(step_i), cond_i};
+            CHECK(s.returns() == false);
             CHECK(s.to_string(indent) == indent + "do\n" + indent + INDENT + "++i;\n"s + indent + "while (i < 5);\n");
         }
     }
@@ -108,6 +115,7 @@ TEST_CASE("Composite statements")
         auto id_i = expression_t::create_identifier(var_i);
         auto comp = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
         auto s = RangeStatement{var_i, global, std::make_unique<ExprStatement>(comp)};
+        CHECK(s.returns() == false);
         CHECK(s.to_string(indent) == indent + "for (i : int[0,5])\n"s + indent + INDENT + "a += i;\n");
     }
     SUBCASE("Block")
@@ -117,47 +125,54 @@ TEST_CASE("Composite statements")
         auto e1 = expression_t::create_binary(UTAP::Constants::ASS_PLUS, id_a, id_i);
         auto e2 = expression_t::create_unary(UTAP::Constants::PRE_INCREMENT, id_a);
         auto s = BlockStatement{global};
+        CHECK(s.returns() == true);
         CHECK(s.to_string(indent) == "{\n" + indent + "}");
-        s.push_stat(std::make_unique<ExprStatement>(e1));
+        s.push(std::make_unique<ExprStatement>(e1));
+        CHECK(s.returns() == false);
         CHECK(s.to_string(indent) == "{\n" + indent + INDENT + "a += i;\n" + indent + "}");
-        s.push_stat(std::make_unique<ExprStatement>(e2));
+        s.push(std::make_unique<ExprStatement>(e2));
+        CHECK(s.returns() == false);
         CHECK(s.to_string(indent) == "{\n" + indent + INDENT + "a += i;\n" + indent + INDENT + "++a;\n" + indent + "}");
+        s.push(std::make_unique<ReturnStatement>());
+        CHECK(s.returns() == true);
+        CHECK(s.to_string(indent) == "{\n" + indent + INDENT + "a += i;\n" + indent + INDENT + "++a;\n" + indent +
+                                         INDENT + "return ;\n" + indent + "}");
     }
     SUBCASE("External block")
     {
         auto fn = [] { return true; };
         auto s = ExternalBlockStatement{global, (void*)+fn, true};
+        CHECK(s.returns() == true);
         CHECK(s.to_string(indent) == "{\n" + indent + "}");
     }
     SUBCASE("Switch")
     {
-        auto switch_frame = frame_t::create(global);
-        auto s = SwitchStatement{switch_frame, id_a};
-        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + "}\n");
-        auto case0 = std::make_unique<CaseStatement>(frame_t::create(switch_frame), val0);
-        case0->push_stat(std::make_unique<BreakStatement>());
-        s.push_stat(std::move(case0));
-        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
-                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + "}\n");
-        auto case1 = std::make_unique<CaseStatement>(frame_t::create(switch_frame), val1);
-        case1->push_stat(std::make_unique<BreakStatement>());
-        s.push_stat(std::move(case1));
-        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
-                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + INDENT +
-                                         "case 1: {\n" + indent + INDENT + INDENT + "break;\n" + indent + INDENT +
-                                         "}\n" + indent + "}\n");
-        auto def = std::make_unique<DefaultStatement>(frame_t::create(switch_frame));
-        def->push_stat(std::make_unique<BreakStatement>());
-        s.push_stat(std::move(def));
-        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0: {\n" + indent + INDENT +
-                                         INDENT + "break;\n" + indent + INDENT + "}\n" + indent + INDENT +
-                                         "case 1: {\n" + indent + INDENT + INDENT + "break;\n" + indent + INDENT +
-                                         "}\n" + indent + INDENT + "default: {\n" + indent + INDENT + INDENT +
-                                         "break;\n" + indent + INDENT + "}\n" + indent + "}\n");
+        auto s = SwitchStatement{id_a};
+        CHECK(s.returns() == false);
+        CHECK(s.to_string(indent) == indent + "switch (a) ;\n");
+        auto case0 = std::make_unique<CaseStatement>(val0);
+        case0->stat = std::make_unique<BreakStatement>();
+        s.push(std::move(case0));
+        CHECK(s.to_string(indent) ==
+              indent + "switch (a)\n" + indent + INDENT + "case 0:\n" + indent + INDENT + INDENT + "break;\n");
+        auto case1 = std::make_unique<CaseStatement>(val1);
+        case1->stat = std::make_unique<BreakStatement>();
+        s.push(std::move(case1));
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0:\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "case 1:\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + "}\n");
+        auto def = std::make_unique<DefaultStatement>();
+        def->stat = std::make_unique<BreakStatement>();
+        s.push(std::move(def));
+        CHECK(s.to_string(indent) == indent + "switch (a) {\n" + indent + INDENT + "case 0:\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "case 1:\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + INDENT + "default:\n" + indent + INDENT +
+                                         INDENT + "break;\n" + indent + "}\n");
     }
     SUBCASE("Return")
     {
         auto s = ReturnStatement{id_a};
+        CHECK(s.returns() == true);
         CHECK(s.to_string(indent) == indent + "return a;");
     }
 }
