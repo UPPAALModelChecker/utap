@@ -23,11 +23,11 @@
 #ifndef UTAP_HH
 #define UTAP_HH
 
-#include "utap/common.h"
-#include "utap/document.h"
-#include "utap/expression.h"
-#include "utap/statement.h"
-#include "utap/symbols.h"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
+#include "utap/expression.hpp"
+#include "utap/statement.hpp"
+#include "utap/symbols.hpp"
 
 #include <filesystem>
 #include <vector>

@@ -20,9 +20,9 @@
    USA
 */
 
-#include "utap/featurechecker.h"
+#include "utap/FeatureChecker.hpp"
 
-#include "utap/utap.h"
+#include "utap/utap.hpp"
 
 #include <filesystem>
 #include <fstream>

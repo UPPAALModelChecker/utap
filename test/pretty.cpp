@@ -19,7 +19,7 @@
    USA
 */
 
-#include "utap/prettyprinter.h"
+#include "utap/PrettyPrinter.hpp"
 
 #include <filesystem>
 #include <iostream>

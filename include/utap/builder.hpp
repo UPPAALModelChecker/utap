@@ -23,7 +23,7 @@
 #ifndef UTAP_BUILDER_HH
 #define UTAP_BUILDER_HH
 
-#include "utap/common.h"
+#include "utap/common.hpp"
 
 #include <filesystem>
 #include <memory>

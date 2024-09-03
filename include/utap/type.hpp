@@ -23,8 +23,8 @@
 #ifndef UTAP_TYPE_HH
 #define UTAP_TYPE_HH
 
-#include "utap/common.h"
-#include "utap/position.h"
+#include "utap/common.hpp"
+#include "utap/position.hpp"
 
 #include <memory>  // shared_ptr
 #include <optional>

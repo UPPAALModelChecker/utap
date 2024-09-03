@@ -23,10 +23,10 @@
 #ifndef UTAP_INTERMEDIATE_HH
 #define UTAP_INTERMEDIATE_HH
 
-#include "utap/expression.h"
-#include "utap/library.hpp"
-#include "utap/position.h"
-#include "utap/symbols.h"
+#include "utap/Library.hpp"
+#include "utap/expression.hpp"
+#include "utap/position.hpp"
+#include "utap/symbols.hpp"
 
 #include <algorithm>  // find
 #include <deque>

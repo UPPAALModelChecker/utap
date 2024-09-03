@@ -21,9 +21,9 @@
 
 #define _USE_MATH_DEFINES
 
-#include "utap/xmlwriter.h"
+#include "utap/xmlwriter.hpp"
 
-#include "utap/utap.h"  // writeXMLFile
+#include "utap/utap.hpp"  // writeXMLFile
 
 #include <sstream>
 #include <string_view>

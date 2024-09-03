@@ -20,7 +20,7 @@
    USA
 */
 
-#include "utap/position.h"
+#include "utap/position.hpp"
 
 #include <iostream>
 #include <stdexcept>

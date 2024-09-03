@@ -19,17 +19,17 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
    USA
 */
-#include "utap/typechecker.h"
+#include "utap/typechecker.hpp"
 
 #include "utap/DocumentBuilder.hpp"
 #include "utap/ExpressionBuilder.hpp"
-#include "utap/builder.h"
-#include "utap/common.h"
-#include "utap/document.h"
-#include "utap/expression.h"
-#include "utap/featurechecker.h"
-#include "utap/symbols.h"
-#include "utap/utap.h"
+#include "utap/FeatureChecker.hpp"
+#include "utap/builder.hpp"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
+#include "utap/expression.hpp"
+#include "utap/symbols.hpp"
+#include "utap/utap.hpp"
 
 #include <algorithm>
 #include <filesystem>

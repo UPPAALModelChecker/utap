@@ -19,10 +19,10 @@
    USA
 */
 
-#include "utap/document.h"
+#include "utap/document.hpp"
 
-#include "utap/builder.h"
-#include "utap/statement.h"
+#include "utap/builder.hpp"
+#include "utap/statement.hpp"
 
 #include <functional>  // std::mem_fn
 #include <iostream>

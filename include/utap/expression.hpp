@@ -23,10 +23,10 @@
 #ifndef UTAP_EXPRESSION_HH
 #define UTAP_EXPRESSION_HH
 
-#include "utap/common.h"
-#include "utap/position.h"
-#include "utap/string_interning.h"
-#include "utap/symbols.h"
+#include "utap/common.hpp"
+#include "utap/position.hpp"
+#include "utap/string_interning.hpp"
+#include "utap/symbols.hpp"
 
 #include <memory>  // shared_ptr
 #include <set>

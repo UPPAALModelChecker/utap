@@ -22,9 +22,9 @@
 #ifndef UTAP_ABSTRACTBUILDER_HH
 #define UTAP_ABSTRACTBUILDER_HH
 
-#include "utap/builder.h"
-#include "utap/position.h"
-#include "utap/utap.h"
+#include "utap/builder.hpp"
+#include "utap/position.hpp"
+#include "utap/utap.hpp"
 
 #include <exception>
 #include <string>

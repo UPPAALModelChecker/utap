@@ -23,7 +23,7 @@
 #define UTAP_SYSTEMBUILDER_H
 
 #include "utap/StatementBuilder.hpp"
-#include "utap/utap.h"
+#include "utap/utap.hpp"
 
 #include <vector>
 #include <cinttypes>

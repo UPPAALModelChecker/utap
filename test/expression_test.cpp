@@ -19,7 +19,7 @@
    USA
 */
 
-#include "utap/expression.h"
+#include "utap/expression.hpp"
 
 #include <doctest/doctest.h>
 

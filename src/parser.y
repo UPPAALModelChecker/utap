@@ -45,8 +45,8 @@
 %code requires {
 
 #include "parser.hpp"
-#include "libparser.h"
-#include "utap/position.h"
+#include "libparser.hpp"
+#include "utap/position.hpp"
 
 #include <limits>
 #include <cstring> // strlen
@@ -69,7 +69,7 @@ using namespace Constants;
 
 %code {
 static ParserBuilder *ch;
-static syntax_t syntax;
+static Syntax syntax;
 static int syntax_token = 0;
 
 static void utap_error(const char* msg);
@@ -2036,7 +2036,7 @@ static int32_t parse_XTA(ParserBuilder& aParserBuilder,
                 bool newxta, XTAPart part, std::string_view xpath)
 {
     // Select syntax
-    syntax = newxta ? syntax_t::NEW_GUIDING : syntax_t::OLD_GUIDING;
+    syntax = newxta ? Syntax::NEW_GUIDING : Syntax::OLD_GUIDING;
     setStartToken(part, newxta);
 
     // Set parser builder
@@ -2058,7 +2058,7 @@ static int32_t parse_XTA(ParserBuilder& aParserBuilder,
 static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xpath)
 {
     // Select syntax
-    syntax = syntax_t::PROPERTY;
+    syntax = Syntax::PROPERTY;
     setStartToken(S_PROPERTY, false);
 
     // Set parser builder

@@ -19,8 +19,8 @@
    USA
 */
 
-#ifndef UTAP_PRETTYPRINTER_H
-#define UTAP_PRETTYPRINTER_H
+#ifndef UTAP_PRETTYPRINTER_HPP
+#define UTAP_PRETTYPRINTER_HPP
 
 #include "utap/AbstractBuilder.hpp"
 

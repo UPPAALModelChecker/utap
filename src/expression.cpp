@@ -19,14 +19,14 @@
    USA
 */
 
-#include "utap/expression.h"
+#include "utap/expression.hpp"
 
-#include "utap/common.h"
-#include "utap/document.h"
-#include "utap/position.h"
-#include "utap/string_interning.h"
-#include "utap/symbols.h"
-#include "utap/type.h"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
+#include "utap/position.hpp"
+#include "utap/string_interning.hpp"
+#include "utap/symbols.hpp"
+#include "utap/type.hpp"
 
 #include <algorithm>
 #include <functional>

@@ -19,7 +19,7 @@
    USA
 */
 
-#include "utap/range.h"
+#include "utap/range.hpp"
 
 #include <doctest/doctest.h>
 

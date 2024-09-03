@@ -19,12 +19,12 @@
    USA
 */
 
-#ifndef UTAP_STATEMENT_H
-#define UTAP_STATEMENT_H
+#ifndef UTAP_STATEMENT_HPP
+#define UTAP_STATEMENT_HPP
 
-#include "utap/document.h"
-#include "utap/expression.h"
-#include "utap/symbols.h"
+#include "utap/document.hpp"
+#include "utap/expression.hpp"
+#include "utap/symbols.hpp"
 
 #include <memory>
 #include <string>
@@ -350,4 +350,4 @@ std::set<Symbol> collect_dependencies(Statement& stat);
 std::vector<Expression> collect_dynamic_expressions(Statement& stat);
 
 }  // namespace UTAP
-#endif  // UTAP_STATEMENT_H
+#endif  // UTAP_STATEMENT_HPP

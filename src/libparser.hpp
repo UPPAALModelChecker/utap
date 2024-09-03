@@ -23,7 +23,7 @@
 #ifndef UTAP_LIBPARSER_HH
 #define UTAP_LIBPARSER_HH
 
-#include "utap/builder.h"
+#include "utap/builder.hpp"
 
 #include <memory>
 #include <system_error>
@@ -33,7 +33,7 @@
 constexpr auto MAXLEN = 4001u;
 constexpr auto ID_TOO_LONG = "$Identifier_is_too_long._Limit_length_is_4000.";
 
-enum class syntax_t : unsigned int {
+enum class Syntax : unsigned int {
     NONE = 0u,
     OLD = (1u << 0),
     NEW = (1u << 1),
@@ -51,10 +51,10 @@ enum class syntax_t : unsigned int {
     OLD_GUIDING = OLD | GUIDING
 };
 
-constexpr syntax_t operator&(const syntax_t& s1, const syntax_t& s2)
+constexpr Syntax operator&(const Syntax& s1, const Syntax& s2)
 {
-    using T = std::underlying_type_t<syntax_t>;
-    return syntax_t{static_cast<T>(s1) & static_cast<T>(s2)};
+    using T = std::underlying_type_t<Syntax>;
+    return Syntax{static_cast<T>(s1) & static_cast<T>(s2)};
 }
 
 namespace UTAP {

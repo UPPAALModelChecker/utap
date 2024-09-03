@@ -16,10 +16,10 @@
 
 #include "document_fixture.h"
 
+#include "utap/Library.hpp"
 #include "utap/StatementBuilder.hpp"
-#include "utap/library.hpp"
-#include "utap/typechecker.h"
-#include "utap/utap.h"
+#include "utap/typechecker.hpp"
+#include "utap/utap.hpp"
 
 #include <doctest/doctest.h>
 

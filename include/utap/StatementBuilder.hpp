@@ -23,7 +23,7 @@
 #define UTAP_STATEMENTBUILDER_H
 
 #include "utap/ExpressionBuilder.hpp"
-#include "utap/utap.h"
+#include "utap/utap.hpp"
 
 #include <filesystem>
 #include <vector>

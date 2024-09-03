@@ -1,8 +1,8 @@
 #include "document_fixture.h"
 
 #include "utap/StatementBuilder.hpp"
-#include "utap/expression.h"
-#include "utap/utap.h"
+#include "utap/expression.hpp"
+#include "utap/utap.hpp"
 
 #include <doctest/doctest.h>
 

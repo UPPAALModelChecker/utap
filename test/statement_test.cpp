@@ -19,8 +19,8 @@
    USA
 */
 
-#include "utap/expression.h"
-#include "utap/statement.h"
+#include "utap/expression.hpp"
+#include "utap/statement.hpp"
 
 #include <doctest/doctest.h>
 

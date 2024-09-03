@@ -19,10 +19,10 @@
    USA
 */
 
-#include "utap/type.h"
+#include "utap/type.hpp"
 
-#include "utap/common.h"
-#include "utap/expression.h"
+#include "utap/common.hpp"
+#include "utap/expression.hpp"
 
 #include <algorithm>
 #include <sstream>

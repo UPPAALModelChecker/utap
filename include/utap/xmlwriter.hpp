@@ -22,8 +22,8 @@
 #ifndef XMLWRITER_H
 #define XMLWRITER_H
 
-#include "utap/common.h"
-#include "utap/document.h"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
 
 #include <libxml/encoding.h>
 #include <libxml/xmlreader.h>

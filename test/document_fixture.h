@@ -22,9 +22,9 @@
 #define INCLUDE_UTAP_DOCUMENT_FIXTURE_HPP
 
 #include "utap/StatementBuilder.hpp"
-#include "utap/property.h"
-#include "utap/typechecker.h"
-#include "utap/utap.h"
+#include "utap/property.hpp"
+#include "utap/typechecker.hpp"
+#include "utap/utap.hpp"
 
 #include <filesystem>
 #include <fstream>

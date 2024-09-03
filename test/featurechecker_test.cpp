@@ -21,8 +21,8 @@
 
 #include "document_fixture.h"
 
-#include "utap/featurechecker.h"
-#include "utap/utap.h"
+#include "utap/FeatureChecker.hpp"
+#include "utap/utap.hpp"
 
 #include <doctest/doctest.h>
 

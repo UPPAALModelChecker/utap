@@ -22,10 +22,10 @@
 #ifndef UTAP_TYPECHECKER_HH
 #define UTAP_TYPECHECKER_HH
 
-#include "utap/common.h"
-#include "utap/document.h"
-#include "utap/expression.h"
-#include "utap/statement.h"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
+#include "utap/expression.hpp"
+#include "utap/statement.hpp"
 
 #include <set>
 

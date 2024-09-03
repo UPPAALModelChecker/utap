@@ -23,6 +23,8 @@
 #ifndef VERIFIER_PROPERTY
 #define VERIFIER_PROPERTY
 
+#include "utap.hpp"
+
 #include <list>
 #include <memory>
 #include <set>
@@ -31,9 +33,8 @@
 #include <variant>
 
 #include <utap/StatementBuilder.hpp>
-#include <utap/document.h>
-#include <utap/typechecker.h>
-#include <utap/utap.h>
+#include <utap/document.hpp>
+#include <utap/typechecker.hpp>
 
 namespace UTAP {
 

@@ -19,10 +19,10 @@
    USA
 */
 
-#include "utap/symbols.h"
+#include "utap/symbols.hpp"
 
-#include "utap/expression.h"
-#include "utap/range.h"
+#include "utap/expression.hpp"
+#include "utap/range.hpp"
 
 #include <algorithm>
 #include <map>

@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2020-2022 Aalborg University.
+   Copyright (C) 2020-2024 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -20,10 +20,10 @@
    USA
 */
 
-#include "utap/featurechecker.h"
+#include "utap/FeatureChecker.hpp"
 
-#include "utap/common.h"
-#include "utap/document.h"
+#include "utap/common.hpp"
+#include "utap/document.hpp"
 
 #include <cassert>
 
@@ -93,7 +93,7 @@ void FeatureChecker::visit_location(Location& location)
     const auto& invariant = location.invariant;
     if (invariant.empty())
         return;
-    if (isRateDisallowedInSymbolic(invariant))
+    if (is_rate_disallowed_in_symbolic(invariant))
         supported_methods.symbolic = false;
 }
 
@@ -101,7 +101,7 @@ void FeatureChecker::visit_location(Location& location)
  * Checks whether an expression sets the rate of a clock
  * to something that is different from one or zero
  */
-bool FeatureChecker::isRateDisallowedInSymbolic(const Expression& e)
+bool FeatureChecker::is_rate_disallowed_in_symbolic(const Expression& e)
 {
     if (e.get_kind() == Constants::EQ) {
         assert(e.get_size() >= 2);
@@ -133,7 +133,7 @@ bool FeatureChecker::isRateDisallowedInSymbolic(const Expression& e)
 
     if (e.get_kind() == Constants::AND) {
         for (uint32_t i = 0; i < e.get_size(); ++i) {
-            if (isRateDisallowedInSymbolic(e.get(i)))
+            if (is_rate_disallowed_in_symbolic(e.get(i)))
                 return true;
         }
         return false;

@@ -21,9 +21,9 @@
  */
 
 #include "keywords.hpp"
-#include "libparser.h"
+#include "libparser.hpp"
 
-#include "utap/utap.h"
+#include "utap/utap.hpp"
 
 #include <libxml/parser.h>
 #include <libxml/xmlreader.h>
@@ -650,7 +650,7 @@ std::string XMLReader::readText(bool instanceLine)
         tracker.increment(&parser, text_sv.size());
         try {
             auto id = (instanceLine) ? text_sv : symbol(text_sv);
-            if (!is_keyword(id, syntax_t::OLD_PROPERTY)) {
+            if (!is_keyword(id, Syntax::OLD_PROPERTY)) {
                 auto res = std::string{id};
                 xmlFree(text);
                 return res;

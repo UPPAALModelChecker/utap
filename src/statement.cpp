@@ -20,7 +20,7 @@
    USA
 */
 
-#include "utap/statement.h"
+#include "utap/statement.hpp"
 
 #include <iostream>
 #include <sstream>

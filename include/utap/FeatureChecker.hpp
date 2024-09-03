@@ -1,6 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
+   Copyright (C) 2020-2024 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -22,9 +23,9 @@
 #ifndef UTAP_FEATURECHECKER_HH
 #define UTAP_FEATURECHECKER_HH
 
-#include "utap/document.h"
-#include "utap/expression.h"
-#include "utap/statement.h"
+#include "utap/document.hpp"
+#include "utap/expression.hpp"
+#include "utap/statement.hpp"
 
 namespace UTAP {
 class FeatureChecker : public DocumentVisitor, public AbstractStatementVisitor
@@ -44,7 +45,7 @@ public:
     bool visit_template_before(Template&) override;
 
     void visit_frame(const Frame& frame);
-    bool isRateDisallowedInSymbolic(const Expression& e);
+    bool is_rate_disallowed_in_symbolic(const Expression& e);
 };
 
 }  // namespace UTAP

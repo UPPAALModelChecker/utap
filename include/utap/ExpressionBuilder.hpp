@@ -23,7 +23,7 @@
 #define UTAP_EXPRESSIONBUILDER_HH
 
 #include "AbstractBuilder.hpp"
-#include "utap.h"
+#include "utap.hpp"
 
 #include <stack>
 #include <vector>
