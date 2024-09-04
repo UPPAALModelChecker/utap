@@ -94,9 +94,9 @@ TEST_SUITE("Quantifier forall")
         df.add_system_decl("const bool b[3]={1,1,1};");
         df.add_system_decl("bool x = forall(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 }
@@ -108,9 +108,9 @@ TEST_SUITE("Quantifier exists")
         auto df = document_fixture{};
         df.add_system_decl("bool x = exists(index : int[0, 5]) index > 3;");
         auto doc = df.add_default_process().parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
     TEST_CASE("exists over array")
@@ -119,10 +119,10 @@ TEST_SUITE("Quantifier exists")
         df.add_system_decl("bool b[3] = {0,0,1};");
         df.add_system_decl("bool x = exists(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$Must_be_computable_at_compile_time");
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
     TEST_CASE("exists over const array")
@@ -131,9 +131,9 @@ TEST_SUITE("Quantifier exists")
         df.add_system_decl("const bool b[3]={0,0,1};");
         df.add_system_decl("bool x = exists(i : int[0,2]) b[i];");
         auto doc = df.add_default_process().parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 }
@@ -147,9 +147,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 
@@ -160,9 +160,9 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto errs = doc.get_errors();
+        const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 
@@ -173,12 +173,13 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto errs = doc.get_errors();
-        CHECK(errs.size() == 1);
-        auto pos = errs.front().position;
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
+        const auto& pos = errs.front().position;
         CHECK(pos.start != pos.unknown_pos);
         CHECK(pos.end != pos.unknown_pos);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 
@@ -189,12 +190,13 @@ TEST_SUITE("Error positions for unbound parameters")
         df.add_process("T");
         auto text = df.str();
         auto doc = df.parse();
-        auto errs = doc.get_errors();
-        CHECK(errs.size() == 1);
-        auto pos = errs.front().position;
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
+        const auto& pos = errs.front().position;
         CHECK(pos.start != pos.unknown_pos);
         CHECK(pos.end != pos.unknown_pos);
-        auto warns = doc.get_warnings();
+        const auto& warns = doc.get_warnings();
         CHECK_MESSAGE(warns.empty(), warns.front().msg);
     }
 }
@@ -238,11 +240,11 @@ TEST_CASE("Ternary operator with clock and integer")
 TEST_CASE("Ternary operator with clock and bool")
 {
     auto doc = document_fixture{}
-                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : true; };")
+                   .add_global_decl("clock c; double x; void f(bool b) { x = b ? c : true; }")
                    .add_default_process()
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -307,7 +309,8 @@ TEST_CASE("Ternary operator with struct and double")
                    .add_default_process()
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Incompatible_arguments_to_inline_if");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -320,7 +323,8 @@ TEST_CASE("Ternary operator with struct and double")
                    .add_default_process()
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Incompatible_arguments_to_inline_if");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -403,7 +407,8 @@ TEST_CASE("Ternary operator with int expressions")
                    .add_default_process()
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Incompatible_types");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -415,7 +420,8 @@ TEST_CASE("Ternary operator with int expressions and clocks")
                    .add_default_process()
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Incompatible_types");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -517,7 +523,8 @@ TEST_CASE("Nested structs")
                    .add_global_decl("struct { int x; double y; } my_struct = {1.0, 1.0};")
                    .parse();
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 1);
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Invalid_initialiser");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }

@@ -88,9 +88,10 @@ TEST_CASE("Error location")
     const auto& edges = templates.front().edges;
     REQUIRE(edges.size() > 0);
     const auto& pos = edges.front().sync.get_position();
-    doc.add_error(pos, "Non-deterministic input", "c?");
+    doc.add_error(pos, "$Non_deterministic_input", "c?");
     REQUIRE(errs.size() == 1);
     const auto& error = errs.front();
+    CHECK(error.msg == "$Non_deterministic_input");
     REQUIRE(error.start.path != nullptr);
     CHECK(*error.start.path == "/nta/template[1]/transition[1]/label[1]");
 }
@@ -138,6 +139,13 @@ TEST_CASE("Parsing implicit goals for learning queries")
     using Constants::Kind;
     auto doc = read_document("simpleSystem.xml");
     auto builder = QueryBuilder(doc);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
+    const auto& warns = doc.get_warnings();
+    if (not warns.empty()) {  // some warnings emitted at debug
+        CHECK(warns.size() == 1);
+        CHECK(warns[0].msg == "$Strict_invariant");
+    }
 
     SUBCASE("Implicit time goal time priced")
     {
@@ -147,7 +155,6 @@ TEST_CASE("Parsing implicit goals for learning queries")
 
     SUBCASE("Implicit step goal time priced")
     {
-        REQUIRE(doc.get_errors().size() == 0);
         auto res = parse_property("minE(c)[#<=20]", builder);
         CHECK(res == -1);
     }
@@ -172,20 +179,26 @@ TEST_CASE("Parsing implicit goals for learning queries")
 
     SUBCASE("Explicit goal expr priced")
     {
-        REQUIRE(doc.get_errors().size() == 0);
         auto res = parse_property("minE(c)[<=20] :<> true", builder);
         REQUIRE(res == 0);
         builder.typecheck();
-        REQUIRE(doc.get_errors().size() == 0);
+        CHECK_MESSAGE(errs.empty(), errs[0].msg);
+        if (not warns.empty()) {  // some warnings emitted at debug
+            CHECK(warns.size() == 1);
+            CHECK(warns[0].msg == "$Strict_invariant");
+        }
     }
 
     SUBCASE("Explicit constraint goal expr priced")
     {
-        REQUIRE(doc.get_errors().size() == 0);
         auto res = parse_property("minE(c)[<=20] :<> c>=5", builder);
         REQUIRE(res == 0);
         builder.typecheck();
-        REQUIRE(doc.get_errors().size() == 0);
+        CHECK_MESSAGE(errs.empty(), errs[0].msg);
+        if (not warns.empty()) {  // some warnings emitted at debug
+            CHECK(warns.size() == 1);
+            CHECK(warns[0].msg == "$Strict_invariant");
+        }
     }
 }
 
@@ -378,7 +391,9 @@ TEST_CASE("Initializing ints with double value")
         document_fixture{}.add_default_process().add_global_decl("struct { int x; int y; } s = {1.1, 1.2};").parse();
 
     const auto& errs = doc.get_errors();
-    CHECK(errs.size() == 2);
+    REQUIRE(errs.size() == 2);
+    CHECK(errs[0].msg == "$Invalid_initialiser");
+    CHECK(errs[1].msg == "$Invalid_initialiser");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
@@ -450,8 +465,10 @@ TEST_CASE("Pre increment precedence bug")
                    .add_global_decl("void f(){ ++i[0]; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Post increment precedence bug")
@@ -462,7 +479,10 @@ TEST_CASE("Post increment precedence bug")
                    .add_default_process()
                    .parse();
 
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns.front().msg);
 }
 
 TEST_CASE("Double post increment precedence")
@@ -472,8 +492,11 @@ TEST_CASE("Double post increment precedence")
                    .add_global_decl("void f(){ i++++; }")
                    .add_default_process()
                    .parse();
-
-    CHECK(doc.get_errors().size() == 1);
+    const auto& errs = doc.get_errors();
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Left_hand_side_value_expected");
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("pre post increment precedence")
@@ -483,8 +506,11 @@ TEST_CASE("pre post increment precedence")
                    .add_global_decl("void f(){ ++i++; }")
                    .add_default_process()
                    .parse();
-
-    CHECK(doc.get_errors().size() == 1);
+    const auto& errs = doc.get_errors();
+    REQUIRE(errs.size() == 1);
+    CHECK(errs[0].msg == "$Left_hand_side_value_expected");
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("Double pre increment with forced precedence")
@@ -494,8 +520,10 @@ TEST_CASE("Double pre increment with forced precedence")
                    .add_global_decl("void f(){ (++i)++; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("Double pre increment precedence")
@@ -505,8 +533,10 @@ TEST_CASE("Double pre increment precedence")
                    .add_global_decl("void f(){ ++++i; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("Increment with array subscripting and dot accessing")
@@ -516,8 +546,10 @@ TEST_CASE("Increment with array subscripting and dot accessing")
                    .add_global_decl("void f(){ ++axy[0].x; axy[0].x++; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("Increment with multiple array subscripting and dot accessing")
@@ -527,8 +559,10 @@ TEST_CASE("Increment with multiple array subscripting and dot accessing")
                    .add_global_decl("void f(){ ++aai[0].ai[0]; aai[0].ai[0]++; }")
                    .add_default_process()
                    .parse();
-
-    CHECK_MESSAGE(doc.get_errors().size() == 0, doc.get_errors().at(0).msg);
+    const auto& errs = doc.get_errors();
+    CHECK_MESSAGE(errs.empty(), errs[0].msg);
+    const auto& warns = doc.get_warnings();
+    CHECK_MESSAGE(warns.empty(), warns[0].msg);
 }
 
 TEST_CASE("Initializer: int")
@@ -538,7 +572,6 @@ TEST_CASE("Initializer: int")
                    .add_global_decl("myint_t my = 7;")
                    .add_default_process()
                    .parse();
-
     const auto& errs = doc.get_errors();
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
@@ -552,7 +585,6 @@ TEST_CASE("Initializer: array")
                    .add_global_decl("ia3_t ia = { 1, 2, 3 };")
                    .add_default_process()
                    .parse();
-
     const auto& errs = doc.get_errors();
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
@@ -567,7 +599,6 @@ TEST_CASE("Initializer: struct")
                    .add_global_decl("xy_t xy2 = { x:1, y:2 };")
                    .add_default_process()
                    .parse();
-
     const auto& errs = doc.get_errors();
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
