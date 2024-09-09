@@ -55,6 +55,66 @@ struct expression_t::expression_data : public std::enable_shared_from_this<expre
     type_t type;                     /**< The type of the expression */
     std::vector<expression_t> sub{}; /**< Subexpressions */
     expression_data(const position_t& p, kind_t kind, int32_t value): position{p}, kind{kind}, value{value} {}
+    expression_data(const position_t& p, kind_t kind): position{p}, kind{kind} {}
+    std::unique_ptr<expression_data> clone()
+    {
+        auto res = std::make_unique<expression_data>(position, kind);
+        res->value = value;
+        res->symbol = symbol;
+        res->type = type;
+        res->sub.reserve(sub.size());
+        res->sub.assign(sub.begin(), sub.end());
+        return res;
+    }
+    std::unique_ptr<expression_data> clone_deeper()
+    {
+        auto res = std::make_unique<expression_data>(position, kind);
+        res->value = value;
+        res->type = type;
+        res->symbol = symbol;
+        if (!sub.empty()) {
+            res->sub.reserve(sub.size());
+            for (const auto& s : sub)
+                res->sub.push_back(s.clone_deeper());
+        }
+        return res;
+    }
+    std::unique_ptr<expression_data> clone_deeper(symbol_t from, symbol_t to)
+    {
+        auto res = std::make_unique<expression_data>(position, kind);
+        res->value = value;
+        res->type = type;
+        res->symbol = (symbol == from) ? to : symbol;
+        if (!sub.empty()) {
+            res->sub.reserve(sub.size());
+            for (const auto& s : sub)
+                res->sub.push_back(s.clone_deeper(from, to));
+        }
+        return res;
+    }
+    std::unique_ptr<expression_data> clone_deeper(frame_t frame, frame_t select) const
+    {
+        auto res = std::make_unique<expression_data>(position, kind);
+        res->value = value;
+        res->type = type;
+        auto uid = symbol_t{};
+        if (symbol != symbol_t{}) {
+            bool found = frame.resolve(symbol.get_name(), uid);
+            if (!found && select != frame_t()) {
+                found = select.resolve(symbol.get_name(), uid);
+            }
+            assert(found);
+            res->symbol = uid;
+        } else {
+            res->symbol = symbol;
+        }
+        if (!sub.empty()) {
+            res->sub.reserve(sub.size());
+            for (const auto& s : sub)
+                res->sub.push_back(s.clone_deeper(frame, select));
+        }
+        return res;
+    }
 };
 
 expression_t::expression_t(kind_t kind, const position_t& pos)
@@ -62,69 +122,20 @@ expression_t::expression_t(kind_t kind, const position_t& pos)
     data = std::make_shared<expression_data>(pos, kind, 0);
 }
 
-expression_t expression_t::clone() const
-{
-    auto expr = expression_t{data->kind, data->position};
-    expr.data->value = data->value;
-    expr.data->type = data->type;
-    expr.data->symbol = data->symbol;
-    expr.data->sub.reserve(data->sub.size());
-    expr.data->sub.assign(data->sub.begin(), data->sub.end());
-    return expr;
-}
+expression_t::expression_t(std::unique_ptr<expression_t::expression_data> data): data{std::move(data)} {}
 
-expression_t expression_t::clone_deeper() const
-{
-    auto expr = expression_t{data->kind, data->position};
-    expr.data->value = data->value;
-    expr.data->type = data->type;
-    expr.data->symbol = data->symbol;
-    if (!data->sub.empty()) {
-        expr.data->sub.reserve(data->sub.size());
-        for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.clone_deeper());
-    }
-    return expr;
-}
+expression_t expression_t::clone() const { return expression_t{data->clone()}; }
+
+expression_t expression_t::clone_deeper() const { return expression_t{data->clone_deeper()}; }
 
 expression_t expression_t::clone_deeper(symbol_t from, symbol_t to) const
 {
-    auto expr = expression_t{data->kind, data->position};
-    expr.data->value = data->value;
-    expr.data->type = data->type;
-    expr.data->symbol = (data->symbol == from) ? to : data->symbol;
-
-    if (!data->sub.empty()) {
-        expr.data->sub.reserve(data->sub.size());
-        for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.clone_deeper(from, to));
-    }
-    return expr;
+    return expression_t{data->clone_deeper(from, to)};
 }
 
 expression_t expression_t::clone_deeper(frame_t frame, frame_t select) const
 {
-    auto expr = expression_t{data->kind, data->position};
-    expr.data->value = data->value;
-    expr.data->type = data->type;
-    symbol_t uid;
-    if (data->symbol != symbol_t()) {
-        bool res = frame.resolve(data->symbol.get_name(), uid);
-        if (!res && select != frame_t()) {
-            res = select.resolve(data->symbol.get_name(), uid);
-        }
-        assert(res);
-        expr.data->symbol = uid;
-    } else {
-        expr.data->symbol = data->symbol;
-    }
-
-    if (!data->sub.empty()) {
-        expr.data->sub.reserve(data->sub.size());
-        for (const auto& s : data->sub)
-            expr.data->sub.push_back(s.clone_deeper(frame, select));
-    }
-    return expr;
+    return expression_t{data->clone_deeper(frame, select)};
 }
 
 expression_t expression_t::subst(symbol_t symbol, expression_t expr) const
@@ -338,7 +349,7 @@ size_t expression_t::get_size() const
     case GT:
     case MIN:
     case MAX:
-    case ARRAY:
+    case SUBSCRIPT:
     case COMMA:
     case ASSIGN:
     case ASS_PLUS:
@@ -646,7 +657,7 @@ const symbol_t expression_t::get_symbol() const
 
     case DOT: return get(0).get_symbol();
 
-    case ARRAY: return get(0).get_symbol();
+    case SUBSCRIPT: return get(0).get_symbol();
 
     case PRE_INCREMENT:
     case PRE_DECREMENT: return get(0).get_symbol();
@@ -678,28 +689,27 @@ const symbol_t expression_t::get_symbol() const
     }
 }
 
-void expression_t::get_symbols(std::set<symbol_t>& symbols) const
+void expression_t::get_potential_symbols(std::set<symbol_t>& symbols) const
 {
-    if (empty()) {
+    if (empty())
         return;
-    }
 
     switch (get_kind()) {
     case IDENTIFIER: symbols.insert(data->symbol); break;
 
-    case DOT: get(0).get_symbols(symbols); break;
+    case DOT: get(0).get_potential_symbols(symbols); break;
 
-    case ARRAY: get(0).get_symbols(symbols); break;
+    case SUBSCRIPT: get(0).get_potential_symbols(symbols); break;
 
     case PRE_INCREMENT:
-    case PRE_DECREMENT: get(0).get_symbols(symbols); break;
+    case PRE_DECREMENT: get(0).get_potential_symbols(symbols); break;
 
     case INLINE_IF:
-        get(1).get_symbols(symbols);
-        get(2).get_symbols(symbols);
+        get(1).get_potential_symbols(symbols);
+        get(2).get_potential_symbols(symbols);
         break;
 
-    case COMMA: get(1).get_symbols(symbols); break;
+    case COMMA: get(1).get_potential_symbols(symbols); break;
 
     case ASSIGN:
     case ASS_PLUS:
@@ -711,9 +721,9 @@ void expression_t::get_symbols(std::set<symbol_t>& symbols) const
     case ASS_OR:
     case ASS_XOR:
     case ASS_LSHIFT:
-    case ASS_RSHIFT: get(0).get_symbols(symbols); break;
+    case ASS_RSHIFT: get(0).get_potential_symbols(symbols); break;
 
-    case SYNC: get(0).get_symbols(symbols); break;
+    case SYNC: get(0).get_potential_symbols(symbols); break;
 
     default:
         // Do nothing
@@ -721,12 +731,60 @@ void expression_t::get_symbols(std::set<symbol_t>& symbols) const
     }
 }
 
-/** Returns true if expr might be a reference to a symbol in the
-    set. */
+void expression_t::get_sure_symbols(std::set<symbol_t>& symbols) const
+{
+    if (empty())
+        return;
+
+    switch (get_kind()) {
+    case IDENTIFIER: symbols.insert(data->symbol); break;
+
+    case DOT:
+    case PRE_INCREMENT:
+    case PRE_DECREMENT:
+    case POST_INCREMENT:
+    case POST_DECREMENT:
+    case ASSIGN:
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT: get(0).get_sure_symbols(symbols); break;
+
+    case COMMA:
+        get(0).get_sure_symbols(symbols);
+        get(1).get_potential_symbols(symbols);
+        break;
+
+    case SYNC: get(0).get_potential_symbols(symbols); break;
+
+    case SUBSCRIPT:
+        // TODO: add if the index is compile-time computable
+        // get(0).get_sure_symbols(symbols);
+        break;
+
+    case INLINE_IF:
+        // TODO: add if condition is compile-time computable
+        // get(1).get_sure_symbols(symbols);
+        // get(2).get_sure_symbols(symbols);
+        break;
+
+    default:
+        // Do nothing
+        break;
+    }
+}
+
+/// Returns true if expr might be a reference to a symbol in the set.
 bool expression_t::is_reference_to(const std::set<symbol_t>& symbols) const
 {
     std::set<symbol_t> s;
-    get_symbols(s);
+    get_potential_symbols(s);
     return find_first_of(symbols.begin(), symbols.end(), s.begin(), s.end()) != symbols.end();
 }
 
@@ -741,24 +799,24 @@ bool expression_t::contains_deadlock() const
     return false;
 }
 
-bool expression_t::changes_variable(const std::set<symbol_t>& symbols) const
+bool expression_t::potentially_changes(const std::set<symbol_t>& symbols) const
 {
     auto changes = std::set<symbol_t>{};
-    collect_possible_writes(changes);
+    collect_potential_writes(changes);
     return find_first_of(symbols.begin(), symbols.end(), changes.begin(), changes.end()) != symbols.end();
 }
 
-bool expression_t::changes_any_variable() const
+bool expression_t::potentially_changes_some() const
 {
     auto changes = std::set<symbol_t>{};
-    collect_possible_writes(changes);
+    collect_potential_writes(changes);
     return !changes.empty();
 }
 
-bool expression_t::depends_on(const std::set<symbol_t>& symbols) const
+bool expression_t::potentially_depends_on(const std::set<symbol_t>& symbols) const
 {
-    std::set<symbol_t> dependencies;
-    collect_possible_reads(dependencies);
+    auto dependencies = std::set<symbol_t>{};
+    collect_potential_reads(dependencies);
     return find_first_of(symbols.begin(), symbols.end(), dependencies.begin(), dependencies.end()) != symbols.end();
 }
 
@@ -809,7 +867,7 @@ int expression_t::get_precedence(kind_t kind)
     case FUN_CALL:
     case FUN_CALL_EXT: return 110;
 
-    case ARRAY: return 105;
+    case SUBSCRIPT: return 105;
     case DOT:
     case RATE: return 100;
 
@@ -1081,7 +1139,7 @@ static const char* get_builtin_fun_name(kind_t kind)
 
 static inline std::ostream& embrace_strict(std::ostream& os, bool old, const expression_t& expr, int precedence)
 {
-    if (precedence > expr.get_precedence())
+    if (expr.get_kind() == INLINE_IF or precedence > expr.get_precedence())
         return expr.print(os << '(', old) << ')';
     else
         return expr.print(os, old);
@@ -1255,10 +1313,10 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         break;
 
     case IDENTIFIER: os << data->symbol.get_name(); break;
+    case ARRAY: os << data->symbol.get_name(); break;
 
     case VAR_INDEX:
     case CONSTANT:
-
         if (get_type().is(Constants::DOUBLE)) {
             os << get_double_value();
         } else if (get_type().is_string()) {
@@ -1271,7 +1329,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         }
         break;
 
-    case ARRAY:
+    case SUBSCRIPT:
         embrace_strict(os, old, get(0), precedence);
         get(1).print(os << '[', old) << ']';
         break;
@@ -1730,7 +1788,7 @@ std::string expression_t::str(bool old) const
     return os.str();
 }
 
-void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
+void expression_t::collect_potential_writes(set<symbol_t>& symbols) const
 {
     function_t* fun;
     symbol_t symbol;
@@ -1740,7 +1798,7 @@ void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
         return;
 
     for (uint32_t i = 0; i < get_size(); i++) {
-        get(i).collect_possible_writes(symbols);
+        get(i).collect_potential_writes(symbols);
     }
 
     switch (get_kind()) {
@@ -1758,7 +1816,7 @@ void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
     case POST_INCREMENT:
     case POST_DECREMENT:
     case PRE_INCREMENT:
-    case PRE_DECREMENT: get(0).get_symbols(symbols); break;
+    case PRE_DECREMENT: get(0).get_potential_symbols(symbols); break;
 
     case FUN_CALL:
     case FUN_CALL_EXT:
@@ -1766,14 +1824,13 @@ void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
         symbol = get(0).get_symbol();
         if ((symbol.get_type().is_function() || symbol.get_type().is_function_external()) && symbol.get_data()) {
             fun = (function_t*)symbol.get_data();
-
-            symbols.insert(fun->changes.begin(), fun->changes.end());
+            symbols.insert(fun->potential_writes.begin(), fun->potential_writes.end());
 
             // Add arguments to non-constant reference parameters
             type = fun->uid.get_type();
             for (uint32_t i = 1; i < min(get_size(), type.size()); i++) {
                 if (type[i].is(REF) && !type[i].is_constant()) {
-                    get(i).get_symbols(symbols);
+                    get(i).get_potential_symbols(symbols);
                 }
             }
         }
@@ -1783,13 +1840,67 @@ void expression_t::collect_possible_writes(set<symbol_t>& symbols) const
     }
 }
 
-void expression_t::collect_possible_reads(set<symbol_t>& symbols, bool collectRandom) const
+void expression_t::collect_sure_writes(set<symbol_t>& symbols) const
+{
+    function_t* fun;
+    symbol_t symbol;
+    type_t type;
+
+    if (empty())
+        return;
+
+    switch (get_kind()) {
+    case ASSIGN:
+    case ASS_PLUS:
+    case ASS_MINUS:
+    case ASS_DIV:
+    case ASS_MOD:
+    case ASS_MULT:
+    case ASS_AND:
+    case ASS_OR:
+    case ASS_XOR:
+    case ASS_LSHIFT:
+    case ASS_RSHIFT:
+    case POST_INCREMENT:
+    case POST_DECREMENT:
+    case PRE_INCREMENT:
+    case PRE_DECREMENT:
+        get(0).get_sure_symbols(symbols);
+        for (uint32_t i = 0; i < get_size(); ++i)
+            get(i).collect_sure_writes(symbols);
+        break;
+
+    case FUN_CALL:
+    case FUN_CALL_EXT:
+        // Add all symbols which are changed by the function
+        symbol = get(0).get_symbol();
+        if ((symbol.get_type().is_function() || symbol.get_type().is_function_external()) && symbol.get_data()) {
+            fun = (function_t*)symbol.get_data();
+            symbols.insert(fun->sure_writes.begin(), fun->sure_writes.end());
+            // Add arguments to non-constant reference parameters
+            type = fun->uid.get_type();
+            for (uint32_t i = 1; i < std::min(get_size(), type.size()); ++i)
+                if (type[i].is(REF) && !type[i].is_constant())
+                    get(i).get_sure_symbols(symbols);
+        }
+        break;
+    case INLINE_IF:
+        // TODO: add symbols if get(0) value is available at compile-time
+        // get(0).collect_sure_writes(symbols);
+        break;
+    default:
+        for (uint32_t i = 0; i < get_size(); ++i)
+            get(i).collect_sure_writes(symbols);
+    }
+}
+
+void expression_t::collect_potential_reads(set<symbol_t>& symbols, bool collectRandom) const
 {
     if (empty())
         return;
 
     for (uint32_t i = 0; i < get_size(); i++)
-        get(i).collect_possible_reads(symbols);
+        get(i).collect_potential_reads(symbols);
 
     switch (get_kind()) {
     case IDENTIFIER: symbols.insert(get_symbol()); break;
@@ -1800,7 +1911,57 @@ void expression_t::collect_possible_reads(set<symbol_t>& symbols, bool collectRa
         if (auto type = symbol.get_type(); type.is_function() || type.is_function_external()) {
             if (auto* data = symbol.get_data(); data) {
                 auto fun = static_cast<function_t*>(data);
-                symbols.insert(fun->depends.begin(), fun->depends.end());
+                symbols.insert(fun->potential_reads.begin(), fun->potential_reads.end());
+            }
+        }
+        break;
+    }
+    case RANDOM_F:
+    case RANDOM_POISSON_F:
+        if (collectRandom) {
+            symbols.insert(symbol_t());  // TODO: revisit, should register the argument?
+        }
+        break;
+    case RANDOM_ARCSINE_F:
+    case RANDOM_BETA_F:
+    case RANDOM_GAMMA_F:
+    case RANDOM_NORMAL_F:
+    case RANDOM_WEIBULL_F:
+        if (collectRandom) {
+            symbols.insert(symbol_t());  // TODO: revisit, should register the arguments?
+            symbols.insert(symbol_t());
+        }
+        break;
+
+    case RANDOM_TRI_F:
+        if (collectRandom) {
+            symbols.insert(symbol_t());  // TODO: revisit, should register the argument?
+            symbols.insert(symbol_t());
+            symbols.insert(symbol_t());
+        }
+        break;
+    default: break;
+    }
+}
+
+void expression_t::collect_sure_reads(set<symbol_t>& symbols, bool collectRandom) const
+{
+    if (empty())
+        return;
+
+    for (uint32_t i = 0; i < get_size(); i++)
+        get(i).collect_sure_reads(symbols);
+
+    switch (get_kind()) {
+    case IDENTIFIER: symbols.insert(get_symbol()); break;
+
+    case FUN_CALL: {
+        // Add all symbols which are used by the function
+        auto symbol = get(0).get_symbol();
+        if (auto type = symbol.get_type(); type.is_function() || type.is_function_external()) {
+            if (auto* data = symbol.get_data(); data) {
+                auto fun = static_cast<function_t*>(data);
+                symbols.insert(fun->sure_reads.begin(), fun->sure_reads.end());
             }
         }
         break;

@@ -143,8 +143,14 @@ public:
     bool returns() override;
 
     frame_t get_frame() { return frame; }
-    void push_stat(std::unique_ptr<Statement> stat);
-    std::unique_ptr<Statement> pop_stat();
+    void push(std::unique_ptr<Statement> stat);
+    template <typename SomeStatement, typename... Args>
+    void emplace(Args&&... args)
+    {
+        static_assert(std::is_base_of_v<Statement, SomeStatement>, "Should implement Statement");
+        push(std::make_unique<SomeStatement>(std::forward<Args>(args)...));
+    }
+    std::unique_ptr<Statement> pop();
     Statement* back();
     const_iterator begin() const;
     const_iterator end() const;
@@ -283,51 +289,150 @@ public:
 class ExpressionVisitor : public AbstractStatementVisitor
 {
 protected:
-    virtual void visitExpression(expression_t) = 0;
+    virtual void visitExpression(expression_t&) = 0;
 
 public:
     int32_t visitExprStatement(ExprStatement* stat) override;
     int32_t visitAssertStatement(AssertStatement* stat) override;
+    int32_t visitIfStatement(IfStatement* stat) override;
     int32_t visitForStatement(ForStatement* stat) override;
     int32_t visitWhileStatement(WhileStatement* stat) override;
     int32_t visitDoWhileStatement(DoWhileStatement* stat) override;
-    int32_t visitBlockStatement(BlockStatement* stat) override;
     int32_t visitSwitchStatement(SwitchStatement* stat) override;
+    int32_t visitBlockStatement(BlockStatement* stat) override;
     int32_t visitCaseStatement(CaseStatement* stat) override;
     int32_t visitDefaultStatement(DefaultStatement* stat) override;
-    int32_t visitIfStatement(IfStatement* stat) override;
     int32_t visitReturnStatement(ReturnStatement* stat) override;
 };
 
-class CollectChangesVisitor : public ExpressionVisitor
+/// Collects all symbols that the visited statement may be potentially depend on (for reading)
+class PotentialDependencyCollector : public ExpressionVisitor
 {
 protected:
-    void visitExpression(expression_t) override;
-    std::set<symbol_t>& changes;
-
-public:
-    explicit CollectChangesVisitor(std::set<symbol_t>& changes): changes{changes} {}
-};
-
-class CollectDependenciesVisitor : public ExpressionVisitor
-{
-protected:
-    void visitExpression(expression_t) override;
+    void visitExpression(expression_t& expr) override { expr.collect_potential_reads(dependencies); }
     std::set<symbol_t>& dependencies;
 
 public:
-    explicit CollectDependenciesVisitor(std::set<symbol_t>&);
+    explicit PotentialDependencyCollector(std::set<symbol_t>& deps): dependencies{deps} {}
 };
 
-class CollectDynamicExpressions : public ExpressionVisitor
+inline std::set<symbol_t> collect_potential_dependencies(Statement& statement)
+{
+    auto res = std::set<symbol_t>{};
+    auto visitor = PotentialDependencyCollector{res};
+    statement.accept(&visitor);
+    return res;
+}
+
+/// Collects all symbols that may be changed (written to) by the visited statement
+class PotentialChangeCollector : public ExpressionVisitor
 {
 protected:
-    void visitExpression(expression_t) override;
-    std::list<expression_t>& expressions;
+    void visitExpression(expression_t& expr) override { expr.collect_potential_writes(changes); }
+    std::set<symbol_t>& changes;
 
 public:
-    explicit CollectDynamicExpressions(std::list<expression_t>& expressions): expressions{expressions} {}
+    explicit PotentialChangeCollector(std::set<symbol_t>& changes): changes{changes} {}
 };
+
+inline std::set<symbol_t> collect_potential_changes(Statement& statement)
+{
+    auto res = std::set<symbol_t>{};
+    auto visitor = PotentialChangeCollector{res};
+    statement.accept(&visitor);
+    return res;
+}
+
+/// Collects symbols that the visited statement surely (always) depend on (for reading)
+class SureDependencyCollector : public ExpressionVisitor
+{
+protected:
+    void visitExpression(expression_t& expr) override { expr.collect_sure_reads(dependencies); }
+    std::set<symbol_t>& dependencies;
+
+public:
+    explicit SureDependencyCollector(std::set<symbol_t>& deps): dependencies{deps} {}
+};
+
+inline std::set<symbol_t> collect_sure_dependencies(Statement& statement)
+{
+    auto res = std::set<symbol_t>{};
+    auto visitor = SureDependencyCollector{res};
+    statement.accept(&visitor);
+    return res;
+}
+
+/// Collects symbols that are surely (always) changed by the visited statements
+class SureChangeCollector : public ExpressionVisitor
+{
+protected:
+    void visitExpression(expression_t& expr) override { expr.collect_sure_writes(changes); }
+    std::set<symbol_t>& changes;
+
+public:
+    explicit SureChangeCollector(std::set<symbol_t>& changes): changes{changes} {}
+    int32_t visitIfStatement(IfStatement* stat) override
+    {
+        visitExpression(stat->cond);
+        // TODO: visit trueCase or falseCase if cond known at compile-time
+        return 0;
+    }
+    int32_t visitForStatement(ForStatement* stat) override
+    {
+        visitExpression(stat->init);
+        visitExpression(stat->cond);
+        // TODO: visit step and block if cond is known at compile-time
+        return 0;
+    }
+    int32_t visitWhileStatement(WhileStatement* stat) override
+    {
+        visitExpression(stat->cond);
+        // TODO: visit step and block if cond is known at compile-time
+        return 0;
+    }
+    int32_t visitDoWhileStatement(DoWhileStatement* stat) override
+    {
+        auto res = stat->stat->accept(this);
+        visitExpression(stat->cond);
+        return res;
+    }
+    int32_t visitSwitchStatement(SwitchStatement* stat) override
+    {
+        visitExpression(stat->cond);
+        // TODO: visit specific case if cond is known at compile-time
+        return 0;
+    }
+};
+
+inline std::set<symbol_t> collect_sure_changes(Statement& statement)
+{
+    auto res = std::set<symbol_t>{};
+    auto visitor = SureChangeCollector{res};
+    statement.accept(&visitor);
+    return res;
+}
+
+class DynamicExprCollector final : public ExpressionVisitor
+{
+protected:
+    void visitExpression(expression_t& expr) override
+    {
+        if (expr.is_dynamic() || expr.has_dynamic_sub())
+            expressions.push_back(expr);
+    }
+    std::vector<expression_t>& expressions;
+
+public:
+    explicit DynamicExprCollector(std::vector<expression_t>& expressions): expressions{expressions} {}
+};
+
+inline std::vector<expression_t> collect_dynamic_expressions(Statement& statement)
+{
+    auto res = std::vector<expression_t>{};
+    auto visitor = DynamicExprCollector{res};
+    statement.accept(&visitor);
+    return res;
+}
 
 }  // namespace UTAP
 #endif /* UTAP_STATEMENT_H */

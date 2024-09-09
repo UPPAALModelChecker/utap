@@ -167,7 +167,7 @@ static bool isAssignable(type_t type)
     case Constants::COST:
     case Constants::SCALAR: return true;
 
-    case ARRAY: return isAssignable(type[0]);
+    case Constants::ARRAY: return isAssignable(type[0]);
 
     case RECORD:
         for (size_t i = 0; i < type.size(); i++) {
@@ -313,9 +313,10 @@ void TypeChecker::handleError(T expr, const std::string& msg)
 void TypeChecker::checkIgnoredValue(expression_t expr)
 {
     static const auto message = "$Expression_does_not_have_any_effect";
-    if (!expr.changes_any_variable() && expr.get_kind() != FUN_CALL_EXT) {
+    if (!expr.potentially_changes_some() && expr.get_kind() != FUN_CALL_EXT) {
         handleWarning(expr, message);
-    } else if (expr.get_kind() == COMMA && !expr[1].changes_any_variable() && expr[1].get_kind() != FUN_CALL_EXT) {
+    } else if (expr.get_kind() == COMMA and not expr[1].potentially_changes_some() and
+               expr[1].get_kind() != FUN_CALL_EXT) {
         handleWarning(expr[1], message);
     }
 }
@@ -332,7 +333,7 @@ bool TypeChecker::isCompileTimeComputable(expression_t expr) const
      * rid of the compileTimeComputableValues object.
      */
     std::set<symbol_t> reads;
-    expr.collect_possible_reads(reads, true);
+    expr.collect_potential_reads(reads, true);
     return std::all_of(reads.begin(), reads.end(), [this](const symbol_t& s) {
         return s != symbol_t{} && (s.get_type().is_function() || s.get_type().is_function_external() ||
                                    compileTimeComputableValues.contains(s));
@@ -482,10 +483,10 @@ void TypeChecker::visitDocAfter(Document& doc)
             }
 
             // Check index expressions
-            while (expr.get_kind() == ARRAY) {
+            while (expr.get_kind() == SUBSCRIPT) {
                 if (!isCompileTimeComputable(expr[1])) {
                     handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (i.head.changes_any_variable()) {
+                } else if (i.head.potentially_changes_some()) {
                     handleError(expr[1], "$Index_must_be_side-effect_free");
                 }
                 expr = expr[0];
@@ -507,10 +508,10 @@ void TypeChecker::visitDocAfter(Document& doc)
                 }
 
                 // Check index expressions
-                while (expr.get_kind() == ARRAY) {
+                while (expr.get_kind() == SUBSCRIPT) {
                     if (!isCompileTimeComputable(expr[1])) {
                         handleError(expr[1], "$Must_be_computable_at_compile_time");
-                    } else if (j.second.changes_any_variable()) {
+                    } else if (j.second.potentially_changes_some()) {
                         handleError(expr[1], "$Index_must_be_side-effect_free");
                     }
                     expr = expr[0];
@@ -525,7 +526,7 @@ void TypeChecker::visitHybridClock(expression_t e)
     if (checkExpression(e)) {
         if (!is_clock(e)) {
             handleError(e, "$Clock_expected");
-        } else if (e.changes_any_variable()) {
+        } else if (e.potentially_changes_some()) {
             handleError(e, "$Index_must_be_side-effect_free");
         }
         // Should be a check to identify the clock at compile time.
@@ -541,7 +542,7 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
                 handleError(e, "$Integer_expected");
             } else if (!isCompileTimeComputable(e)) {
                 handleError(e, "$Must_be_computable_at_compile_time");
-            } else if (e.changes_any_variable()) {
+            } else if (e.potentially_changes_some()) {
                 handleError(e, "$Index_must_be_side-effect_free");
             }
         }
@@ -582,10 +583,10 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
             }
 
             // Check index expressions
-            while (expr.get_kind() == ARRAY) {
+            while (expr.get_kind() == SUBSCRIPT) {
                 if (!isCompileTimeComputable(expr[1])) {
                     handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (expr.changes_any_variable()) {
+                } else if (expr.potentially_changes_some()) {
                     handleError(expr[1], "$Index_must_be_side-effect_free");
                 }
                 expr = expr[0];
@@ -606,10 +607,10 @@ void TypeChecker::visitIODecl(iodecl_t& iodecl)
             }
 
             // Check index expressions
-            while (expr.get_kind() == ARRAY) {
+            while (expr.get_kind() == SUBSCRIPT) {
                 if (!isCompileTimeComputable(expr[1])) {
                     handleError(expr[1], "$Must_be_computable_at_compile_time");
-                } else if (expr.changes_any_variable()) {
+                } else if (expr.potentially_changes_some()) {
                     handleError(expr[1], "$Index_must_be_side-effect_free");
                 }
                 expr = expr[0];
@@ -656,7 +657,7 @@ void TypeChecker::visitVariable(variable_t& variable)
     } else if (!variable.init.empty() && checkExpression(variable.init)) {
         if (!isCompileTimeComputable(variable.init)) {
             handleError(variable.init, "$Must_be_computable_at_compile_time");
-        } else if (variable.init.changes_any_variable()) {
+        } else if (variable.init.potentially_changes_some()) {
             handleError(variable.init, "$Initialiser_must_be_side-effect_free");
         } else {
             variable.init = checkInitialiser(variable.uid.get_type(), variable.init);
@@ -676,7 +677,7 @@ void TypeChecker::visitLocation(location_t& loc)
                 s += inv.get_type().str();
                 s += " $cannot_be_used_as_an_invariant";
                 handleError(inv, s);
-            } else if (inv.changes_any_variable()) {
+            } else if (inv.potentially_changes_some()) {
                 handleError(inv, "$Invariant_must_be_side-effect_free");
             } else {
                 RateDecomposer decomposer;
@@ -729,7 +730,7 @@ void TypeChecker::visitEdge(edge_t& edge)
                 s += edge.guard.get_type().str();
                 s += " $cannot_be_used_as_a_guard";
                 handleError(edge.guard, s);
-            } else if (edge.guard.changes_any_variable()) {
+            } else if (edge.guard.potentially_changes_some()) {
                 handleError(edge.guard, "$Guard_must_be_side-effect_free");
             }
             if (hasStrictLowerBound(edge.guard)) {
@@ -750,7 +751,7 @@ void TypeChecker::visitEdge(edge_t& edge)
             type_t channel = edge.sync.get(0).get_type();
             if (!channel.is_channel()) {
                 handleError(edge.sync.get(0), "$Channel_expected");
-            } else if (edge.sync.changes_any_variable()) {
+            } else if (edge.sync.potentially_changes_some()) {
                 handleError(edge.sync, "$Synchronisation_must_be_side-effect_free");
             } else {
                 bool hasClockGuard = !edge.guard.empty() && !is_integral(edge.guard);
@@ -855,7 +856,7 @@ void TypeChecker::visitEdge(edge_t& edge)
                 s += edge.prob.get_type().str();
                 s += " $cannot_be_used_as_a_probability";
                 handleError(edge.prob, s);
-            } else if (edge.prob.changes_any_variable()) {
+            } else if (edge.prob.potentially_changes_some()) {
                 handleError(edge.prob, "$Probability_must_be_side-effect_free");
             }
         }
@@ -873,7 +874,7 @@ void TypeChecker::visitMessage(message_t& message)
             type_t channel = message.label.get(0).get_type();
             if (!channel.is_channel()) {
                 handleError(message.label.get(0), "$Channel_expected");
-            } else if (message.label.changes_any_variable()) {
+            } else if (message.label.potentially_changes_some()) {
                 handleError(message.label, "$Message_must_be_side-effect_free");
             }
         }
@@ -889,7 +890,7 @@ void TypeChecker::visitCondition(condition_t& condition)
                 s += condition.label.get_type().str();
                 s += " $cannot_be_used_as_a_condition";
                 handleError(condition.label, s);
-            } else if (condition.label.changes_any_variable()) {
+            } else if (condition.label.potentially_changes_some()) {
                 handleError(condition.label, "$Condition_must_be_side-effect_free");
             }
         }
@@ -967,7 +968,7 @@ void TypeChecker::visitInstance(instance_t& instance)
         }
 
         // For template instantiation, the argument must be side-effect free
-        if (argument.changes_any_variable()) {
+        if (argument.potentially_changes_some()) {
             handleError(argument, "$Argument_must_be_side-effect_free");
             continue;
         }
@@ -1030,7 +1031,7 @@ static bool hasSpawnOrExit(expression_t expr)
 void TypeChecker::visitProperty(expression_t expr)
 {
     if (checkExpression(expr)) {
-        if (expr.changes_any_variable()) {
+        if (expr.potentially_changes_some()) {
             handleError(expr, "$Property_must_be_side-effect_free");
         }
         if (expr.get_kind() == LOAD_STRAT || expr.get_kind() == SAVE_STRAT) {
@@ -1202,50 +1203,43 @@ static bool validReturnType(type_t type)
     }
 }
 
-void TypeChecker::visitFunction(function_t& fun)
+void TypeChecker::visitFunction(function_t& fn)
 {
-    DocumentVisitor::visitFunction(fun);
-    /* Check that the return type is consistent and is a valid return
-     * type.
-     */
-    type_t return_type = fun.uid.get_type()[0];
+    DocumentVisitor::visitFunction(fn);
+    // Check that the return type is consistent and is a valid return type.
+    type_t return_type = fn.uid.get_type()[0];
     checkType(return_type);
-    if (!return_type.is_void() && !validReturnType(return_type)) {
+    if (!return_type.is_void() && !validReturnType(return_type))
         handleError(return_type, "$Invalid_return_type");
-    }
 
     /* Type check the function body: Type checking return statements
      * requires access to the return type, hence we store a pointer to
      * the current function being type checked in the \a function
      * member.
      */
-    function = &fun;
-    fun.body->accept(this);
+    function = &fn;
+    fn.body->accept(this);
     function = nullptr;
 
-    /* Check if there are dynamic expressions in the function body*/
-    checkDynamicExpressions(fun.body.get());
+    // Check if there are dynamic expressions in the function body
+    checkDynamicExpressions(fn.body.get());
 
     /* Collect identifiers of things external to the function accessed
      * or changed by the function. Notice that neither local variables
      * nor parameters are considered to be changed or accessed by a
-     * function.
-     */
-    CollectChangesVisitor visitor(fun.changes);
-    fun.body->accept(&visitor);
+     * function. */
+    fn.potential_reads = collect_potential_dependencies(*fn.body);
+    fn.potential_writes = collect_potential_changes(*fn.body);
+    fn.sure_reads = collect_sure_dependencies(*fn.body);
+    fn.sure_writes = collect_sure_changes(*fn.body);
 
-    CollectDependenciesVisitor visitor2(fun.depends);
-    fun.body->accept(&visitor2);
-
-    for (const auto& var : fun.variables) {
-        fun.changes.erase(var.uid);
-        fun.depends.erase(var.uid);
-    }
-    size_t parameters = fun.uid.get_type().size() - 1;
-    for (uint32_t i = 0; i < parameters; i++) {
-        fun.changes.erase(fun.body->get_frame()[i]);
-        fun.depends.erase(fun.body->get_frame()[i]);
-    }
+    // Remove local variables
+    for (const auto& var : fn.variables)
+        fn.remove_access(var.uid);
+    // Remove fn parameters
+    size_t parameters = fn.uid.get_type().size() - 1;
+    for (uint32_t i = 0; i < parameters; ++i)
+        fn.remove_access(fn.body->get_frame()[i]);
 }
 
 int32_t TypeChecker::visitEmptyStatement(EmptyStatement* stat) { return 0; }
@@ -1258,7 +1252,7 @@ int32_t TypeChecker::visitExprStatement(ExprStatement* stat)
 
 int32_t TypeChecker::visitAssertStatement(AssertStatement* stat)
 {
-    if (checkExpression(stat->expr) && stat->expr.changes_any_variable()) {
+    if (checkExpression(stat->expr) && stat->expr.potentially_changes_some()) {
         handleError(stat->expr, "$Assertion_must_be_side-effect_free");
     }
     return 0;
@@ -1323,7 +1317,7 @@ int32_t TypeChecker::visitBlockStatement(BlockStatement* stat)
         if (auto* d = symbol.get_data(); d) {
             variable_t* var = static_cast<variable_t*>(d);
             if (!var->init.empty() && checkExpression(var->init)) {
-                if (var->init.changes_any_variable()) {
+                if (var->init.potentially_changes_some()) {
                     /* This is stronger than C. However side-effects in
                      * initialisers are nasty: For records, the evaluation
                      * order may be different from the order in the input
@@ -2139,7 +2133,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         return result;
     }
 
-    case ARRAY:
+    case SUBSCRIPT:
         arg1 = expr[0].get_type();
         arg2 = expr[1].get_type();
 
@@ -2182,7 +2176,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr[1], "$Boolean_expected");
         }
 
-        if (expr[1].changes_any_variable()) {
+        if (expr[1].potentially_changes_some()) {
             handleError(expr[1], "$Expression_must_be_side-effect_free");
         }
         break;
@@ -2199,7 +2193,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr[1], "$Boolean_expected");
         }
 
-        if (expr[1].changes_any_variable()) {
+        if (expr[1].potentially_changes_some()) {
             handleError(expr[1], "$Expression_must_be_side-effect_free");
         }
         break;
@@ -2216,7 +2210,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             handleError(expr[1], "$Number_expected");
         }
 
-        if (expr[1].changes_any_variable()) {
+        if (expr[1].potentially_changes_some()) {
             handleError(expr[1], "$Expression_must_be_side-effect_free");
         }
         break;
@@ -2284,7 +2278,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 handleError(expr[nb], "$Boolean_expected");
                 ok = false;
             }
-            if (expr[nb].changes_any_variable()) {  // check reachability expression is side effect free
+            if (expr[nb].potentially_changes_some()) {  // check reachability expression is side effect free
                 handleError(expr[nb], "$Property_must_be_side-effect_free");
                 ok = false;
             }
@@ -2298,7 +2292,7 @@ bool TypeChecker::checkExpression(expression_t expr)
                 handleError(expr[i], "$Integer_or_clock_expected");
                 return false;
             }
-            if (expr[i].changes_any_variable()) {
+            if (expr[i].potentially_changes_some()) {
                 handleError(expr[i], "$Property_must_be_side-effect_free");
                 return false;
             }
@@ -2317,7 +2311,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         if (expr[1].get_kind() == LIST) {
             for (uint32_t i = 0; i < expr[1].get_size(); ++i) {
                 if (is_integral(expr[1][i])) {
-                    if (expr[1][i].changes_any_variable()) {
+                    if (expr[1][i].potentially_changes_some()) {
                         handleError(expr[1][i], "$Expression_must_be_side-effect_free");
                         return false;
                     }
@@ -2358,7 +2352,7 @@ bool TypeChecker::checkExpression(expression_t expr)
             type = type_t::create_primitive(FORMULA);
 
         for (size_t i = 3; i < expr.get_size(); ++i) {
-            if (expr[i].changes_any_variable()) {
+            if (expr[i].potentially_changes_some()) {
                 handleError(expr[i], "$Property_must_be_side-effect_free");
                 return false;
             }
@@ -2488,7 +2482,7 @@ bool TypeChecker::isModifiableLValue(expression_t expr) const
         // REVISIT: Not correct if records contain constant fields.
         return isModifiableLValue(expr[0]);
 
-    case ARRAY: return isModifiableLValue(expr[0]);
+    case SUBSCRIPT: return isModifiableLValue(expr[0]);
 
     case PRE_INCREMENT:
     case PRE_DECREMENT:
@@ -2541,7 +2535,7 @@ bool TypeChecker::isLValue(expression_t expr) const
     case ASS_RSHIFT: return true;
 
     case DOT:
-    case ARRAY: return isLValue(expr[0]);
+    case SUBSCRIPT: return isLValue(expr[0]);
 
     case INLINE_IF:
         return isLValue(expr[1]) && isLValue(expr[2]) && areEquivalent(expr[1].get_type(), expr[2].get_type());
@@ -2569,7 +2563,7 @@ bool TypeChecker::isUniqueReference(expression_t expr) const
 
     case DOT: return isUniqueReference(expr[0]);
 
-    case ARRAY: return isUniqueReference(expr[0]) && isCompileTimeComputable(expr[1]);
+    case SUBSCRIPT: return isUniqueReference(expr[0]) && isCompileTimeComputable(expr[1]);
 
     case PRE_INCREMENT:
     case PRE_DECREMENT:
@@ -2695,10 +2689,8 @@ bool TypeChecker::checkSpawnParameterCompatible(type_t param, expression_t arg)
 
 bool TypeChecker::checkDynamicExpressions(Statement* stat)
 {
-    std::list<expression_t> expr_list;
-    CollectDynamicExpressions e(expr_list);
-    stat->accept(&e);
     bool ok = true;
+    auto expr_list = collect_dynamic_expressions(*stat);
     for (const auto& expr : expr_list) {
         ok = false;
         handleError(expr, "Dynamic constructs are only allowed on edges!");
@@ -2747,7 +2739,7 @@ bool TypeChecker::checkPredicate(const expression_t& predicate)
         handleError(predicate, "$Boolean_expected");
         return false;
     }
-    if (predicate.changes_any_variable()) {  // check reachability expression is side effect free
+    if (predicate.potentially_changes_some()) {  // check reachability expression is side effect free
         handleError(predicate, "$Property_must_be_side-effect_free");
         return false;
     }
@@ -2784,7 +2776,7 @@ bool TypeChecker::checkMonitoredExpr(const expression_t& expr)
         handleError(expr, "$Integer_or_clock_expected");
         return false;
     }
-    if (expr.changes_any_variable()) {
+    if (expr.potentially_changes_some()) {
         handleError(expr, "$Property_must_be_side-effect_free");
         return false;
     }

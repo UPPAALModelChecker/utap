@@ -201,7 +201,7 @@ void ExpressionBuilder::type_void()
 static void collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
 {
     std::set<symbol_t> symbols;
-    expr.collect_possible_reads(symbols);
+    expr.collect_potential_reads(symbols);
     while (!symbols.empty()) {
         symbol_t s = *symbols.begin();
         symbols.erase(s);
@@ -209,7 +209,7 @@ static void collectDependencies(std::set<symbol_t>& dependencies, expression_t e
             dependencies.insert(s);
             if (auto* data = s.get_data(); data) {
                 variable_t* v = static_cast<variable_t*>(data);
-                v->init.collect_possible_reads(symbols);
+                v->init.collect_potential_reads(symbols);
             }
         }
     }
@@ -370,7 +370,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
         e.set_type(type);
         for (size_t i = 1; i < expr.size(); i++) {
             type = type.get_sub();
-            e = expression_t::create_binary(ARRAY, e, expr[i], position, type);
+            e = expression_t::create_binary(SUBSCRIPT, e, expr[i], position, type);
         }
         break;
 
@@ -399,7 +399,7 @@ void ExpressionBuilder::expr_array()
         element = type_t();
     }
 
-    fragments.push(expression_t::create_binary(ARRAY, var, index, position, element));
+    fragments.push(expression_t::create_binary(SUBSCRIPT, var, index, position, element));
 }
 
 // 1 expr
