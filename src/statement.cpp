@@ -102,7 +102,7 @@ string DoWhileStatement::str(const string& prefix) const
     return prefix + "do {\n" + stat->str(prefix + INDENT) + prefix + "}";
 }
 
-void BlockStatement::push_stat(std::unique_ptr<Statement> stat)
+void BlockStatement::push(std::unique_ptr<Statement> stat)
 {
     assert(stat != nullptr);
     stats.push_back(std::move(stat));
@@ -122,7 +122,7 @@ Statement* BlockStatement::back()
     return stats.back().get();
 }
 
-std::unique_ptr<Statement> BlockStatement::pop_stat()
+std::unique_ptr<Statement> BlockStatement::pop()
 {
     std::unique_ptr<Statement> st = std::move(stats.back());
     stats.pop_back();
@@ -288,8 +288,9 @@ int32_t ExpressionVisitor::visitWhileStatement(WhileStatement* stat)
 
 int32_t ExpressionVisitor::visitDoWhileStatement(DoWhileStatement* stat)
 {
+    auto res = stat->stat->accept(this);
     visitExpression(stat->cond);
-    return stat->stat->accept(this);
+    return res;
 }
 
 int32_t ExpressionVisitor::visitBlockStatement(BlockStatement* stat)
@@ -337,16 +338,4 @@ int32_t ExpressionVisitor::visitReturnStatement(ReturnStatement* stat)
 {
     visitExpression(stat->value);
     return 0;
-}
-
-void CollectChangesVisitor::visitExpression(expression_t expr) { expr.collect_possible_writes(changes); }
-
-CollectDependenciesVisitor::CollectDependenciesVisitor(std::set<symbol_t>& dependencies): dependencies(dependencies) {}
-
-void CollectDependenciesVisitor::visitExpression(expression_t expr) { expr.collect_possible_reads(dependencies); }
-
-void CollectDynamicExpressions::visitExpression(expression_t expr)
-{
-    if (expr.is_dynamic() || expr.has_dynamic_sub())
-        expressions.push_back(expr);
 }

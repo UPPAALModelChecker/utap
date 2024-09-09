@@ -128,12 +128,21 @@ class BlockStatement;  // Forward declaration
 */
 struct function_t : stringify_t<function_t>
 {
-    symbol_t uid;                                  /**< The symbol of the function. */
-    std::set<symbol_t> changes{};                  /**< Variables changed by this function. */
-    std::set<symbol_t> depends{};                  /**< Variables the function depends on. */
-    std::list<variable_t> variables{};             /**< Local variables. List is used for stable pointers. */
+    symbol_t uid;                                  ///< The symbol of the function.
+    std::set<symbol_t> potential_reads{};          ///< May potentially read from
+    std::set<symbol_t> potential_writes{};         ///< May potentially write to
+    std::set<symbol_t> sure_reads{};               ///< Surely (always) reads from
+    std::set<symbol_t> sure_writes{};              ///< Surely (always) writes to
+    std::list<variable_t> variables{};             ///< Local variables. List is used for stable pointers.
     std::unique_ptr<BlockStatement> body{nullptr}; /**< Pointer to the block. */
     function_t() = default;
+    void remove_access(const symbol_t& symb)
+    {
+        potential_reads.erase(symb);
+        potential_writes.erase(symb);
+        sure_reads.erase(symb);
+        sure_writes.erase(symb);
+    }
     std::ostream& print(std::ostream& os) const; /**< textual representation, used to write the XML file */
 };
 

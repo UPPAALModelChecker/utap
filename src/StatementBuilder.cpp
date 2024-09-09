@@ -50,7 +50,7 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
 void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, expression_t expr)
 {
     std::set<symbol_t> symbols;
-    expr.collect_possible_reads(symbols);
+    expr.collect_potential_reads(symbols);
     while (!symbols.empty()) {
         symbol_t s = *symbols.begin();
         symbols.erase(s);
@@ -60,7 +60,7 @@ void StatementBuilder::collectDependencies(std::set<symbol_t>& dependencies, exp
                 if (auto t = s.get_type(); !(t.is_function() || t.is_function_external())) {
                     // assume is its variable, which is not always true
                     variable_t* v = static_cast<variable_t*>(d);
-                    v->init.collect_possible_reads(symbols);
+                    v->init.collect_potential_reads(symbols);
                 } else {
                     // TODO; fixme.
                 }
@@ -194,9 +194,8 @@ static bool initialisable(type_t type)
         return true;
 
     case ARRAY:
-        if (type.get_array_size().is_scalar()) {
+        if (type.get_array_size().is_scalar())
             return false;
-        }
         return initialisable(type.get_sub());
     case STRING: return true;
     default: return type.is_integral() || type.is_clock() || type.is_double();
@@ -476,22 +475,19 @@ void StatementBuilder::block_end()
     // the containing block.
     std::unique_ptr<BlockStatement> block = std::move(blocks.back());
     blocks.pop_back();
-    get_block().push_stat(std::move(block));
+    get_block().push(std::move(block));
 
     // Restore containing frame
     popFrame();
 }
 
-void StatementBuilder::empty_statement() { get_block().push_stat(std::make_unique<EmptyStatement>()); }
+void StatementBuilder::empty_statement() { get_block().push(std::make_unique<EmptyStatement>()); }
 
 void StatementBuilder::for_begin() {}
 
 void StatementBuilder::for_end()
 {  // 3 expr, 1 stat
-    auto substat = get_block().pop_stat();
-    auto forstat = std::make_unique<ForStatement>(fragments[2], fragments[1], fragments[0], std::move(substat));
-    get_block().push_stat(std::move(forstat));
-
+    get_block().emplace<ForStatement>(fragments[2], fragments[1], fragments[0], get_block().pop());
     fragments.pop(3);
 }
 
@@ -518,14 +514,14 @@ void StatementBuilder::iteration_begin(const char* name)
      * this here as the statement is the only thing that can keep the
      * reference to the frame.
      */
-    get_block().push_stat(std::make_unique<IterationStatement>(variable->uid, frames.top(), nullptr));
+    get_block().emplace<IterationStatement>(variable->uid, frames.top(), nullptr);
 }
 
 void StatementBuilder::iteration_end(const char* name)
 {
     /* Retrieve the statement that we iterate over.
      */
-    auto statement = get_block().pop_stat();
+    auto statement = get_block().pop();
 
     if (!get_block().empty()) {
         // If the syntax is wrong, we won't have anything in blocks.back()
@@ -542,8 +538,8 @@ void StatementBuilder::while_begin() {}
 
 void StatementBuilder::while_end()
 {  // 1 expr, 1 stat
-    auto whilestat = std::make_unique<WhileStatement>(fragments[0], get_block().pop_stat());
-    get_block().push_stat(std::move(whilestat));
+    auto whilestat = std::make_unique<WhileStatement>(fragments[0], get_block().pop());
+    get_block().push(std::move(whilestat));
     fragments.pop();
 }
 
@@ -551,8 +547,8 @@ void StatementBuilder::do_while_begin() {}
 
 void StatementBuilder::do_while_end()
 {  // 1 stat, 1 expr
-    auto substat = get_block().pop_stat();
-    get_block().push_stat(std::make_unique<DoWhileStatement>(std::move(substat), fragments[0]));
+    auto substat = get_block().pop();
+    get_block().push(std::make_unique<DoWhileStatement>(std::move(substat), fragments[0]));
     fragments.pop();
 }
 
@@ -560,16 +556,16 @@ void StatementBuilder::if_end(bool elsePart)
 {  // 1 expr, 1 or 2 statements
     std::unique_ptr<Statement> falseCase;
     if (elsePart)
-        falseCase = get_block().pop_stat();
-    auto trueCase = get_block().pop_stat();
+        falseCase = get_block().pop();
+    auto trueCase = get_block().pop();
     auto ifstat = std::make_unique<IfStatement>(fragments[0], std::move(trueCase), std::move(falseCase));
-    get_block().push_stat(std::move(ifstat));
+    get_block().push(std::move(ifstat));
     fragments.pop();
 }
 
 void StatementBuilder::expr_statement()
 {  // 1 expr
-    get_block().push_stat(std::make_unique<ExprStatement>(fragments[0]));
+    get_block().push(std::make_unique<ExprStatement>(fragments[0]));
     fragments.pop();
 }
 
@@ -595,13 +591,13 @@ void StatementBuilder::return_statement(bool args)
         } else {
             stat = std::make_unique<ReturnStatement>();
         }
-        get_block().push_stat(std::move(stat));
+        get_block().push(std::move(stat));
     }
 }
 
 void StatementBuilder::assert_statement()
 {
-    get_block().push_stat(std::make_unique<AssertStatement>(fragments[0]));
+    get_block().push(std::make_unique<AssertStatement>(fragments[0]));
     fragments.pop();
 }
 

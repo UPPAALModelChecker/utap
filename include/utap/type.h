@@ -351,44 +351,43 @@ public:
      * could be anything and it is the responsibility of the
      * caller to make sure that the given kind is a valid prefix.
      */
-    type_t create_prefix(Constants::kind_t kind, position_t = position_t()) const;
+    type_t create_prefix(Constants::kind_t kind, position_t = {}) const;
 
     /** Creates a LABEL. */
-    type_t create_label(std::string, position_t = position_t()) const;
+    type_t create_label(std::string, position_t = {}) const;
 
     /**
      */
-    static type_t create_range(type_t, expression_t, expression_t, position_t = position_t());
+    static type_t create_range(type_t, expression_t lower, expression_t upper, position_t = {});
 
     /** Create a primitive type. */
-    static type_t create_primitive(Constants::kind_t, position_t = position_t());
+    static type_t create_primitive(Constants::kind_t, position_t = {});
 
     /** Creates an array type. */
-    static type_t create_array(type_t sub, type_t size, position_t = position_t());
+    static type_t create_array(type_t sub, type_t size, position_t = {});
 
     /** Creates a new type definition. */
-    static type_t create_typedef(std::string, type_t, position_t = position_t());
+    static type_t create_typedef(std::string, type_t, position_t = {});
 
     /** Creates a new process type. */
-    static type_t create_process(frame_t, position_t = position_t());
+    static type_t create_process(frame_t, position_t = {});
 
     /** Creates a new processset type. */
-    static type_t create_process_set(type_t instance, position_t = position_t());
+    static type_t create_process_set(type_t instance, position_t = {});
 
     /** Creates a new record type */
-    static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = position_t());
+    static type_t create_record(const std::vector<type_t>&, const std::vector<std::string>&, position_t = {});
 
     /** Creates a new function type */
-    static type_t create_function(type_t, const std::vector<type_t>&, const std::vector<std::string>&,
-                                  position_t = position_t());
+    static type_t create_function(type_t, const std::vector<type_t>&, const std::vector<std::string>&, position_t = {});
 
     static type_t create_external_function(type_t rt, const std::vector<type_t>&, const std::vector<std::string>&,
-                                           position_t = position_t());
+                                           position_t = {});
 
     /** Creates a new instance type */
-    static type_t create_instance(frame_t, position_t = position_t());
+    static type_t create_instance(frame_t, position_t = {});
     /** Creates a new lsc instance type */
-    static type_t create_LSC_instance(frame_t, position_t = position_t());
+    static type_t create_LSC_instance(frame_t, position_t = {});
 };
 }  // namespace UTAP
 

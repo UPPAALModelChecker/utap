@@ -72,6 +72,7 @@ private:
     struct expression_data;
     std::shared_ptr<expression_data> data = nullptr;  // PIMPL pattern with cheap/shallow copying
     expression_t(Constants::kind_t, const position_t&);
+    expression_t(std::unique_ptr<expression_data> data);
 
 public:
     /** Default constructor. Creates an empty expression. */
@@ -169,7 +170,7 @@ public:
     symbol_t get_symbol();
 
     /**
-     * Returns the set of symbols this expression might resolve
+     * Returns the set of potential symbols this expression might resolve
      * into. In case of inline if, both the 'true' and 'false'
      * branch is added. In case of dot-expressions, both the left
      * hand reference and the member field are returned.
@@ -178,7 +179,8 @@ public:
      * (s.f).get_symbol() returns 's,f'
      * (i<1?j:k).get_symbol() returns 'j,k'
      */
-    void get_symbols(std::set<symbol_t>& symbols) const;
+    void get_potential_symbols(std::set<symbol_t>& symbols) const;
+    void get_sure_symbols(std::set<symbol_t>& symbols) const;
 
     /** Returns the symbol this expression evaluates to. Notice
         that not all expression evaluate to a symbol. */
@@ -190,19 +192,24 @@ public:
 
     /** Returns true if the expression contains deadlock expression */
     bool contains_deadlock() const;
-    /** True if this expression can change any of the variables
-            identified by the given symbols. */
-    bool changes_variable(const std::set<symbol_t>&) const;
+    /// True if this expression potentially changes any of the symbols. */
+    bool potentially_changes(const std::set<symbol_t>& symbols) const;
 
-    /** True if this expression can change any variable at all. */
-    bool changes_any_variable() const;
+    /// True if this expression can change any variable at all. */
+    bool potentially_changes_some() const;
 
-    /** True if the evaluation of this expression depends on
-        any of the symbols in the given set. */
-    bool depends_on(const std::set<symbol_t>&) const;
+    /// True if the evaluation of this expression depends on any of the symbols
+    bool potentially_depends_on(const std::set<symbol_t>& symbols) const;
 
-    void collect_possible_writes(std::set<symbol_t>&) const;
-    void collect_possible_reads(std::set<symbol_t>&, bool collectRandom = false) const;
+    /// collects symbols that may potentially be read by the expression
+    void collect_potential_reads(std::set<symbol_t>&, bool collectRandom = false) const;
+    /// collects symbols are to be read by the expression for sure
+    void collect_sure_reads(std::set<symbol_t>&, bool collectRandom = false) const;
+
+    /// collects symbols that may potentially be written by the expression
+    void collect_potential_writes(std::set<symbol_t>&) const;
+    /// collects symbols that are going to be written by the expression for sure
+    void collect_sure_writes(std::set<symbol_t>&) const;
 
     /** Less-than operator. Makes it possible to put expression_t
         objects into an STL set. */
