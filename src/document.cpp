@@ -758,6 +758,7 @@ std::ostream& chan_priority_t::print(std::ostream& os) const
 
 Document::Document()
 {
+    std::cout << "TEST GETLIBS TEST %%%%" << std::endl;
     global.frame = frame_t::create();
 #ifdef ENABLE_CORA
     addVariable(&global, type_t::create_primitive(COST), "cost", expression_t());
