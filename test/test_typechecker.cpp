@@ -474,3 +474,84 @@ TEST_CASE("Nested structs")
     auto errs = doc->get_errors();
     CHECK(errs.size() == 1);
 }
+
+TEST_CASE("Function calls in queries")
+{
+    auto doc = read_document("function_calls.xml");
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    SUBCASE("Correct")
+    {
+        auto res = parseProperty("simulate[<=5;3] { v, enabled(1) } : 2 : enabled(1)", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        const auto expr = builder->getQuery();
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+    }
+    SUBCASE("Predicate misses argument")
+    {
+        auto res = parseProperty("simulate[<=5;3] { v, enabled(1) } : 2 : enabled()", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        const auto expr = builder->getQuery();
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+    }
+    SUBCASE("Monitored expression misses argument")
+    {
+        auto res = parseProperty("simulate[<=5;3] { v, enabled() } : 2 : enabled(1)", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        auto expr = builder->getQuery();
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+    }
+    SUBCASE("Missing arguments in both calls")
+    {
+        auto res = parseProperty("simulate[<=5;3] { v, enabled() } : 2 : enabled()", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        auto expr = builder->getQuery();
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+    }
+    SUBCASE("Non-existent fn")
+    {
+        auto res = parseProperty("simulate[<=5;3] { v, non_existent() }:2:non_existent()", builder.get());
+        REQUIRE(res == 0);
+        builder->typecheck();
+        auto expr = builder->getQuery();
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+    }
+}

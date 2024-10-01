@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>int v;
+
+bool enabled(int i) {
+    return (i&gt;0);
+}
+</declaration>
+	<template>
+		<name x="5" y="5">P</name>
+		<location id="id0" x="136" y="0">
+			<name x="126" y="-34">Done</name>
+		</location>
+		<location id="id1" x="0" y="0">
+			<urgent/>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="25" y="-25">enabled(1)</label>
+			<label kind="assignment" x="25" y="0">v=1</label>
+		</transition>
+	</template>
+	<system>system P;</system>
+	<queries>
+		<query>
+			<formula>simulate[&lt;=1;2] { v } : 1 : enabled(1)</formula>
+			<comment/>
+			<result outcome="success" type="interval" value="≥ 0.025 (95% CI)" timestamp="2024-09-30 14:30:30 +0200">
+				<details>≥ 0.025 (95% CI)</details>
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="v" type="l" color="0xff0000" encoding="csv">0.0,-1.0
+					</series>
+					<comment/>
+				</plot>
+			</result>
+		</query>
+		<query>
+			<formula>simulate[&lt;=1;2] { v } : 1 : enabled()</formula>
+			<comment/>
+		</query>
+	</queries>
+</nta>
