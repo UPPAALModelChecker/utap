@@ -144,6 +144,12 @@ enum kind_t {
     ASS_RSHIFT,
 
     /*******************************************************
+     * T-ATL Quantifiers
+     */
+    ATL_ENFORCE_F,
+    ATL_DESPITE_F,
+
+    /*******************************************************
      * CTL Quantifiers
      */
     EF,

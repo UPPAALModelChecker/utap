@@ -537,3 +537,25 @@ TEST_CASE("Increment with multiple array subscripting and dot accessing")
 
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
+
+TEST_CASE("T-ALT properties")
+{
+    auto doc = std::make_unique<UTAP::Document>();
+    auto builder = std::make_unique<QueryBuilder>(*doc);
+    SUBCASE("Basic EnforceF property")
+    {
+        auto res = parseProperty("<< A >> <> true", builder.get());
+        REQUIRE(res == 0);
+        auto expr = builder->getQuery();
+        CHECK(expr.get_size() == 1);
+        CHECK(expr.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
+    }
+    SUBCASE("Basic DespiteF property")
+    {
+        auto res = parseProperty("[[ A ]] <> true", builder.get());
+        REQUIRE(res == 0);
+        auto expr = builder->getQuery();
+        CHECK(expr.get_size() == 1);
+        CHECK(expr.get_kind() == UTAP::Constants::ATL_DESPITE_F);
+    }
+}

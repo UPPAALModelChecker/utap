@@ -129,6 +129,8 @@ idchr        [a-zA-Z0-9_$#]
 "&&"        { return T_BOOL_AND; }
 "/\\"       { return T_MITL_AND; }
 "\\/"       { return T_MITL_OR; }
+"[["        { return T_LBRBR; }
+"]]"        { return T_RBRBR; }
 
 "<="        { return T_LEQ; }
 ">="        { return T_GEQ; }

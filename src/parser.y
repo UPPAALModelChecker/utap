@@ -283,6 +283,9 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
+/* T-ATL */
+%token T_LBRBR T_RBRBR
+
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
@@ -1733,8 +1736,17 @@ Query:
 BoolOrKWAnd:
         T_KW_AND | T_BOOL_AND;
 
+SubPropertyOrExpression:
+    SubProperty | Expression;
+
 SubProperty:
-        T_AF Expression {
+    T_LSHIFT 'A' T_RSHIFT T_DIAMOND SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_ENFORCE_F));
+    }
+    | T_LBRBR 'A' T_RBRBR T_DIAMOND SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_DESPITE_F));
+    }
+    | T_AF Expression {
 	    CALL(@1, @2, expr_unary(AF));
 	}
         | T_AG '(' Expression BoolOrKWAnd T_AF Expression ')' {

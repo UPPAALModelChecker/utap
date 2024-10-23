@@ -444,6 +444,9 @@ size_t expression_t::get_size() const
     case SIMULATEREACH:
     case SPAWN: return std::get<int32_t>(data->value);
 
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F: assert(data->sub.size() == 1); return 1;
+
     case EG:
     case AG:
     case EF:
