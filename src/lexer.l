@@ -161,6 +161,7 @@ idchr        [a-zA-Z0-9_$#]
 "R"             { return 'R'; }
 "W"             { return 'W'; }
 "E"             { return 'E'; }
+"X"             { return 'X'; }
 
 "A<>"           { return T_AF; }
 "A[]"           { return T_AG; }

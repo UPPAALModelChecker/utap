@@ -283,7 +283,7 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-/* T-ATL */
+/* ATL */
 %token T_LBRBR T_RBRBR
 
 %type <kind> ExpQuantifier ExpPrQuantifier
@@ -302,7 +302,7 @@ const char* utap_msg(const char *msg)
 %right T_AF T_AG T_EF T_EG 'A'  'M'
 %right T_AG_PLUS T_EF_PLUS T_AG_MULT T_EF_MULT
 %right T_PMAX T_SCENARIO
-%left 'U' 'W' 'R'
+%left 'U' 'W' 'R' 'X'
 %right T_FORALL T_EXISTS T_SUM
 %right T_ASSIGNMENT T_ASSPLUS T_ASSMINUS T_ASSMULT T_ASSDIV T_ASSMOD T_ASSAND T_ASSOR T_ASSLSHIFT T_ASSRSHIFT T_ASSXOR
 %right '?' ':'
@@ -320,7 +320,7 @@ const char* utap_msg(const char *msg)
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
 %right T_INCREMENT T_DECREMENT
-%left '(' ')' '[' ']' '.' '\''
+%left '(' ')' '[' ']' '.' '\'' T_LBRBR T_RBRBR
 
 
 %union {
@@ -1740,11 +1740,29 @@ SubPropertyOrExpression:
     SubProperty | Expression;
 
 SubProperty:
-    T_LSHIFT 'A' T_RSHIFT T_DIAMOND SubPropertyOrExpression {
+    T_LSHIFT 'A' T_RSHIFT '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
+        CALL(@1, @8, expr_binary(ATL_ENFORCE_UNTIL));
+    }
+    | T_LBRBR 'A' T_RBRBR '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
+        CALL(@1, @8, expr_binary(ATL_DESPITE_UNTIL));
+    }
+    | T_LSHIFT 'A' T_RSHIFT T_DIAMOND SubPropertyOrExpression {
         CALL(@1, @5, expr_unary(ATL_ENFORCE_F));
     }
     | T_LBRBR 'A' T_RBRBR T_DIAMOND SubPropertyOrExpression {
         CALL(@1, @5, expr_unary(ATL_DESPITE_F));
+    }
+    | T_LSHIFT 'A' T_RSHIFT T_BOX SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_ENFORCE_G));
+    }
+    | T_LBRBR 'A' T_RBRBR T_BOX SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_DESPITE_G));
+    }
+    | T_LSHIFT 'A' T_RSHIFT 'X' SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_ENFORCE_NEXT));
+    }
+    | T_LBRBR 'A' T_RBRBR 'X' SubPropertyOrExpression {
+        CALL(@1, @5, expr_unary(ATL_DESPITE_NEXT));
     }
     | T_AF Expression {
 	    CALL(@1, @2, expr_unary(AF));

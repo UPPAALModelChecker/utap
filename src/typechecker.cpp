@@ -2221,6 +2221,26 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
         break;
 
+    case ATL_ENFORCE_UNTIL:
+    case ATL_DESPITE_UNTIL:
+        // TODO: Check coalition
+        if (is_formula(expr[0]) && is_formula(expr[1])) {
+            type = type_t::create_primitive(FORMULA);
+        }
+        break;
+
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F:
+    case ATL_ENFORCE_G:
+    case ATL_DESPITE_G:
+    case ATL_ENFORCE_NEXT:
+    case ATL_DESPITE_NEXT:
+        // TODO: Check coalition
+        if (is_formula(expr[0])) {
+            type = type_t::create_primitive(FORMULA);
+        }
+        break;
+
     case AF:
     case AG:
     case EF:

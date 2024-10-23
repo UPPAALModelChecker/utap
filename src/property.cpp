@@ -479,3 +479,20 @@ void TigaPropertyBuilder::expr_optimize(int, int, int, int)
 {
     // nothing for now
 }
+void AtlPropertyBuilder::typeProperty(UTAP::expression_t expr)
+{
+    switch (expr.get_kind()) {
+    case ATL_ENFORCE_UNTIL:
+    case ATL_DESPITE_UNTIL:
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F:
+    case ATL_ENFORCE_G:
+    case ATL_DESPITE_G:
+    case ATL_ENFORCE_NEXT:
+    case ATL_DESPITE_NEXT:
+        properties.back().type = quant_t::Atl;
+        break;
+    default:
+        TigaPropertyBuilder::typeProperty(expr);
+    }
+}

@@ -58,6 +58,9 @@ enum class quant_t {
     probaSimulateReach,  // simulate [...] { ... } : n : p
     Mitl,
 
+    /* ATL quantifiers: */
+    Atl,
+
     /* TIGA quantifiers for controller synthesis:
      * - A[ p U q ] : AUntil
      * - A[ p W q ] : AWeakUntil
@@ -241,7 +244,7 @@ public:
     bool isSMC(UTAP::expression_t* expr = nullptr);
 };
 
-class TigaPropertyBuilder final : public PropertyBuilder
+class TigaPropertyBuilder : public PropertyBuilder
 {
 protected:
     std::map<std::string, PropInfo*> declarations{};
@@ -264,6 +267,15 @@ public:
        virtual void paramProperty(size_t, UTAP::Constants::kind_t);
        virtual void declParamId(const char*);
     */
+};
+
+class AtlPropertyBuilder final : public TigaPropertyBuilder
+{
+public:
+    AtlPropertyBuilder(const UTAP::Document& doc) : TigaPropertyBuilder{doc} {}
+
+protected:
+    void typeProperty(UTAP::expression_t expression) override;
 };
 
 }  // namespace UTAP

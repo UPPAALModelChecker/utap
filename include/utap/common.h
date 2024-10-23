@@ -144,10 +144,16 @@ enum kind_t {
     ASS_RSHIFT,
 
     /*******************************************************
-     * T-ATL Quantifiers
+     * ATL Quantifiers
      */
+    ATL_ENFORCE_UNTIL,
+    ATL_DESPITE_UNTIL,
     ATL_ENFORCE_F,
     ATL_DESPITE_F,
+    ATL_ENFORCE_G,
+    ATL_DESPITE_G,
+    ATL_ENFORCE_NEXT,
+    ATL_DESPITE_NEXT,
 
     /*******************************************************
      * CTL Quantifiers
