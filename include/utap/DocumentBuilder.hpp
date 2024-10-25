@@ -124,7 +124,7 @@ public:
     void proc_location_urgent(const char* name) override;
     void proc_location_init(const char* name) override;
     void proc_branchpoint(const char* name) override;
-    void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname) override;
+    void proc_edge_begin(const char* from, const char* to, const bool control, const char* color, const char* actname) override;
     void proc_edge_end(const char* from = 0, const char* to = 0) override;
     void proc_select(const char* id) override;
     void proc_guard() override;

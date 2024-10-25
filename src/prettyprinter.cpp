@@ -540,10 +540,10 @@ void PrettyPrinter::proc_update() { update = st.size(); }
 void PrettyPrinter::proc_edge_begin(const char* from, const char* to, const bool control)
 
 {
-    proc_edge_begin(from, to, control, nullptr);
+    proc_edge_begin(from, to, control, nullptr, nullptr);
 }
 
-void PrettyPrinter::proc_edge_begin(const char* source, const char* target, const bool control, const char* actname)
+void PrettyPrinter::proc_edge_begin(const char* source, const char* target, const bool control, const char* color, const char* actname)
 {
     if (first) {
         // this is the first transition

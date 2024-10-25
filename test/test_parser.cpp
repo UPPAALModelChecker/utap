@@ -546,6 +546,7 @@ TEST_CASE("T-ALT properties")
     {
         auto res = parseProperty("<< red, green >> [ true U false ]", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 4);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_UNTIL);
@@ -555,6 +556,7 @@ TEST_CASE("T-ALT properties")
     {
         auto res = parseProperty("[[red, green]] [ true U false ]", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 4);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_UNTIL);
@@ -562,8 +564,9 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic EnforceF property")
     {
-        auto res = parseProperty("<<red, green>> <> true", builder.get());
+        auto res = parseProperty("<<magenta, blue>> <> true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
@@ -571,8 +574,9 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic DespiteF property")
     {
-        auto res = parseProperty("[[red, green]] <> true", builder.get());
+        auto res = parseProperty("[[cyan, yellow]] <> true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_F);
@@ -580,8 +584,9 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic EnforceG property")
     {
-        auto res = parseProperty("<<red, green>> [] true", builder.get());
+        auto res = parseProperty("<<black, orange>> [] true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_G);
@@ -589,8 +594,9 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic DespiteG property")
     {
-        auto res = parseProperty("[[red, green]] [] true", builder.get());
+        auto res = parseProperty("[[lightgray, darkgray]] [] true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_G);
@@ -598,8 +604,9 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic EnforceNext property")
     {
-        auto res = parseProperty("<<red, green>> X true", builder.get());
+        auto res = parseProperty("<<red, cyan>> X true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_NEXT);
@@ -607,11 +614,24 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic DespiteNext property")
     {
-        auto res = parseProperty("[[red, green]] X true", builder.get());
+        auto res = parseProperty("[[pink, green]] X true", builder.get());
         REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
         CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_NEXT);
         CHECK(expr->type == UTAP::quant_t::Atl);
+    }
+    SUBCASE("Repeated player color error")
+    {
+        auto res = parseProperty("<<red, red>> <> true", builder.get());
+        REQUIRE(res == 0);
+        CHECK(doc->get_errors().size() == 1);
+    }
+    SUBCASE("Unknown player color error")
+    {
+        auto res = parseProperty("[[red, giraffe]] [] true", builder.get());
+        REQUIRE(res == 0);
+        CHECK(doc->get_errors().size() == 1);
     }
 }

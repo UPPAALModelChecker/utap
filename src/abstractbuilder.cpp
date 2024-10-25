@@ -109,7 +109,7 @@ void AbstractBuilder::proc_location_commit(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::proc_location_urgent(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::proc_location_init(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::proc_branchpoint(const char* name) { UNSUPPORTED; }
-void AbstractBuilder::proc_edge_begin(const char* from, const char* to, const bool control, const char* actname)
+void AbstractBuilder::proc_edge_begin(const char* from, const char* to, const bool control, const char* color, const char* actname)
 {
     UNSUPPORTED;
 }

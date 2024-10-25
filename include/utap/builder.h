@@ -247,7 +247,7 @@ public:
     virtual void proc_location_commit(const char* name) = 0;                          // mark previously decl. state
     virtual void proc_location_urgent(const char* name) = 0;                          // mark previously decl. state
     virtual void proc_location_init(const char* name) = 0;                            // mark previously decl. state
-    virtual void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname = "") = 0;
+    virtual void proc_edge_begin(const char* from, const char* to, const bool control, const char* color = "#000000", const char* actname = "") = 0;
     virtual void proc_edge_end(const char* from, const char* to) = 0;
     virtual void proc_select(const char* id) = 0;                   // 1 expr
     virtual void proc_guard() = 0;                                  // 1 expr

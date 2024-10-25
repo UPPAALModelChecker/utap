@@ -231,7 +231,7 @@ void DocumentBuilder::proc_location_init(const char* name)
     }
 }
 
-void DocumentBuilder::proc_edge_begin(const char* from, const char* to, const bool control, const char* actname)
+void DocumentBuilder::proc_edge_begin(const char* from, const char* to, const bool control, const char* color, const char* actname)
 {
     symbol_t fid, tid;
 
@@ -243,6 +243,7 @@ void DocumentBuilder::proc_edge_begin(const char* from, const char* to, const bo
         push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
     } else {
         currentEdge = &currentTemplate->add_edge(fid, tid, control, actname);
+        currentEdge->color = color;
         currentEdge->guard = make_constant(1);
         currentEdge->assign = make_constant(1);
         // default "probability" weight is 1.

@@ -315,6 +315,7 @@ edge_t& template_t::add_edge(symbol_t src, symbol_t dst, bool control, string ac
     }
 
     edge.control = control;
+    edge.color = string{"#000000"};
     edge.actname = std::move(actname);
     edge.nr = nr;
     return edge;

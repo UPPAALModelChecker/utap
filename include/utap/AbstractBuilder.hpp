@@ -119,7 +119,7 @@ public:
     void proc_location_urgent(const char* name) override;                          // mark previously decl. state
     void proc_location_init(const char* name) override;                            // mark previously decl. state
     void proc_branchpoint(const char* name) override;
-    void proc_edge_begin(const char* from, const char* to, const bool control, const char* actname) override;
+    void proc_edge_begin(const char* from, const char* to, const bool control, const char* color, const char* actname) override;
     void proc_edge_end(const char* from, const char* to) override;
     // 1 epxr,1sync,1expr
     void proc_select(const char* id) override;

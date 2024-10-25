@@ -1050,6 +1050,10 @@ bool XMLReader::transition()
             bool control = (type == nullptr || (strcmp(type, "true") == 0));
             xmlFree(type);
 
+            char* color_raw = getAttribute("color");
+            auto color = std::string{color_raw ? color_raw : "#000000"};
+            xmlFree(color_raw);
+
             char* id = getAttribute("action");
             auto actname = std::string{id ? id : "SKIP"};
             xmlFree(id);
@@ -1058,7 +1062,7 @@ bool XMLReader::transition()
             std::string from = source();
             std::string to = target();
 
-            parser->proc_edge_begin(from.c_str(), to.c_str(), control, actname.c_str());
+            parser->proc_edge_begin(from.c_str(), to.c_str(), control, color.c_str(), actname.c_str());
             while (label())
                 ;
             while (begin(tag_t::NAIL))

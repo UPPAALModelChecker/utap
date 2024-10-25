@@ -2239,7 +2239,38 @@ bool TypeChecker::checkExpression(expression_t expr)
     case ATL_DESPITE_NEXT: {
         bool isUntil = expr.get_kind() == ATL_ENFORCE_UNTIL || expr.get_kind() == ATL_DESPITE_UNTIL;
         int numPlayer = expr.get_size() - (isUntil ? 2 : 1);
+        std::array<std::pair<const char*, const char*>, 11> color_map {{
+            {"black", "#000000"},
+            {"lightgray", "#c0c0c0"},
+            {"darkgray", "#a9a9a9"},
+            {"red", "#ff0000"},
+            {"green", "#00ff00"},
+            {"blue", "#0000ff"},
+            {"yellow", "#ffff00"},
+            {"cyan", "#00ffff"},
+            {"magenta", "#ff00ff"},
+            {"orange", "#ffa500"},
+            {"pink", "#ffc0cb"},
+        }};
+        std::array<bool, 11> used{};
         for (int i = 0; i < numPlayer; ++i) {
+            const auto& str = expr[i].get_string_value();
+            bool found = false;
+            for (int j = 0; j < color_map.size(); ++j) {
+                auto [name, hex] = color_map[j];
+                if (str == name) {
+                    auto str_id = document.add_string(hex);
+                    expr[i] = expression_t::create_string(str_id, expr[i].get_position());
+                    if (used[j]) {
+                        handleError(expr[i], "$Atl_player_color_used_twice");
+                    }
+                    used[j] = found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                handleError(expr[i], "$Atl_unknown_player_color");
+            }
         }
         if (is_formula(expr[numPlayer]) && (!isUntil || is_formula(expr[numPlayer + 1]))) {
             type = type_t::create_primitive(FORMULA);

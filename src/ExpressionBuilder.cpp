@@ -816,7 +816,6 @@ void ExpressionBuilder::expr_atl(int nbPlayers, Constants::kind_t kind)
     std::vector<expression_t> parts;
     parts.reserve(nbPlayers + nbSubExprs);
 
-    // TODO Deduplicate players
     for (int i = 0; i < nbPlayers; ++i) {
         parts.push_back(fragments[nbPlayers + nbSubExprs - 1 - i]);
     }

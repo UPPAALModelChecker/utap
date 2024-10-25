@@ -107,6 +107,7 @@ struct edge_t : stringify_t<edge_t>
 {
     int nr;       /**< Placement in input file */
     bool control; /**< Controllable (true/false) */
+    std::string color;
     std::string actname;
     location_t* src{nullptr};          /**< Pointer to source location */
     branchpoint_t* srcb{nullptr};      /**< Pointer to source branchpoint */

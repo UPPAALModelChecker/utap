@@ -117,7 +117,7 @@ public:
     void proc_sync(Constants::synchronisation_t type) override;
     void proc_update() override;
     void proc_edge_begin(const char* source, const char* target, const bool control);
-    void proc_edge_begin(const char* source, const char* target, const bool control, const char* actname) override;
+    void proc_edge_begin(const char* source, const char* target, const bool control, const char* color, const char* actname) override;
     void proc_edge_end(const char* source, const char* target) override;
     void proc_end() override;
     void expr_identifier(const char* id) override;
