@@ -271,6 +271,8 @@ void AbstractBuilder::expr_foreach_dynamic_begin(const char*, const char*) { UNS
 void AbstractBuilder::expr_foreach_dynamic_end(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::expr_dynamic_process_expr(const char*) { UNSUPPORTED; }
 
+void AbstractBuilder::expr_atl(int, Constants::kind_t) { UNSUPPORTED; }
+
 void AbstractBuilder::expr_MITL_forall_dynamic_begin(const char*, const char*) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_forall_dynamic_end(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_exists_dynamic_begin(const char*, const char*) { UNSUPPORTED; }

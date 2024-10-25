@@ -195,6 +195,8 @@ public:
     void expr_save_strategy(const char* strategy_name) override;
     void expr_load_strategy() override;
 
+    void expr_atl(int, Constants::kind_t) override;
+
     void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) override;
     void expr_MITL_formula() override;
     void expr_MITL_until(int, int) override;

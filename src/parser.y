@@ -289,10 +289,10 @@ const char* utap_msg(const char *msg)
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
-%type <number> ParameterList FieldInitList
+%type <number> ParameterList FieldInitList PlayerColorList
 %type <number> OptionalInstanceParameterList ExpressionList NonEmptyExpressionList
 %type <prefix> Type TypePrefix
-%type <string> Id NonTypeId
+%type <string> Id NonTypeId PlayerColor
 %type <kind> UnaryOp AssignOp
 %type <flag> VarInit
 %type <kind> CmpGLE
@@ -757,11 +757,24 @@ NonTypeId:
         | 'R' { strncpy($$, "R", MAXLEN); }
         | 'E' { strncpy($$, "E", MAXLEN); }
         | 'M' { strncpy($$, "M", MAXLEN); }
+        | 'X' { strncpy($$, "X", MAXLEN); }
         | T_SUP { strncpy($$, "sup", MAXLEN); }
         | T_INF { strncpy($$, "inf", MAXLEN); }
         | T_BOUNDS { strncpy($$, "bounds", MAXLEN); }
         | T_SIMULATION { strncpy($$, "simulation", MAXLEN); }
         ;
+
+PlayerColor:
+    NonTypeId {
+        CALL(@1, @1, expr_string($1));
+    }
+    ;
+
+PlayerColorList:
+    /* empty */ { $$=0; }
+    | PlayerColor { $$=1; }
+    | PlayerColorList ',' PlayerColor { $$=$1+1; }
+    ;
 
 FieldDeclList:
         FieldDecl { $$=$1; }
@@ -1740,29 +1753,29 @@ SubPropertyOrExpression:
     SubProperty | Expression;
 
 SubProperty:
-    T_LSHIFT 'A' T_RSHIFT '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
-        CALL(@1, @8, expr_binary(ATL_ENFORCE_UNTIL));
+    T_LSHIFT PlayerColorList T_RSHIFT '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
+        CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
     }
-    | T_LBRBR 'A' T_RBRBR '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
-        CALL(@1, @8, expr_binary(ATL_DESPITE_UNTIL));
+    | T_LBRBR PlayerColorList T_RBRBR '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
+        CALL(@1, @8, expr_atl($2, ATL_DESPITE_UNTIL));
     }
-    | T_LSHIFT 'A' T_RSHIFT T_DIAMOND SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_ENFORCE_F));
+    | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_F));
     }
-    | T_LBRBR 'A' T_RBRBR T_DIAMOND SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_DESPITE_F));
+    | T_LBRBR PlayerColorList T_RBRBR T_DIAMOND SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_F));
     }
-    | T_LSHIFT 'A' T_RSHIFT T_BOX SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_ENFORCE_G));
+    | T_LSHIFT PlayerColorList T_RSHIFT T_BOX SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_G));
     }
-    | T_LBRBR 'A' T_RBRBR T_BOX SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_DESPITE_G));
+    | T_LBRBR PlayerColorList T_RBRBR T_BOX SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_G));
     }
-    | T_LSHIFT 'A' T_RSHIFT 'X' SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_ENFORCE_NEXT));
+    | T_LSHIFT PlayerColorList T_RSHIFT 'X' SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_NEXT));
     }
-    | T_LBRBR 'A' T_RBRBR 'X' SubPropertyOrExpression {
-        CALL(@1, @5, expr_unary(ATL_DESPITE_NEXT));
+    | T_LBRBR PlayerColorList T_RBRBR 'X' SubPropertyOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_NEXT));
     }
     | T_AF Expression {
 	    CALL(@1, @2, expr_unary(AF));

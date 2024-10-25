@@ -810,6 +810,25 @@ void ExpressionBuilder::expr_proba_expected(const char* aggregatingOp)
     fragments.push(expression_t::create_nary(PROBA_EXP, std::move(args), position));
 }
 
+void ExpressionBuilder::expr_atl(int nbPlayers, Constants::kind_t kind)
+{
+    int nbSubExprs = (kind == ATL_ENFORCE_UNTIL || kind == ATL_DESPITE_UNTIL) ? 2 : 1;
+    std::vector<expression_t> parts;
+    parts.reserve(nbPlayers + nbSubExprs);
+
+    // TODO Deduplicate players
+    for (int i = 0; i < nbPlayers; ++i) {
+        parts.push_back(fragments[nbPlayers + nbSubExprs - 1 - i]);
+    }
+
+    for (int i = 0; i < nbSubExprs; ++i) {
+        parts.push_back(fragments[nbSubExprs - 1 - i]);
+    }
+
+    fragments.pop(parts.size());
+    fragments.push(expression_t::create_nary(kind, parts, position));
+}
+
 void ExpressionBuilder::expr_simulate(int nbExpr, bool hasReach, int numberOfAcceptingRuns)
 {
     // Stack:

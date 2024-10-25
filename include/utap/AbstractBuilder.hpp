@@ -219,6 +219,8 @@ public:
     void expr_load_strategy() override;
     void expr_save_strategy(const char* strategy_name) override;
 
+    void expr_atl(int, Constants::kind_t) override;
+
     // MITL
     void expr_MITL_formula() override;
     void expr_MITL_until(int, int) override;

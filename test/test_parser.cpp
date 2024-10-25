@@ -544,73 +544,73 @@ TEST_CASE("T-ALT properties")
     auto builder = std::make_unique<UTAP::AtlPropertyBuilder>(*doc);
     SUBCASE("Basic EnforceUntil property")
     {
-        auto res = parseProperty("<< A >> [ true U false ]", builder.get());
+        auto res = parseProperty("<< red, green >> [ true U false ]", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 2);
+        CHECK(expr->intermediate.get_size() == 4);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_UNTIL);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic DespiteUntil property")
     {
-        auto res = parseProperty("[[ A ]] [ true U false ]", builder.get());
+        auto res = parseProperty("[[red, green]] [ true U false ]", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 2);
+        CHECK(expr->intermediate.get_size() == 4);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_UNTIL);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic EnforceF property")
     {
-        auto res = parseProperty("<< A >> <> true", builder.get());
+        auto res = parseProperty("<<red, green>> <> true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic DespiteF property")
     {
-        auto res = parseProperty("[[ A ]] <> true", builder.get());
+        auto res = parseProperty("[[red, green]] <> true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_F);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic EnforceG property")
     {
-        auto res = parseProperty("<< A >> [] true", builder.get());
+        auto res = parseProperty("<<red, green>> [] true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_G);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic DespiteG property")
     {
-        auto res = parseProperty("[[ A ]] [] true", builder.get());
+        auto res = parseProperty("[[red, green]] [] true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_G);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic EnforceNext property")
     {
-        auto res = parseProperty("<< A >> X true", builder.get());
+        auto res = parseProperty("<<red, green>> X true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_NEXT);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
     SUBCASE("Basic DespiteNext property")
     {
-        auto res = parseProperty("[[ A ]] X true", builder.get());
+        auto res = parseProperty("[[red, green]] X true", builder.get());
         REQUIRE(res == 0);
         auto expr = &builder->getProperties().front();
-        CHECK(expr->intermediate.get_size() == 1);
+        CHECK(expr->intermediate.get_size() == 3);
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_DESPITE_NEXT);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }

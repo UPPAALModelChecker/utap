@@ -445,13 +445,13 @@ size_t expression_t::get_size() const
     case SPAWN: return std::get<int32_t>(data->value);
 
     case ATL_ENFORCE_UNTIL:
-    case ATL_DESPITE_UNTIL: assert(data->sub.size() == 2); return 2;
+    case ATL_DESPITE_UNTIL: assert(data->sub.size() >= 2); return std::get<int32_t>(data->value);
     case ATL_ENFORCE_F:
     case ATL_DESPITE_F:
     case ATL_ENFORCE_G:
     case ATL_DESPITE_G:
     case ATL_ENFORCE_NEXT:
-    case ATL_DESPITE_NEXT: assert(data->sub.size() == 1); return 1;
+    case ATL_DESPITE_NEXT: assert(data->sub.size() >= 1); return std::get<int32_t>(data->value);
 
     case EG:
     case AG:

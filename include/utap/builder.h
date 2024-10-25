@@ -363,6 +363,8 @@ public:
     virtual void expr_load_strategy() = 0;
     virtual void expr_save_strategy(const char* strategy_name) = 0;
 
+    virtual void expr_atl(int, Constants::kind_t) = 0;
+
     // MITL Extensions
     virtual void expr_MITL_formula() = 0;
     virtual void expr_MITL_until(int, int) = 0;

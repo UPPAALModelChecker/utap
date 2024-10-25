@@ -994,6 +994,14 @@ void TypeChecker::visitInstance(instance_t& instance)
 static bool isGameProperty(expression_t expr)
 {
     switch (expr.get_kind()) {
+    case ATL_ENFORCE_UNTIL:
+    case ATL_DESPITE_UNTIL:
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F:
+    case ATL_ENFORCE_G:
+    case ATL_DESPITE_G:
+    case ATL_ENFORCE_NEXT:
+    case ATL_DESPITE_NEXT:
     case CONTROL:
     case SMC_CONTROL:
     case EF_CONTROL:
@@ -2223,24 +2231,21 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case ATL_ENFORCE_UNTIL:
     case ATL_DESPITE_UNTIL:
-        // TODO: Check coalition
-        if (is_formula(expr[0]) && is_formula(expr[1])) {
-            type = type_t::create_primitive(FORMULA);
-        }
-        break;
-
     case ATL_ENFORCE_F:
     case ATL_DESPITE_F:
     case ATL_ENFORCE_G:
     case ATL_DESPITE_G:
     case ATL_ENFORCE_NEXT:
-    case ATL_DESPITE_NEXT:
-        // TODO: Check coalition
-        if (is_formula(expr[0])) {
+    case ATL_DESPITE_NEXT: {
+        bool isUntil = expr.get_kind() == ATL_ENFORCE_UNTIL || expr.get_kind() == ATL_DESPITE_UNTIL;
+        int numPlayer = expr.get_size() - (isUntil ? 2 : 1);
+        for (int i = 0; i < numPlayer; ++i) {
+        }
+        if (is_formula(expr[numPlayer]) && (!isUntil || is_formula(expr[numPlayer + 1]))) {
             type = type_t::create_primitive(FORMULA);
         }
         break;
-
+    }
     case AF:
     case AG:
     case EF:
