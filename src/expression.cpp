@@ -505,6 +505,27 @@ size_t expression_t::get_size() const
     }
 }
 
+size_t expression_t::get_player_count() const
+{
+    assert(data);
+    switch (data->kind) {
+    case ATL_ENFORCE_UNTIL:
+    case ATL_DESPITE_UNTIL:
+        assert(get_size() >= 2);
+        return get_size() - 2;
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F:
+    case ATL_ENFORCE_G:
+    case ATL_DESPITE_G:
+    case ATL_ENFORCE_NEXT:
+    case ATL_DESPITE_NEXT:
+        assert(get_size() >= 1);
+        return get_size() - 1;
+    default:
+        return 0;
+    }
+}
+
 type_t expression_t::get_type() const
 {
     assert(data);
@@ -846,10 +867,18 @@ int expression_t::get_precedence(kind_t kind)
     case EXISTS:
     case SUM: return 8;
 
+    case ATL_ENFORCE_UNTIL:
+    case ATL_DESPITE_UNTIL:
     case A_UNTIL:
     case A_WEAK_UNTIL:
     case A_BUCHI: return 7;
 
+    case ATL_ENFORCE_F:
+    case ATL_DESPITE_F:
+    case ATL_ENFORCE_G:
+    case ATL_DESPITE_G:
+    case ATL_ENFORCE_NEXT:
+    case ATL_DESPITE_NEXT:
     case EF:
     case EG:
     case AF:
@@ -1433,6 +1462,68 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         break;
 
     case RATE: get(0).print(os, old) << '\''; break;
+
+    case ATL_ENFORCE_UNTIL:
+    case ATL_ENFORCE_F:
+    case ATL_ENFORCE_G:
+    case ATL_ENFORCE_NEXT: {
+        os << "<<";
+        size_t n = get_player_count();
+        for (int i = 0; i < n; ++i) {
+            get(0).print(os, old);
+            if (i < n - 1) os << ", ";
+        }
+        os << ">> ";
+        switch (data->kind) {
+        case Constants::ATL_ENFORCE_UNTIL:
+            get(n).print(os << "[", old) << " U ";
+            get(n + 1).print(os, old) << "] ";
+            break;
+        case Constants::ATL_ENFORCE_F:
+            get(n).print(os << "<> ");
+            break;
+        case Constants::ATL_ENFORCE_G:
+            get(n).print(os << "[] ");
+            break;
+        case Constants::ATL_ENFORCE_NEXT:
+            get(n).print(os << "X ");
+            break;
+        default:
+            assert(false);
+        }
+        break;
+    }
+
+    case ATL_DESPITE_UNTIL:
+    case ATL_DESPITE_F:
+    case ATL_DESPITE_G:
+    case ATL_DESPITE_NEXT: {
+        os << "[[";
+        size_t n = get_player_count();
+        for (int i = 0; i < n; ++i) {
+            get(0).print(os, old);
+            if (i < n - 1) os << ", ";
+        }
+        os << "]] ";
+        switch (data->kind) {
+        case Constants::ATL_DESPITE_UNTIL:
+            get(n).print(os << "[", old) << " U ";
+            get(n + 1).print(os, old) << "] ";
+            break;
+        case Constants::ATL_DESPITE_F:
+            get(n).print(os << "<> ");
+            break;
+        case Constants::ATL_DESPITE_G:
+            get(n).print(os << "[] ");
+            break;
+        case Constants::ATL_DESPITE_NEXT:
+            get(n).print(os << "X ");
+            break;
+        default:
+            assert(false);
+        }
+        break;
+    }
 
     case EF:
         os << "E<> ";

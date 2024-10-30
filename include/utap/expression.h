@@ -102,6 +102,9 @@ public:
     /** Returns the number of subexpression. */
     size_t get_size() const;
 
+    /** Returns the number of player colors in this expression. */
+    size_t get_player_count() const;
+
     /** Returns the position of this expression. */
     const position_t& get_position() const;
 
