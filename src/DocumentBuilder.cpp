@@ -243,7 +243,7 @@ void DocumentBuilder::proc_edge_begin(const char* from, const char* to, const bo
         push_frame(frame_t::create(frames.top()));  // dummy frame for upcoming popFrame
     } else {
         currentEdge = &currentTemplate->add_edge(fid, tid, control, actname);
-        currentEdge->color = color;
+        currentEdge->color = parse_hex_color(color);
         currentEdge->guard = make_constant(1);
         currentEdge->assign = make_constant(1);
         // default "probability" weight is 1.
@@ -754,4 +754,9 @@ void DocumentBuilder::model_option(const char* key, const char* value)
         handle_error(TypeException{"options tag found without attribute 'key'"});
     }
     document.get_options().emplace_back(key, value == nullptr ? "" : value);
+}
+
+uint32_t DocumentBuilder::parse_hex_color(const char* color)
+{
+    return std::stoul(color + 1 /* Skip the '#' */, nullptr, 16);
 }

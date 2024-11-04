@@ -106,6 +106,8 @@ protected:
 
     void addSelectSymbolToFrame(const std::string& name, frame_t&, position_t pos);
 
+    uint32_t parse_hex_color(const char* color);
+
 public:
     DocumentBuilder(Document&, std::vector<std::filesystem::path> paths = {});
 
