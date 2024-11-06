@@ -1470,10 +1470,10 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "<<";
         size_t n = get_player_count();
         for (int i = 0; i < n; ++i) {
-            get(0).print(os, old);
+            get(i).print(os << "#" << std::hex, old);
             if (i < n - 1) os << ", ";
         }
-        os << ">> ";
+        os << std::dec << ">> ";
         switch (data->kind) {
         case Constants::ATL_ENFORCE_UNTIL:
             get(n).print(os << "[", old) << " U ";
