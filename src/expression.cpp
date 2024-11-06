@@ -1470,7 +1470,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "<<";
         size_t n = get_player_count();
         for (int i = 0; i < n; ++i) {
-            get(i).print(os << "#" << std::hex, old);
+            get(i).print(os << "#" << std::setfill('0') << std::setw(6) << std::hex, old);
             if (i < n - 1) os << ", ";
         }
         os << std::dec << ">> ";
@@ -1501,7 +1501,7 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         os << "[[";
         size_t n = get_player_count();
         for (int i = 0; i < n; ++i) {
-            get(0).print(os, old);
+            get(i).print(os << "#" << std::setfill('0') << std::setw(6) << std::hex, old);
             if (i < n - 1) os << ", ";
         }
         os << "]] ";
