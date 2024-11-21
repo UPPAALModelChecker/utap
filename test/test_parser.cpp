@@ -554,7 +554,7 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Basic DespiteUntil property")
     {
-        auto res = parseProperty("[[red, green]] [ true U false ]", builder.get());
+        auto res = parseProperty("[[ red, green ]] [ true U false ]", builder.get());
         REQUIRE(res == 0);
         REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
@@ -633,5 +633,35 @@ TEST_CASE("T-ALT properties")
         auto res = parseProperty("[[red, giraffe]] [] true", builder.get());
         REQUIRE(res == 0);
         CHECK(doc->get_errors().size() == 1);
+    }
+    SUBCASE("Nested ATL until property")
+    {
+        auto res = parseProperty("<<red>> [(<<blue>> <> true) U false]", builder.get());
+        REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
+        auto expr = &builder->getProperties().front();
+        CHECK(expr->intermediate.get_size() == 3);
+        CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_UNTIL);
+        CHECK(expr->type == UTAP::quant_t::Atl);
+    }
+    SUBCASE("Nested ATL eventually property")
+    {
+        auto res = parseProperty("<<red>> <> ([[blue]] <> false)", builder.get());
+        REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
+        auto expr = &builder->getProperties().front();
+        CHECK(expr->intermediate.get_size() == 2);
+        CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
+        CHECK(expr->type == UTAP::quant_t::Atl);
+    }
+    SUBCASE("Nested ATL property with logical operators")
+    {
+        auto res = parseProperty("<<red>> <> (<<blue>> [] false && true) || ([[black]] [(<<cyan>> <> true) && true U false])", builder.get());
+        REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
+        auto expr = &builder->getProperties().front();
+        CHECK(expr->intermediate.get_size() == 2);
+        CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
+        CHECK(expr->type == UTAP::quant_t::Atl);
     }
 }

@@ -1393,6 +1393,44 @@ DynamicExpression:
 	}
         ;
 
+AtlExpressionOrExpression:
+    '(' AtlExpression ')'
+    // FIXME: Fix ambiguity and remove ugly parenthesis
+    | '(' AtlExpression ')' T_BOOL_AND AtlExpressionOrExpression {
+      CALL(@1, @5, expr_binary(AND));
+    }
+    // FIXME: Fix ambiguity and remove ugly parenthesis
+    | '(' AtlExpression ')' T_BOOL_OR AtlExpressionOrExpression {
+      CALL(@1, @5, expr_binary(OR));
+    }
+    | Expression;
+
+AtlExpression:
+    T_LSHIFT PlayerColorList T_RSHIFT '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
+        CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
+    }
+    | T_LBRBR PlayerColorList T_RBRBR '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
+        CALL(@1, @8, expr_atl($2, ATL_DESPITE_UNTIL));
+    }
+    | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_F));
+    }
+    | T_LBRBR PlayerColorList T_RBRBR T_DIAMOND AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_F));
+    }
+    | T_LSHIFT PlayerColorList T_RSHIFT T_BOX AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_G));
+    }
+    | T_LBRBR PlayerColorList T_RBRBR T_BOX AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_G));
+    }
+    | T_LSHIFT PlayerColorList T_RSHIFT 'X' AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_NEXT));
+    }
+    | T_LBRBR PlayerColorList T_RBRBR 'X' AtlExpressionOrExpression {
+        CALL(@1, @5, expr_atl($2, ATL_DESPITE_NEXT));
+    }
+;
 
 Assignment:
         Expression AssignOp Expression {
@@ -1749,34 +1787,8 @@ Query:
 BoolOrKWAnd:
         T_KW_AND | T_BOOL_AND;
 
-SubPropertyOrExpression:
-    SubProperty | Expression;
-
 SubProperty:
-    T_LSHIFT PlayerColorList T_RSHIFT '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
-        CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
-    }
-    | T_LBRBR PlayerColorList T_RBRBR '[' SubPropertyOrExpression 'U' SubPropertyOrExpression ']' {
-        CALL(@1, @8, expr_atl($2, ATL_DESPITE_UNTIL));
-    }
-    | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_F));
-    }
-    | T_LBRBR PlayerColorList T_RBRBR T_DIAMOND SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_F));
-    }
-    | T_LSHIFT PlayerColorList T_RSHIFT T_BOX SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_G));
-    }
-    | T_LBRBR PlayerColorList T_RBRBR T_BOX SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_G));
-    }
-    | T_LSHIFT PlayerColorList T_RSHIFT 'X' SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_ENFORCE_NEXT));
-    }
-    | T_LBRBR PlayerColorList T_RBRBR 'X' SubPropertyOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_NEXT));
-    }
+    AtlExpression
     | T_AF Expression {
 	    CALL(@1, @2, expr_unary(AF));
 	}
