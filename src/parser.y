@@ -1396,12 +1396,15 @@ DynamicExpression:
 AtlExpressionOrExpression:
     '(' AtlExpression ')'
     // FIXME: Fix ambiguity and remove ugly parenthesis
-    | '(' AtlExpression ')' T_BOOL_AND AtlExpressionOrExpression {
+    | '(' AtlExpression ')' BoolOrKWAnd AtlExpressionOrExpression {
       CALL(@1, @5, expr_binary(AND));
     }
     // FIXME: Fix ambiguity and remove ugly parenthesis
-    | '(' AtlExpression ')' T_BOOL_OR AtlExpressionOrExpression {
+    | '(' AtlExpression ')' BoolOrKWOr AtlExpressionOrExpression {
       CALL(@1, @5, expr_binary(OR));
+    }
+    | T_KW_NOT '(' AtlExpression ')' {
+      CALL(@1, @4, expr_unary(NOT));
     }
     | Expression;
 
@@ -1786,6 +1789,9 @@ Query:
 
 BoolOrKWAnd:
         T_KW_AND | T_BOOL_AND;
+
+BoolOrKWOr:
+        T_KW_OR | T_BOOL_OR;
 
 SubProperty:
     AtlExpression

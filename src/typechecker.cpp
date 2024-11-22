@@ -1928,6 +1928,8 @@ bool TypeChecker::checkExpression(expression_t expr)
             type = type_t::create_primitive(Constants::BOOL);
         } else if (is_constraint(expr[0])) {
             type = type_t::create_primitive(CONSTRAINT);
+        } else if (is_formula(expr[0])) {
+            type = type_t::create_primitive(FORMULA);
         }
         break;
 

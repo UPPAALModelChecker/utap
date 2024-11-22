@@ -654,6 +654,16 @@ TEST_CASE("T-ALT properties")
         CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
+    SUBCASE("Nested ATL property with negation")
+    {
+        auto res = parseProperty("<<red>> <> not ([[blue]] <> false)", builder.get());
+        REQUIRE(res == 0);
+        REQUIRE(doc->get_errors().empty());
+        auto expr = &builder->getProperties().front();
+        CHECK(expr->intermediate.get_size() == 2);
+        CHECK(expr->intermediate.get_kind() == UTAP::Constants::ATL_ENFORCE_F);
+        CHECK(expr->type == UTAP::quant_t::Atl);
+    }
     SUBCASE("Nested ATL property with logical operators")
     {
         auto res = parseProperty("<<red>> <> (<<blue>> [] false && true) || ([[black]] [(<<cyan>> <> true) && true U false])", builder.get());
