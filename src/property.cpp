@@ -490,6 +490,7 @@ void AtlPropertyBuilder::typeProperty(UTAP::expression_t expr)
     case ATL_DESPITE_G:
     case ATL_ENFORCE_NEXT:
     case ATL_DESPITE_NEXT:
+    case FREEZE:
         properties.back().type = quant_t::Atl;
         break;
     default:

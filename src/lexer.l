@@ -90,6 +90,8 @@ idchr        [a-zA-Z0-9_$#]
 "]"        	{ return ']'; }
 "("         { return '('; }
 ")"         { return ')'; }
+"[["        { return T_LBRBR; }
+"]]"        { return T_RBRBR; }
 "?"        	{ return '?'; }
 "'"        	{ return '\''; }
 "!"        	{ return T_EXCLAM; }
@@ -129,8 +131,6 @@ idchr        [a-zA-Z0-9_$#]
 "&&"        { return T_BOOL_AND; }
 "/\\"       { return T_MITL_AND; }
 "\\/"       { return T_MITL_OR; }
-"[["        { return T_LBRBR; }
-"]]"        { return T_RBRBR; }
 
 "<="        { return T_LEQ; }
 ">="        { return T_GEQ; }
@@ -152,9 +152,9 @@ idchr        [a-zA-Z0-9_$#]
 ">"        	{ return T_GT; }
 "=="        	{ return T_EQ; }
 "!="        	{ return T_NEQ; }
-
 "++"            { return T_INCREMENT; }
 "--"            { return T_DECREMENT; }
+"¤"             { return T_FREEZE; }
 
 "A"             { return 'A'; }
 "U"             { return 'U'; }

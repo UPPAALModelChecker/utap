@@ -327,6 +327,7 @@ size_t expression_t::get_size() const
     case BIT_XOR:
     case BIT_LSHIFT:
     case BIT_RSHIFT:
+    case FREEZE:
     case AND:
     case OR:
     case XOR:

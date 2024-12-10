@@ -44,6 +44,7 @@ enum kind_t {
     MAX,
     RATE,
     FRACTION,
+    FREEZE,
 
     /********************************************************
      * Relational operators

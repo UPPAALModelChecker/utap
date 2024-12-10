@@ -1002,6 +1002,7 @@ static bool isGameProperty(expression_t expr)
     case ATL_DESPITE_G:
     case ATL_ENFORCE_NEXT:
     case ATL_DESPITE_NEXT:
+    case FREEZE:
     case CONTROL:
     case SMC_CONTROL:
     case EF_CONTROL:
@@ -1787,6 +1788,18 @@ bool TypeChecker::checkExpression(expression_t expr)
         if (is_integral(expr[0]) && is_integral(expr[1])) {
             type = type_t::create_primitive(Constants::BOOL);
         }
+        break;
+
+    case FREEZE:
+        if (!is_clock(expr[0])) {
+            handleError(expr, "Left-hand side of freeze operator must be a clock");
+            return false;
+        }
+        if (!is_formula(expr[1])) {
+            handleError(expr, "Right-hand side of freeze operator must be a formula");
+            return false;
+        }
+        type = type_t::create_primitive(FORMULA);
         break;
 
     case SPAWN: {

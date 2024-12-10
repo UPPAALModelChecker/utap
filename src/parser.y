@@ -186,6 +186,7 @@ const char* utap_msg(const char *msg)
 %token T_OR T_XOR T_LSHIFT T_RSHIFT
 %token T_BOOL_AND T_BOOL_OR
 %token T_KW_AND T_KW_OR T_KW_XOR T_KW_IMPLY T_KW_NOT
+%token T_FREEZE
 
 /* Special */
 %token T_SUP T_INF T_BOUNDS
@@ -1409,7 +1410,10 @@ AtlExpressionOrExpression:
     | Expression;
 
 AtlExpression:
-    T_LSHIFT PlayerColorList T_RSHIFT '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
+    NonTypeId { CALL(@1, @1, expr_identifier($1)); } T_FREEZE AtlExpressionOrExpression {
+        CALL(@1, @3, expr_binary(FREEZE));
+    }
+    | T_LSHIFT PlayerColorList T_RSHIFT '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
         CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
     }
     | T_LBRBR PlayerColorList T_RBRBR '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {

@@ -675,3 +675,16 @@ TEST_CASE("T-ALT properties")
         CHECK(expr->type == UTAP::quant_t::Atl);
     }
 }
+
+TEST_CASE("Freeze operator")
+{
+    auto doc = document_fixture{}
+                   .add_global_decl("clock x;")
+                   .add_default_process()
+                   .parse();
+
+    auto builder = std::make_unique<UTAP::AtlPropertyBuilder>(*doc);
+    auto res = parseProperty("x ¤ true", builder.get());
+    REQUIRE(res == 0);
+    REQUIRE(doc->get_errors().empty());
+}
