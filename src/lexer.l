@@ -90,8 +90,6 @@ idchr        [a-zA-Z0-9_$#]
 "]"        	{ return ']'; }
 "("         { return '('; }
 ")"         { return ')'; }
-"[["        { return T_LBRBR; }
-"]]"        { return T_RBRBR; }
 "?"        	{ return '?'; }
 "'"        	{ return '\''; }
 "!"        	{ return T_EXCLAM; }

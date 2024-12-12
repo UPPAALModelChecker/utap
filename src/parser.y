@@ -284,9 +284,6 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-/* ATL */
-%token T_LBRBR T_RBRBR
-
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
@@ -321,7 +318,7 @@ const char* utap_msg(const char *msg)
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
 %right T_INCREMENT T_DECREMENT
-%left '(' ')' '[' ']' '.' '\'' T_LBRBR T_RBRBR
+%left '(' ')' '[' ']' '.' '\''
 
 
 %union {
@@ -1416,26 +1413,26 @@ AtlExpression:
     | T_LSHIFT PlayerColorList T_RSHIFT '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
         CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
     }
-    | T_LBRBR PlayerColorList T_RBRBR '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
-        CALL(@1, @8, expr_atl($2, ATL_DESPITE_UNTIL));
+    | '[' '[' PlayerColorList ']' ']' '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
+        CALL(@1, @10, expr_atl($3, ATL_DESPITE_UNTIL));
     }
     | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND AtlExpressionOrExpression {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_F));
     }
-    | T_LBRBR PlayerColorList T_RBRBR T_DIAMOND AtlExpressionOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_F));
+    | '[' '[' PlayerColorList ']' ']' T_DIAMOND AtlExpressionOrExpression {
+        CALL(@1, @7, expr_atl($3, ATL_DESPITE_F));
     }
     | T_LSHIFT PlayerColorList T_RSHIFT T_BOX AtlExpressionOrExpression {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_G));
     }
-    | T_LBRBR PlayerColorList T_RBRBR T_BOX AtlExpressionOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_G));
+    | '[' '[' PlayerColorList ']' ']' T_BOX AtlExpressionOrExpression {
+        CALL(@1, @7, expr_atl($3, ATL_DESPITE_G));
     }
     | T_LSHIFT PlayerColorList T_RSHIFT 'X' AtlExpressionOrExpression {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_NEXT));
     }
-    | T_LBRBR PlayerColorList T_RBRBR 'X' AtlExpressionOrExpression {
-        CALL(@1, @5, expr_atl($2, ATL_DESPITE_NEXT));
+    | '[' '[' PlayerColorList ']' ']' 'X' AtlExpressionOrExpression {
+        CALL(@1, @7, expr_atl($3, ATL_DESPITE_NEXT));
     }
 ;
 
