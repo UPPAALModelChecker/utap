@@ -26,20 +26,24 @@ bool enabled(int i) {
 	<system>system P;</system>
 	<queries>
 		<query>
-			<formula>simulate[&lt;=1;2] { v } : 1 : enabled(1)</formula>
-			<comment/>
-			<result outcome="success" type="interval" value="≥ 0.025 (95% CI)" timestamp="2024-09-30 14:30:30 +0200">
-				<details>≥ 0.025 (95% CI)</details>
-				<plot title="Simulations (1)" xaxis="time" yaxis="value">
-					<series title="v" type="l" color="0xff0000" encoding="csv">0.0,-1.0
-					</series>
-					<comment/>
-				</plot>
-			</result>
+			<formula>simulate[&lt;=5;3] { v, enabled(1) } : 2 : enabled(1)</formula>
+			<comment>Good call, should pass</comment>
 		</query>
 		<query>
-			<formula>simulate[&lt;=1;2] { v } : 1 : enabled()</formula>
-			<comment/>
+			<formula>simulate[&lt;=5;3] { v, enabled(1) } : 2 : enabled()</formula>
+			<comment>Call is missing argument, should give meaningful error and not crash.</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled() } : 2 : enabled(1)</formula>
+			<comment>Call is missing argument, should give meaningful error and not crash.</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled() } : 2 : enabled()</formula>
+			<comment>Both calls are missing arguments, should give error message and not crash</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, non_existent() } : 2 : non_existent()</formula>
+			<comment>Chould give meaningfull error message and not crash</comment>
 		</query>
 	</queries>
 </nta>

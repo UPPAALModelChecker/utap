@@ -341,17 +341,19 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
     switch (id.get_type().get_kind()) {
     case FUNCTION_EXTERNAL:
     case FUNCTION:
-        if (expr.size() != id.get_type().size()) {
-            handle_error(TypeException{"$Wrong_number_of_arguments"});
-        }
+        if (expr.size() < id.get_type().size())
+            handle_error(TypeException{"$Too_few_arguments_for_function_call"});
+        if (expr.size() > id.get_type().size())
+            handle_error(TypeException{"$Too_many_arguments_for_function_call"});
         e = expression_t::create_nary(id.get_type().get_kind() == FUNCTION ? FUN_CALL : FUN_CALL_EXT, expr, position,
                                       id.get_type()[0]);
         break;
 
     case PROCESS_SET:
-        if (expr.size() - 1 != id.get_type().size()) {
-            handle_error(TypeException{"$Wrong_number_of_arguments"});
-        }
+        if (expr.size() - 1 < id.get_type().size())
+            handle_error(TypeException{"$Too_few_arguments_for_template_instantiation"});
+        if (expr.size() - 1 > id.get_type().size())
+            handle_error(TypeException{"$Too_many_arguments_for_template_instantiation"});
         instance = static_cast<instance_t*>(id.get_symbol().get_data());
 
         /* Process set lookups are represented as expressions indexing
