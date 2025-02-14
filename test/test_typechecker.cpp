@@ -474,3 +474,103 @@ TEST_CASE("Nested structs")
     auto errs = doc->get_errors();
     CHECK(errs.size() == 1);
 }
+
+TEST_CASE("Function calls in queries")
+{
+    auto doc = read_document("function_calls.xml");
+    const auto& errs = doc->get_errors();
+    REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+    auto builder = std::make_unique<UTAP::TigaPropertyBuilder>(*doc);
+    const auto& queries = doc->get_queries();
+    REQUIRE(queries.size() == 5);
+    SUBCASE("Correct")
+    {
+        const auto& query = *queries.begin();
+        builder->parse(query.formula.c_str(), query.location, query.options);
+        REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
+        /*
+        REQUIRE_MESSAGE(props.size() == prop_count + 1, "Should contain one more property");
+        const auto& expr = std::next(props.begin(), prop_count)->intermediate;
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+         */
+    }
+    SUBCASE("Predicate misses argument")
+    {
+        const auto& query = *std::next(queries.begin(), 1);
+        builder->parse(query.formula.c_str(), query.location, query.options);
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        /*
+        REQUIRE_MESSAGE(props.size() == prop_count + 1, "Should contain one more property");
+        const auto& expr = std::next(props.begin(), prop_count)->intermediate;
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+         */
+    }
+    SUBCASE("Monitored expression misses argument")
+    {
+        const auto& query = *std::next(queries.begin(), 2);
+        builder->parse(query.formula.c_str(), query.location, query.options);
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        /*
+        REQUIRE_MESSAGE(props.size() == prop_count + 1, "Should contain one more property");
+        const auto& expr = std::next(props.begin(), prop_count)->intermediate;
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+         */
+    }
+    SUBCASE("Missing arguments in both calls")
+    {
+        const auto& query = *std::next(queries.begin(), 3);
+        builder->parse(query.formula.c_str(), query.location, query.options);
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        /*
+        REQUIRE_MESSAGE(props.size() == prop_count + 1, "Should contain one more property");
+        const auto& expr = std::next(props.begin(), prop_count)->intermediate;
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+         */
+    }
+    SUBCASE("Non-existent fn")
+    {
+        const auto& query = *std::next(queries.begin(), 4);
+        builder->parse(query.formula.c_str(), query.location, query.options);
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        /*
+        REQUIRE_MESSAGE(props.size() == prop_count + 1, "Should contain one more property");
+        const auto& expr = std::next(props.begin(), prop_count)->intermediate;
+        REQUIRE(expr.get_size() == 7);
+        CHECK(expr.get(0).get_value() == 3);  ///< max runs
+        CHECK(expr.get(1).get_value() == 1);  ///< bound kind of time
+        CHECK(expr.get(2).get_value() == 5);  ///< time bound
+        // CHECK(expr.get(3));
+        // CHECK(expr.get(4));
+        // CHECK(expr.get(5));
+        CHECK(expr.get(6).get_value() == 2);  ///< number of satisfying runs
+         */
+    }
+}

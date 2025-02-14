@@ -2129,12 +2129,16 @@ bool TypeChecker::checkExpression(expression_t expr)
         checkExpression(expr[0]);
 
         bool result = true;
-        type_t type = expr[0].get_type();
-        size_t parameters = type.size() - 1;
-        for (uint32_t i = 0; i < parameters; i++) {
-            type_t parameter = type[i + 1];
-            expression_t argument = expr[i + 1];
-            result &= checkParameterCompatible(parameter, argument);
+        type_t fn_type = expr[0].get_type();  // [ret_type, arg1_type, ..., argn_type]
+        size_t param_count = fn_type.size() - 1;
+        for (uint32_t i = 1; i < param_count; ++i) {
+            if (i >= expr.get_size()) {
+                handleError(expr, "$Too_few_function_arguments");
+                break;
+            }
+            type_t param_type = fn_type[i];
+            expression_t argument = expr[i];
+            result &= checkParameterCompatible(param_type, argument);
         }
         return result;
     }
