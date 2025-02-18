@@ -440,6 +440,7 @@ size_t expression_t::get_size() const
     case FUN_CALL:
     case FUN_CALL_EXT:
     case LIST:
+    case INTERVAL_LIST:
     case SIMULATE:
     case SIMULATEREACH:
     case SPAWN: return std::get<int32_t>(data->value);
@@ -492,6 +493,9 @@ size_t expression_t::get_size() const
     case MITL_FORALL:
     case FOREACH_DYNAMIC: assert(data->sub.size() == 3); return 3;
     case DYNAMIC_EVAL: assert(data->sub.size() == 2); return 2;
+    case ENFORCE: assert(data->sub.size() == 2); return 2;
+    case DISCRETE_INTERVAL: assert(data->sub.size() == 3); return 3;
+    case INTERVAL: assert(data->sub.size() == 4); return 4;
     default: assert(0); return 0;
     }
 }
@@ -1661,6 +1665,42 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         get(2).print(os, old) << ")";
         break;
     case TYPEDEF: os << "typedef"; break;
+
+    case ENFORCE:
+        os << "enforce: ";
+        get(0).print(os, old);
+        get(1).print(os, old);
+        break;
+
+    case INTERVAL_LIST:
+        os << " { ";
+        for (size_t i = 0; i < get_size(); ++i) {
+            get(i).print(os, old);
+            if (i + 1 < get_size()) {
+                os << ", ";
+            }
+        }
+        os << " }";
+        break;
+
+    case INTERVAL:
+        get(0).print(os, old);
+        os << "[";
+        get(1).print(os, old);
+        os << ", ";
+        get(2).print(os, old);
+        os << "]:";
+        get(3).print(os, old);
+        break;
+
+    case DISCRETE_INTERVAL:
+        get(0).print(os, old);
+        os << "[";
+        get(1).print(os, old);
+        os << ", ";
+        get(2).print(os, old);
+        os << "]";
+        break;
 
     // Types - Not applicable in expression printing
     case RANGE:

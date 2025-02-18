@@ -276,6 +276,10 @@ void AbstractBuilder::expr_MITL_forall_dynamic_end(const char* name) { UNSUPPORT
 void AbstractBuilder::expr_MITL_exists_dynamic_begin(const char*, const char*) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_exists_dynamic_end(const char* name) { UNSUPPORTED; }
 
+void AbstractBuilder::expr_enforce() { UNSUPPORTED; }
+void AbstractBuilder::expr_discrete_interval() { UNSUPPORTED; }
+void AbstractBuilder::expr_interval(int32_t divisions) { UNSUPPORTED; }
+
 void AbstractBuilder::query_begin() { UNSUPPORTED; }
 void AbstractBuilder::query_end() { UNSUPPORTED; }
 void AbstractBuilder::query_formula(const char*, const char*) { UNSUPPORTED; }

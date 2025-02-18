@@ -283,11 +283,15 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
+/* HYPA */
+%token T_ENFORCE
+
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
 %type <number> ParameterList FieldInitList
 %type <number> OptionalInstanceParameterList ExpressionList NonEmptyExpressionList
+%type <number> IntervalList NonEmptyIntervalList
 %type <prefix> Type TypePrefix
 %type <string> Id NonTypeId
 %type <kind> UnaryOp AssignOp
@@ -1768,6 +1772,40 @@ Features: {
     }
     | BracketExprList T_ARROW BracketExprList;
 
+
+/* Binary tree inspired by BracketExprList */
+BracketIntervalList:
+	'{' IntervalList '}' {
+		CALL(@1, @3, expr_nary(INTERVAL_LIST, $2));
+	}
+	;
+
+/* $$ is number of intervals in the list. */
+IntervalList:
+	/* empty */ { $$ = 0; }
+	| NonEmptyIntervalList
+	;
+
+NonEmptyIntervalList:
+	Interval { $$ = 1; }
+	| NonEmptyIntervalList ',' Interval { $$ = $1 + 1; }
+	;
+
+Interval:
+	T_ID '[' Expression ',' Expression ']' {
+		CALL(@1, @1, expr_identifier($1));
+		CALL(@1, @6, expr_discrete_interval());
+	}
+	| T_ID '[' Expression ',' Expression ']' ':' T_NAT {
+		CALL(@1, @1, expr_identifier($1));
+		CALL(@1, @8, expr_interval($8));
+	}
+	;
+
+
+Partition:
+	| BracketIntervalList;
+
 AssignablePropperty:
     T_CONTROL ':' SubProperty Subjection {
         CALL(@1, @3, expr_unary(CONTROL));
@@ -1788,6 +1826,10 @@ AssignablePropperty:
     | T_EF T_CONTROL ':' SubProperty Subjection {
 	CALL(@1, @4, expr_unary(EF_CONTROL));
 	CALL(@1, @4, property());
+    }
+    | T_ENFORCE ':' Expression Partition {
+    	CALL(@1, @4, expr_enforce());
+    	CALL(@1, @4, property());
     }
     | BracketExprList T_CONTROL ':' SubProperty Subjection {
         CALL(@1, @4, expr_binary(PO_CONTROL));
@@ -1985,7 +2027,6 @@ Property:
 	    CALL(@1, @2, expr_binary(BOUNDS_VAR));
 	    CALL(@1, @2, property());
 	};
-
 %%
 
 #include "lexer.cc"

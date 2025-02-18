@@ -917,6 +917,38 @@ void ExpressionBuilder::expr_MITL_box(int low, int high)
     fragments.push(form);
 }
 
+void ExpressionBuilder::expr_enforce()
+{
+    const auto partition = fragments[0];
+    assert(partition.get_kind() == INTERVAL_LIST);
+    const auto to_enforce = fragments[1];
+    fragments.pop(2);
+    fragments.push(expression_t::create_binary(ENFORCE, to_enforce, partition, position));
+}
+
+void ExpressionBuilder::expr_discrete_interval()
+{
+    const auto identifier = fragments[0];
+    const auto upper = fragments[1];
+    const auto lower = fragments[2];
+    fragments.pop(3);
+    auto args = std::vector{identifier, lower, upper};
+    const auto discrete_interval = expression_t::create_nary(DISCRETE_INTERVAL, std::move(args), position);
+    fragments.push(discrete_interval);
+}
+
+void ExpressionBuilder::expr_interval(int32_t divisions)
+{
+    const auto identifier = fragments[0];
+    const auto upper = fragments[1];
+    const auto lower = fragments[2];
+    fragments.pop(3);
+    const auto divisions2 = expression_t::create_constant(divisions, position);
+    auto args = std::vector{identifier, lower, upper, divisions2};
+    const auto interval = expression_t::create_nary(INTERVAL, std::move(args), position);
+    fragments.push(interval);
+}
+
 void ExpressionBuilder::expr_MITL_disj()
 {
     auto& left = fragments[1];

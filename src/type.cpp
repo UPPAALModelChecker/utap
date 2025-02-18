@@ -134,6 +134,9 @@ bool type_t::is_prefix() const
     case Constants::TYPEDEF:
     case Constants::LABEL:
     case Constants::RATE:
+    case Constants::INTERVAL:
+    case Constants::DISCRETE_INTERVAL:
+    case Constants::INTERVAL_LIST:
     case Constants::INSTANCE_LINE:  // LSC
     case Constants::MESSAGE:        // LSC
     case Constants::CONDITION:      // LSC

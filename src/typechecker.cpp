@@ -181,6 +181,17 @@ static bool isAssignable(type_t type)
     }
 }
 
+static bool is_interval_list(expression_t expression)
+{
+    const auto n_expressions = expression.get_size();
+    for (size_t i = 0; i < n_expressions; ++i) {
+        if (!(expression[i].get_type().is(INTERVAL) || expression[i].get_type().is(DISCRETE_INTERVAL)))
+            return false;
+    }
+
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 
 void CompileTimeComputableValues::visitVariable(variable_t& variable)
@@ -1000,7 +1011,8 @@ static bool isGameProperty(expression_t expr)
     case CONTROL_TOPT:
     case PO_CONTROL:
     case CONTROL_TOPT_DEF1:
-    case CONTROL_TOPT_DEF2: return true;
+    case CONTROL_TOPT_DEF2:
+    case ENFORCE: return true;
     default: return false;
     }
 }
@@ -2238,6 +2250,33 @@ bool TypeChecker::checkExpression(expression_t expr)
 
     case PO_CONTROL:
         if (is_formula_list(expr[0]) && is_formula(expr[1])) {
+            type = type_t::create_primitive(FORMULA);
+        }
+        break;
+
+    case INTERVAL_LIST:
+        if (is_interval_list(expr)) {
+            type = type_t::create_primitive(INTERVAL_LIST);
+        }
+        break;
+
+    case INTERVAL: {
+        const auto e0 = expr[0].get_type();
+        const auto e1 = expr[1].get_type();
+        const auto e2 = expr[2].get_type();
+        if ((e0.is_integer() || e0.is_double()) && (e1.is_integer() || e1.is_double())  && e2.is_integer()) {
+            type = type_t::create_primitive(INTERVAL);
+        }
+    } break;
+
+    case DISCRETE_INTERVAL:
+        if (expr[0].get_type().is_integer() && expr[1].get_type().is_integer()) {
+            type = type_t::create_primitive(DISCRETE_INTERVAL);
+        }
+        break;
+
+    case ENFORCE:
+        if (expr[0].get_type().is_integral() && is_interval_list(expr[1])) {
             type = type_t::create_primitive(FORMULA);
         }
         break;

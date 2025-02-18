@@ -206,6 +206,10 @@ public:
     void expr_MITL_diamond(int, int) override;
     void expr_MITL_box(int, int) override;
 
+    void expr_enforce() override;
+    void expr_discrete_interval() override;
+    void expr_interval(int32_t divisions) override;
+
     /* Dynamic process creation */
     void expr_spawn(int params) override;
     void expr_exit() override;

@@ -322,3 +322,57 @@ TEST_CASE("Post incrementing an identifier should not require parenthesis")
 
     CHECK(expr.str() == "foo++");
 }
+
+TEST_CASE("Enforce query")
+{
+    auto f = document_fixture{}
+                 .add_default_process()
+                 .add_system_decl("bool myBool;")
+                 .add_system_decl("int myInt;")
+                 .add_system_decl("int[1, 10] myConstrainedInt;")
+                 .add_system_decl("double myDouble;")
+                 .add_system_decl("clock myClock;")
+                 .add_system_decl("chan MyChannel;")
+                 .build_query_fixture();
+
+    const auto foo = f.get_errors();
+    REQUIRE(f.get_errors().empty());
+
+    SUBCASE("Correct types")
+    {
+        // NB: Whitespace is significant since it must match the pretty-printer.
+        const std::string query_string = "enforce: myDouble < 1 "
+                                         "{ "
+                                         "myInt[2 + 2, 10], "
+                                         "myConstrainedInt[1, 2 * 5], "
+                                         "myDouble[M_PI, 21 * 100]:100 "
+                                         "}";
+
+        auto query1 = f.parse_query(query_string.data()).intermediate;
+
+        REQUIRE(query1.get_kind() == UTAP::Constants::ENFORCE);
+        CHECK(query_string == query1.str());
+    }
+
+    SUBCASE("Invalid condition to enforce")
+    {
+        const auto query_string = "enforce: (-2.2) { }";
+        REQUIRE_THROWS_WITH(f.parse_query(query_string).intermediate, "$Type_error");
+
+        const auto query_string2 = "enforce: myChannel { }";
+        REQUIRE_THROWS_WITH(f.parse_query(query_string2).intermediate, "$Type_error");
+    }
+
+    SUBCASE("Invalid number of divisions")
+    {
+        const auto query_string = "enforce: myDouble < 1 {  myDouble[M_PI, 21 * 100]:1.5 }";
+        REQUIRE_THROWS_WITH(f.parse_query(query_string), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+
+        // Don't know why it still says "T_FLOATING" here.
+        const auto query_string2 = "enforce: myDouble < 1 { myDouble[M_PI, 21 * 100]:myChannel }";
+        REQUIRE_THROWS_WITH(f.parse_query(query_string2), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+
+        const auto query_string3 = "enforce: myDouble < 1 { myDouble[M_PI, 21 * 100]:myClock }";
+        REQUIRE_THROWS_WITH(f.parse_query(query_string3), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+    }
+}
