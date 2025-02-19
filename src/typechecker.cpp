@@ -2261,10 +2261,11 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case INTERVAL: {
-        const auto e0 = expr[0].get_type();
-        const auto e1 = expr[1].get_type();
-        const auto e2 = expr[2].get_type();
-        if ((e0.is_integer() || e0.is_double()) && (e1.is_integer() || e1.is_double())  && e2.is_integer()) {
+        const auto lower = expr[0].get_type();
+        const auto upper = expr[1].get_type();
+        const auto divisions = expr[2].get_type();
+        if ((lower.is_integer() || lower.is_double() || lower.is_clock()) &&
+            (upper.is_integer() || upper.is_double() || upper.is_clock()) && divisions.is_integer()) {
             type = type_t::create_primitive(INTERVAL);
         }
     } break;

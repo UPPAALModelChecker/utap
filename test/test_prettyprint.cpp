@@ -354,6 +354,22 @@ TEST_CASE("Enforce query")
         CHECK(query_string == query1.str());
     }
 
+    SUBCASE("Mixing some clocks in there")
+    {
+        // Expressions involving clocks typecheck as invariants.
+        // Invariants aren't considered boolean expressions for some reason. I don't consider this my problem.
+        // The workaround is to add a floating-point number to the clock to appease the type checker.
+        const std::string query_string = "enforce: myClock + 0.0 < 10 && myClock + 0.0 > 0 { myClock[-1, 10]:100 }";
+
+        auto query1 = f.parse_query(query_string.data()).intermediate;
+
+        // And then I have to respect that the prettyprinter prints `0` instead of `0.0` for doubles.
+        // Also not my problem. And no, adding `0` in the query does not work.
+        const std::string expected_string = "enforce: myClock + 0 < 10 && myClock + 0 > 0 { myClock[-1, 10]:100 }";
+        REQUIRE(query1.get_kind() == UTAP::Constants::ENFORCE);
+        CHECK(expected_string == query1.str());
+    }
+
     SUBCASE("Invalid condition to enforce")
     {
         const auto query_string = "enforce: (-2.2) { }";
