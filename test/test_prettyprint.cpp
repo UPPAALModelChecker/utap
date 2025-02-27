@@ -338,6 +338,18 @@ TEST_CASE("Enforce query")
     const auto foo = f.get_errors();
     REQUIRE(f.get_errors().empty());
 
+    SUBCASE("Support of locations")
+    {
+
+        auto query_string = "enforce: Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
+
+        auto query = f.parse_query(query_string).intermediate;
+
+        REQUIRE(query.get_kind() == UTAP::Constants::ENFORCE);
+        CHECK(query_string == query.str());
+    }
+
+
     SUBCASE("Correct types")
     {
         // NB: Whitespace is significant since it must match the pretty-printer.

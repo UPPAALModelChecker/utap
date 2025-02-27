@@ -199,6 +199,7 @@ void AbstractBuilder::expr_ternary(Constants::kind_t ternaryop, bool firstMissin
 void AbstractBuilder::expr_inline_if() { UNSUPPORTED; }
 void AbstractBuilder::expr_comma() { UNSUPPORTED; }
 void AbstractBuilder::expr_location() { UNSUPPORTED; }
+void AbstractBuilder::expr_location(const char* name) { UNSUPPORTED; }
 void AbstractBuilder::expr_dot(const char*) { UNSUPPORTED; }
 void AbstractBuilder::expr_deadlock() { UNSUPPORTED; }
 void AbstractBuilder::expr_forall_begin(const char* name) { UNSUPPORTED; }

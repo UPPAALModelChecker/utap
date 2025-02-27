@@ -319,6 +319,7 @@ public:
     virtual void expr_double(double) = 0;
     virtual void expr_string(const char* name) = 0;
     virtual void expr_identifier(const char* varName) = 0;
+    virtual void expr_location(const char* name) = 0;
     virtual void expr_location() = 0;
     virtual void expr_nat(int32_t) = 0;  // natural number
     virtual void expr_call_begin() = 0;

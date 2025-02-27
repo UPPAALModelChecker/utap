@@ -557,6 +557,20 @@ void ExpressionBuilder::expr_comma()
     fragments.push(expression_t::create_binary(COMMA, e1, e2, position, e2.get_type()));
 }
 
+void ExpressionBuilder::expr_location(const char* name)
+{
+
+    symbol_t uid;
+
+    if (!resolve(name, uid)) {
+        expr_false();
+        throw UnknownIdentifierError(name);
+    }
+
+    fragments.push(expression_t::create_identifier(uid, position));
+    expr_location();
+}
+
 void ExpressionBuilder::expr_location()
 {
     expression_t expr = fragments[0];

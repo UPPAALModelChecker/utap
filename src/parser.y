@@ -1800,6 +1800,9 @@ Interval:
 		CALL(@1, @1, expr_identifier($1));
 		CALL(@1, @8, expr_interval($8));
 	}
+	| T_ID '.' T_LOCATION {
+		CALL(@1, @3, expr_location($1));
+	}
 	;
 
 

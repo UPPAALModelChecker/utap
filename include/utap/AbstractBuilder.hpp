@@ -180,6 +180,7 @@ public:
     void expr_false() override;
     void expr_double(double) override;
     void expr_string(const char*) override;
+    void expr_location(const char* name) override;
     void expr_location() override;
     void expr_identifier(const char* varName) override;
     void expr_nat(int32_t) override;  // natural number

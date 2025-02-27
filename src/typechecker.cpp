@@ -185,7 +185,8 @@ static bool is_interval_list(expression_t expression)
 {
     const auto n_expressions = expression.get_size();
     for (size_t i = 0; i < n_expressions; ++i) {
-        if (!(expression[i].get_type().is(INTERVAL) || expression[i].get_type().is(DISCRETE_INTERVAL)))
+        auto e = expression[i];
+        if (!(e.get_type().is(INTERVAL) || e.get_type().is(DISCRETE_INTERVAL) || e.get_type().is(LOCATION_EXPR)))
             return false;
     }
 

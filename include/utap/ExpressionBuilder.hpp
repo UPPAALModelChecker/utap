@@ -175,6 +175,7 @@ public:
     void expr_ternary(Constants::kind_t ternaryop, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;
+    void expr_location(const char* name);
     void expr_dot(const char*) override;
     void expr_deadlock() override;
     void expr_forall_begin(const char* name) override;
