@@ -149,7 +149,7 @@ namespace UTAP {
             {"foreach",       Keyword{T_FOREACH, syntax_t::PROPERTY}},
             {"query",         Keyword{T_QUERY, syntax_t::NEW}},
             {"location",      Keyword{T_LOCATION, syntax_t::NEW}},
-            {"enforce",       Keyword{T_ENFORCE, syntax_t::NEW_PROPERTY}},
+            {"acontrol",       Keyword{T_ACRONTROL, syntax_t::NEW_PROPERTY}},
     };
 // clang-format on
 

@@ -493,7 +493,7 @@ size_t expression_t::get_size() const
     case MITL_FORALL:
     case FOREACH_DYNAMIC: assert(data->sub.size() == 3); return 3;
     case DYNAMIC_EVAL: assert(data->sub.size() == 2); return 2;
-    case ENFORCE: assert(data->sub.size() == 2); return 2;
+    case ACONTROL: assert(data->sub.size() == 2); return 2;
     case DISCRETE_INTERVAL: assert(data->sub.size() == 3); return 3;
     case INTERVAL: assert(data->sub.size() == 4); return 4;
     default: assert(0); return 0;
@@ -1666,8 +1666,8 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
         break;
     case TYPEDEF: os << "typedef"; break;
 
-    case ENFORCE:
-        os << "enforce: ";
+    case ACONTROL:
+        os << "acontrol: A[] ";
         get(0).print(os, old);
         get(1).print(os, old);
         break;

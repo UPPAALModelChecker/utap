@@ -285,7 +285,7 @@ public:
     void expr_MITL_exists_dynamic_begin(const char*, const char*) override;
     void expr_MITL_exists_dynamic_end(const char* name) override;
 
-    void expr_enforce() override;
+    void expr_acontrol() override;
     void expr_discrete_interval() override;
     void expr_interval(int32_t divisions) override;
 

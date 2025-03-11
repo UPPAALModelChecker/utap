@@ -282,7 +282,7 @@ enum kind_t {
     /******************************************************
      * HYPA
      */
-    ENFORCE,
+    ACONTROL,
     DISCRETE_INTERVAL,
     INTERVAL,
     INTERVAL_LIST,

@@ -323,7 +323,7 @@ TEST_CASE("Post incrementing an identifier should not require parenthesis")
     CHECK(expr.str() == "foo++");
 }
 
-TEST_CASE("Enforce query")
+TEST_CASE("acontrol query")
 {
     auto f = document_fixture{}
                  .add_default_process()
@@ -341,11 +341,11 @@ TEST_CASE("Enforce query")
     SUBCASE("Support of locations")
     {
 
-        auto query_string = "enforce: Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
+        const std::string query_string = "acontrol: A[] Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
 
-        auto query = f.parse_query(query_string).intermediate;
+        auto query = f.parse_query(query_string.data()).intermediate;
 
-        REQUIRE(query.get_kind() == UTAP::Constants::ENFORCE);
+        REQUIRE(query.get_kind() == UTAP::Constants::ACONTROL);
         CHECK(query_string == query.str());
     }
 
@@ -353,7 +353,7 @@ TEST_CASE("Enforce query")
     SUBCASE("Correct types")
     {
         // NB: Whitespace is significant since it must match the pretty-printer.
-        const std::string query_string = "enforce: myDouble < 1 "
+        const std::string query_string = "acontrol: A[] myDouble < 1 "
                                          "{ "
                                          "myInt[2 + 2, 10], "
                                          "myConstrainedInt[1, 2 * 5], "
@@ -362,7 +362,7 @@ TEST_CASE("Enforce query")
 
         auto query1 = f.parse_query(query_string.data()).intermediate;
 
-        REQUIRE(query1.get_kind() == UTAP::Constants::ENFORCE);
+        REQUIRE(query1.get_kind() == UTAP::Constants::ACONTROL);
         CHECK(query_string == query1.str());
     }
 
@@ -371,36 +371,36 @@ TEST_CASE("Enforce query")
         // Expressions involving clocks typecheck as invariants.
         // Invariants aren't considered boolean expressions for some reason. I don't consider this my problem.
         // The workaround is to add a floating-point number to the clock to appease the type checker.
-        const std::string query_string = "enforce: myClock + 0.0 < 10 && myClock + 0.0 > 0 { myClock[-1, 10]:100 }";
+        const std::string query_string = "acontrol: A[] myClock + 0.0 < 10 && myClock + 0.0 > 0 { myClock[-1, 10]:100 }";
 
         auto query1 = f.parse_query(query_string.data()).intermediate;
 
         // And then I have to respect that the prettyprinter prints `0` instead of `0.0` for doubles.
         // Also not my problem. And no, adding `0` in the query does not work.
-        const std::string expected_string = "enforce: myClock + 0 < 10 && myClock + 0 > 0 { myClock[-1, 10]:100 }";
-        REQUIRE(query1.get_kind() == UTAP::Constants::ENFORCE);
+        const std::string expected_string = "acontrol: A[] myClock + 0 < 10 && myClock + 0 > 0 { myClock[-1, 10]:100 }";
+        REQUIRE(query1.get_kind() == UTAP::Constants::ACONTROL);
         CHECK(expected_string == query1.str());
     }
 
     SUBCASE("Invalid condition to enforce")
     {
-        const auto query_string = "enforce: (-2.2) { }";
+        const auto query_string = "acontrol: A[] (-2.2) { }";
         REQUIRE_THROWS_WITH(f.parse_query(query_string).intermediate, "$Type_error");
 
-        const auto query_string2 = "enforce: myChannel { }";
+        const auto query_string2 = "acontrol: A[] myChannel { }";
         REQUIRE_THROWS_WITH(f.parse_query(query_string2).intermediate, "$Type_error");
     }
 
     SUBCASE("Invalid number of divisions")
     {
-        const auto query_string = "enforce: myDouble < 1 {  myDouble[M_PI, 21 * 100]:1.5 }";
+        const auto query_string = "acontrol: A[] myDouble < 1 {  myDouble[M_PI, 21 * 100]:1.5 }";
         REQUIRE_THROWS_WITH(f.parse_query(query_string), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
 
         // Don't know why it still says "T_FLOATING" here.
-        const auto query_string2 = "enforce: myDouble < 1 { myDouble[M_PI, 21 * 100]:myChannel }";
+        const auto query_string2 = "acontrol: A[] myDouble < 1 { myDouble[M_PI, 21 * 100]:myChannel }";
         REQUIRE_THROWS_WITH(f.parse_query(query_string2), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
 
-        const auto query_string3 = "enforce: myDouble < 1 { myDouble[M_PI, 21 * 100]:myClock }";
+        const auto query_string3 = "acontrol: A[] myDouble < 1 { myDouble[M_PI, 21 * 100]:myClock }";
         REQUIRE_THROWS_WITH(f.parse_query(query_string3), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
     }
 }

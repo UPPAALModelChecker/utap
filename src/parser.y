@@ -234,6 +234,9 @@ const char* utap_msg(const char *msg)
 /* Control Synthesis */
 %token T_CONTROL T_CONTROL_T T_SIMULATION
 
+/* HYPA */
+%token T_ACRONTROL
+
 /* Expectation optimization */
 %token T_MINEXP T_MAXEXP T_MINPR T_MAXPR T_STRATEGY T_LOAD_STRAT T_SAVE_STRAT
 
@@ -283,8 +286,6 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-/* HYPA */
-%token T_ENFORCE
 
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
@@ -1830,8 +1831,8 @@ AssignablePropperty:
 	CALL(@1, @4, expr_unary(EF_CONTROL));
 	CALL(@1, @4, property());
     }
-    | T_ENFORCE ':' Expression Partition {
-    	CALL(@1, @4, expr_enforce());
+    | T_ACRONTROL ':' T_AG Expression Partition {
+    	CALL(@1, @4, expr_acontrol());
     	CALL(@1, @4, property());
     }
     | BracketExprList T_CONTROL ':' SubProperty Subjection {

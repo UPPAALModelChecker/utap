@@ -431,7 +431,7 @@ public:
     virtual void expr_MITL_exists_dynamic_end(const char* name) = 0;
     virtual void expr_dynamic_process_expr(const char*) = 0;
 
-    virtual void expr_enforce() = 0;
+    virtual void expr_acontrol() = 0;
     virtual void expr_discrete_interval() = 0;
     virtual void expr_interval(int32_t divisions) = 0;
 

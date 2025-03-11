@@ -1013,7 +1013,7 @@ static bool isGameProperty(expression_t expr)
     case PO_CONTROL:
     case CONTROL_TOPT_DEF1:
     case CONTROL_TOPT_DEF2:
-    case ENFORCE: return true;
+    case ACONTROL: return true;
     default: return false;
     }
 }
@@ -2277,7 +2277,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         }
         break;
 
-    case ENFORCE:
+    case ACONTROL:
         if (expr[0].get_type().is_integral() && is_interval_list(expr[1])) {
             type = type_t::create_primitive(FORMULA);
         }

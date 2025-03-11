@@ -931,13 +931,13 @@ void ExpressionBuilder::expr_MITL_box(int low, int high)
     fragments.push(form);
 }
 
-void ExpressionBuilder::expr_enforce()
+void ExpressionBuilder::expr_acontrol()
 {
     const auto partition = fragments[0];
     assert(partition.get_kind() == INTERVAL_LIST);
     const auto to_enforce = fragments[1];
     fragments.pop(2);
-    fragments.push(expression_t::create_binary(ENFORCE, to_enforce, partition, position));
+    fragments.push(expression_t::create_binary(ACONTROL, to_enforce, partition, position));
 }
 
 void ExpressionBuilder::expr_discrete_interval()

@@ -110,8 +110,8 @@ enum class quant_t {
     /* LSC scenario property */
     scenario,
 
-    /* HYPA: enforce : ... {} -> {} */
-    enforce,
+    /* HYPA: acontrol: A[] ... {} -> {} */
+    acontrol,
 };
 
 /** property status */
