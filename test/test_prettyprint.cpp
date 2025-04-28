@@ -338,32 +338,31 @@ TEST_CASE("acontrol query")
     const auto foo = f.get_errors();
     REQUIRE(f.get_errors().empty());
 
-    SUBCASE("Support of locations")
-    {
-
-        const std::string query_string = "acontrol: A[] Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
-
-        auto query = f.parse_query(query_string.data()).intermediate;
-
-        REQUIRE(query.get_kind() == UTAP::Constants::ACONTROL);
-        CHECK(query_string == query.str());
-    }
-
-
-    SUBCASE("Correct types")
+    SUBCASE("Basics")
     {
         // NB: Whitespace is significant since it must match the pretty-printer.
         const std::string query_string = "acontrol: A[] myDouble < 1 "
                                          "{ "
                                          "myInt[2 + 2, 10], "
                                          "myConstrainedInt[1, 2 * 5], "
-                                         "myDouble[M_PI, 21 * 100]:100 "
+                                         "myDouble[M_PI, 2.1 * 100]:100 "
                                          "}";
 
         auto query1 = f.parse_query(query_string.data()).intermediate;
 
         REQUIRE(query1.get_kind() == UTAP::Constants::ACONTROL);
         CHECK(query_string == query1.str());
+    }
+
+    SUBCASE("Support of locations")
+    {
+        const std::string query_string =
+            "acontrol: A[] Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
+
+        auto query = f.parse_query(query_string.data()).intermediate;
+
+        REQUIRE(query.get_kind() == UTAP::Constants::ACONTROL);
+        CHECK(query_string == query.str());
     }
 
     SUBCASE("Mixing some clocks in there")

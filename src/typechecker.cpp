@@ -2262,10 +2262,12 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case INTERVAL: {
-        const auto lower = expr[0].get_type();
-        const auto upper = expr[1].get_type();
-        const auto divisions = expr[2].get_type();
-        if ((lower.is_integer() || lower.is_double() || lower.is_clock()) &&
+        const auto ident = expr[0].get_type();
+        const auto lower = expr[1].get_type();
+        const auto upper = expr[2].get_type();
+        const auto divisions = expr[3].get_type();
+        if ((ident.is_integer() || ident.is_double() || ident.is_clock()) &&
+            (lower.is_integer() || lower.is_double() || lower.is_clock()) &&
             (upper.is_integer() || upper.is_double() || upper.is_clock()) && divisions.is_integer()) {
             type = type_t::create_primitive(INTERVAL);
         }
