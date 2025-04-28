@@ -2278,7 +2278,7 @@ bool TypeChecker::checkExpression(expression_t expr)
         break;
 
     case ACONTROL:
-        if (expr[0].get_type().is_integral() && is_interval_list(expr[1])) {
+        if (expr[0].get_type().is_guard() && is_interval_list(expr[1])) {
             type = type_t::create_primitive(FORMULA);
         }
         break;
