@@ -88,11 +88,11 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: local/linux64-gcc14
-          key: libs-linux64-gcc14-${{ hashFiles('getlibs/**') }}
+          key: libs-linux64-gcc14-${{ hashFiles('getlibs.sh') }}
           restore-keys: libs-linux64-gcc14-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs/getlibs.sh linux64-gcc14
+        run: ./getlibs.sh linux64-gcc14
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
@@ -168,14 +168,14 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: local/win64
-          key: libs-win64-${{ hashFiles('getlibs/**') }}
+          key: libs-win64-${{ hashFiles('getlibs.sh') }}
           restore-keys: libs-win64-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
         run: |
              echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
              echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
-             ./getlibs/getlibs.sh win64
+             ./getlibs.sh win64
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
@@ -238,11 +238,11 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: local/darwin-brew-gcc14
-          key: libs-darwin-brew-gcc14-${{ hashFiles('getlibs/**') }}
+          key: libs-darwin-brew-gcc14-${{ hashFiles('getlibs.sh') }}
           restore-keys: libs-darwin-brew-gcc14
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs/getlibs.sh darwin-brew-gcc14
+        run: ./getlibs.sh darwin-brew-gcc14
       - name: Store Libs Cache
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
@@ -304,7 +304,7 @@ jobs:
 #           sudo apt-get -qy update
 #           sudo apt-get -qy install bison curl wget unzip xz-utils cmake ninja-build flex libc6-dev g++-14
 #     - name: Get library dependencies
-#       run: ./getlibs/getlibs.sh linux64-gcc14
+#       run: ./getlibs.sh linux64-gcc14
 #     - name: Configure CMake build system
 #       run: cmake -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc14.cmake -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc14 -DCMAKE_BUILD_TYPE=Debug -DUBSAN=ON -DASAN=ON -B $BUILD_DIR -S . -G Ninja
 #     - name: Build

@@ -1016,8 +1016,7 @@ void PrettyPrinter::expr_simulate(int nbExpr, bool hasReach, int nbOfAcceptingRu
         boundedExpr = " ";
 
     auto ss = std::stringstream{};
-    ss << "simulate"
-       << " [" << boundedExpr << "<=" << bound << "; " << nbRuns << "] {";
+    ss << "simulate" << " [" << boundedExpr << "<=" << bound << "; " << nbRuns << "] {";
     if (!exprs.empty()) {
         ss << pop_top(exprs);
         while (!exprs.empty())
