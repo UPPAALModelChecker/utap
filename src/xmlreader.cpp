@@ -301,7 +301,7 @@ class XMLReader
 {
 private:
     using elementmap_t = std::map<std::string, std::string>;
-    using xmlTextReader_ptr = std::unique_ptr<xmlTextReader, decltype(xmlFreeTextReader)&>;
+    using xmlTextReader_ptr = std::unique_ptr<xmlTextReader, decltype(&xmlFreeTextReader)>;
     xmlTextReader_ptr reader; /**< The underlying xmlTextReader */
     elementmap_t names;       /**< Map from id to name */
     ParserBuilder& parser;    /**< The parser builder to which to push the model. */

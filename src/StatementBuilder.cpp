@@ -24,6 +24,8 @@
 #include <filesystem>
 #include <stdexcept>
 #include <vector>
+#include <sstream>
+
 #include <cassert>
 #include <cinttypes>
 
