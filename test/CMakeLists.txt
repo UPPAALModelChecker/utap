@@ -10,45 +10,35 @@ target_link_libraries(featurecheck PRIVATE UTAP)
 install(TARGETS pretty syntaxcheck featurecheck)
 
 if(UTAP_WITH_TESTS)
-  find_package(doctest REQUIRED)
+  add_executable(expression_test expression_test.cpp)
+  target_link_libraries(expression_test PRIVATE UTAP doctest_main)
+  add_test(NAME expression_test COMMAND expression_test)
 
-  add_executable(test_expression test_expression.cpp)
-  target_compile_definitions(test_expression
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_expression PRIVATE UTAP doctest::doctest)
-  add_test(NAME test_expression COMMAND test_expression)
+  add_executable(statement_test statement_test.cpp)
+  target_link_libraries(statement_test PRIVATE UTAP doctest_main)
+  add_test(NAME statement_test COMMAND statement_test)
 
   add_library(external_fn SHARED external_fn.cpp)
 
-  add_executable(test_parser test_parser.cpp)
-  target_compile_definitions(test_parser
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_parser PRIVATE UTAP doctest::doctest)
-  add_dependencies(test_parser external_fn)
-  add_test(NAME test_parser COMMAND test_parser)
+  add_executable(parser_test parser_test.cpp)
+  target_link_libraries(parser_test PRIVATE UTAP doctest_main)
+  add_dependencies(parser_test external_fn)
+  add_test(NAME parser_test COMMAND parser_test)
 
-  add_executable(test_featurechecker test_featurechecker.cpp)
-  target_compile_definitions(test_featurechecker
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_featurechecker PRIVATE UTAP doctest::doctest)
-  add_test(NAME test_featurechecker COMMAND test_featurechecker)
+  add_executable(featurechecker_test featurechecker_test.cpp)
+  target_link_libraries(featurechecker_test PRIVATE UTAP doctest_main)
+  add_test(NAME featurechecker_test COMMAND featurechecker_test)
 
-  add_executable(test_range test_range.cpp)
-  target_compile_definitions(test_range
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_range PRIVATE UTAP doctest::doctest)
-  add_test(NAME test_range COMMAND test_range)
+  add_executable(range_test range_test.cpp)
+  target_link_libraries(range_test PRIVATE UTAP doctest_main)
+  add_test(NAME range_test COMMAND range_test)
 
-  add_executable(test_typechecker test_typechecker.cpp)
-  target_compile_definitions(test_typechecker
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_typechecker PRIVATE UTAP doctest::doctest)
-  add_test(NAME test_typechecker COMMAND test_typechecker)
+  add_executable(typechecker_test typechecker_test.cpp)
+  target_link_libraries(typechecker_test PRIVATE UTAP doctest_main)
+  add_test(NAME typechecker_test COMMAND typechecker_test)
 
-  add_executable(test_prettyprint test_prettyprint.cpp)
-  target_compile_definitions(test_prettyprint
-                             PRIVATE DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN)
-  target_link_libraries(test_prettyprint PRIVATE UTAP doctest::doctest)
-  add_test(NAME test_prettyprint COMMAND test_prettyprint)
+  add_executable(prettyprint_test prettyprint_test.cpp)
+  target_link_libraries(prettyprint_test PRIVATE UTAP doctest_main)
+  add_test(NAME prettyprint_test COMMAND prettyprint_test)
 
 endif(UTAP_WITH_TESTS)

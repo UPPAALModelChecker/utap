@@ -1,10 +1,13 @@
 find_package(LibXml2 2.9.14 QUIET) # minimum version
-#find_package(LibXml2 2.10.3 QUIET)
 
 if(LibXml2_FOUND)
     message(STATUS "Found LibXml2 preinstalled: ${LIBXML2_INCLUDE_DIRS}")
 else(LibXml2_FOUND)
-    message(STATUS "Failed to find LibXml2, going to make it from scratch.")
+    if (FIND_FATAL)
+        message(FATAL_ERROR "Failed to find LibXml2.")
+    else (FIND_FATAL)
+        message(STATUS "Failed to find LibXml2, going to fetch it.")
+    endif (FIND_FATAL)
     include(FetchContent)
     set(LIBXML2_SHARED_LIBS OFF CACHE BOOL "LibXml2 shared libraries")
     set(LIBXML2_WITH_FTP OFF CACHE BOOL "LibXml2 FTP support")
@@ -19,8 +22,8 @@ else(LibXml2_FOUND)
     FetchContent_Declare(LibXml2
       GIT_REPOSITORY https://github.com/GNOME/libxml2.git # mirror
       #GIT_REPOSITORY https://gitlab.gnome.org/GNOME/libxml2 # often down
-      GIT_TAG v2.11.5
-      #URL https://download.gnome.org/sources/libxml2/2.11/libxml2-2.11.5.tar.xz
+      GIT_TAG v2.13.8
+      #URL https://download.gnome.org/sources/libxml2/2.11/libxml2-2.13.8.tar.xz
       #URL_HASH SHA256=3727b078c360ec69fa869de14bd6f75d7ee8d36987b071e6928d4720a28df3a6
       GIT_SHALLOW ON
       GIT_PROGRESS ON

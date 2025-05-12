@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(UTAP VERSION 2.1.0 LANGUAGES CXX C)
+project(UTAP VERSION 2.1.1 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
@@ -21,10 +21,19 @@ endif(WIN32)
 
 option(UTAP_WITH_TESTS "UTAP Unit Tests" ${UTAP_WITH_TESTS_DEFAULT})
 option(UTAP_STATIC "UTAP Static Linking" ${UTAP_STATIC_DEFAULT})
+option(ENABLE_CLANG_TIDY "Enable clang-tidy linting" ON)
+option(FIND_FATAL "Stop upon find_package errors" OFF)
+option(ENABLE_CCACHE "Enables ccache for intermediate object file caching" ON)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
 include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
+if (ENABLE_CLANG_TIDY)
+    include(cmake/clang-tidy.cmake)
+endif (ENABLE_CLANG_TIDY)
+if (ENABLE_CCACHE)
+    include(cmake/ccache.cmake)
+endif (ENABLE_CCACHE)
 
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
@@ -43,7 +52,7 @@ if(UTAP_STATIC)
 endif(UTAP_STATIC)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Werror=vla)
+    add_compile_options(-Wpedantic -Wall -Wextra -Werror=vla -Wno-unused-parameter)
 endif()
 
 add_subdirectory(src)

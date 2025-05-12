@@ -20,17 +20,16 @@
    USA
 */
 
-#include "utap/position.h"
+#include "utap/position.hpp"
 
 #include <iostream>
 #include <stdexcept>
 
 using std::string;
-using std::vector;
 
 using namespace UTAP;
 
-void position_index_t::add(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<string> path)
+void PositionIndex::add(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<string> path)
 {
     if (!lines.empty() && position < lines.back().position) {
         throw std::logic_error("Positions must be monotonically increasing");
@@ -38,7 +37,7 @@ void position_index_t::add(uint32_t position, uint32_t offset, uint32_t line, st
     lines.emplace_back(position, offset, line, std::move(path));
 }
 
-const position_index_t::line_t& position_index_t::find(uint32_t position, uint32_t first, uint32_t last) const
+const PositionIndex::Line& PositionIndex::find(uint32_t position, uint32_t first, uint32_t last) const
 {
     while (first + 1 < last) {
         uint32_t i = (first + last) / 2;
@@ -51,7 +50,7 @@ const position_index_t::line_t& position_index_t::find(uint32_t position, uint32
     return lines[first];
 }
 
-const position_index_t::line_t& position_index_t::find(uint32_t position) const
+const PositionIndex::Line& PositionIndex::find(uint32_t position) const
 {
     if (lines.empty())
         throw std::logic_error("No positions have been added");
@@ -59,14 +58,14 @@ const position_index_t::line_t& position_index_t::find(uint32_t position) const
 }
 
 /** Dump table to stdout. */
-std::ostream& position_index_t::print(std::ostream& os) const
+std::ostream& PositionIndex::print(std::ostream& os) const
 {
     for (const auto& line : lines)
         os << line.position << " " << line.offset << " " << line.line << " " << line.path << std::endl;
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const UTAP::error_t& e)
+std::ostream& operator<<(std::ostream& os, const UTAP::Error& e)
 {
     if (!e.start.path || e.start.path->empty()) {
         os << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position) << " to line "
@@ -77,9 +76,9 @@ std::ostream& operator<<(std::ostream& os, const UTAP::error_t& e)
            << (e.position.end - e.end.position);
     }
     return os;
-};
+}
 
-std::string UTAP::error_t::str() const
+std::string UTAP::Error::str() const
 {
     if (position.start < start.position || position.end < end.position)
         return msg + " (Unknown position in document)";

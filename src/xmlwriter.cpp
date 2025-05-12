@@ -21,19 +21,15 @@
 
 #define _USE_MATH_DEFINES
 
-#include "utap/xmlwriter.h"
+#include "utap/xmlwriter.hpp"
 
-#include "utap/utap.h"  // writeXMLFile
+#include "utap/utap.hpp"  // writeXMLFile
 
 #include <sstream>
 #include <string_view>
 #include <cmath>    // M_PI
 #include <cstring>  // strlen
 
-using std::vector;
-using std::list;
-using std::map;
-using std::string;
 using namespace UTAP;
 using namespace UTAP::Constants;
 
@@ -109,17 +105,16 @@ void XMLWriter::writeAttribute(const char* name, const char* value)
 /** Parses optional declaration. */
 void XMLWriter::declaration()
 {
-    string globalDeclarations = doc->get_globals().str(true);
+    auto globalDeclarations = doc->get_globals().str(true);
     globalDeclarations += "\n";
     globalDeclarations += getChanPriority();
     globalDeclarations += " ";
     writeElement("declaration", globalDeclarations.c_str());
 }
 
-string XMLWriter::getChanPriority() const
+std::string XMLWriter::getChanPriority() const
 {
     const auto& prs = doc->get_chan_priorities();
-    list<chan_priority_t>::const_iterator itr;
     auto str = std::string{};
     if (!prs.empty()) {
         str += "// channel priorities\n";
@@ -133,7 +128,7 @@ string XMLWriter::getChanPriority() const
 
 /* writes a "label" element with the "kind", "x" and "y" attributes
  * an with the "data" content. */
-void XMLWriter::label(const char* kind, string data, int x, int y)
+void XMLWriter::label(const char* kind, std::string data, int x, int y)
 {
     if (data == "1") {
         return;
@@ -155,7 +150,7 @@ void XMLWriter::label(const char* kind, string data, int x, int y)
     endElement();
 }
 
-void XMLWriter::name(const location_t& loc, int x, int y)
+void XMLWriter::name(const Location& loc, int x, int y)
 {
     const char* name = loc.uid.get_name().c_str();
     startElement("name");
@@ -165,7 +160,7 @@ void XMLWriter::name(const location_t& loc, int x, int y)
     endElement();
 }
 
-void XMLWriter::writeStateAttributes(const location_t& loc, int x, int y)
+void XMLWriter::writeStateAttributes(const Location& loc, int x, int y)
 {
     int32_t id = loc.nr;
     writeAttribute("id", concat("id", id).c_str());
@@ -174,7 +169,7 @@ void XMLWriter::writeStateAttributes(const location_t& loc, int x, int y)
 }
 
 /* writes a location */
-void XMLWriter::location(const location_t& loc)
+void XMLWriter::location(const Location& loc)
 {
     startElement("location");
     int x = STEP * loc.nr;
@@ -210,16 +205,16 @@ void XMLWriter::location(const location_t& loc)
 }
 
 /* writes the init tag */
-void XMLWriter::init(const template_t& templ)
+void XMLWriter::init(const Template& templ)
 {
-    int id = static_cast<const location_t*>(templ.init.get_data())->nr;
+    int id = static_cast<const Location*>(templ.init.get_data())->nr;
     startElement("init");
     writeAttribute("ref", concat("id", id).c_str());
     endElement();
 }
 
 /* writes the source of the given edge */
-int XMLWriter::source(const edge_t& edge)
+int XMLWriter::source(const Edge& edge)
 {
     int loc = edge.src->nr;
     const auto id = concat("id", loc);
@@ -230,7 +225,7 @@ int XMLWriter::source(const edge_t& edge)
 }
 
 /* writes the target of the given edge */
-int XMLWriter::target(const edge_t& edge)
+int XMLWriter::target(const Edge& edge)
 {
     int loc = edge.dst->nr;
     const auto id = concat("id", loc);
@@ -240,7 +235,7 @@ int XMLWriter::target(const edge_t& edge)
     return loc;
 }
 
-void XMLWriter::selfLoop(const int loc, const double initialAngle, const edge_t& edge)
+void XMLWriter::selfLoop(const int loc, const double initialAngle, const Edge& edge)
 {  // four loops in PI/2
     const auto pi_8 = M_PI / 8;
     auto begin = initialAngle + pi_8 * selfLoops[loc] + 0.1;
@@ -268,7 +263,7 @@ void XMLWriter::nail(int x, int y)
 }
 
 /* writes a transition */
-void XMLWriter::transition(const edge_t& edge)
+void XMLWriter::transition(const Edge& edge)
 {
     startElement("transition");
     // source and target
@@ -287,9 +282,9 @@ void XMLWriter::transition(const edge_t& edge)
     endElement();  // end of the "transition" element
 }
 
-void XMLWriter::labels(int x, int y, const edge_t& edge)
+void XMLWriter::labels(int x, int y, const Edge& edge)
 {
-    string str;
+    std::string str;
     if (edge.select.get_size() > 0) {
         str = edge.select[0].get_name() + " : ";
         if (edge.select[0].get_type().size() > 0 && edge.select[0].get_type()[0].size() > 0) {
@@ -309,15 +304,15 @@ void XMLWriter::labels(int x, int y, const edge_t& edge)
 }
 
 /** writes a template */
-void XMLWriter::taTempl(const template_t& templ)
+void XMLWriter::taTempl(const Template& templ)
 {
     if (!templ.is_TA) {
         return;
     }
     selfLoops.clear();
-    string name = templ.uid.get_name();
-    string parameters = templ.parameters_str();
-    string declarations = templ.str(false);
+    auto name = templ.uid.get_name();
+    auto parameters = templ.parameters_str();
+    auto declarations = templ.str(false);
 
     startElement("template");
     writeElement("name", name.c_str());
@@ -325,23 +320,23 @@ void XMLWriter::taTempl(const template_t& templ)
     writeElement("declaration", declarations.c_str());
 
     // locations
-    for (auto& loc : templ.locations) {
+    for (const auto& loc : templ.locations) {
         location(loc);
         selfLoops[loc.nr] = 0;
     }
     // initial location
     init(templ);
     // transitions
-    for (auto& e : templ.edges)
+    for (const auto& e : templ.edges)
         transition(e);
     endElement();  // end of the "template" tag
 }
 
 void XMLWriter::system_instantiation()
 {  // TODO proc priority
-    string str = "";
-    string proc = "";
-    for (const instance_t& p : doc->get_processes()) {
+    auto str = std::string{};
+    auto proc = std::string{};
+    for (const Instance& p : doc->get_processes()) {
         if (p.uid.get_name() != p.templ->uid.get_name())
             str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
         proc += p.uid.get_name() + ", ";
@@ -358,7 +353,7 @@ void XMLWriter::project()
     startElement("nta");
     declaration();  // global declarations
 
-    for (const template_t& t : doc->get_templates())
+    for (const Template& t : doc->get_templates())
         taTempl(t);
     system_instantiation();
     endElement();  // close the "nta" element
@@ -406,8 +401,8 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
         return nullptr;
 
     handler = xmlFindCharEncodingHandler(encoding);
-    if (!handler) {
-        printf("ConvertInput: no encoding handler found for '%s'\n", encoding ? encoding : "");
+    if (handler == nullptr) {
+        printf("ConvertInput: no encoding handler found for '%s'\n", (encoding != nullptr) ? encoding : "");
         return nullptr;
     }
 
@@ -418,7 +413,7 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
     if (out != nullptr) {
         temp = size - 1;
         ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
-        if ((ret < 0) || (temp - size + 1)) {
+        if ((ret < 0) || (temp - size + 1 != 0)) {
             if (ret < 0) {
                 printf("ConvertInput: conversion wasn't successful.\n");
             } else {
