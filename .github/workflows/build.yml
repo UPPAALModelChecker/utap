@@ -39,7 +39,9 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get -qq install clang-format
       - name: Formatting
-        run: find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format -n -Werror {} \;
+        run: |
+          clang-format --version
+          find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format -n -Werror {} \;
 
   linux-x86_64:
     needs: [ formatting ]

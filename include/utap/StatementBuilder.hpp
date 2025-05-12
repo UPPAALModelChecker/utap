@@ -95,9 +95,9 @@ public:
     void while_end() override;
     void do_while_begin() override;
     void do_while_end() override;
-    void if_begin() override{};
-    void if_condition() override{};
-    void if_then() override{};
+    void if_begin() override {};
+    void if_condition() override {};
+    void if_then() override {};
     void if_end(bool) override;
     void expr_statement() override;
     void return_statement(bool) override;
