@@ -53,7 +53,7 @@ jobs:
       BUILD_DIR: build-linux64-gcc14
       CTEST_OUTPUT_ON_FAILURE: 1
       CMAKE_BUILD_TYPE: Debug
-      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/linux64-gcc14.cmake
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-linux-gcc14.cmake
       CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/linux64-gcc14
       CMAKE_GENERATOR: Ninja
     steps:
@@ -64,9 +64,9 @@ jobs:
           sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex ccache g++-14
 
       - name: Compute CCache keys
-        id: linux64-keys
+        id: x86_64-linux-gcc14-keys
         run: |
-          key2=ccache-linux64-
+          key2=ccache-x86_64-linux-gcc14-
           key1="${key2}$(date +%W)"
           echo "key1=${key1}" >> $GITHUB_OUTPUT
           echo "key2=${key2}" >> $GITHUB_OUTPUT
@@ -76,8 +76,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ steps.linux64-keys.outputs.key1 }}
-          restore-keys: ${{ steps.linux64-keys.outputs.key2 }}
+          key: ${{ steps.x86_64-linux-gcc14-keys.outputs.key1 }}
+          restore-keys: ${{ steps.x86_64-linux-gcc14-keys.outputs.key2 }}
       - name: CCache limits and stats
         run: |
           ccache -M120M
@@ -87,21 +87,21 @@ jobs:
         id: restore-libs
         uses: actions/cache/restore@v4
         with:
-          path: local/linux64-gcc14
-          key: libs-linux64-gcc14-${{ hashFiles('getlibs.sh') }}
-          restore-keys: libs-linux64-gcc14-
+          path: local/x86_64-linux-gcc14
+          key: libs-x86_64-linux-gcc14-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-x86_64-linux-gcc14-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs.sh linux64-gcc14
+        run: ./getlibs.sh x86_64-linux-gcc14
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/linux64-gcc14
+          path: local/x86_64-linux-gcc14
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/linux64-gcc14 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/linux64-gcc14.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
+        run: cmake -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/x86_64-linux-gcc14 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/x86_64-linux-gcc14.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON -DUBSAN=ON -DASAN=ON -DLSAN=ON
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
@@ -116,20 +116,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
-      BUILD_DIR: build-win64
+      BUILD_DIR: build-x86_64-w64-mingw32
       CTEST_OUTPUT_ON_FAILURE: 1
       CROSSCOMPILING_EMULATOR: wine
       CMAKE_BUILD_TYPE: Debug
-      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/win64.cmake
-      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/win64
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-w64-mingw32.cmake
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-w64-mingw32
       CMAKE_GENERATOR: Ninja
     steps:
       - uses: actions/checkout@v4
       - name: Get Ubuntu dependencies
         run: |
-          echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
-          echo 'DPkg::Use-Pty "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
-          echo 'DPkg::Progress-Fancy "false";' | sudo tee -a /etc/apt/apt.conf.d/98-quiet
           sudo apt-get -qq update
           sudo apt-get -qq install bison curl wget unzip xz-utils cmake ninja-build flex ccache g++-mingw-w64-x86-64-posix wine
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
@@ -144,9 +141,9 @@ jobs:
           echo "WINEPATH=\"$(./winepath-for x86_64-w64-mingw32)\"" >> $GITHUB_ENV
 
       - name: Compute CCache keys
-        id: win64-keys
+        id: x86_64-w64-mingw32-keys
         run: |
-          key2=ccache-win64-
+          key2=ccache-x86_64-w64-mingw32-
           key1="${key2}$(date +%W)"
           echo "key1=${key1}" >> $GITHUB_OUTPUT
           echo "key2=${key2}" >> $GITHUB_OUTPUT
@@ -156,8 +153,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ steps.win64-keys.outputs.key1 }}
-          restore-keys: ${{ steps.win64-keys.outputs.key2 }}
+          key: ${{ steps.x86_64-w64-mingw32-keys.outputs.key1 }}
+          restore-keys: ${{ steps.x86_64-w64-mingw32-keys.outputs.key2 }}
       - name: CCache limits and stats
         run: |
           ccache -M120M
@@ -167,24 +164,24 @@ jobs:
         id: restore-libs
         uses: actions/cache/restore@v4
         with:
-          path: local/win64
-          key: libs-win64-${{ hashFiles('getlibs.sh') }}
-          restore-keys: libs-win64-
+          path: local/x86_64-w64-mingw32
+          key: libs-x86_64-w64-mingw32-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-x86_64-w64-mingw32-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
         run: |
              echo "steps.restore-libs.outputs.cache-primary-key: ${{ steps.restore-libs.outputs.cache-primary-key }}"
              echo "steps.restore-libs.outputs.cache-matched-key: ${{ steps.restore-libs.outputs.cache-matched-key }}"
-             ./getlibs.sh win64
+             ./getlibs.sh x86_64-w64-mingw32
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/win64
+          path: local/x86_64-w64-mingw32
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure CMake build system
-        run: cmake  -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/win64 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/win64.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON
+        run: cmake  -B "$BUILD_DIR" -DCMAKE_PREFIX_PATH=$PWD/local/x86_64-w64-mingw32 -DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain/x86_64-w64-mingw32.cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DSSP=ON
       - name: Build
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test
