@@ -9,9 +9,9 @@ NC="\e[0m"    # no color
 if [ "$#" -lt 1 ]; then
     echo "Expecting a list of target platforms as arguments."
     echo -e "For example:"
-    echo -e "    ${BW}$0 darwin linux64 win32${NC}"
+    echo -e "    ${BW}$0 x86_64-linux${NC}"
     echo -e "List of supported platforms:"
-    for  toolchain in $(ls "$PROJECT_DIR"/cmake/toolchain/*.cmake) ; do
+    for toolchain in $(ls "$PROJECT_DIR"/cmake/toolchain/*.cmake) ; do
         platform=$(basename "$toolchain")
         echo -e "    ${BW}${platform%%.cmake}${NC}"
     done
@@ -46,7 +46,7 @@ for target in "$@" ; do
     else
         unset CMAKE_TOOLCHAIN_FILE
     fi
-    "${PROJECT_DIR}/getlibs/getlibs.sh" "${target}"
+    "${PROJECT_DIR}/getlibs.sh" "${target}"
     if [ -n "$PREFIX" ]; then
         export CMAKE_PREFIX_PATH="$PREFIX"
     elif [ -d "${LOCAL}/${target}" ]; then

@@ -50,8 +50,7 @@ cmake --build build
 ```
 Run unit tests:
 ```sh
-cd build
-ctest
+ctest --test-dir build --output-on-failure
 ```
 
 Install UTAP to `$MYPATH`:
@@ -61,32 +60,15 @@ cmake --install build
 
 ## Compile from scratch (almost)
 
-Alternatively compile the bison and libraries for your target platform (see `cmake/toolchain/*.cmake` for list), e.g.:
+Get library dependencies:
 ```shell
-./getlibs/getlibs.bash linux64
+./getlibs.bash [platform]
 ```
 
 Compile and test UTAP:
 ```shell
-./compile.sh linux64
+./compile.sh [platform]
 ```
-
-For other platforms please see [compile.sh](compile.sh) script:
-```sh
-./compile.sh [linux64] [linux64-gcc10] [linux32] [win64] [win32] [darwin] [darwin-brew-gcc10]
-```
-Where
-- `win64` requires `x86_64-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
-
-- `win32` requires `i686-w64-mingw32-g++` from [MinGW-w64](https://www.mingw-w64.org/) (either from Linux distribution or [MSYS2](https://www.msys2.org/)).
-
-- `linux32` requires `g++-multilib`.
-
-- `darwin` requires [XCode](https://developer.apple.com/xcode/) and its `Command Line Tools` installed.
-
-- `darwin-brew-gcc10` in addition to `XCode` requires [gcc-10](https://formulae.brew.sh/formula/gcc@10) with 
-
-- `getlibs` script requires `sha256sum` from [coreutils](https://formulae.brew.sh/formula/coreutils) (then add `/usr/local/opt/coreutils/libexec/gnubin` to `PATH`).
 
 ## 3. Simple Use Case
 

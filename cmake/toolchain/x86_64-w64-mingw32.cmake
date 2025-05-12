@@ -23,3 +23,6 @@ set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
+
+# Workaround for "libxml2.a(dict.c.obj):dict.c:(.text+0x1226): undefined reference to `BCryptGenRandom'"
+set(LIBXML_WINLIBS bcrypt)

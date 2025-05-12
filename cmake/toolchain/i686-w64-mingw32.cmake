@@ -21,3 +21,6 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM BOTH)
 # search headers and libraries in the target environment
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+# Workaround for "libxml2.a(dict.c.obj):dict.c:(.text+0x1226): undefined reference to `BCryptGenRandom'"
+set(LIBXML_WINLIBS bcrypt)
