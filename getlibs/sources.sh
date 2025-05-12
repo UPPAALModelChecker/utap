@@ -8,7 +8,7 @@ SOURCE="$LOCAL/source"
 BW="\e[1;97m" # bold white
 NC="\e[0m"    # no color
 
-LIBXML2=libxml2-2.11.5
+LIBXML2=libxml2-2.13.8
 LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
 LIBXML2_SHA256=3727b078c360ec69fa869de14bd6f75d7ee8d36987b071e6928d4720a28df3a6
@@ -19,9 +19,9 @@ DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doc
 DOCTEST_SHA256=632ed2c05a7f53fa961381497bf8069093f0d6628c5f26286161fbd32a560186
 
 BISON=bison-3.8.2
-BISON_Z="${BISON}.tar.gz"
+BISON_Z="${BISON}.tar.xz"
 BISON_URL="https://ftp.gnu.org/gnu/bison/${BISON_Z}"
-BISON_SHA256=06c9e13bdf7eb24d4ceb6b59205a4f67c2c7e7213119644430fe82fbd14a0abb
+BISON_SHA256=9bba0214ccf7f1079c5d59210045227bcf619519840ebfa80cd3849cff5a5bf2
 
 function download_unpack {
     local LIB="${1}"

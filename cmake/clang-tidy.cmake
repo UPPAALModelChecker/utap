@@ -1,4 +1,4 @@
-find_program(CLANG_TIDY_PROGRAM clang-tidy-18 clang-tidy-16 clang-tidy-14 clang-tidy)
+find_program(CLANG_TIDY_PROGRAM NAMES clang-tidy-18 clang-tidy-16 clang-tidy-14 clang-tidy)
 if(CLANG_TIDY_PROGRAM)
     execute_process(COMMAND ${CLANG_TIDY_PROGRAM} --version OUTPUT_VARIABLE CLANG_TIDY_VERSION_STRING)
     string(REGEX MATCH "LLVM version ([0-9A-Za-z]+)\\.([0-9A-Za-z\\.]+)" TIDY_VERSION "${CLANG_TIDY_VERSION_STRING}")

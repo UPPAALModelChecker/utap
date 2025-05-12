@@ -8,7 +8,11 @@ source "$GETLIBS_DIR/sources.sh"
 if [ "$#" -lt 1 ]; then
     echo "Expecting a list of target platforms as arguments."
     echo -e "For example: ${BW}$0 darwin linux64 win32${NC}"
-    echo -e "See ${BW}cmake/toolchain/*.cmake${NC} for the list of supported platforms."
+    echo -e "List of supported platforms:"
+    for  toolchain in $(ls "$PROJECT_DIR"/cmake/toolchain/*.cmake) ; do
+        platform=$(basename "$toolchain")
+        echo -e "    ${BW}${platform%%.cmake}${NC}"
+    done
 fi
 
 missing_tools=""
@@ -38,16 +42,8 @@ for target in "$@" ; do
           -DLIBXML2_WITH_THREADS=OFF -DLIBXML2_WITH_TESTS=OFF
         echo -e "${BW}${target}: Building ${LIBXML2}${NC}"
         cmake --build "$BUILD"
-        echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
-        case "$target" in
-            win64)
-                ln -snf $(x86_64-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD"/
-                ;;
-            win32)
-                ln -snf $(i686-w64-mingw32-g++ --print-file-name=libwinpthread-1.dll) "$BUILD"/
-                ;;
-        esac
-        # (cd "$BUILD" ; ctest --output-on-failure)
+        #echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
+        #ctest --tset-dir "$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${LIBXML2}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
@@ -66,7 +62,7 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
         #echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
-        #(cd "$BUILD" ; ctest --output-on-failure)
+        #ctest --test-dir "$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${DOCTEST}${NC}"
         cmake --install "$BUILD"
         rm -Rf "$BUILD"
@@ -77,8 +73,11 @@ for target in "$@" ; do
     if [ ! -r "$LIBS/bin/bison" ] ; then
         echo -e "${BW}Preparing source of ${BISON}${NC}"
         prepare_bison
-        BUILD="$LIBS/build-${BISON}"
+        pushd "$SOURCE/$BISON/"
+        autoconf
+        popd
         echo -e "${BW}${target}: Configuring ${BISON}${NC}"
+        BUILD="$LIBS/build-${BISON}"
         mkdir -p "$BUILD"
         pushd "$BUILD"
         "$SOURCE/$BISON/configure" --prefix="$LIBS"

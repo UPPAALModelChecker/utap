@@ -11,7 +11,8 @@ if [ "$#" -lt 1 ]; then
     echo -e "For example:"
     echo -e "    ${BW}$0 darwin linux64 win32${NC}"
     echo -e "List of supported platforms:"
-    for  platform in $(ls "$PROJECT_DIR/cmake/toolchain") ; do
+    for  toolchain in $(ls "$PROJECT_DIR"/cmake/toolchain/*.cmake) ; do
+        platform=$(basename "$toolchain")
         echo -e "    ${BW}${platform%%.cmake}${NC}"
     done
 fi
@@ -28,11 +29,11 @@ for target in "$@" ; do
     case "$target" in
         win64*|x86_64-w64-mingw32*)
             export WINARCH=win64
-            export WINEPATH="$($PROJECT_DIR/winepath-for x86_64-w64-mingw32)"
+            export WINEPATH=$("$PROJECT_DIR"/winepath-for x86_64-w64-mingw32)
             ;;
         win32*|i686-w64-mingw32*)
             export WINARCH=win32
-            export WINEPATH="$($PROJECT_DIR/winepath-for i686-w64-mingw32)"
+            export WINEPATH=$("$PROJECT_DIR"/winepath-for i686-w64-mingw32)
             ;;
         *)
             unset WINARCH
@@ -66,7 +67,7 @@ for target in "$@" ; do
     echo "    CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE:-(unset)}"
     echo "    CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:-(unset)}"
     echo "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-(unset)}"
-    cmake -S . -B "$BUILD" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" -DFIND_FATAL=ON
+    cmake -B "$BUILD" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" -DFIND_FATAL=ON
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD" --config $CMAKE_BUILD_TYPE
     echo -e "${BW}${target}: Testing UTAP${NC}"
