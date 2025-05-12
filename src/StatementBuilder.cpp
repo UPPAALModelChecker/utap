@@ -22,10 +22,9 @@
 #include "utap/StatementBuilder.hpp"
 
 #include <filesystem>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <sstream>
-
 #include <cassert>
 #include <cinttypes>
 
