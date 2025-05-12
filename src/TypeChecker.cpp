@@ -34,14 +34,13 @@
 #include <algorithm>
 #include <filesystem>
 #include <set>
+#include <string>
 #include <tuple>
 #include <vector>
 #include <cassert>
 #include <cstddef>  // size_t
 #include <cstdint>  // uint32_t
 #include <cstdio>
-
-#include <bits/basic_string.h>
 
 using namespace UTAP;
 using namespace Constants;
