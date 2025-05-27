@@ -10,7 +10,8 @@ Marius Mikučionis
 3. Simple use
 4. Parsing trace files
 5. Architecture
-6. Issues
+6. API Documentation
+7. Issues
 
 ## 1. What is libutap
 
@@ -246,6 +247,25 @@ All expressions are represented using a tree structure where the
 leaves represent values or variables and the inner nodes represent
 operations. Each node is referenced using an `Expression` object.
 
-## 6. Issues
+## 6. API Documentation
+
+[doxygen](https://www.doxygen.nl/) can be used to generate HTML documentation in `doc/api/html`:
+
+1. Install doxygen:
+```shell
+sudo apt install doxygen
+```
+2. Generate documentation:
+```shell
+cd doc/api
+doxygen libutap.doxygen
+```
+3. Open the documentation in the browser:
+```shell
+xdg-open html/index.html
+```
+For more options (LaTeX/pdf etc) use doxywizard (`sudo apt install doxygen-gui`).
+
+## 7. Issues
 
 Please use the [Issues](https://github.com/UPPAALModelChecker/utap/issues) tab at the top to report problems.
