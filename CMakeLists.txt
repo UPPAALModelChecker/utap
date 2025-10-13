@@ -3,37 +3,36 @@ project(UTAP VERSION 2.1.1 LANGUAGES CXX C)
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 
+# in case of top level project:
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
-  # top level project: most likely development, thus enable tests
-  set(UTAP_WITH_TESTS_DEFAULT ON)
-else()
-  # the library is included into another project, no need for tests
-  set(UTAP_WITH_TESTS_DEFAULT OFF)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+      add_compile_options(-Wpedantic -Wall -Wextra -Werror=vla -Wno-unused-parameter)
+  endif()
 endif()
 
 if(WIN32)
   set(UTAP_STATIC_DEFAULT ON)
   set(BUILD_SHARED_LIBS OFF)
-  add_compile_definitions(LIBXML_STATIC) # probably an issue with LibXml2 exports
 else(WIN32)
   set(UTAP_STATIC_DEFAULT OFF)
 endif(WIN32)
 
-option(UTAP_WITH_TESTS "UTAP Unit Tests" ${UTAP_WITH_TESTS_DEFAULT})
+option(UTAP_TESTS "UTAP Unit Tests" ON)
 option(UTAP_STATIC "UTAP Static Linking" ${UTAP_STATIC_DEFAULT})
-option(ENABLE_CLANG_TIDY "Enable clang-tidy linting" ON)
-option(FIND_FATAL "Stop upon find_package errors" OFF)
-option(ENABLE_CCACHE "Enables ccache for intermediate object file caching" ON)
+option(UTAP_CLANG_TIDY "Enable clang-tidy linting" ON)
+option(UTAP_CCACHE "Enables ccache for intermediate object file caching" ON)
 
 cmake_policy(SET CMP0048 NEW) # project() command manages VERSION variables
-include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
-if (ENABLE_CLANG_TIDY)
+if (UTAP_CLANG_TIDY)
     include(cmake/clang-tidy.cmake)
-endif (ENABLE_CLANG_TIDY)
-if (ENABLE_CCACHE)
+endif (UTAP_CLANG_TIDY)
+if (UTAP_CCACHE)
     include(cmake/ccache.cmake)
-endif (ENABLE_CCACHE)
+endif (UTAP_CCACHE)
 
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
@@ -45,23 +44,7 @@ find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)
 include(cmake/libxml2.cmake)
 
-if(UTAP_STATIC)
-    #set(CMAKE_CXX_STANDARD_LIBRARIES "-static -static-libgcc -static-libstdc++ ${CMAKE_CXX_STANDARD_LIBRARIES}")
-    set(CMAKE_EXE_LINKER_FLAGS -static)
-    message(STATUS "Enabled STATIC linking")
-endif(UTAP_STATIC)
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wpedantic -Wall -Wextra -Werror=vla -Wno-unused-parameter)
-endif()
-
 add_subdirectory(src)
-
-if (UTAP_WITH_TESTS)
-    include(cmake/doctest.cmake)
-    enable_testing()
-endif(UTAP_WITH_TESTS)
-add_subdirectory(test)
 
 target_include_directories(UTAP
     PRIVATE
@@ -82,4 +65,8 @@ install(TARGETS UTAP EXPORT UTAPConfig LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDI
 install(EXPORT UTAPConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP/)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP )
 
-# set(CMAKE_CXX_STANDARD_LIBRARIES "-static -lwsock32 -lws2_32 -lz -lmcfgthread ${CMAKE_CXX_STANDARD_LIBRARIES}")
+if (UTAP_TESTS)
+    include(cmake/doctest.cmake)
+    enable_testing()
+endif(UTAP_TESTS)
+add_subdirectory(test)

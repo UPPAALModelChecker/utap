@@ -19,8 +19,6 @@
    USA
  */
 
-#define _USE_MATH_DEFINES
-
 #include "utap/xmlwriter.hpp"
 
 #include "utap/utap.hpp"  // writeXMLFile
@@ -30,13 +28,18 @@
 #include <cmath>    // M_PI
 #include <cstring>  // strlen
 
-using namespace UTAP;
-using namespace UTAP::Constants;
+namespace UTAP {
+using namespace Constants;
 
-constexpr auto MY_ENCODING = "utf-8";        // xml encoding
-constexpr auto ERR_STATE_COLOR = "#ff6666";  // pink
-constexpr auto SELF_LOOP_RADIUS = 80;
-constexpr auto STEP = 120;
+static constexpr auto MY_ENCODING = "utf-8";        // xml encoding
+static constexpr auto ERR_STATE_COLOR = "#ff6666";  // pink
+static constexpr auto SELF_LOOP_RADIUS = 80;
+static constexpr auto STEP = 120;
+
+static const auto NTA = (const xmlChar*)"nta";
+static const auto DTD = (const xmlChar*)"-//Uppaal Team//DTD Flat System 1.6//EN";
+static const auto URL = (const xmlChar*)"https://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd";
+static const auto WINDENT = (const xmlChar*)"  ";
 
 template <typename T>
 static std::string concat(std::string_view s, T value)
@@ -162,7 +165,7 @@ void XMLWriter::name(const Location& loc, int x, int y)
 
 void XMLWriter::writeStateAttributes(const Location& loc, int x, int y)
 {
-    int32_t id = loc.nr;
+    const auto id = loc.nr;
     writeAttribute("id", concat("id", id).c_str());
     writeAttribute("x", std::to_string(x).c_str());
     writeAttribute("y", std::to_string(y).c_str());
@@ -172,8 +175,8 @@ void XMLWriter::writeStateAttributes(const Location& loc, int x, int y)
 void XMLWriter::location(const Location& loc)
 {
     startElement("location");
-    int x = STEP * loc.nr;
-    int y = STEP * loc.nr;
+    auto x = STEP * loc.nr;
+    auto y = STEP * loc.nr;
     // identifier, x, y (attributes)
     writeStateAttributes(loc, x, y);
     if (loc.uid.get_name() == "Err") {
@@ -207,7 +210,7 @@ void XMLWriter::location(const Location& loc)
 /* writes the init tag */
 void XMLWriter::init(const Template& templ)
 {
-    int id = static_cast<const Location*>(templ.init.get_data())->nr;
+    const auto id = static_cast<const Location*>(templ.init.get_data())->nr;
     startElement("init");
     writeAttribute("ref", concat("id", id).c_str());
     endElement();
@@ -237,9 +240,9 @@ int XMLWriter::target(const Edge& edge)
 
 void XMLWriter::selfLoop(const int loc, const double initialAngle, const Edge& edge)
 {  // four loops in PI/2
-    const auto pi_8 = M_PI / 8;
-    auto begin = initialAngle + pi_8 * selfLoops[loc] + 0.1;
-    auto end = begin + pi_8 - 0.1;
+    constexpr auto pi_8 = M_PI / 8;
+    const auto begin = initialAngle + pi_8 * selfLoops[loc] + 0.1;
+    const auto end = begin + pi_8 - 0.1;
     int l = loc * STEP;
     int x1 = l + (int)(SELF_LOOP_RADIUS * std::cos(begin));
     int y1 = l + (int)(SELF_LOOP_RADIUS * std::sin(begin));
@@ -267,10 +270,10 @@ void XMLWriter::transition(const Edge& edge)
 {
     startElement("transition");
     // source and target
-    auto src = source(edge);
-    auto dst = target(edge);
+    const auto src = source(edge);
+    const auto dst = target(edge);
     if (src == dst) {
-        float angle = (edge.src->uid.get_name() != "lpmin") ? (3 * M_PI_2) : M_PI;
+        auto angle = (edge.src->uid.get_name() != "lpmin") ? (3 * M_PI_2) : M_PI;
         selfLoop(src, angle, edge);
     } else {
         int x = STEP * src;
@@ -284,9 +287,8 @@ void XMLWriter::transition(const Edge& edge)
 
 void XMLWriter::labels(int x, int y, const Edge& edge)
 {
-    std::string str;
     if (edge.select.get_size() > 0) {
-        str = edge.select[0].get_name() + " : ";
+        auto str = edge.select[0].get_name() + " : ";
         if (edge.select[0].get_type().size() > 0 && edge.select[0].get_type()[0].size() > 0) {
             str += edge.select[0].get_type()[0].get_label(0);
         }  // else ? should not happen
@@ -310,9 +312,9 @@ void XMLWriter::taTempl(const Template& templ)
         return;
     }
     selfLoops.clear();
-    auto name = templ.uid.get_name();
-    auto parameters = templ.parameters_str();
-    auto declarations = templ.str(false);
+    const auto name = templ.uid.get_name();
+    const auto parameters = templ.parameters_str();
+    const auto declarations = templ.str(false);
 
     startElement("template");
     writeElement("name", name.c_str());
@@ -368,10 +370,9 @@ void XMLWriter::startDocument()
     if (xmlTextWriterStartDocument(writer, nullptr, MY_ENCODING, nullptr) < 0) {
         throw XMLWriterError("StartDocument");
     }
-    xmlTextWriterWriteDTD(writer, (xmlChar*)"nta", (xmlChar*)"-//Uppaal Team//DTD Flat System 1.1//EN",
-                          (xmlChar*)"http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd", nullptr);
+    xmlTextWriterWriteDTD(writer, NTA, DTD, URL, nullptr);
     xmlTextWriterSetIndent(writer, 1);
-    xmlTextWriterSetIndentString(writer, (xmlChar*)"  ");
+    xmlTextWriterSetIndentString(writer, WINDENT);
 }
 
 void XMLWriter::endDocument()
@@ -390,29 +391,24 @@ void XMLWriter::endDocument()
  *
  * Returns the converted UTF-8 string, or nullptr in case of error.
  */
-xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
+xmlChar* ConvertInput(const char* in, const char* encoding)
 {
-    xmlChar* out;
-    int ret;
-    int temp;
-    xmlCharEncodingHandlerPtr handler;
-
     if (in == nullptr)
         return nullptr;
 
-    handler = xmlFindCharEncodingHandler(encoding);
+    auto* handler = xmlFindCharEncodingHandler(encoding);
     if (handler == nullptr) {
         printf("ConvertInput: no encoding handler found for '%s'\n", (encoding != nullptr) ? encoding : "");
         return nullptr;
     }
 
-    auto size = std::strlen(in) + 1;
+    const int size = std::strlen(in) + 1;
     int out_size = size * 2 - 1;  // int is required by handler->input(...)
-    out = (unsigned char*)xmlMalloc((size_t)out_size);
+    auto* out = (unsigned char*)xmlMalloc((size_t)out_size);
 
     if (out != nullptr) {
-        temp = size - 1;
-        ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
+        auto temp = size - 1;
+        auto ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
         if ((ret < 0) || (temp - size + 1 != 0)) {
             if (ret < 0) {
                 printf("ConvertInput: conversion wasn't successful.\n");
@@ -433,15 +429,14 @@ xmlChar* UTAP::ConvertInput(const char* in, const char* encoding)
 
 int32_t write_XML_file(const char* filename, Document* doc)
 {
-    xmlTextWriterPtr writer;
-
     /* Create a new XmlWriter for filename, with no compression. */
-    writer = xmlNewTextWriterFilename(filename, 0);
+    auto* writer = xmlNewTextWriterFilename(filename, 0);
     if (writer == nullptr) {
-        throw XMLWriterError("construction");
+        throw XMLWriterError{"construction"};
     }
     XMLWriter(writer, doc).project();
 
     // xmlFreeTextWriter(writer);
     return 0;
 }
+}  // namespace UTAP

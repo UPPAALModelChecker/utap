@@ -28,6 +28,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 namespace UTAP {
 /** Records the absolute position in the source file.
@@ -39,7 +40,8 @@ struct position_t
      * (e.g. built-in, engine utility, or introduced by LSC translation) */
     static constexpr auto unknown_pos = std::numeric_limits<int32_t>::max();
     // Java Integer cannot parse UINT_MAX, thus use INT_MAX.
-    uint32_t start{unknown_pos}, end{unknown_pos};
+    uint32_t start{unknown_pos};
+    uint32_t end{unknown_pos};
     position_t() = default;
     position_t(uint32_t start, uint32_t end): start{start}, end{end} {}
 };
@@ -87,7 +89,7 @@ public:
     /**
      * Retrieves information about the line containing the given
      * position. The last line in the container is considered to
-     * extend to inifinity (until another line is added).
+     * extend to infinity (until another line is added).
      */
     const Line& find(uint32_t position) const;
 
@@ -108,9 +110,10 @@ struct Error
         start{std::move(start)}, end{std::move(end)}, position{pos}, msg{std::move(msg)}, context{std::move(ctx)}
     {}
     std::string str() const;
+
+private:
+    friend std::ostream& operator<<(std::ostream&, const Error&);
 };
 }  // namespace UTAP
-
-std::ostream& operator<<(std::ostream& out, const UTAP::Error&);
 
 #endif
