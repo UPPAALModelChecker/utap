@@ -65,10 +65,10 @@ if [ "$#" -lt 1 ]; then
 fi
 
 missing_tools=""
-for tool in wget tar sha256sum cmake ; do
+for tool in wget tar shasum cmake ; do
     if [ -z "$(command -v $tool)" ] ; then
         echo "Could not find $tool"
-        missing_tools="${missing_tools:+$missing_tools} $tools"
+        missing_tools="${missing_tools:+$missing_tools} $tool"
     fi
 done
 if [ -n "$missing_tools" ]; then
