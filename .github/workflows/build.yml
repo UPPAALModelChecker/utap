@@ -209,7 +209,14 @@ jobs:
         with:
           xcode-version: '14.3.1'
       - name: Get Home Brew dependencies
-        run: brew install -q cmake ninja ccache gcc@14 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+        run: |
+          brew install -q cmake ninja ccache gcc@14 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+          BISON_PATH=$(brew --prefix bison)/bin
+          FLEX_PATH=$(brew --prefix flex)/bin
+          export PATH="${BISON_PATH}:${FLEX_PATH}:${PATH}"
+          command -v bison
+          command -v flex
+          echo "$PATH" >> $GITHUB_PATH
 
       - name: Compute CCache keys
         id: darwin-keys
