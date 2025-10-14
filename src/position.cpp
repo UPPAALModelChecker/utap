@@ -27,12 +27,12 @@
 
 using std::string;
 
-using namespace UTAP;
+namespace UTAP {
 
 void PositionIndex::add(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<string> path)
 {
     if (!lines.empty() && position < lines.back().position) {
-        throw std::logic_error("Positions must be monotonically increasing");
+        throw std::logic_error{"Positions must be monotonically increasing"};
     }
     lines.emplace_back(position, offset, line, std::move(path));
 }
@@ -53,7 +53,7 @@ const PositionIndex::Line& PositionIndex::find(uint32_t position, uint32_t first
 const PositionIndex::Line& PositionIndex::find(uint32_t position) const
 {
     if (lines.empty())
-        throw std::logic_error("No positions have been added");
+        throw std::logic_error{"No positions have been added"};
     return find(position, 0, lines.size());
 }
 
@@ -65,7 +65,7 @@ std::ostream& PositionIndex::print(std::ostream& os) const
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const UTAP::Error& e)
+std::ostream& operator<<(std::ostream& os, const Error& e)
 {
     if (!e.start.path || e.start.path->empty()) {
         os << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position) << " to line "
@@ -78,7 +78,7 @@ std::ostream& operator<<(std::ostream& os, const UTAP::Error& e)
     return os;
 }
 
-std::string UTAP::Error::str() const
+std::string Error::str() const
 {
     if (position.start < start.position || position.end < end.position)
         return msg + " (Unknown position in document)";
@@ -92,3 +92,5 @@ std::string UTAP::Error::str() const
                std::to_string(position.end - end.position);
     }
 }
+
+}  // namespace UTAP

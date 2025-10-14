@@ -8,15 +8,16 @@ SOURCE="$LOCAL/source"
 BW="\e[1;97m" # bold white
 NC="\e[0m"    # no color
 
-LIBXML2=libxml2-2.13.8
+LIBXML2=libxml2-2.13.9
 LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
-LIBXML2_SHA256=277294cb33119ab71b2bc81f2f445e9bc9435b893ad15bb2cd2b0e859a0ee84a
+LIBXML2_SHA256=a2c9ae7b770da34860050c309f903221c67830c86e4a7e760692b803df95143a
 
-DOCTEST=doctest-2.4.11
+
+DOCTEST=doctest-2.4.12
 DOCTEST_Z="${DOCTEST}.tar.gz"
 DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doctest-}.tar.gz"
-DOCTEST_SHA256=632ed2c05a7f53fa961381497bf8069093f0d6628c5f26286161fbd32a560186
+DOCTEST_SHA256=73381c7aa4dee704bd935609668cf41880ea7f19fa0504a200e13b74999c2d70
 
 BISON=bison-3.8.2
 BISON_Z="${BISON}.tar.xz"
@@ -55,9 +56,9 @@ function download_unpack {
 
 if [ "$#" -lt 1 ]; then
     echo "Expecting a list of target platforms as arguments."
-    echo -e "For example: ${BW}$0 darwin linux64 win32${NC}"
+    echo -e "For example: ${BW}$0 x86_64-linux x86_64-w64-mingw32 darwin-brew-gcc14${NC}"
     echo -e "List of supported platforms:"
-    for  toolchain in $(ls "$PROJECT_DIR"/cmake/toolchain/*.cmake) ; do
+    for  toolchain in "${PROJECT_DIR}/cmake/toolchain"/*.cmake ; do
         platform=$(basename "$toolchain")
         echo -e "    ${BW}${platform%%.cmake}${NC}"
     done
@@ -103,7 +104,7 @@ for target in "$@" ; do
         #echo -e "${BW}${target}: Testing ${LIBXML2}${NC}"
         #ctest --test-dir "$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${LIBXML2}${NC}"
-        cmake --install "$BUILD"
+        cmake --install "$BUILD" --prefix="$LIBS" --config Release
         rm -Rf "$BUILD"
         echo -e "${BW}${target}: Success ${LIBXML2}${NC}"
     else
@@ -123,13 +124,17 @@ for target in "$@" ; do
         #echo -e "${BW}${target}: Testing ${DOCTEST}${NC}"
         #ctest --test-dir "$BUILD" --output-on-failure
         echo -e "${BW}${target}: Installing ${DOCTEST}${NC}"
-        cmake --install "$BUILD"
+        cmake --install "$BUILD" --prefix="$LIBS" --config Release
         rm -Rf "$BUILD"
         echo -e "${BW}${target}: Success ${DOCTEST}${NC}"
     else
         echo -e "${BW}${target}: ${DOCTEST} is already installed.${NC}"
     fi
-    if [ ! -r "$LIBS/bin/bison" ] ; then
+    if [ -n "$(command -v bison)" ]; then
+        echo -e "${BW}${target}: ${BISON} is provided by OS.${NC}"
+    elif [ -x "$LIBS/bin/bison" ] ; then
+        echo -e "${BW}${target}: ${BISON} is already installed.${NC}"
+    else
         echo -e "${BW}Preparing source of ${BISON}${NC}"
         download_unpack BISON
         pushd "$SOURCE/$BISON/"
@@ -147,7 +152,5 @@ for target in "$@" ; do
         popd
         rm -Rf "$BUILD"
         echo -e "${BW}${target}: Success ${BISON}${NC}"
-    else
-        echo -e "${BW}${target}: ${BISON} is already installed.${NC}"
     fi
 done

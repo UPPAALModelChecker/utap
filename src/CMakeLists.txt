@@ -19,7 +19,6 @@ add_custom_command(
   DEPENDS lexer_generate parser.y)
 add_custom_target(parser_generate DEPENDS "${parser_source}")
 
-file(GLOB utap_source "*.c" "*.cpp" "*.h")
 add_library(UTAP
   AbstractBuilder.cpp
   DocumentBuilder.cpp
@@ -41,6 +40,12 @@ add_library(UTAP
   xmlreader.cpp
   xmlwriter.cpp
   ${parser_source})
+target_compile_features(UTAP PRIVATE cxx_std_17)
+target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.cpp
+if (UTAP_STATIC)
+  target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
+endif (UTAP_STATIC)
+set_property(TARGET UTAP PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(UTAP PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
 target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
                                    ${LIBXML_WINLIBS})

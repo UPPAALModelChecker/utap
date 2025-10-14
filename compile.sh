@@ -30,10 +30,12 @@ for target in "$@" ; do
         win64*|x86_64-w64-mingw32*)
             export WINARCH=win64
             export WINEPATH=$("$PROJECT_DIR"/winepath-for x86_64-w64-mingw32)
+            export CROSSCOMPILING_EMULATOR=wine
             ;;
         win32*|i686-w64-mingw32*)
             export WINARCH=win32
             export WINEPATH=$("$PROJECT_DIR"/winepath-for i686-w64-mingw32)
+            export CROSSCOMPILING_EMULATOR=wine
             ;;
         *)
             unset WINARCH
@@ -67,7 +69,7 @@ for target in "$@" ; do
     echo "    CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE:-(unset)}"
     echo "    CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:-(unset)}"
     echo "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-(unset)}"
-    cmake -B "$BUILD" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX" -DFIND_FATAL=ON
+    cmake -B "$BUILD" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX"
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD" --config $CMAKE_BUILD_TYPE
     echo -e "${BW}${target}: Testing UTAP${NC}"
