@@ -1,5 +1,5 @@
 ---
-name: MinGW
+name: Ubuntu MinGW
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ on:
       - 'examples/cmake/*.cmake'
 
 jobs:
-  mingw32-x86_64:
+  build:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE

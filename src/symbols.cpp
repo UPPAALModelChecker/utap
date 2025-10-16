@@ -133,7 +133,7 @@ Symbol Frame::add_symbol(std::string_view name, Type type, position_t position, 
     auto symbol = Symbol{*this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
     if (!name.empty()) {
-        data->mapping[symbol.get_name()] = static_cast<uint32_t>(data->symbols.size() - 1);
+        data->mapping[symbol.get_name()] = static_cast<int32_t>(data->symbols.size() - 1);
     }
     return symbol;
 }
@@ -147,7 +147,7 @@ void Frame::add(Symbol symbol)
     data->symbols.push_back(std::move(symbol));
     const auto& symb = data->symbols.back();
     if (!symb.get_name().empty())
-        data->mapping[symb.get_name()] = static_cast<uint32_t>(data->symbols.size() - 1);
+        data->mapping[symb.get_name()] = static_cast<int32_t>(data->symbols.size() - 1);
 }
 
 /** Add all symbols in the given frame. Notice that the symbols will

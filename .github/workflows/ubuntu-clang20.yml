@@ -1,5 +1,5 @@
 ---
-name: Ubuntu
+name: Ubuntu Clang20
 
 on:
   workflow_dispatch:
@@ -29,15 +29,15 @@ on:
       - 'examples/cmake/*.cmake'
 
 jobs:
-  linux-x86_64:
+  build:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
-      BUILD_DIR: build-x86_64-linux64-gcc14
+      BUILD_DIR: build-x86_64-linux64-clang20
       CTEST_OUTPUT_ON_FAILURE: 1
-      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-linux-gcc14.cmake
-      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-linux-gcc14
-      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-linux-gcc14
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-linux-clang20.cmake
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-linux-clang20
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-linux-clang20
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
       CFLAGS: "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fstrict-flex-arrays=2 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
@@ -48,7 +48,7 @@ jobs:
       - name: Get Ubuntu dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get -qq install clang-format curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-14
+          sudo apt-get -qq install clang-format curl wget unzip xz-utils bison flex cmake ninja-build ccache clang-20
 
       - name: Check Formatting
         run: |
@@ -56,9 +56,9 @@ jobs:
           find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format -n -Werror {} \;
 
       - name: Compute CCache keys
-        id: x86_64-linux-gcc14-keys
+        id: x86_64-linux-clang20-keys
         run: |
-          key2=ccache-x86_64-linux-gcc14-
+          key2=ccache-x86_64-linux-clang20-
           key1="${key2}$(date +%W)"
           echo "key1=${key1}" >> $GITHUB_OUTPUT
           echo "key2=${key2}" >> $GITHUB_OUTPUT
@@ -68,8 +68,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ steps.x86_64-linux-gcc14-keys.outputs.key1 }}
-          restore-keys: ${{ steps.x86_64-linux-gcc14-keys.outputs.key2 }}
+          key: ${{ steps.x86_64-linux-clang20-keys.outputs.key1 }}
+          restore-keys: ${{ steps.x86_64-linux-clang20-keys.outputs.key2 }}
       - name: CCache limits and stats
         run: |
           ccache -M120M
@@ -79,18 +79,18 @@ jobs:
         id: restore-libs
         uses: actions/cache/restore@v4
         with:
-          path: local/x86_64-linux-gcc14
-          key: libs-x86_64-linux-gcc14-${{ hashFiles('getlibs.sh') }}
-          restore-keys: libs-x86_64-linux-gcc14-
+          path: local/x86_64-linux-clang20
+          key: libs-x86_64-linux-clang20-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-x86_64-linux-clang20-
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs.sh x86_64-linux-gcc14
+        run: ./getlibs.sh x86_64-linux-clang20
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/x86_64-linux-gcc14
+          path: local/x86_64-linux-clang20
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
         run: cmake -B "$BUILD_DIR" -DUTAP_CLANG_TIDY=OFF
