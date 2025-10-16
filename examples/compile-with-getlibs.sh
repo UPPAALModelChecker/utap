@@ -22,6 +22,6 @@ fi
 "${UTAP_SRC}/compile.sh" "$TARGET"
 
 BUILD_DIR="${EXAMPLE_DIR}/build-${TARGET}-${CMAKE_BUILD_TYPE,,}"
-cmake -B "$BUILD_DIR" -S "$EXAMPLE_DIR"
+cmake -B "$BUILD_DIR" -S "$EXAMPLE_DIR" -DCMAKE_TOOLCHAIN_FILE="${UTAP_SRC}/cmake/toolchain/${TARGET}.cmake"
 cmake --build "$BUILD_DIR"
 ctest --test-dir "$BUILD_DIR" --output-on-failure
