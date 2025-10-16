@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; -*-
 
  /* libutap - Uppaal Timed Automata Parser.
-	Copyright (C) 2011-2022 Aalborg University.
+    Copyright (C) 2011-2024 Aalborg University.
 	Copyright (C) 2002-2011 Uppsala University and Aalborg University.
 
 	This library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@
 
  /*********************************************************************
   * This bison grammar file contains both grammars for old and new XTA
-  * formats plus entry points for various productions used in the XML
+  * formats plus Entry points for various productions used in the XML
   * parser.
   *
   * There are numerous problems with parser error recognition and
@@ -37,12 +37,15 @@
   * appear continuous error reports on the same code as no recovery is
   * made. Please report it, this might be corrected.
   */
+%code top {
+//NOLINTBEGIN
+}
 
 %code requires {
 
 #include "parser.hpp"
-#include "libparser.h"
-#include "utap/position.h"
+#include "libparser.hpp"
+#include "utap/position.hpp"
 
 #include <limits>
 #include <cstring> // strlen
@@ -52,15 +55,11 @@ using namespace Constants;
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)        		  	        \
 	 do        								\
-	   if (N)        							\
-		 {								\
+        if (N) {                           \
 		   (Current).start        = YYRHSLOC (Rhs, 1).start;	        \
 		   (Current).end          = YYRHSLOC (Rhs, N).end;	        \
-		 }								\
-	   else        							\
-		 {								\
-		   (Current).start        = (Current).end   =		        \
-			 YYRHSLOC (Rhs, 0).end;			  	        \
+        } else {                           \
+            (Current).start = (Current).end = YYRHSLOC (Rhs, 0).end; \
 		 }								\
 	 while (0)
 
@@ -69,7 +68,7 @@ using namespace Constants;
 
 %code {
 static ParserBuilder *ch;
-static syntax_t syntax;
+static Syntax syntax;
 static int syntax_token = 0;
 
 static void utap_error(const char* msg);
@@ -79,7 +78,7 @@ static int lexer_flex();
 static int utap_lex()
 {
    int old;
-   if (syntax_token) {
+    if (syntax_token != 0) {
 	 old = syntax_token;
 	 syntax_token = 0;
 	 return old;
@@ -92,77 +91,56 @@ static char rootTransId[MAXLEN];
 /* Counter used during array parsing. */
 static int types = 0;
 
-#define CALL(first,last,call) do { ch->set_position(first.start, last.end); try { ch->call; } catch (TypeException &te) { ch->handle_error(te); } } while (0)
-
-#define YY_(msg) utap_msg(msg)
 
 struct str_entry_t
 {
-	int len;
+    size_t len;
 	const char* from;
 	const char* to;
 };
 
 const char* utap_msg(const char *msg)
 {
-	/* Simple & short log(n) algorithm.
-	 */
-#define NB_STR 8
-	static const str_entry_t table[NB_STR] =
-		{
-			{ .len=12,
-			  .from="syntax error",
-			  .to="$syntax_error" },
-			{ .len=16,
-			  .from="memory exhausted",
-			  .to="$memory_exhausted" },
-			{ .len=27,
-			  .from="syntax error, unexpected %s",
-			  .to="$syntax_error: $unexpected %s" },
-			{ .len=28,
-			  .from="syntax error: cannot back up",
-			  .to="$syntax_error: $cannot_back_up" },
-			{ .len=41,
-			  .from="syntax error, unexpected %s, expecting %s",
-			  .to="$syntax_error: $unexpected %s, $expecting %s" },
-			{ .len=47,
-			  .from="syntax error, unexpected %s, expecting %s or %s",
-			  .to="$syntax_error: $unexpected %s, $expecting %s $or %s" },
-			{ .len=53,
-			  .from="syntax error, unexpected %s, expecting %s or %s or %s",
-			  .to="$syntax_error: $unexpected %s, $expecting %s $or %s $or %s" },
-			{ .len=59,
-			  .from="syntax error, unexpected %s, expecting %s or %s or %s or %s",
-			  .to="$syntax_error: $unexpected %s, $expecting %s $or %s $or %s $or %s" }
+    // Simple & short log(n) algorithm.
+    constexpr auto NB_STR = size_t{8};
+    static const str_entry_t table[NB_STR] = {
+        { 12, "syntax error", "$syntax_error" },
+        { 16, "memory exhausted", "$memory_exhausted" },
+        { 27, "syntax error, unexpected %s", "$syntax_error: $unexpected %s" },
+        { 28, "syntax error: cannot back up", "$syntax_error: $cannot_back_up" },
+        { 41, "syntax error, unexpected %s, expecting %s", "$syntax_error: $unexpected %s, $expecting %s" },
+        { 47, "syntax error, unexpected %s, expecting %s or %s",
+            "$syntax_error: $unexpected %s, $expecting %s $or %s" },
+        { 53, "syntax error, unexpected %s, expecting %s or %s or %s",
+            "$syntax_error: $unexpected %s, $expecting %s $or %s $or %s" },
+        { 59, "syntax error, unexpected %s, expecting %s or %s or %s or %s",
+            "$syntax_error: $unexpected %s, $expecting %s $or %s $or %s $or %s" }
 		};
-	int len = std::strlen(msg);
-	int i = NB_STR / 2;
-	while(i < NB_STR)
-	{
-		if (len < table[i].len)
-		{
+    const auto len = std::strlen(msg);
+    auto i = NB_STR / 2;
+    while (i < NB_STR) {
+        if (len < table[i].len) {
 			if (i == 0) return msg;
 			i = i/2;
 			continue;
 		}
-		if (len > table[i].len)
-		{
+        if (len > table[i].len) {
 			if (i == NB_STR-1) return msg;
 			i = (i+NB_STR)/2;
 			continue;
 		}
-		for(;i < NB_STR && len <= table[i].len; ++i)
-		{
-			if (strcmp(msg, table[i].from) == 0)
-			{
+        for(;i < NB_STR && len <= table[i].len; ++i) {
+            if (strcmp(msg, table[i].from) == 0) {
 				return table[i].to;
 			}
 		}
 		break;
 	}
     return msg;
-#undef NB_STR
 }
+#define CALL(first,last,call) do { ch->set_position(first.start, last.end); try { ch->call; } catch (TypeException &te) { ch->handle_error(te); } } while (0)
+
+#define YY_(msg) utap_msg(msg)
 
 }
 
@@ -235,9 +213,9 @@ const char* utap_msg(const char *msg)
 %token T_CONTROL T_CONTROL_T T_SIMULATION
 
 /* HYPA */
-%token T_ACRONTROL
+%token T_ACONTROL
 
-/* Expectation optimization */
+/* ExpectationKind optimization */
 %token T_MINEXP T_MAXEXP T_MINPR T_MAXPR T_STRATEGY T_LOAD_STRAT T_SAVE_STRAT
 
 /* Strategy subjection */
@@ -286,7 +264,6 @@ const char* utap_msg(const char *msg)
 %token T_DYNAMIC T_HYBRID
 %token T_SPAWN T_EXIT T_NUMOF
 
-
 %type <kind> ExpQuantifier ExpPrQuantifier
 %type <kind> PathType
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
@@ -322,14 +299,14 @@ const char* utap_msg(const char *msg)
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
 %right T_INCREMENT T_DECREMENT
-%left '(' ')' '[' ']' '.' '\''
+%left '(' ')' '[' ']' '.' T_APOS
 
 
 %union {
     bool flag;
     int number;
-    ParserBuilder::PREFIX prefix;
-    kind_t kind;
+    ParserBuilder::TypePrefix prefix;
+    Kind kind;
     char string[MAXLEN];
     double floating;
 }
@@ -674,72 +651,56 @@ TypeId:
 
 Type:
         T_TYPENAME {
-            CALL(@1, @1, type_name(ParserBuilder::PREFIX_NONE, $1));
+            CALL(@1, @1, type_name(ParserBuilder::TypePrefix::NONE, $1));
         }
         | TypePrefix T_TYPENAME {
             CALL(@1, @2, type_name($1, $2));
         }
         | T_STRUCT '{' FieldDeclList '}' {
-            CALL(@1, @4, type_struct(ParserBuilder::PREFIX_NONE, $3));
+            CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, $3));
         }
         | TypePrefix T_STRUCT '{' FieldDeclList '}' {
             CALL(@1, @5, type_struct($1, $4));
         }
         | T_STRUCT '{' error '}' {
-          CALL(@1, @4, type_struct(ParserBuilder::PREFIX_NONE, 0));
+          CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, 0));
         }
         | TypePrefix T_STRUCT '{' error '}' {
-          CALL(@1, @5, type_struct(ParserBuilder::PREFIX_NONE, 0));
+          CALL(@1, @5, type_struct(ParserBuilder::TypePrefix::NONE, 0));
         }
         | T_BOOL {
-          CALL(@1, @1, type_bool(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @1, type_bool(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_BOOL {
           CALL(@1, @2, type_bool($1));
         }
-        | T_DOUBLE {
-	    CALL(@1, @1, type_double(ParserBuilder::PREFIX_NONE));
-        }
-        | TypePrefix T_DOUBLE {
-	    CALL(@1, @2, type_double($1));
-	}
-        | T_STRING {
-	    CALL(@1, @1, type_string(ParserBuilder::PREFIX_NONE));
-        }
-        | TypePrefix T_STRING {
-	    CALL(@1, @2, type_string($1));
-	}
-        | T_INT {
-          CALL(@1, @1, type_int(ParserBuilder::PREFIX_NONE));
-        }
-        | TypePrefix T_INT {
-          CALL(@1, @2, type_int($1));
-        }
+        | T_DOUBLE { CALL(@1, @1, type_double(ParserBuilder::TypePrefix::NONE)); }
+        | TypePrefix T_DOUBLE { CALL(@1, @2, type_double($1)); }
+        | T_STRING { CALL(@1, @1, type_string(ParserBuilder::TypePrefix::NONE)); }
+        | TypePrefix T_STRING { CALL(@1, @2, type_string($1)); }
+        | T_INT { CALL(@1, @1, type_int(ParserBuilder::TypePrefix::NONE)); }
+        | TypePrefix T_INT { CALL(@1, @2, type_int($1)); }
         | T_INT '[' Expression ',' Expression ']'
         {
-          CALL(@1, @6, type_bounded_int(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @6, type_bounded_int(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_INT  '[' Expression ',' Expression ']' {
           CALL(@1, @7, type_bounded_int($1));
         }
         | T_CHAN {
-          CALL(@1, @1, type_channel(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @1, type_channel(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_CHAN {
           CALL(@1, @2, type_channel($1));
         }
-        | T_CLOCK {
-	    CALL(@1, @1, type_clock(ParserBuilder::PREFIX_NONE));
-        }
-        | T_HYBRID T_CLOCK {
-	    CALL(@1, @1, type_clock(ParserBuilder::PREFIX_HYBRID));
-	}
+        | T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::NONE)); }
+        | T_HYBRID T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::HYBRID)); }
         | T_VOID {
           CALL(@1, @1, type_void());
         }
         | T_SCALAR '[' Expression ']'
         {
-          CALL(@1, @4, type_scalar(ParserBuilder::PREFIX_NONE));
+          CALL(@1, @4, type_scalar(ParserBuilder::TypePrefix::NONE));
         }
         | TypePrefix T_SCALAR  '[' Expression ']' {
           CALL(@1, @5, type_scalar($1));
@@ -791,11 +752,11 @@ FieldDeclId:
         ;
 
 TypePrefix:
-          T_URGENT    { $$ = ParserBuilder::PREFIX_URGENT; }
-        | T_BROADCAST { $$ = ParserBuilder::PREFIX_BROADCAST; }
-        | T_URGENT T_BROADCAST { $$ = ParserBuilder::PREFIX_URGENT_BROADCAST; }
-        | T_CONST  { $$ = ParserBuilder::PREFIX_CONST; }
-        | T_META { $$ = ParserBuilder::PREFIX_SYSTEM_META; }
+          T_URGENT    { $$ = ParserBuilder::TypePrefix::URGENT; }
+        | T_BROADCAST { $$ = ParserBuilder::TypePrefix::BROADCAST; }
+        | T_URGENT T_BROADCAST { $$ = ParserBuilder::TypePrefix::URGENT_BROADCAST; }
+        | T_CONST  { $$ = ParserBuilder::TypePrefix::CONST; }
+        | T_META { $$ = ParserBuilder::TypePrefix::SYSTEM_META; }
         ;
 
 /*********************************************************************
@@ -1297,7 +1258,7 @@ Expression:
         | Expression '.' NonTypeId {
           CALL(@1, @3, expr_dot($3));
         }
-        | Expression '\'' {
+        | Expression T_APOS {
             CALL(@1, @2, expr_unary(RATE));
         }
         | T_DEADLOCK {
@@ -1509,7 +1470,7 @@ OldDeclaration:
 OldVarDecl:
         VariableDecl
         | T_OLDCONST {
-          CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+          CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } OldConstDeclIdList ';' {
           CALL(@1, @3, type_pop());
         }
@@ -1596,12 +1557,12 @@ OldProcParam:
 
 OldProcConstParam:
         T_OLDCONST {
-            CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@3, @4, decl_parameter($3, false));
         }
         | OldProcConstParam ',' {
-            CALL(@1, @1, type_int(ParserBuilder::PREFIX_CONST));
+            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@4, @5, decl_parameter($4, false));
         }
@@ -1806,7 +1767,6 @@ Interval:
 	}
 	;
 
-
 Partition:
 	| BracketIntervalList;
 
@@ -1831,7 +1791,7 @@ AssignablePropperty:
 	CALL(@1, @4, expr_unary(EF_CONTROL));
 	CALL(@1, @4, property());
     }
-    | T_ACRONTROL ':' T_AG Expression Partition {
+    | T_ACONTROL ':' T_AG Expression Partition {
     	CALL(@1, @4, expr_acontrol());
     	CALL(@1, @4, property());
     }
@@ -2031,9 +1991,11 @@ Property:
 	    CALL(@1, @2, expr_binary(BOUNDS_VAR));
 	    CALL(@1, @2, property());
 	};
+
 %%
 
 #include "lexer.cc"
+//NOLINTEND
 
 static void utap_error(const char* msg)
 {
@@ -2041,7 +2003,7 @@ static void utap_error(const char* msg)
     ch->handle_error(TypeException{msg});
 }
 
-static void setStartToken(xta_part_t part, bool newxta)
+static void setStartToken(XTAPart part, bool newxta)
 {
     switch (part)
     {
@@ -2112,15 +2074,15 @@ static void setStartToken(xta_part_t part, bool newxta)
     }
 }
 
-static int32_t parse_XTA(ParserBuilder *aParserBuilder,
-        		bool newxta, xta_part_t part, std::string xpath)
+static int32_t parse_XTA(ParserBuilder& aParserBuilder,
+                bool newxta, XTAPart part, std::string_view xpath)
 {
     // Select syntax
-    syntax = newxta ? syntax_t::NEW_GUIDING : syntax_t::OLD_GUIDING;
+    syntax = newxta ? Syntax::NEW_GUIDING : Syntax::OLD_GUIDING;
     setStartToken(part, newxta);
 
     // Set parser builder
-    ch = aParserBuilder;
+    ch = &aParserBuilder;
 
     // Reset position tracking
     tracker.setPath(ch, xpath);
@@ -2128,32 +2090,30 @@ static int32_t parse_XTA(ParserBuilder *aParserBuilder,
     // Parse string
     int res = 0;
 
-    if (utap_parse())
-    {
+    if (utap_parse() != 0)
         res = -1;
-    }
 
-    ch = NULL;
+    ch = nullptr;
     return res;
 }
 
-static int32_t parseProperty(ParserBuilder *aParserBuilder, const std::string& xpath)
+static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xpath)
 {
     // Select syntax
-    syntax = syntax_t::PROPERTY;
+    syntax = Syntax::PROPERTY;
     setStartToken(S_PROPERTY, false);
 
     // Set parser builder
-    ch = aParserBuilder;
+    ch = &aParserBuilder;
 
     // Reset position tracking
     tracker.setPath(ch, xpath);
 
-    return utap_parse() ? -1 : 0;
+    return (utap_parse() != 0) ? -1 : 0;
 }
 
-int32_t parse_XTA(const char *str, ParserBuilder *builder,
-        	 bool newxta, xta_part_t part, std::string xpath)
+int32_t parse_XTA(const char *str, ParserBuilder& builder,
+             bool newxta, XTAPart part, std::string_view xpath)
 {
     utap__scan_string(str);
     int32_t res = parse_XTA(builder, newxta, part, xpath);
@@ -2162,7 +2122,7 @@ int32_t parse_XTA(const char *str, ParserBuilder *builder,
 }
 
 const char* utap_builtin_declarations() {
-return
+static const char* res =
 "const int INT8_MIN   =        -128;\n"
 "const int INT8_MAX   =         127;\n"
 "const int UINT8_MAX  =         255;\n"
@@ -2194,16 +2154,17 @@ return
 "const double M_SQRT2    = 1.4142135623730951454746218587388284504413604736328125;\n"  // sqrt(2)
 "const double M_SQRT1_2  = 0.70710678118654757273731092936941422522068023681640625;\n" // sqrt(1/2)
 ;
+    return res;
 }
 
-int32_t parse_XTA(const char *str, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(const char *str, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
     return parse_XTA(str, builder, newxta, S_XTA, "");
 }
 
-int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
+int32_t parse_XTA(FILE *file, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
         parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
@@ -2213,18 +2174,18 @@ int32_t parse_XTA(FILE *file, ParserBuilder *builder, bool newxta)
     return res;
 }
 
-int32_t parseProperty(const char *str, ParserBuilder *aParserBuilder, const std::string& xpath)
+int32_t parse_property(const char *str, ParserBuilder& aParserBuilder, const std::string& xpath)
 {
     utap__scan_string(str);
-    int32_t res = parseProperty(aParserBuilder, xpath);
+    int32_t res = parse_property(aParserBuilder, xpath);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
 
-int32_t parseProperty(FILE *file, ParserBuilder *aParserBuilder)
+int32_t parse_property(FILE *file, ParserBuilder& aParserBuilder)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int32_t res = parseProperty(aParserBuilder, "");
+    int32_t res = parse_property(aParserBuilder, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }

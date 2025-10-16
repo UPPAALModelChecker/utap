@@ -20,43 +20,40 @@
    USA
 */
 
-#include "utap/property.h"
+#include "utap/property.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <utility>
-#include <cctype>
-#include <cmath>
 
-using UTAP::expression_t;
+using UTAP::Expression;
 
 using namespace UTAP::Constants;
 using namespace UTAP;
 
-using std::istringstream;
-using std::list;
-using std::string;
-
-void PropertyBuilder::typeCheck(expression_t expr) { tc.visitProperty(std::move(expr)); }
+void PropertyBuilder::typeCheck(Expression& expr) { tc.visitProperty(expr); }
 
 void PropertyBuilder::clear() { properties.clear(); }
 
-const list<PropInfo>& PropertyBuilder::getProperties() const { return properties; }
+const std::list<PropInfo>& PropertyBuilder::getProperties() const { return properties; }
 
 PropertyBuilder::const_iterator PropertyBuilder::begin() const { return properties.begin(); }
 
 PropertyBuilder::const_iterator PropertyBuilder::end() const { return properties.end(); }
 
-static void parseExpect(std::string expect, PropInfo& info)
+static void parseExpect(std::string_view expect, PropInfo& info)
 {
     using std::cerr;
     using std::endl;
     if (expect.empty())
         return;
-    std::transform(begin(expect), end(expect), begin(expect), ::toupper);
-    auto is = istringstream(expect);
-    string token;
+    auto exp_u = std::string{expect};
+    std::transform(begin(exp_u), end(exp_u), begin(exp_u), ::toupper);
+    auto is = std::istringstream(exp_u);
+    std::string token;
     while (getline(is, token, ',')) {
         if (token == "T" || token == "SAT" || token == "SATISFIED" || token == "TRUE") {
             info.set_expect(status_t::DONE_TRUE);
@@ -71,29 +68,29 @@ static void parseExpect(std::string expect, PropInfo& info)
         } else {
             auto is = std::istringstream(token);
             double number;
-            string unit;
+            std::string unit;
             if (is >> number) {
                 if (is >> unit) {
                     if (unit == "B")
-                        info.set_expect_mem(number / 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number / 1024));
                     else if (unit == "KB")
-                        info.set_expect_mem(number);
+                        info.set_expect_mem(static_cast<uint64_t>(number));
                     else if (unit == "MB")
-                        info.set_expect_mem(number * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024));
                     else if (unit == "GB")
-                        info.set_expect_mem(number * 1024 * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024 * 1024));
                     else if (unit == "TB")
-                        info.set_expect_mem(number * 1024 * 1024 * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024 * 1024 * 1024));
                     else if (unit == "MS")
-                        info.set_expect_time(number);
+                        info.set_expect_time(static_cast<uint64_t>(number));
                     else if (unit == "S")
-                        info.set_expect_time(number * 1000);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000));
                     else if (unit == "M")
-                        info.set_expect_time(number * 1000 * 60);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60));
                     else if (unit == "H")
-                        info.set_expect_time(number * 1000 * 60 * 60);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60 * 60));
                     else if (unit == "D")
-                        info.set_expect_time(number * 1000 * 60 * 60 * 24);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60 * 60 * 24));
                     else
                         cerr << "Could not parse EXPECT token: " << token << endl;
                 } else {
@@ -107,9 +104,8 @@ static void parseExpect(std::string expect, PropInfo& info)
 
 void PropertyBuilder::property()
 {
-    /* Construct expression. */
-    expression_t expr = fragments[0];
-    fragments.pop(1);
+    // Construct expression
+    Expression expr = fragments.pop();
 
     /* Type check expression. */
     tc.visitProperty(expr);
@@ -149,7 +145,7 @@ void PropertyBuilder::property()
     typeProperty(expr);
 }
 
-static bool symbolicProperty(const expression_t& expr)
+static bool symbolicProperty(const Expression& expr)
 {
     switch (expr.get_kind()) {
     case EF:
@@ -180,7 +176,7 @@ static bool symbolicProperty(const expression_t& expr)
 // Should not lint, because TigaPropertyBuilder::typeProperty does
 // change the argument.
 // Ideally TigaPropertyBuilder::typeProperty should just be fixed as well
-void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
+void PropertyBuilder::typeProperty(Expression expr)  // NOLINT
 {
     bool prob = false;
 
@@ -247,63 +243,63 @@ void PropertyBuilder::typeProperty(expression_t expr)  // NOLINT
                                   "properties.");
 }
 
-void PropertyBuilder::scenario(const char* name)
+void PropertyBuilder::scenario(std::string_view name)
 {
-    symbol_t symbol, i_symbol;
+    Symbol symbol, i_symbol;
     if (!resolve(name, symbol))
         throw std::runtime_error("$No_such_scenario: " + std::string{name});
-    type_t type = symbol.get_type();
+    Type type = symbol.get_type();
     if (type.get_kind() != LSC_INSTANCE)
         throw std::runtime_error("$Not_a_LSC_template: " + symbol.get_name());
 }
 
-void PropertyBuilder::handle_expect(const char* text)
+void PropertyBuilder::handle_expect(std::string_view text)
 {
-    if (text != nullptr && text[0] != '\0' && !properties.empty())
+    if (not text.empty() && not properties.empty())
         parseExpect(text, properties.back());
 }
 
 bool PropertyBuilder::allowProcessReferences() { return true; }
 
-void PropertyBuilder::parse(const char* buf) { parseProperty(buf, this); }
+void PropertyBuilder::parse(const char* buf) { parse_property(buf, *this); }
 
 void PropertyBuilder::parse(FILE* file)
 {
     clear();
-    parseProperty(file, this);
+    parse_property(file, *this);
 }
 
-void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::options_t& options)
+void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::Options& options)
 {
     size_t num_props = properties.size();
-    parseProperty(buf, this, xpath);
+    parse_property(buf, *this, xpath);
     // if buffer contained no property, we must not set options at end of list.
     // in particular, if the first query is empty, this assignment would segfault.
     if (properties.size() > num_props)
         properties.back().options = options;
 }
 
-variable_t* PropertyBuilder::addVariable(type_t type, const std::string& name, expression_t init, position_t pos)
+Variable* PropertyBuilder::addVariable(Type type, std::string_view name, Expression init, position_t pos)
 {
     throw UTAP::NotSupportedException("addVariable is not supported");
 }
 
-bool PropertyBuilder::addFunction(type_t type, const std::string& name, position_t pos)
+bool PropertyBuilder::addFunction(Type type, std::string_view name, position_t pos)
 {
     throw UTAP::NotSupportedException("addFunction is not supported");
 }
 
-bool PropertyBuilder::isSMC(UTAP::expression_t* expr)
+bool PropertyBuilder::isSMC(UTAP::Expression* expr)
 {
     if (expr == nullptr)
         expr = &(fragments[0]);
-    kind_t k = expr->get_kind();
+    Kind k = expr->get_kind();
     return (k == PMAX || k == PROBA_MIN_BOX || k == PROBA_MIN_DIAMOND || k == PROBA_BOX || k == PROBA_DIAMOND ||
             k == PROBA_CMP || k == PROBA_EXP || k == SIMULATE || k == SIMULATEREACH || k == MITL_FORMULA ||
             k == MIN_EXP || k == MAX_EXP);
 }
 
-void TigaPropertyBuilder::typeProperty(expression_t expr)
+void TigaPropertyBuilder::typeProperty(Expression expr)
 {
     bool potigaProp = false;
     bool titiga = false;
@@ -357,8 +353,8 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
                 properties.back().intermediate = expr;
                 properties.back().type = quant_t::control_AB;
             } else if (expr[0].get_kind() == AND && expr[0][1].get_kind() == AF) {
-                expr = expression_t::create_binary(A_BUCHI, expr[0][0], expr[0][1][0], expr[0].get_position(),
-                                                   expr[0].get_type());
+                expr = Expression::create_binary(A_BUCHI, expr[0][0], expr[0][1][0], expr[0].get_position(),
+                                                 expr[0].get_type());
                 properties.back().intermediate = expr;
                 properties.back().type = quant_t::control_ABuchi;
             } else {
@@ -444,36 +440,35 @@ void TigaPropertyBuilder::typeProperty(expression_t expr)
         // if (document->has_stop_watch(())
         //    throw UTAP::TypeException("$Stop_watches_are_not_yet_supported_in_TIGA");
     }
-};
+}
 
-void TigaPropertyBuilder::strategy_declaration(const char* id)
+void TigaPropertyBuilder::strategy_declaration(std::string_view id)
 {
     const std::string name = std::string(id);
     if (auto it = declarations.find(name); it != declarations.end()) {
         declarations.erase(it);
-        handle_warning(UTAP::DuplicateDefinitionError(name));
+        handle_warning(UTAP::duplicate_definition_error(name));
     }
     declarations.emplace(name, &properties.back());
     if (!properties.empty())  // this happens when the model and the query file do not correspond.
         properties.back().declaration = name;
 }
 
-void TigaPropertyBuilder::subjection(const char* id)
+void TigaPropertyBuilder::subjection(std::string_view id)
 {
     std::string name = std::string(id);
     if (auto it = declarations.find(name); it != declarations.end())
         subjections.push_back(it->second);
     else
-        handle_error(UTAP::StrategyNotDeclaredError(name));
+        handle_error(UTAP::strategy_not_declared_error(name));
 }
 
-void TigaPropertyBuilder::imitation(const char* id)
+void TigaPropertyBuilder::imitation(std::string_view id)
 {
-    const std::string name = std::string(id);
-    if (auto it = declarations.find(name); it != declarations.end())
+    if (auto it = declarations.find(id); it != declarations.end())
         _imitation = it->second;
     else
-        handle_error(UTAP::StrategyNotDeclaredError(name));
+        handle_error(UTAP::strategy_not_declared_error(id));
 }
 
 void TigaPropertyBuilder::expr_optimize(int, int, int, int)
