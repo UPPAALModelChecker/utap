@@ -74,13 +74,18 @@ Compile and test UTAP:
 
 Directory [examples](examples) contains a self-contained example with build scripts with two ways of building using either:
 
-- [compile-with-getlibs.sh](examples/compile-with-getlibs.sh) compiles and installs all the dependencies into [local](examples/local) directory and then builds the [example.cpp](examples/example.cpp) with it.
+* [compile-with-getlibs.sh](examples/compile-with-getlibs.sh) compiles and installs all the dependencies into [local](examples/local) directory and then builds the [example.cpp](examples/example.cpp) with it.
+The script behavior can be customized by exporting the following environment variables:
+    - `CMAKE_BUILD_TYPE` - specify the build type: `Debug`, `Release` (default), `RelWithDebInfo`, `MinSizeRel`.
+    - `CMAKE_PREFIX_PATH` - specify where to look for libraries (default: `examples/local/$TARGET`).
+    - `CMAKE_INSTALL_PREFIX` - specify where to instal the libraries (default: `examples/local/arch-kernel`).
+    - `TARGET` - specify target architecture and kernel (default: native host), see [toolchain](cmake/toolchain) for a list of supported targets.
+    - `UTAP_SRC` - specify the path to UTAP source directory (default this UTAP repository).
 ```shell
 rm -Rf examples/build-*
 examples/compile-with-getlibs.sh
 ```
-
-- [compile-with-cmake.sh](examples/compile-with-cmake.sh) uses CMake to get the dependencies and then builds [example.cpp](examples/example.cpp) with them.
+ * [compile-with-cmake.sh](examples/compile-with-cmake.sh) uses CMake to get the dependencies and then builds [example.cpp](examples/example.cpp) with them. The benefit is that all dependencies can be build using the same options (debug/release/sanitizers etc).
 ```shell
 rm -Rf examples/build-*
 examples/compile-with-cmake.sh
