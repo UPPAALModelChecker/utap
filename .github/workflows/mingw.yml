@@ -41,9 +41,6 @@ jobs:
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-w64-mingw32
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CFLAGS: "-fstack-protector"
-      CXXFLAGS: "-fstack-protector"
-      LDFLAGS: "-fstack-protector"
       WINARCH: win64
       WINEDEBUG: fixme-all,-all
     steps:
