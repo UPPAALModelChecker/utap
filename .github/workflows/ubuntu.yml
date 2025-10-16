@@ -97,7 +97,7 @@ jobs:
       - name: Test UTAP
         run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
       - name: Install UTAP
-        run: cmake --install "$BUILD_DIR" -C $CMAKE_BUILD_TYPE --prefix "$CMAKE_INSTALL_PREFIX"
+        run: cmake --install "$BUILD_DIR" --config $CMAKE_BUILD_TYPE --prefix "$CMAKE_INSTALL_PREFIX"
       - name: CCache Statistics
         run: ccache --show-stats
       - name: Configure Examples

@@ -108,4 +108,4 @@ jobs:
       - name: Build Examples
         run: cmake --build examples/build
       - name: Test Examples
-        run: ctest --test-dir examples/build
+        run: ctest --test-dir examples/build --output-on-failure
