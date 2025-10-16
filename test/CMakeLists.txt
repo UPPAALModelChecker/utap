@@ -52,6 +52,10 @@ if(UTAP_TESTS)
   target_link_libraries(prettyprint_test PRIVATE UTAP doctest::doctest_with_main)
   add_test(NAME prettyprint_test COMMAND prettyprint_test)
 
+  add_executable(example_test example_test.cpp)
+  target_link_libraries(example_test PRIVATE UTAP)
+  add_test(NAME example_train_gate COMMAND example_test ${PROJECT_SOURCE_DIR}/examples/train-gate.xml ${PROJECT_SOURCE_DIR}/examples/train-gate-out.xml)
+
   if (UTAP_STATIC)
     target_link_options(expression_test PRIVATE -static)
     target_link_options(statement_test PRIVATE -static)

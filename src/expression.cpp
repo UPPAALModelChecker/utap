@@ -38,6 +38,7 @@
 #include <utility>  // std::move
 #include <variant>
 #include <vector>
+
 #include <cassert>
 #include <cstdint>  // uint32_t
 #include <cstring>
@@ -503,14 +504,17 @@ void Expression::set_type(Type type)
 
 int32_t Expression::get_value() const
 {
-    assert(data && data->kind == CONSTANT && (data->type.is_integral() || data->kind == VAR_INDEX));
+    assert(data);
+    assert(data->type.is_integral());
+    assert(data->kind == CONSTANT || data->kind == IDENTIFIER || data->kind == VAR_INDEX);
     const auto value = std::get<int32_t>(data->value);
     return data->type.is_integer() ? value : (value != 0 ? 1 : 0);
 }
 
 int32_t Expression::get_record_label_index() const
 {
-    assert(data && (get(0).get_type().is_process() || get(0).get_type().is_record()));
+    assert(data);
+    assert(get(0).get_type().is_process() || get(0).get_type().is_record());
     return std::get<int32_t>(data->value);
 }
 
@@ -1038,7 +1042,8 @@ static const char* get_builtin_fun_name(Kind kind)
                                      "random_tri",
                                      "random_weibull"};
     static_assert(RANDOM_WEIBULL_F - ABS_F + 1 == std::size(funNames), "Builtin function name list is wrong");
-    assert(ABS_F <= kind && kind <= RANDOM_WEIBULL_F);
+    assert(ABS_F <= kind);
+    assert(kind <= RANDOM_WEIBULL_F);
     return funNames[kind - ABS_F];
 }
 
