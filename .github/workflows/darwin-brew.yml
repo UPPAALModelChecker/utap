@@ -1,5 +1,5 @@
 ---
-name: Darwin
+name: Darwin Brew
 
 on:
   workflow_dispatch:
@@ -29,21 +29,21 @@ on:
       - 'examples/cmake/*.cmake'
 
 jobs:
-  darwin:
+  darwin-brew-gcc14:
     runs-on: macos-13
     # see https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
-      BUILD_DIR: build-darwin
+      BUILD_DIR: build-darwin-brew-gcc14
       CTEST_OUTPUT_ON_FAILURE: 1
-      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin.cmake
-      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/darwin
-      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin-brew-gcc14.cmake
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/darwin-brew-gcc14
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin-brew-gcc14
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
-      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
-      LDFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
+      CFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
+      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
+      LDFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
     steps:
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
@@ -51,7 +51,7 @@ jobs:
           xcode-version: '14.3.1'
       - name: Get Home Brew dependencies
         run: |
-          brew install -q cmake ninja ccache flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+          brew install -q cmake ninja ccache gcc@14 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
           BISON_PATH=$(brew --prefix bison)/bin
           FLEX_PATH=$(brew --prefix flex)/bin
           export PATH="${BISON_PATH}:${FLEX_PATH}:${PATH}"
@@ -62,7 +62,7 @@ jobs:
       - name: Compute CCache keys
         id: darwin-keys
         run: |
-          key2=ccache-darwin-
+          key2=ccache-darwin-brew-gcc14-
           key1="${key2}$(date +%W)"
           echo "key1=${key1}" >> $GITHUB_OUTPUT
           echo "key2=${key2}" >> $GITHUB_OUTPUT
@@ -82,18 +82,18 @@ jobs:
         id: restore-libs
         uses: actions/cache/restore@v4
         with:
-          path: local/darwin
-          key: libs-darwin-${{ hashFiles('getlibs.sh') }}
-          restore-keys: libs-darwin
+          path: local/darwin-brew-gcc14
+          key: libs-darwin-brew-gcc14-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-darwin-brew-gcc14
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs.sh darwin
+        run: ./getlibs.sh darwin-brew-gcc14
       - name: Store Libs Cache
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/darwin
+          path: local/darwin-brew-gcc14
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
         run: cmake -B "$BUILD_DIR" -DUTAP_CLANG_TIDY=OFF
@@ -110,4 +110,4 @@ jobs:
       - name: Build Examples
         run: cmake --build examples/build
       - name: Test Examples
-        run: ctest --test-dir examples/build
+        run: ctest --test-dir examples/build --output-on-failure

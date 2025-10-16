@@ -49,12 +49,11 @@ jobs:
       - name: Get Ubuntu dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get -qq install curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-mingw-w64-x86-64-posix wine xvfb
+          sudo apt-get -qq install curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-mingw-w64-x86-64-posix wine wine-binfmt binfmt-support xvfb 
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
       - name: Setup Wine
         run: |
-          sudo apt-get -qq install wine-binfmt binfmt-support
           sudo update-binfmts --disable cli  # disable mono attempts to execute windows binaries
           sudo update-binfmts --import /usr/share/binfmts/wine  # enable wine to execute windows binaries
           rm -Rf "$WINEPREFIX"
@@ -117,4 +116,4 @@ jobs:
       - name: Build Examples
         run: cmake --build "examples/${BUILD_DIR}" --config "$CMAKE_BUILD_TYPE"
       - name: Test Examples
-        run: ctest --test-dir "examples/${BUILD_DIR}" --output-on-failure
+        run: ctest --test-dir "examples/${BUILD_DIR}"
