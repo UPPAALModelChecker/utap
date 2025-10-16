@@ -1,5 +1,5 @@
 ---
-name: Darwin Brew
+name: Darwin Brew GCC15
 
 on:
   workflow_dispatch:
@@ -29,7 +29,7 @@ on:
       - 'examples/cmake/*.cmake'
 
 jobs:
-  darwin-brew-gcc14:
+  build:
     runs-on: macos-13
     # see https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
     env:
@@ -51,7 +51,7 @@ jobs:
           xcode-version: '14.3.1'
       - name: Get Home Brew dependencies
         run: |
-          brew install -q cmake ninja ccache gcc@14 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+          brew install -q cmake ninja ccache gcc@15 flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
           NINJA_PATH=$(brew --prefix ninja)/bin
           BISON_PATH=$(brew --prefix bison)/bin
           FLEX_PATH=$(brew --prefix flex)/bin
@@ -64,7 +64,7 @@ jobs:
       - name: Compute CCache keys
         id: darwin-keys
         run: |
-          key2=ccache-darwin-brew-gcc14-
+          key2=ccache-darwin-brew-gcc15-
           key1="${key2}$(date +%W)"
           echo "key1=${key1}" >> $GITHUB_OUTPUT
           echo "key2=${key2}" >> $GITHUB_OUTPUT
@@ -84,18 +84,18 @@ jobs:
         id: restore-libs
         uses: actions/cache/restore@v4
         with:
-          path: local/darwin-brew-gcc14
-          key: libs-darwin-brew-gcc14-${{ hashFiles('getlibs.sh') }}
-          restore-keys: libs-darwin-brew-gcc14
+          path: local/darwin-brew-gcc15
+          key: libs-darwin-brew-gcc15-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-darwin-brew-gcc15
       - name: Get library dependencies
         if: steps.restore-libs.outputs.cache-hit != 'true'
-        run: ./getlibs.sh darwin-brew-gcc14
+        run: ./getlibs.sh darwin-brew-gcc15
       - name: Store Libs Cache
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
         uses: actions/cache/save@v4
         with:
-          path: local/darwin-brew-gcc14
+          path: local/darwin-brew-gcc15
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
         run: cmake -B "$BUILD_DIR" -DUTAP_CLANG_TIDY=OFF
