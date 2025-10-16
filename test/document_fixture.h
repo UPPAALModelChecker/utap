@@ -31,6 +31,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+
 #include <cstring>
 
 /// Checks text containment in unit testing

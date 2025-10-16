@@ -226,6 +226,7 @@ void PropertyBuilder::typeProperty(Expression expr)  // NOLINT
         prob = true;
         break;
     case MITL_FORMULA: properties.back().type = quant_t::Mitl; break;
+    case ACONTROL: properties.back().type = quant_t::acontrol; break;
     default: throw UTAP::TypeException("$Invalid_property_type"); prob = true;
     }
 

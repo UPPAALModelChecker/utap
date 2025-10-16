@@ -44,10 +44,10 @@ private:
     std::string committed;
     std::string param;
     std::string templateset;
-    int select{}, guard{}, sync{}, update{}, probability{};
+    int select{-1}, guard{-1}, sync{-1}, update{-1}, probability{-1};
 
-    bool first{};
-    uint32_t level{};
+    bool first{true};
+    uint32_t level{0};
 
     void indent();
     void indent(std::string& s);

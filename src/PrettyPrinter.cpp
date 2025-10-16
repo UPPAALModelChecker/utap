@@ -71,14 +71,7 @@ void PrettyPrinter::indent(std::string& s)
     }
 }
 
-PrettyPrinter::PrettyPrinter(std::ostream& stream)
-{
-    o.push(&stream);
-
-    first = true;
-    level = 0;
-    select = guard = sync = update = probability = -1;
-}
+PrettyPrinter::PrettyPrinter(std::ostream& stream) { o.push(&stream); }
 
 void PrettyPrinter::add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path)
 {}
