@@ -52,9 +52,11 @@ jobs:
       - name: Get Home Brew dependencies
         run: |
           brew install -q cmake ninja ccache flex bison wget curl coreutils automake autoconf libtool gnu-sed gawk
+          NINJA_PATH=$(brew --prefix ninja)/bin
           BISON_PATH=$(brew --prefix bison)/bin
           FLEX_PATH=$(brew --prefix flex)/bin
-          export PATH="${BISON_PATH}:${FLEX_PATH}:${PATH}"
+          export PATH="${NINJA_PATH}:${BISON_PATH}:${FLEX_PATH}:${PATH}"
+          command -v ninja          
           command -v bison
           command -v flex
           echo "$PATH" >> $GITHUB_PATH
