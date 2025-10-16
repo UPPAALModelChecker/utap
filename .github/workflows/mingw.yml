@@ -116,5 +116,10 @@ jobs:
         run: cmake -B "examples/${BUILD_DIR}" -S examples
       - name: Build Examples
         run: cmake --build "examples/${BUILD_DIR}" --config "$CMAKE_BUILD_TYPE"
+      - name: Test example train-gate
+        run: |
+          ls -l examples
+          ls -l examples/${BUILD_DIR} 
+          wine examples/${BUILD_DIR}/example.exe examples/train-gate.xml examples/train-gate-out.xml
       - name: Test Examples
         run: ctest --test-dir "examples/${BUILD_DIR}" --output-on-failure
