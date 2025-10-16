@@ -31,6 +31,9 @@
 #include <libxml/xpath.h>
 
 #include <algorithm>
+#include <cassert>
+#include <charconv>
+#include <cstring>  // strncmp
 #include <list>
 #include <map>
 #include <memory>
@@ -40,9 +43,6 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <cassert>
-#include <charconv>
-#include <cstring>  // strncmp
 
 namespace UTAP {
 enum class tag_t {
@@ -150,9 +150,9 @@ static bool is_blank(std::string_view str) { return std::all_of(str.cbegin(), st
 
 static inline bool is_blank(const xmlChar* str) { return is_blank((const char*)str); }
 
-static inline bool is_alpha(unsigned char c) { return std::isalpha(c) != 0 || c == '_'; }
+static inline bool is_alpha(char c) { return std::isalpha(c) != 0 || c == '_'; }
 
-static bool is_id_char(unsigned char c) { return std::isalnum(c) != 0 || c == '_' || c == '$' || c == '#'; }
+static bool is_id_char(char c) { return std::isalnum(c) != 0 || c == '_' || c == '$' || c == '#'; }
 
 struct id_expected_error : std::logic_error
 {
@@ -230,7 +230,7 @@ public:
 
 static inline size_t count(const std::vector<tag_t>& level, tag_t tag)
 {
-    return std::count(std::begin(level), std::end(level), tag);
+    return static_cast<size_t>(std::count(std::begin(level), std::end(level), tag));
 }
 
 /** Returns the XPath encoding of the current path. */
@@ -647,7 +647,7 @@ std::string XMLReader::readText(bool instanceLine)
         xmlChar* text = xmlTextReaderValue(reader.get());
         auto text_sv = std::string_view{text != nullptr ? (const char*)text : ""};
         tracker.setPath(&parser, path.str());
-        tracker.increment(&parser, text_sv.size());
+        tracker.increment(&parser, static_cast<uint32_t>(text_sv.size()));
         try {
             auto id = (instanceLine) ? text_sv : symbol(text_sv);
             if (!is_keyword(id, Syntax::OLD_PROPERTY)) {
@@ -671,7 +671,7 @@ int XMLReader::readNumber()
         tracker.setPath(&parser, path.str());
         xmlChar* text = xmlTextReaderValue(reader.get());
         const char* pc = (const char*)text;
-        auto len = std::strlen(pc);
+        const auto len = static_cast<uint32_t>(std::strlen(pc));
         tracker.increment(&parser, len);
         try {
             int value;
@@ -1381,7 +1381,7 @@ int32_t parse_XML_file(const std::filesystem::path& path, ParserBuilder& pb, boo
 
 int32_t parse_XML_buffer(const char* buffer, ParserBuilder& pb, bool newxta)
 {
-    size_t length = strlen(buffer);
+    const auto length = static_cast<int>(strlen(buffer));
     xmlTextReaderPtr reader =
         xmlReaderForMemory(buffer, length, "", "", XML_PARSE_NOCDATA | XML_PARSE_HUGE | XML_PARSE_RECOVER);
     if (reader == nullptr)

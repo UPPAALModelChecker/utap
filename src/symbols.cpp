@@ -25,10 +25,10 @@
 #include "utap/range.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 #include <map>
 #include <stdexcept>
 #include <vector>
-#include <cstdlib>
 
 // The base types
 using namespace UTAP;
@@ -110,7 +110,7 @@ bool Frame::operator==(const Frame& frame) const { return data == frame.data; }
 bool Frame::operator!=(const Frame& frame) const { return data != frame.data; }
 
 /* Returns the number of symbols in this frame */
-uint32_t Frame::get_size() const { return data->symbols.size(); }
+uint32_t Frame::get_size() const { return static_cast<uint32_t>(data->symbols.size()); }
 bool Frame::empty() const { return data->symbols.empty(); }
 
 /* Returns the Nth symbol in this frame (counting from 0) */
@@ -133,7 +133,7 @@ Symbol Frame::add_symbol(std::string_view name, Type type, position_t position, 
     auto symbol = Symbol{*this, std::move(type), name, position, user};
     data->symbols.push_back(symbol);
     if (!name.empty()) {
-        data->mapping[symbol.get_name()] = data->symbols.size() - 1;
+        data->mapping[symbol.get_name()] = static_cast<uint32_t>(data->symbols.size() - 1);
     }
     return symbol;
 }
@@ -147,7 +147,7 @@ void Frame::add(Symbol symbol)
     data->symbols.push_back(std::move(symbol));
     const auto& symb = data->symbols.back();
     if (!symb.get_name().empty())
-        data->mapping[symb.get_name()] = data->symbols.size() - 1;
+        data->mapping[symb.get_name()] = static_cast<uint32_t>(data->symbols.size() - 1);
 }
 
 /** Add all symbols in the given frame. Notice that the symbols will

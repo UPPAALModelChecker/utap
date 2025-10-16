@@ -366,7 +366,7 @@ struct Template : public Instance, Declarations
     bool is_TA{true};
     bool is_instantiated{false};  ///< Is the template used in the system
 
-    int add_dynamic_eval(Expression t)
+    size_t add_dynamic_eval(Expression t)
     {
         dynamic_evals.push_back(std::move(t));
         return dynamic_evals.size() - 1;

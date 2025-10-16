@@ -40,12 +40,40 @@ add_library(UTAP
   xmlreader.cpp
   xmlwriter.cpp
   ${parser_source})
-target_compile_features(UTAP PRIVATE cxx_std_17)
+target_compile_features(UTAP PUBLIC cxx_std_17)
 target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.cpp
 if (UTAP_STATIC)
   target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
+  target_link_options(UTAP PUBLIC -static)
+  message(STATUS "Enabled LIBXML_STATIC -static")
 endif (UTAP_STATIC)
-set_property(TARGET UTAP PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_include_directories(UTAP PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
+set_target_properties(UTAP PROPERTIES
+                           CXX_STANDARD_REQUIRED ON
+                           CXX_STANDARD_EXTENSIONS OFF
+                           POSITION_INDEPENDENT_CODE ON)
+if (UTAP_WARNINGS)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(UTAP PUBLIC /Wall)
+  else ()
+    message(WARNING "Failed to enable warnings for ${CMAKE_CXX_COMPILER_ID}")
+  endif ()
+endif ()
+target_include_directories(UTAP
+        PRIVATE
+          # where the library itself will look for its internal headers
+          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_CURRENT_BINARY_DIR}/include # generated parser headers
+        PUBLIC
+          # where top-level project will look for the library's public headers
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+          # where external projects will look for the library's public headers
+          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
                                    ${LIBXML_WINLIBS})

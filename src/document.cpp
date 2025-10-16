@@ -24,12 +24,12 @@
 #include "utap/builder.hpp"
 #include "utap/statement.hpp"
 
+#include <cassert>
 #include <functional>  // std::mem_fn
 #include <iostream>
 #include <sstream>
 #include <stack>
 #include <utility>  // declval
-#include <cassert>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -256,7 +256,7 @@ Location& Template::add_location(std::string_view name, Expression inv, Expressi
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
     loc.uid = frame.add_symbol(name, Type::create_primitive(LOCATION), pos, &loc);
-    loc.nr = locations.size() - 1;
+    loc.nr = static_cast<int32_t>(locations.size() - 1);
     loc.invariant = std::move(inv);
     loc.exp_rate = std::move(er);
     if (duplicate)
@@ -271,7 +271,7 @@ Branchpoint& Template::add_branchpoint(std::string_view name, position_t pos)
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
     branchpoint.uid = frame.add_symbol(name, Type::create_primitive(BRANCHPOINT), pos, &branchpoint);
-    branchpoint.bpNr = branchpoints.size() - 1;
+    branchpoint.bpNr = static_cast<int32_t>(branchpoints.size() - 1);
     if (duplicate)
         throw duplicate_definition_error(name);
     return branchpoint;
@@ -309,7 +309,7 @@ LSCInstanceLine& Template::add_instance_line()
 
     LSCInstanceLine& instance = instances.emplace_back();
     // instance.uid = frame.add_symbol(name, Type::create_primitive(INSTANCELINE), &instance);
-    instance.instance_nr = instances.size() - 1;
+    instance.instance_nr = static_cast<int32_t>(instances.size() - 1);
 
     //    if (duplicate)
     //    {
@@ -424,7 +424,7 @@ std::vector<LSCSimRegion> Template::get_simregions()
                 }
             }
         }
-        s.nr = simregions.size();
+        s.nr = static_cast<uint32_t>(simregions.size());
         simregions.push_back(s);
     }
 
@@ -442,7 +442,7 @@ std::vector<LSCSimRegion> Template::get_simregions()
                 }
             }
         }
-        s.nr = simregions.size();
+        s.nr = static_cast<uint32_t>(simregions.size());
         simregions.push_back(s);
     }
 
@@ -450,7 +450,7 @@ std::vector<LSCSimRegion> Template::get_simregions()
     for (auto& u_itr : u_nr) {
         auto s = LSCSimRegion();
         s.set_update(updates, u_itr);
-        s.nr = simregions.size();
+        s.nr = static_cast<uint32_t>(simregions.size());
         simregions.push_back(s);
     }
 
@@ -518,9 +518,9 @@ void LSCInstanceLine::add_parameters(Instance& inst, Frame params, const std::ve
     parameters = std::move(params);
     parameters.add(inst.parameters);
     mapping = inst.mapping;
-    arguments = arguments1.size();
+    arguments = static_cast<uint32_t>(arguments1.size());
     templ = inst.templ;
-    for (size_t i = 0; i < arguments1.size(); ++i)
+    for (auto i = 0u; i < arguments1.size(); ++i)
         mapping[inst.parameters[i]] = arguments1[i];
 }
 /**
@@ -786,7 +786,7 @@ Template& Document::add_dynamic_template(std::string_view name, const Frame& par
     templ.unbound = params.get_size();
     templ.is_TA = true;
     templ.dynamic = true;
-    templ.dyn_index = dyn_templates.size() - 1;
+    templ.dyn_index = static_cast<int>(dyn_templates.size() - 1);
     templ.is_defined = false;
     return templ;
 }
@@ -837,9 +837,9 @@ Instance& Document::add_instance(std::string_view name, Instance& inst, Frame pa
     instance.parameters = std::move(params);
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
-    instance.arguments = arguments.size();
+    instance.arguments = static_cast<uint32_t>(arguments.size());
     instance.templ = inst.templ;
-    for (size_t i = 0; i < arguments.size(); ++i)
+    for (auto i = 0u; i < arguments.size(); ++i)
         instance.mapping[inst.parameters[i]] = arguments[i];
     return instance;
 }
@@ -854,9 +854,9 @@ Instance& Document::add_LSC_instance(std::string_view name, Instance& inst, Fram
     instance.parameters = std::move(params);
     instance.parameters.add(inst.parameters);
     instance.mapping = inst.mapping;
-    instance.arguments = arguments.size();
+    instance.arguments = static_cast<uint32_t>(arguments.size());
     instance.templ = inst.templ;
-    for (size_t i = 0; i < arguments.size(); ++i)
+    for (auto i = 0u; i < arguments.size(); ++i)
         instance.mapping[inst.parameters[i]] = arguments[i];
     return instance;
 }
@@ -999,10 +999,9 @@ void Document::accept(DocumentVisitor& visitor)
     for (auto& templ : dyn_templates)
         visitTemplate(templ, visitor);
 
-    for (size_t i = 0; i < global.frame.get_size(); ++i) {
-        Type type = global.frame[i].get_type();
+    for (auto i = 0u; i < global.frame.get_size(); ++i) {
+        const Type type = global.frame[i].get_type().strip_array();
         void* data = global.frame[i].get_data();
-        type = type.strip_array();
         if (type.is(PROCESS) || type.is(PROCESS_SET)) {
             visitor.visit_process(*static_cast<Instance*>(data));
         } else if (type.is(INSTANCE)) {

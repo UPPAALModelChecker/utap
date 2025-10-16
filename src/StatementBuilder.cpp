@@ -21,12 +21,12 @@
 
 #include "utap/StatementBuilder.hpp"
 
+#include <cassert>
+#include <cinttypes>
 #include <filesystem>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <cassert>
-#include <cinttypes>
 
 #ifdef __MINGW32__
 #include <windows.h>
@@ -172,7 +172,7 @@ static bool initialisable(Type type)
     type = type.strip();
     switch (type.get_kind()) {
     case RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
+        for (auto i = 0u; i < type.size(); i++) {
             if (!initialisable(type[i])) {
                 return false;
             }
@@ -201,7 +201,7 @@ static bool mustInitialise(const Type& type)
     switch (k) {
     case CONSTANT: return true;
     case RECORD:
-        for (size_t i = 0; i < type.size(); i++) {
+        for (auto i = 0u; i < type.size(); i++) {
             if (mustInitialise(type[i])) {
                 return true;
             }

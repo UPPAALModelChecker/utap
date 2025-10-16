@@ -25,6 +25,8 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
+
 #include <cassert>
 #include <cmath>
 #include <cstdint>  // int32_t

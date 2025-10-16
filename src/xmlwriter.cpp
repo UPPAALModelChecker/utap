@@ -20,11 +20,11 @@
  */
 
 #include "utap/xmlwriter.hpp"
-
 #include "utap/utap.hpp"  // writeXMLFile
 
 #include <sstream>
 #include <string_view>
+
 #include <cmath>    // M_PI
 #include <cstring>  // strlen
 
@@ -49,7 +49,7 @@ static std::string concat(std::string_view s, T value)
     return o.str();
 }
 
-XMLWriter::XMLWriter(xmlTextWriterPtr writer, Document* doc): writer(writer), doc(doc) {}
+XMLWriter::XMLWriter(xmlTextWriterPtr writer, Document& doc): writer{writer}, doc{doc} {}
 
 XMLWriter::~XMLWriter() { xmlFreeTextWriter(writer); }
 
@@ -108,7 +108,7 @@ void XMLWriter::writeAttribute(const char* name, const char* value)
 /** Parses optional declaration. */
 void XMLWriter::declaration()
 {
-    auto globalDeclarations = doc->get_globals().str(true);
+    auto globalDeclarations = doc.get_globals().str(true);
     globalDeclarations += "\n";
     globalDeclarations += getChanPriority();
     globalDeclarations += " ";
@@ -117,7 +117,7 @@ void XMLWriter::declaration()
 
 std::string XMLWriter::getChanPriority() const
 {
-    const auto& prs = doc->get_chan_priorities();
+    const auto& prs = doc.get_chan_priorities();
     auto str = std::string{};
     if (!prs.empty()) {
         str += "// channel priorities\n";
@@ -287,7 +287,7 @@ void XMLWriter::transition(const Edge& edge)
 
 void XMLWriter::labels(int x, int y, const Edge& edge)
 {
-    if (edge.select.get_size() > 0) {
+    if (!edge.select.empty()) {
         auto str = edge.select[0].get_name() + " : ";
         if (edge.select[0].get_type().size() > 0 && edge.select[0].get_type()[0].size() > 0) {
             str += edge.select[0].get_type()[0].get_label(0);
@@ -338,7 +338,7 @@ void XMLWriter::system_instantiation()
 {  // TODO proc priority
     auto str = std::string{};
     auto proc = std::string{};
-    for (const Instance& p : doc->get_processes()) {
+    for (const Instance& p : doc.get_processes()) {
         if (p.uid.get_name() != p.templ->uid.get_name())
             str += p.uid.get_name() + " = " + p.templ->uid.get_name() + "(" + p.arguments_str() + ");\n";
         proc += p.uid.get_name() + ", ";
@@ -355,7 +355,7 @@ void XMLWriter::project()
     startElement("nta");
     declaration();  // global declarations
 
-    for (const Template& t : doc->get_templates())
+    for (const Template& t : doc.get_templates())
         taTempl(t);
     system_instantiation();
     endElement();  // close the "nta" element
@@ -396,18 +396,18 @@ xmlChar* ConvertInput(const char* in, const char* encoding)
     if (in == nullptr)
         return nullptr;
 
-    auto* handler = xmlFindCharEncodingHandler(encoding);
+    const auto* handler = xmlFindCharEncodingHandler(encoding);
     if (handler == nullptr) {
         printf("ConvertInput: no encoding handler found for '%s'\n", (encoding != nullptr) ? encoding : "");
         return nullptr;
     }
 
-    const int size = std::strlen(in) + 1;
-    int out_size = size * 2 - 1;  // int is required by handler->input(...)
-    auto* out = (unsigned char*)xmlMalloc((size_t)out_size);
+    const auto size = std::strlen(in) + 1;
+    auto out_size = static_cast<int>(size * 2 - 1);  // int is required by handler->input(...)
+    auto* out = (unsigned char*)xmlMalloc(static_cast<size_t>(out_size));
 
     if (out != nullptr) {
-        auto temp = size - 1;
+        auto temp = static_cast<int>(size - 1);
         auto ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
         if ((ret < 0) || (temp - size + 1 != 0)) {
             if (ret < 0) {
@@ -427,16 +427,17 @@ xmlChar* ConvertInput(const char* in, const char* encoding)
     return out;
 }
 
-int32_t write_XML_file(const char* filename, Document* doc)
+}  // namespace UTAP
+
+int32_t write_XML_file(const char* filename, UTAP::Document& doc)
 {
     /* Create a new XmlWriter for filename, with no compression. */
     auto* writer = xmlNewTextWriterFilename(filename, 0);
     if (writer == nullptr) {
-        throw XMLWriterError{"construction"};
+        throw UTAP::XMLWriterError{"construction"};
     }
-    XMLWriter(writer, doc).project();
+    UTAP::XMLWriter(writer, doc).project();
 
     // xmlFreeTextWriter(writer);
     return 0;
 }
-}  // namespace UTAP

@@ -94,7 +94,7 @@ static int types = 0;
 
 struct str_entry_t
 {
-    int len;
+    size_t len;
     const char* from;
     const char* to;
 };
@@ -102,7 +102,7 @@ struct str_entry_t
 const char* utap_msg(const char *msg)
 {
     // Simple & short log(n) algorithm.
-    constexpr auto NB_STR = 8u;
+    constexpr auto NB_STR = size_t{8};
     static const str_entry_t table[NB_STR] = {
         { 12, "syntax error", "$syntax_error" },
         { 16, "memory exhausted", "$memory_exhausted" },
@@ -116,7 +116,7 @@ const char* utap_msg(const char *msg)
         { 59, "syntax error, unexpected %s, expecting %s or %s or %s or %s",
             "$syntax_error: $unexpected %s, $expecting %s $or %s $or %s $or %s" }
     };
-    int len = std::strlen(msg);
+    const auto len = std::strlen(msg);
     auto i = NB_STR / 2;
     while (i < NB_STR) {
         if (len < table[i].len) {

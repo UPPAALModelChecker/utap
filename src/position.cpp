@@ -54,7 +54,7 @@ const PositionIndex::Line& PositionIndex::find(uint32_t position) const
 {
     if (lines.empty())
         throw std::logic_error{"No positions have been added"};
-    return find(position, 0, lines.size());
+    return find(position, 0, static_cast<uint32_t>(lines.size()));
 }
 
 /** Dump table to stdout. */

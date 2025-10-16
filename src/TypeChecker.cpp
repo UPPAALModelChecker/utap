@@ -809,9 +809,10 @@ void TypeChecker::checkType(const Type& type, bool initialisable, bool inStruct)
     case Constants::STRING:
         if (inStruct)
             handleError(cannot_be_inside_struct(type));
-    case Constants::CLOCK:
-    case Constants::DOUBLE:
-    case Constants::INT:
+		break;
+    case Constants::CLOCK: break;
+    case Constants::DOUBLE: break;
+    case Constants::INT: break;
     case Constants::BOOL: break;
 
     default:
