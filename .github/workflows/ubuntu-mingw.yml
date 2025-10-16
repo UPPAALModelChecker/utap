@@ -1,5 +1,5 @@
 ---
-name: MinGW
+name: Ubuntu MinGW
 
 on:
   workflow_dispatch:
