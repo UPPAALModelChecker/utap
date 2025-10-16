@@ -46,27 +46,22 @@ include(cmake/libxml2.cmake)
 
 add_subdirectory(src)
 
-target_include_directories(UTAP
-    PRIVATE
-        # where the library itself will look for its internal headers
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_BINARY_DIR}/include
-    PUBLIC
-        # where top-level project will look for the library's public headers
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        # where external projects will look for the library's public headers
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-
-write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake VERSION ${PACKAGE_VERSION} COMPATIBILITY SameMajorVersion)
-
-install(DIRECTORY include DESTINATION .)
-install(TARGETS UTAP EXPORT UTAPConfig LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-install(EXPORT UTAPConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP/)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP )
-
 if (UTAP_TESTS)
     include(cmake/doctest.cmake)
     enable_testing()
 endif(UTAP_TESTS)
 add_subdirectory(test)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake VERSION ${PACKAGE_VERSION} COMPATIBILITY SameMajorVersion)
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/utap
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(TARGETS UTAP
+        EXPORT UTAPConfig)
+install(EXPORT UTAPConfig
+        FILE UTAPConfig.cmake
+        NAMESPACE UTAP::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP-${PROJECT_VERSION})
+#install(EXPORT UTAPConfig DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/UTAP-${PROJECT_VERSION})

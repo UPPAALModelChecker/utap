@@ -45,7 +45,18 @@ target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.c
 if (UTAP_STATIC)
   target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
 endif (UTAP_STATIC)
-set_property(TARGET UTAP PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_include_directories(UTAP PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/include")
+set_target_properties(UTAP PROPERTIES
+        POSITION_INDEPENDENT_CODE ON)
+target_include_directories(UTAP
+        PRIVATE
+          # where the library itself will look for its internal headers
+          ${CMAKE_CURRENT_SOURCE_DIR}
+          ${CMAKE_CURRENT_BINARY_DIR}/include # generated parser headers
+        PUBLIC
+          # where top-level project will look for the library's public headers
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+          # where external projects will look for the library's public headers
+          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
                                    ${LIBXML_WINLIBS})

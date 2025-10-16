@@ -19,7 +19,7 @@ fi
 
 export CTEST_OUTPUT_ON_FAILURE=1
 
-test -n "$CMAKE_BUILD_TYPE" || export CMAKE_BUILD_TYPE=Release
+[ -n "$CMAKE_BUILD_TYPE" ] || export CMAKE_BUILD_TYPE=Release
 
 PREFIX="$CMAKE_PREFIX_PATH"
 TOOLCHAIN_FILE="$CMAKE_TOOLCHAIN_FILE"
@@ -63,20 +63,19 @@ for target in "$@" ; do
     else
         unset CMAKE_INSTALL_PREFIX
     fi
-    BUILD="build-${target}-release"
+    BUILD_DIR="${PROJECT_DIR}/build-${target}-release"
     echo -e "${BW}${target}: Configuring UTAP:${NC}"
     echo "    CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-(unset)}"
     echo "    CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE:-(unset)}"
     echo "    CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:-(unset)}"
     echo "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-(unset)}"
-    cmake -B "$BUILD" -DCMAKE_INSTALL_PREFIX="$INSTALL_PREFIX"
+    cmake -B "$BUILD_DIR" -S "$PROJECT_DIR"
     echo -e "${BW}${target}: Building UTAP${NC}"
-    cmake --build "$BUILD" --config "$CMAKE_BUILD_TYPE"
+    cmake --build "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE"
     echo -e "${BW}${target}: Testing UTAP${NC}"
     echo "    WINEPATH=${WINEPATH:-(unset)}"
     echo "    WINARCH=${WINARCH:-(unset)}"
-    ctest --test-dir "$BUILD" -C "$CMAKE_BUILD_TYPE"
-    echo "Run the following to install UTAP into $CMAKE_INSTALL_PREFIX:"
-    echo "    cmake --install \"$BUILD\" --config $CMAKE_BUILD_TYPE --prefix \"$CMAKE_INSTALL_PREFIX\""
+    ctest --test-dir "$BUILD_DIR" -C "$CMAKE_BUILD_TYPE"
+    cmake --install "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE" --prefix "$CMAKE_INSTALL_PREFIX"
     echo -e "${BW}$target: Success!${NC}"
 done

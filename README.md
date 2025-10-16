@@ -1,6 +1,5 @@
 # libutap
 
-# Mini HOWTO
 Gerd Behrmann
 
 Marius Mikučionis
@@ -71,103 +70,20 @@ Compile and test UTAP:
 ./compile.sh [platform]
 ```
 
-## 3. Simple Use Case
+## 3. Example Use Case
 
-There are two ways one can use the library. In its simplest form, one
-calls one of the top level parsing functions defined in [utap/utap.h](src/utap/utap.h),
-e.g. `example.cpp`:
+Directory [examples](examples) contains a self-contained example with build scripts with two ways of building using either:
 
-```cpp
-#include "utap/utap.h"
-#include <iostream>
-
-int main()
-{
-    UTAP::Document doc;
-    int res = parse_XML_file("myfile.xml", &doc, true);
-    std::cout << "Result: " << res << std::endl;
-}
-```
-
-The first argument is the file to read. The second is the output of
-the parser and the third is a flag indicating whether we want to use
-the new or the old syntax (the old syntax is the one used in Uppaal
-3.4, the new is the one that will be used since Uppaal 3.6).
-
-After the call to `parse_XML_file`, one can access the network of timed
-automata in the system variable. Take a look at [utap/system.h](src/utap/system.h) to see
-what kind of structures you can access.
-Distribution also includes [pretty.cpp](src/pretty.cpp) for pretty-printing model files.
-See also doxygen API documentation in [doc/api/index.html](doc/api/index.html).
-
-Use the following command to compile the example:
-
-```sh
-g++ example.cpp -o example -lutap -lxml2
-```
-
-If UTAP was configured with `-DCMAKE_INSTALL_PREFIX=$MYPATH` to install in custom location
-then use the following to compile:
-
-```sh
-g++ -I$MYPATH/include example.cpp -o example -L$MYPATH/lib -lutap -lxml2
-```
-
-### Use Case with CMake
-Add the following `CMakeLists.txt` build script:
-```cmake
-cmake_minimum_required(VERSION 3.22)
-project(Example CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-find_package(UTAP 2.1.0 QUIET)
-
-if (utap_FOUND)
-  message(STATUS "Found UTAP preinstalled.")
-else(utap_FOUND)
-  message(STATUS "Failed to find UTAP, will fetch and compile from source.")
-  include(FetchContent)
-  FetchContent_Declare(
-    UTAP
-    GIT_REPOSITORY https://github.com/UPPAALModelChecker/utap.git
-    GIT_TAG v2.1.0      # fetches version 2.1.0, alternatively try 'main' branch
-    GIT_SHALLOW TRUE  # get only the last commit version
-    GIT_PROGRESS TRUE # show progress of download
-    FIND_PACKAGE_ARGS NAMES UTAP
-    USES_TERMINAL_DOWNLOAD TRUE # show progress in ninja generator
-    USES_TERMINAL_CONFIGURE ON
-    USES_TERMINAL_BUILD ON
-    USES_TERMINAL_INSTALL ON
-    LOG_DOWNLOAD ON
-    LOG_CONFIGURE ON
-    LOG_BUILD ON
-    LOG_INSTALL ON
-    LOG_OUTPUT_ON_FAILURE ON)
-  FetchContent_MakeAvailable(UTAP)
-endif(utap_FOUND)
-```
-
-Then the UTAP can be linked with `example` like this:
-```cmake
-add_executable(example example.cpp)
-target_link_libraries(example PRIVATE UTAP)
-```
-
-Configure:
+- [compile-with-getlibs.sh](examples/compile-with-getlibs.sh) compiles and installs all the dependencies into [local](examples/local) directory and then builds the [example.cpp](examples/example.cpp) with it.
 ```shell
-cmake -B build .
+rm -Rf examples/build-*
+examples/compile-with-getlibs.sh
 ```
-Compile:
+
+- [compile-with-cmake.sh](examples/compile-with-cmake.sh) uses CMake to get the dependencies and then builds [example.cpp](examples/example.cpp) with them.
 ```shell
-cmake --build build
-```
-Run:
-```shell
-./build/example
+rm -Rf examples/build-*
+examples/compile-with-cmake.sh
 ```
 
 ## 4. Parsing Uppaal Trace Files
@@ -255,15 +171,13 @@ operations. Each node is referenced using an `Expression` object.
 ```shell
 sudo apt install doxygen
 ```
-2. Generate documentation:
+2. Generate and open the documentation:
 ```shell
 cd doc/api
 doxygen libutap.doxygen
+xdg-open file://$PWD/html/index.html
 ```
-3. Open the documentation in the browser:
-```shell
-xdg-open html/index.html
-```
+
 For more options (LaTeX/pdf etc) use doxywizard (`sudo apt install doxygen-gui`).
 
 ## 7. Issues

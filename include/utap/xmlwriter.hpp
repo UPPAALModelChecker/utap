@@ -45,7 +45,7 @@ class XMLWriter
 {
 public:                      // was private - needed for derived class SBMLtoXMLWriter
     xmlTextWriterPtr writer; /**< The underlying xmlTextWriter */
-    Document* doc;           /**< The document to write */
+    Document& doc;           /**< The document to write */
     std::map<int, int> selfLoops;
 
     void startDocument();
@@ -76,7 +76,7 @@ public:                      // was private - needed for derived class SBMLtoXML
     void system_instantiation();
 
     // public:
-    XMLWriter(xmlTextWriterPtr writer, Document* doc);
+    XMLWriter(xmlTextWriterPtr writer, Document& doc);
     virtual ~XMLWriter();
     void project();
 };

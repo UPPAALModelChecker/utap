@@ -76,7 +76,11 @@ if [ -n "$missing_tools" ]; then
 fi
 
 for target in "$@" ; do
-    LIBS="$LOCAL/$target"
+    if [ -n "$CMAKE_INSTALL_PREFIX" ] ; then
+      LIBS="$CMAKE_INSTALL_PREFIX"
+    else
+      LIBS="$LOCAL/$target"
+    fi
     # libxml2
     if [ ! -r "$LIBS/lib/libxml2.a" ] ; then
         echo -e "${BW}Preparing source of ${LIBXML2}${NC}"
