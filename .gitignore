@@ -8,5 +8,5 @@
 /examples/local
 /examples/train-gate-out.xml
 /doc/api/html
-/.idea
-/.vscode
+.idea
+.vscode
