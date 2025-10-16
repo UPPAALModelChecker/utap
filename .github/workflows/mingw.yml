@@ -103,7 +103,7 @@ jobs:
           path: local/x86_64-w64-mingw32
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake  -B "$BUILD_DIR" -DSSP=ON
+        run: cmake -B "$BUILD_DIR"
       - name: Build UTAP
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test UTAP
@@ -113,8 +113,8 @@ jobs:
       - name: CCache Statistics
         run: ccache --show-stats
       - name: Configure Examples
-        run: cmake -B examples/build -S examples
+        run: cmake -B "examples/${BUILD_DIR}" -S examples
       - name: Build Examples
-        run: cmake --build examples/build
+        run: cmake --build "examples/${BUILD_DIR}" --config "$CMAKE_BUILD_TYPE"
       - name: Test Examples
-        run: ctest --test-dir examples/build --output-on-failure
+        run: ctest --test-dir "examples/${BUILD_DIR}" --output-on-failure
