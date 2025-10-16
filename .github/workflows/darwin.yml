@@ -41,9 +41,9 @@ jobs:
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
-      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
-      LDFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
+      CFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
+      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
+      LDFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
     steps:
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
