@@ -16,6 +16,7 @@ endif (UTAP_STATIC)
 install(TARGETS pretty syntaxcheck featurecheck)
 
 if(UTAP_TESTS)
+  #target_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")
   add_executable(expression_test expression_test.cpp)
   target_link_libraries(expression_test PRIVATE UTAP doctest::doctest_with_main)
   add_test(NAME expression_test COMMAND expression_test)
@@ -27,11 +28,13 @@ if(UTAP_TESTS)
   add_library(external_fn SHARED external_fn.cpp)
 
   add_executable(parser_test parser_test.cpp)
+  target_compile_definitions(parser_test PRIVATE MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")
   target_link_libraries(parser_test PRIVATE UTAP doctest::doctest_with_main)
   add_dependencies(parser_test external_fn)
   add_test(NAME parser_test COMMAND parser_test)
 
   add_executable(featurechecker_test featurechecker_test.cpp)
+  target_compile_definitions(featurechecker_test PRIVATE MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")
   target_link_libraries(featurechecker_test PRIVATE UTAP doctest::doctest_with_main)
   add_test(NAME featurechecker_test COMMAND featurechecker_test)
 
@@ -40,10 +43,12 @@ if(UTAP_TESTS)
   add_test(NAME range_test COMMAND range_test)
 
   add_executable(typechecker_test typechecker_test.cpp)
+  target_compile_definitions(typechecker_test PRIVATE MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")
   target_link_libraries(typechecker_test PRIVATE UTAP doctest::doctest_with_main)
   add_test(NAME typechecker_test COMMAND typechecker_test)
 
   add_executable(prettyprint_test prettyprint_test.cpp)
+  target_compile_definitions(prettyprint_test PRIVATE MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")
   target_link_libraries(prettyprint_test PRIVATE UTAP doctest::doctest_with_main)
   add_test(NAME prettyprint_test COMMAND prettyprint_test)
 

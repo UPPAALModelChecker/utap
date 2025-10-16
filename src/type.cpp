@@ -25,11 +25,11 @@
 #include "utap/expression.hpp"
 
 #include <algorithm>
+#include <cassert>
+#include <cstdint>  // uint32_t
 #include <sstream>
 #include <string>
 #include <utility>  // std::pair
-#include <cassert>
-#include <cstdint>  // uint32_t
 
 using namespace UTAP;
 using namespace Constants;
@@ -64,7 +64,7 @@ bool Type::operator<(const Type& type) const { return data < type.data; }
 uint32_t Type::size() const
 {
     assert(data);
-    return data->children.size();
+    return static_cast<uint32_t>(data->children.size());
 }
 
 const Type& Type::operator[](uint32_t i) const
@@ -90,7 +90,7 @@ std::optional<uint32_t> Type::find_index_of(std::string_view label) const
     assert(is_record() || is_process());
     const Type type = strip();
     const auto n = type.size();
-    for (size_t i = 0; i < n; ++i) {
+    for (auto i = 0u; i < n; ++i) {
         if (type.get_label(i) == label) {
             return i;
         }
@@ -263,7 +263,7 @@ Type Type::rename(const std::string& from, const std::string& to) const
 {
     auto type = Type{get_kind(), get_position(), size()};
     type.data->expr = get_expression();
-    for (size_t i = 0; i < size(); ++i) {
+    for (auto i = 0u; i < size(); ++i) {
         type.data->children[i].child = get(i).rename(from, to);
         type.data->children[i].label = get_label(i);
     }
@@ -276,7 +276,7 @@ Type Type::rename(const std::string& from, const std::string& to) const
 Type Type::subst(const Symbol& symbol, const Expression& expr) const
 {
     auto type = Type{get_kind(), get_position(), size()};
-    for (size_t i = 0; i < size(); i++) {
+    for (auto i = 0u; i < size(); i++) {
         type.data->children[i].label = get_label(i);
         type.data->children[i].child = get(i).subst(symbol, expr);
     }
@@ -488,7 +488,7 @@ Type Type::create_typedef(std::string label, Type type, position_t pos)
 Type Type::create_instance(const Frame& parameters, position_t pos)
 {
     auto type = Type{INSTANCE, pos, parameters.get_size()};
-    for (size_t i = 0; i < parameters.get_size(); ++i) {
+    for (auto i = 0u; i < parameters.get_size(); ++i) {
         type.data->children[i].child = parameters[i].get_type();
         type.data->children[i].label = parameters[i].get_name();
     }
@@ -498,7 +498,7 @@ Type Type::create_instance(const Frame& parameters, position_t pos)
 Type Type::create_LSC_instance(const Frame& parameters, position_t pos)
 {
     auto type = Type{LSC_INSTANCE, pos, parameters.get_size()};
-    for (size_t i = 0; i < parameters.get_size(); ++i) {
+    for (auto i = 0u; i < parameters.get_size(); ++i) {
         type.data->children[i].child = parameters[i].get_type();
         type.data->children[i].label = parameters[i].get_name();
     }
@@ -508,7 +508,7 @@ Type Type::create_LSC_instance(const Frame& parameters, position_t pos)
 Type Type::create_process(const Frame& frame, position_t pos)
 {
     auto type = Type{PROCESS, pos, frame.get_size()};
-    for (size_t i = 0; i < frame.get_size(); ++i) {
+    for (auto i = 0u; i < frame.get_size(); ++i) {
         type.data->children[i].child = frame[i].get_type();
         type.data->children[i].label = frame[i].get_name();
     }
@@ -518,7 +518,7 @@ Type Type::create_process(const Frame& frame, position_t pos)
 Type Type::create_process_set(const Type& instance, position_t pos)
 {
     auto type = Type{PROCESS_SET, pos, instance.size()};
-    for (size_t i = 0; i < instance.size(); ++i) {
+    for (auto i = 0u; i < instance.size(); ++i) {
         type.data->children[i].child = instance[i];
         type.data->children[i].label = instance.get_label(i);
     }

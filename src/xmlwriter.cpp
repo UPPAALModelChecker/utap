@@ -402,12 +402,12 @@ xmlChar* ConvertInput(const char* in, const char* encoding)
         return nullptr;
     }
 
-    const int size = std::strlen(in) + 1;
-    int out_size = size * 2 - 1;  // int is required by handler->input(...)
-    auto* out = (unsigned char*)xmlMalloc((size_t)out_size);
+    const auto size = std::strlen(in) + 1;
+    auto out_size = static_cast<int>(size * 2 - 1);  // int is required by handler->input(...)
+    auto* out = (unsigned char*)xmlMalloc(static_cast<size_t>(out_size));
 
     if (out != nullptr) {
-        auto temp = size - 1;
+        auto temp = static_cast<int>(size - 1);
         auto ret = handler->input(out, &out_size, (const xmlChar*)in, &temp);
         if ((ret < 0) || (temp - size + 1 != 0)) {
             if (ret < 0) {

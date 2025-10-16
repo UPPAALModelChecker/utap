@@ -45,8 +45,20 @@ target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.c
 if (UTAP_STATIC)
   target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
 endif (UTAP_STATIC)
-set_target_properties(UTAP PROPERTIES
-        POSITION_INDEPENDENT_CODE ON)
+set_target_properties(UTAP PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if (UTAP_WARNINGS)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(UTAP PUBLIC /Wall)
+  else ()
+    message(WARNING "Failed to enable warnings for ${CMAKE_CXX_COMPILER_ID}")
+  endif ()
+endif ()
 target_include_directories(UTAP
         PRIVATE
           # where the library itself will look for its internal headers

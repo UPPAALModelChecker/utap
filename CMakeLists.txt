@@ -20,6 +20,7 @@ else(WIN32)
   set(UTAP_STATIC_DEFAULT OFF)
 endif(WIN32)
 
+option(UTAP_WARNINGS "UTAP Compiler Warnings" ON)
 option(UTAP_TESTS "UTAP Unit Tests" ON)
 option(UTAP_STATIC "UTAP Static Linking" ${UTAP_STATIC_DEFAULT})
 option(UTAP_CLANG_TIDY "Enable clang-tidy linting" ON)
@@ -37,8 +38,6 @@ endif (UTAP_CCACHE)
 set(UTAP_PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 set(UTAP_VERSION "${PACKAGE_VERSION}")
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};${CMAKE_CURRENT_SOURCE_DIR}/libs")
-
-add_compile_definitions(MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test/models")
 
 find_package(FLEX 2.6.4 REQUIRED)
 find_package(BISON 3.6.0 REQUIRED)

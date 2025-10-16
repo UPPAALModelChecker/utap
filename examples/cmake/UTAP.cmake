@@ -12,6 +12,7 @@ FetchContent_Declare(UTAP
         FIND_PACKAGE_ARGS 2.1.1)
 
 # UTAP build options:
+set(UTAP_WARNINGS CACHE BOOL ON "UTAP Compiler Warnings")
 set(UTAP_TESTS CACHE BOOL ON "UTAP Unit Tests")
 set(UTAP_STATIC CACHE BOOL ON "UTAP Static Linking")
 set(UTAP_CLANG_TIDY CACHE BOOL ON "Enable clang-tidy linting")

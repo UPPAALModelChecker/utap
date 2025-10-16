@@ -37,11 +37,14 @@ jobs:
       BUILD_DIR: build-x86_64-w64-mingw32
       CTEST_OUTPUT_ON_FAILURE: 1
       CROSSCOMPILING_EMULATOR: wine
-      CMAKE_BUILD_TYPE: Debug
       CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-w64-mingw32.cmake
       CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-w64-mingw32
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-w64-mingw32
       CMAKE_GENERATOR: Ninja
+      CMAKE_BUILD_TYPE: Debug
+      CFLAGS: "-fno-omit-frame-pointer -fstack-protector-strong"
+      CXXFLAGS: "-fno-omit-frame-pointer -fstack-protector-strong"
+      LDFLAGS: "-fno-omit-frame-pointer -fstack-protector-strong"
       WINARCH: win64
       WINEDEBUG: fixme-all,-all
     steps:

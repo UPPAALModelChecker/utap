@@ -22,14 +22,14 @@
 #include "utap/PrettyPrinter.hpp"
 
 #include <array>
+#include <cassert>
+#include <charconv>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stack>
 #include <stdexcept>
 #include <string>
-#include <cassert>
-#include <charconv>
-#include <cstring>
 
 using namespace UTAP;
 using namespace UTAP::Constants;
@@ -484,13 +484,13 @@ void PrettyPrinter::proc_select(std::string_view id)
     auto t = pop_top(type);
     if (select == -1) {
         st.push_back(std::string{id} + ":" + t);
-        select = st.size();
+        select = static_cast<int>(st.size());
     } else {
         st.back() += ", " + std::string{id} + ":" + t;
     }
 }
 
-void PrettyPrinter::proc_guard() { guard = st.size(); }
+void PrettyPrinter::proc_guard() { guard = static_cast<int>(st.size()); }
 
 void PrettyPrinter::proc_sync(Synchronisation type)
 {
@@ -501,10 +501,10 @@ void PrettyPrinter::proc_sync(Synchronisation type)
         // no append
         break;
     }
-    sync = st.size();
+    sync = static_cast<int>(st.size());
 }
 
-void PrettyPrinter::proc_update() { update = st.size(); }
+void PrettyPrinter::proc_update() { update = static_cast<int>(st.size()); }
 
 // void PrettyPrinter::proc_prob() { probability = st.size(); }
 

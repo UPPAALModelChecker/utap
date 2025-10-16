@@ -23,11 +23,11 @@
 #include "utap/property.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <cmath>
 #include <iostream>
 #include <sstream>
 #include <utility>
-#include <cctype>
-#include <cmath>
 
 using UTAP::Expression;
 
@@ -72,25 +72,25 @@ static void parseExpect(std::string_view expect, PropInfo& info)
             if (is >> number) {
                 if (is >> unit) {
                     if (unit == "B")
-                        info.set_expect_mem(number / 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number / 1024));
                     else if (unit == "KB")
-                        info.set_expect_mem(number);
+                        info.set_expect_mem(static_cast<uint64_t>(number));
                     else if (unit == "MB")
-                        info.set_expect_mem(number * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024));
                     else if (unit == "GB")
-                        info.set_expect_mem(number * 1024 * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024 * 1024));
                     else if (unit == "TB")
-                        info.set_expect_mem(number * 1024 * 1024 * 1024);
+                        info.set_expect_mem(static_cast<uint64_t>(number * 1024 * 1024 * 1024));
                     else if (unit == "MS")
-                        info.set_expect_time(number);
+                        info.set_expect_time(static_cast<uint64_t>(number));
                     else if (unit == "S")
-                        info.set_expect_time(number * 1000);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000));
                     else if (unit == "M")
-                        info.set_expect_time(number * 1000 * 60);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60));
                     else if (unit == "H")
-                        info.set_expect_time(number * 1000 * 60 * 60);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60 * 60));
                     else if (unit == "D")
-                        info.set_expect_time(number * 1000 * 60 * 60 * 24);
+                        info.set_expect_time(static_cast<uint64_t>(number * 1000 * 60 * 60 * 24));
                     else
                         cerr << "Could not parse EXPECT token: " << token << endl;
                 } else {

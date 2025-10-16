@@ -65,7 +65,7 @@ void FeatureChecker::visit_guard(Expression& guard)
     case Constants::LT:
     case Constants::LE:
     case Constants::EQ:
-        for (size_t i = 0; i < guard.get_size(); ++i) {
+        for (auto i = 0u; i < guard.get_size(); ++i) {
             if (guard.get(i).uses_fp())
                 supported_methods.symbolic = false;
         }
@@ -81,7 +81,7 @@ void FeatureChecker::visit_assignment(Expression& ass)
             supported_methods.symbolic = false;
         break;
     case Constants::COMMA:
-        for (size_t i = 0; i < ass.get_size(); ++i)
+        for (auto i = 0u; i < ass.get_size(); ++i)
             visit_assignment(ass.get(i));
         break;
     default: break;

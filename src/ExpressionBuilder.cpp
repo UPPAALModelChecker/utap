@@ -23,13 +23,13 @@
 
 #include "utap/TypeChecker.hpp"
 
-#include <sstream>
-#include <string>
-#include <vector>
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
 #include <cstring>
+#include <sstream>
+#include <string>
+#include <vector>
 
 using namespace UTAP;
 using namespace Constants;
@@ -335,7 +335,7 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
          * type matching this structure.
          */
         type = Type::create_process(instance->templ->frame);
-        for (size_t i = 0; i < instance->unbound; ++i) {
+        for (auto i = 0u; i < instance->unbound; ++i) {
             type = Type::create_array(type, instance->parameters[instance->unbound - i - 1].get_type());
         }
 

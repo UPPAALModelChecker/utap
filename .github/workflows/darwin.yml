@@ -37,11 +37,14 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
       BUILD_DIR: build-darwin-brew-gcc14
       CTEST_OUTPUT_ON_FAILURE: 1
-      CMAKE_BUILD_TYPE: Debug
       CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin-brew-gcc14.cmake
       CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/darwin-brew-gcc14
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin-brew-gcc14
       CMAKE_GENERATOR: Ninja
+      CMAKE_BUILD_TYPE: Debug
+      CFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
+      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
+      LDFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fsanitize=leak -fstack-protector-strong"
     steps:
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
@@ -94,7 +97,7 @@ jobs:
           path: local/darwin-brew-gcc14
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake -B "$BUILD_DIR" -DSSP=ON
+        run: cmake -B "$BUILD_DIR"
       - name: Build UTAP
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test UTAP
