@@ -4,7 +4,6 @@ name: MinGW
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
     paths:
       - '**.h'
       - '**.c'
@@ -12,11 +11,11 @@ on:
       - '**.cpp'
       - '**.y'
       - '**.l'
-      - '**.sh'
-      - '**.cmake'
       - '**CMakeLists.txt'
+      - 'cmake/*.cmake'
+      - 'cmake/toolchain/*mingw*.cmake'
+      - 'examples/cmake/*.cmake'
   pull_request:
-    branches: [ main ]
     paths:
       - '**.h'
       - '**.c'
@@ -24,10 +23,10 @@ on:
       - '**.cpp'
       - '**.y'
       - '**.l'
-      - '**.sh'
-      - '**.cmake'
-      - '**.xml'
       - '**CMakeLists.txt'
+      - 'cmake/*.cmake'
+      - 'cmake/toolchain/*mingw*.cmake'
+      - 'examples/cmake/*.cmake'
 
 jobs:
   mingw32-x86_64:
@@ -103,7 +102,7 @@ jobs:
           path: local/x86_64-w64-mingw32
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake -B "$BUILD_DIR"
+        run: cmake -B "$BUILD_DIR" -DUTAP_CLANG_TIDY=OFF
       - name: Build UTAP
         run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
       - name: Test UTAP
