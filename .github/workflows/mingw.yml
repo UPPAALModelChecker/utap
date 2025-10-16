@@ -42,7 +42,7 @@ jobs:
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
       WINARCH: win64
-      WINEDEBUG: fixme-all,-all
+      #WINEDEBUG: fixme-all,-all
     steps:
       - uses: actions/checkout@v4
       - name: Get Ubuntu dependencies
@@ -115,7 +115,8 @@ jobs:
       - name: Test example train-gate
         run: |
           ls -l examples
-          ls -l examples/${BUILD_DIR} 
+          ls -l examples/${BUILD_DIR}
+          echo "$WINEPATH"
           wine examples/${BUILD_DIR}/example.exe examples/train-gate.xml examples/train-gate-out.xml
       - name: Test Examples
         run: ctest --test-dir "examples/${BUILD_DIR}" --output-on-failure
