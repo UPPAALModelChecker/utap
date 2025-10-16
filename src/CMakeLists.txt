@@ -40,21 +40,24 @@ add_library(UTAP
   xmlreader.cpp
   xmlwriter.cpp
   ${parser_source})
-target_compile_features(UTAP PRIVATE cxx_std_17)
+target_compile_features(UTAP PUBLIC cxx_std_17)
 target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.cpp
 if (UTAP_STATIC)
   target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
   target_link_options(UTAP PUBLIC -static)
   message(STATUS "Enabled LIBXML_STATIC -static")
 endif (UTAP_STATIC)
-set_target_properties(UTAP PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(UTAP PROPERTIES
+                           CXX_STANDARD_REQUIRED ON
+                           CXX_STANDARD_EXTENSIONS OFF
+                           POSITION_INDEPENDENT_CODE ON)
 if (UTAP_WARNINGS)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
   elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
   elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wimplicit-fallthrough)
+    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wimplicit-fallthrough)
   elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(UTAP PUBLIC /Wall)
   else ()

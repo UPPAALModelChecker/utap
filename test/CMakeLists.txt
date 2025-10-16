@@ -26,6 +26,7 @@ if(UTAP_TESTS)
   add_test(NAME statement_test COMMAND statement_test)
 
   add_library(external_fn SHARED external_fn.cpp)
+  target_compile_features(external_fn PUBLIC cxx_std_11)
 
   add_executable(parser_test parser_test.cpp)
   target_compile_definitions(parser_test PRIVATE MODELS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/models")

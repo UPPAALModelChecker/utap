@@ -19,6 +19,14 @@ fi
 
 export CTEST_OUTPUT_ON_FAILURE=1
 
+function show_vars() {
+  echo "Environment variable values:"
+  for var in CMAKE_BUILD_TYPE CMAKE_TOOLCHAIN_FILE CMAKE_PREFIX_PATH CMAKE_INSTALL_PREFIX CMAKE_GENERATOR WINEARCH WINEPATH ; do
+    echo "    ${var}=${!var:-(unset)}"
+  done
+}
+
+
 [ -n "$CMAKE_BUILD_TYPE" ] || export CMAKE_BUILD_TYPE=Release
 
 PREFIX="$CMAKE_PREFIX_PATH"
@@ -63,18 +71,13 @@ for target in "$@" ; do
     else
         unset CMAKE_INSTALL_PREFIX
     fi
-    BUILD_DIR="${PROJECT_DIR}/build-${target}-release"
+    BUILD_DIR="${PROJECT_DIR}/build-${target}-${CMAKE_BUILD_TYPE,,}"
     echo -e "${BW}${target}: Configuring UTAP:${NC}"
-    echo "    CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE:-(unset)}"
-    echo "    CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE:-(unset)}"
-    echo "    CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH:-(unset)}"
-    echo "    CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-(unset)}"
-    cmake -B "$BUILD_DIR" -S "$PROJECT_DIR"
+    show_vars
+    cmake -B "$BUILD_DIR" -S "$PROJECT_DIR" -DUTAP_CLANG_TIDY=OFF
     echo -e "${BW}${target}: Building UTAP${NC}"
     cmake --build "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE"
     echo -e "${BW}${target}: Testing UTAP${NC}"
-    echo "    WINEPATH=${WINEPATH:-(unset)}"
-    echo "    WINARCH=${WINARCH:-(unset)}"
     ctest --test-dir "$BUILD_DIR" -C "$CMAKE_BUILD_TYPE"
     cmake --install "$BUILD_DIR" --config "$CMAKE_BUILD_TYPE" --prefix "$CMAKE_INSTALL_PREFIX"
     echo -e "${BW}$target: Success!${NC}"

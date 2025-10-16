@@ -437,7 +437,7 @@ void ExpressionBuilder::expr_unary(Kind unaryop)  // 1 expr
         break;
     case MINUS:
         unaryop = UNARY_MINUS;
-        /* Fall through! */
+        [[fallthrough]];
     default: fragments[0] = Expression::create_unary(unaryop, fragments[0], position, fragments[0].get_type());
     }
 }

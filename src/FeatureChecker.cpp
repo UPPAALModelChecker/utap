@@ -69,6 +69,7 @@ void FeatureChecker::visit_guard(Expression& guard)
             if (guard.get(i).uses_fp())
                 supported_methods.symbolic = false;
         }
+		[[fallthrough]];
     default: break;
     }
 }

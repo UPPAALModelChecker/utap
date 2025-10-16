@@ -5,12 +5,15 @@ include(GNUInstallDirs)
 
 # in case of top level project:
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+  message(STATUS "UTAP is the top-level project")
   set(CMAKE_CXX_EXTENSIONS OFF)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
   if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
       add_compile_options(-Wpedantic -Wall -Wextra -Werror=vla -Wno-unused-parameter)
   endif()
+else()
+  message(STATUS "UTAP is NOT the top-level project")
 endif()
 
 if(WIN32)

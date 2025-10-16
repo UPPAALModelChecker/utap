@@ -112,7 +112,7 @@ struct PositionTracker
         parser->set_position(position, position + n);
         position += n;
         offset += n;
-        return position - n;
+        return static_cast<int>(position - n);
     }
 
     /**
