@@ -44,6 +44,8 @@ target_compile_features(UTAP PRIVATE cxx_std_17)
 target_compile_definitions(UTAP PRIVATE _USE_MATH_DEFINES) # M_PI in xmlwriter.cpp
 if (UTAP_STATIC)
   target_compile_definitions(UTAP PUBLIC LIBXML_STATIC)
+  target_link_options(UTAP PUBLIC -static)
+  message(STATUS "Enabled LIBXML_STATIC -static")
 endif (UTAP_STATIC)
 set_target_properties(UTAP PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if (UTAP_WARNINGS)
