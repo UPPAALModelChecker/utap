@@ -41,8 +41,8 @@ jobs:
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
-      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
+      CFLAGS: "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fstrict-flex-arrays=2 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
+      CXXFLAGS: "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS -fstrict-flex-arrays=2 -fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
       LDFLAGS: "-fno-omit-frame-pointer -fsanitize=undefined -fsanitize=address -fstack-protector-strong"
     steps:
       - uses: actions/checkout@v4
