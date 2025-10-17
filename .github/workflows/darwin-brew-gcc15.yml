@@ -34,15 +34,15 @@ jobs:
     # see https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
-      BUILD_DIR: build-darwin-brew-gcc14
+      BUILD_DIR: build-darwin-brew-gcc15
       CTEST_OUTPUT_ON_FAILURE: 1
-      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin-brew-gcc14.cmake
-      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/darwin-brew-gcc14
-      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin-brew-gcc14
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/darwin-brew-gcc15.cmake
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/darwin-brew-gcc15
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin-brew-gcc15
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
-      CXXFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
+      CFLAGS: "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fstrict-flex-arrays=2 -fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
+      CXXFLAGS: "-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS -fstrict-flex-arrays=2 -fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
       LDFLAGS: "-fno-omit-frame-pointer -fsanitize=leak -fstack-protector-strong"
     steps:
       - uses: actions/checkout@v4
