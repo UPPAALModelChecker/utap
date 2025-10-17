@@ -77,3 +77,4 @@ target_include_directories(UTAP
 )
 target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
                                    ${LIBXML_WINLIBS})
+add_library(UTAP::UTAP ALIAS UTAP) # in case the library is not exported-imported
