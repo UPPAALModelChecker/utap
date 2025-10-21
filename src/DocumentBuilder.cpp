@@ -24,8 +24,8 @@
 #include "print.hpp"
 
 #include <sstream>
-#include <stdexcept>
 #include <vector>
+
 #include <cassert>
 
 using namespace UTAP;

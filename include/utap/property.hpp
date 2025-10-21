@@ -109,7 +109,10 @@ enum class quant_t {
     PMax,
 
     /* LSC scenario property */
-    scenario
+    scenario,
+
+    /* HYPA: acontrol: A[] ... {} -> {} */
+    acontrol,
 };
 
 /** property status */

@@ -22,9 +22,8 @@
 #include "utap/AbstractBuilder.hpp"
 
 #include <vector>
+
 #include <cinttypes>
-#include <cstdarg>
-#include <cstdio>
 
 using namespace UTAP;
 
@@ -202,6 +201,7 @@ void AbstractBuilder::expr_scenario(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_ternary(Constants::Kind ternaryop, bool firstMissing) { UNSUPPORTED; }
 void AbstractBuilder::expr_inline_if() { UNSUPPORTED; }
 void AbstractBuilder::expr_comma() { UNSUPPORTED; }
+void AbstractBuilder::expr_location(std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::expr_location() { UNSUPPORTED; }
 void AbstractBuilder::expr_dot(std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::expr_deadlock() { UNSUPPORTED; }
@@ -279,6 +279,10 @@ void AbstractBuilder::expr_MITL_forall_dynamic_begin(std::string_view, std::stri
 void AbstractBuilder::expr_MITL_forall_dynamic_end(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_exists_dynamic_begin(std::string_view, std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_exists_dynamic_end(std::string_view name) { UNSUPPORTED; }
+
+void AbstractBuilder::expr_acontrol() { UNSUPPORTED; }
+void AbstractBuilder::expr_discrete_interval() { UNSUPPORTED; }
+void AbstractBuilder::expr_interval(int32_t divisions) { UNSUPPORTED; }
 
 void AbstractBuilder::query_begin() { UNSUPPORTED; }
 void AbstractBuilder::query_end() { UNSUPPORTED; }

@@ -321,6 +321,7 @@ public:
     virtual void expr_double(double) = 0;
     virtual void expr_string(std::string_view name) = 0;
     virtual void expr_identifier(std::string_view varName) = 0;
+    virtual void expr_location(std::string_view name) = 0;
     virtual void expr_location() = 0;
     virtual void expr_nat(int32_t) = 0;  // natural number
     virtual void expr_call_begin() = 0;
@@ -432,6 +433,11 @@ public:
     virtual void expr_MITL_exists_dynamic_begin(std::string_view, std::string_view) = 0;
     virtual void expr_MITL_exists_dynamic_end(std::string_view name) = 0;
     virtual void expr_dynamic_process_expr(std::string_view) = 0;
+
+    /** Coshy */
+    virtual void expr_acontrol() = 0;
+    virtual void expr_discrete_interval() = 0;
+    virtual void expr_interval(int32_t divisions) = 0;
 
     /** Verification queries */
     virtual void model_option(std::string_view key, std::string_view value) = 0;
