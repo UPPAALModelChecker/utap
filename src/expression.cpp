@@ -1464,6 +1464,8 @@ std::ostream& expression_t::print(std::ostream& os, bool old) const
 
     case RATE: get(0).print(os, old) << '\''; break;
 
+    case FREEZE: os << get(0) << " ¤ " << get(1); break;
+
     case ATL_ENFORCE_UNTIL:
     case ATL_ENFORCE_F:
     case ATL_ENFORCE_G:
