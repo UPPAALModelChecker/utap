@@ -108,7 +108,7 @@ public:
      * Process declarations
      */
     void proc_begin(std::string_view name, const bool isTA = true, std::string_view type = "",
-                    std::string_view mode = "") override;
+                    std::string_view mode = {}) override;
     void proc_end() override;                                                           // 1 ProcBody
     void proc_location(std::string_view name, bool hasInvariant, bool hasER) override;  // 1 expr
     void proc_location_commit(std::string_view name) override;                          // mark previously decl. state
@@ -177,6 +177,7 @@ public:
     void expr_false() override;
     void expr_double(double) override;
     void expr_string(std::string_view) override;
+    void expr_location(std::string_view) override;
     void expr_location() override;
     void expr_identifier(std::string_view varName) override;
     void expr_nat(int32_t) override;  // natural number
@@ -280,6 +281,11 @@ public:
     void expr_MITL_forall_dynamic_end(std::string_view name) override;
     void expr_MITL_exists_dynamic_begin(std::string_view, std::string_view) override;
     void expr_MITL_exists_dynamic_end(std::string_view name) override;
+
+    /** Coshy */
+    void expr_acontrol() override;
+    void expr_discrete_interval() override;
+    void expr_interval(int32_t divisions) override;
 
     /** Verification queries */
     void model_option(std::string_view key, std::string_view value) override;

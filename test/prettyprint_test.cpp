@@ -362,4 +362,79 @@ TEST_CASE("Post incrementing an identifier should not require parenthesis")
     CHECK(expr.str() == "foo++");
 }
 
+TEST_CASE("acontrol query")
+{
+    auto f = document_fixture{}
+                 .add_default_process()
+                 .add_system_decl("bool myBool;")
+                 .add_system_decl("int myInt;")
+                 .add_system_decl("int[1, 10] myConstrainedInt;")
+                 .add_system_decl("double myDouble;")
+                 .add_system_decl("clock myClock;")
+                 .add_system_decl("chan MyChannel;")
+                 .build_query_fixture();
+
+    const auto foo = f.get_errors();
+    REQUIRE(f.get_errors().empty());
+
+    SUBCASE("Basics")
+    {
+        // NB: Whitespace is significant since it must match the pretty-printer.
+        const auto* query_string = "acontrol: A[] myDouble < 1 "
+                                   "{ "
+                                   "myInt[2 + 2, 10], "
+                                   "myConstrainedInt[1, 2 * 5], "
+                                   "myDouble[M_PI, 2.1 * 100]:100 "
+                                   "}";
+
+        const auto query1 = f.parse_query(query_string).intermediate;
+
+        REQUIRE(query1.get_kind() == UTAP::Constants::ACONTROL);
+        CHECK(query_string == query1.str());
+    }
+
+    SUBCASE("Support of locations")
+    {
+        const std::string query_string =
+            "acontrol: A[] Process.location != Process._id0 { Process.location, myClock[2, 10]:100 }";
+
+        auto query = f.parse_query(query_string.data()).intermediate;
+
+        REQUIRE(query.get_kind() == UTAP::Constants::ACONTROL);
+        CHECK(query_string == query.str());
+    }
+
+    SUBCASE("Mixing some clocks in there")
+    {
+        const std::string query_string = "acontrol: A[] myClock < 10 && myClock > 0 { myClock[-1, 10]:100 }";
+
+        auto query1 = f.parse_query(query_string.data()).intermediate;
+
+        REQUIRE(query1.get_kind() == UTAP::Constants::ACONTROL);
+        CHECK(query_string == query1.str());
+    }
+
+    SUBCASE("Invalid condition to enforce")
+    {
+        const auto query_string = "acontrol: A[] (-2.2) { }";
+        CHECK_THROWS_WITH(f.parse_query(query_string), "$Unknown_type_of_the_expression");
+
+        const auto query_string2 = "acontrol: A[] myChannel { }";
+        CHECK_THROWS_WITH(f.parse_query(query_string2), "$Unknown_type_of_the_expression");
+    }
+
+    SUBCASE("Invalid number of divisions")
+    {
+        const auto query_string = "acontrol: A[] myDouble < 1 {  myDouble[M_PI, 21 * 100]:1.5 }";
+        CHECK_THROWS_WITH(f.parse_query(query_string), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+
+        // Don't know why it still says "T_FLOATING" here.
+        const auto query_string2 = "acontrol: A[] myDouble < 1 { myDouble[M_PI, 21 * 100]:myChannel }";
+        CHECK_THROWS_WITH(f.parse_query(query_string2), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+
+        const auto query_string3 = "acontrol: A[] myDouble < 1 { myDouble[M_PI, 21 * 100]:myClock }";
+        CHECK_THROWS_WITH(f.parse_query(query_string3), "$syntax_error: $unexpected T_FLOATING, $expecting T_NAT");
+    }
+}
+
 TEST_SUITE_END();

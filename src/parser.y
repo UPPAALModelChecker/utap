@@ -2,22 +2,22 @@
 
  /* libutap - Uppaal Timed Automata Parser.
     Copyright (C) 2011-2024 Aalborg University.
-    Copyright (C) 2002-2011 Uppsala University and Aalborg University.
+	Copyright (C) 2002-2011 Uppsala University and Aalborg University.
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public License
-    as published by the Free Software Foundation; either version 2.1 of
-    the License, or (at your option) any later version.
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public License
+	as published by the Free Software Foundation; either version 2.1 of
+	the License, or (at your option) any later version.
 
-    This library is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+	This library is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-    USA
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+	USA
  */
 
  /*********************************************************************
@@ -37,7 +37,6 @@
   * appear continuous error reports on the same code as no recovery is
   * made. Please report it, this might be corrected.
   */
-
 %code top {
 //NOLINTBEGIN
 }
@@ -54,15 +53,15 @@
 using namespace UTAP;
 using namespace Constants;
 
-#define YYLLOC_DEFAULT(Current, Rhs, N)    \
-    do                                     \
+#define YYLLOC_DEFAULT(Current, Rhs, N)        		  	        \
+	 do        								\
         if (N) {                           \
-            (Current).start = YYRHSLOC (Rhs, 1).start; \
-            (Current).end   = YYRHSLOC (Rhs, N).end;   \
+		   (Current).start        = YYRHSLOC (Rhs, 1).start;	        \
+		   (Current).end          = YYRHSLOC (Rhs, N).end;	        \
         } else {                           \
             (Current).start = (Current).end = YYRHSLOC (Rhs, 0).end; \
-        }                                  \
-    while (0)
+		 }								\
+	 while (0)
 
 #define YYLTYPE position_t
 }
@@ -78,13 +77,13 @@ static int lexer_flex();
 
 static int utap_lex()
 {
-    int old;
+   int old;
     if (syntax_token != 0) {
-       old = syntax_token;
-       syntax_token = 0;
-       return old;
-    }
-    return lexer_flex();
+	 old = syntax_token;
+	 syntax_token = 0;
+	 return old;
+   }
+   return lexer_flex();
 }
 
 static char rootTransId[MAXLEN];
@@ -92,11 +91,12 @@ static char rootTransId[MAXLEN];
 /* Counter used during array parsing. */
 static int types = 0;
 
+
 struct str_entry_t
 {
     size_t len;
-    const char* from;
-    const char* to;
+	const char* from;
+	const char* to;
 };
 
 const char* utap_msg(const char *msg)
@@ -115,30 +115,29 @@ const char* utap_msg(const char *msg)
             "$syntax_error: $unexpected %s, $expecting %s $or %s $or %s" },
         { 59, "syntax error, unexpected %s, expecting %s or %s or %s or %s",
             "$syntax_error: $unexpected %s, $expecting %s $or %s $or %s $or %s" }
-    };
+		};
     const auto len = std::strlen(msg);
     auto i = NB_STR / 2;
     while (i < NB_STR) {
         if (len < table[i].len) {
-            if (i == 0) return msg;
-            i = i/2;
-            continue;
-        }
+			if (i == 0) return msg;
+			i = i/2;
+			continue;
+		}
         if (len > table[i].len) {
-            if (i == NB_STR-1) return msg;
-            i = (i+NB_STR)/2;
-            continue;
-        }
+			if (i == NB_STR-1) return msg;
+			i = (i+NB_STR)/2;
+			continue;
+		}
         for(;i < NB_STR && len <= table[i].len; ++i) {
             if (strcmp(msg, table[i].from) == 0) {
-                return table[i].to;
-            }
-        }
-        break;
-    }
+				return table[i].to;
+			}
+		}
+		break;
+	}
     return msg;
 }
-
 #define CALL(first,last,call) do { ch->set_position(first.start, last.end); try { ch->call; } catch (TypeException &te) { ch->handle_error(te); } } while (0)
 
 #define YY_(msg) utap_msg(msg)
@@ -213,6 +212,9 @@ const char* utap_msg(const char *msg)
 /* Control Synthesis */
 %token T_CONTROL T_CONTROL_T T_SIMULATION
 
+/* HYPA */
+%token T_ACONTROL
+
 /* ExpectationKind optimization */
 %token T_MINEXP T_MAXEXP T_MINPR T_MAXPR T_STRATEGY T_LOAD_STRAT T_SAVE_STRAT
 
@@ -267,6 +269,7 @@ const char* utap_msg(const char *msg)
 %type <number> ArgList FieldDeclList FieldDeclIdList FieldDecl
 %type <number> ParameterList FieldInitList
 %type <number> OptionalInstanceParameterList ExpressionList NonEmptyExpressionList
+%type <number> IntervalList NonEmptyIntervalList
 %type <prefix> Type TypePrefix
 %type <string> Id NonTypeId
 %type <kind> UnaryOp AssignOp
@@ -377,10 +380,10 @@ InstanceLineExpression:
 OptionalInstanceParameterList:
         /* empty */ { $$ = 0; }
         | '(' ')' {
-            $$ = 0;
+        	$$ = 0;
         }
         | '(' ParameterList ')' {
-            $$ = $2;
+        	$$ = $2;
         };
 
 System: SysDecl Progress GanttDecl;
@@ -443,8 +446,8 @@ GanttDef:
         /* empty */
         | GanttDef NonTypeId              { CALL(@2, @2, gantt_decl_begin($2)); }
           GanttArgs ':' GanttExprList ';' { CALL(@2, @6, gantt_decl_end());
-    }
-    ;
+	}
+	;
 
 GanttArgs:
         /* empty */
@@ -463,12 +466,12 @@ GanttDeclSelect:
 GanttExprList:
         GanttExpr
         | GanttExprList ',' GanttExpr
-    ;
+	;
 
 GanttExpr:
         Expression T_ARROW Expression {
-        CALL(@1, @3, gantt_entry_begin());
-        CALL(@1, @3, gantt_entry_end());
+	    CALL(@1, @3, gantt_entry_begin());
+	    CALL(@1, @3, gantt_entry_end());
         }
         | T_FOR                                                  { CALL(@1, @1, gantt_entry_begin()); }
           '(' GanttEntrySelect ')' Expression T_ARROW Expression { CALL(@1, @7, gantt_entry_end()); }
@@ -509,13 +512,13 @@ FunctionDecl:
         /* Notice that StatementList will catch all errors. Hence we
          * should be able to guarantee, that once declFuncBegin() has
          * been called, we will also call declFuncEnd().
-         * Correction: No it won't.
-         * int f() { if (cond) { return 0; }
-         * will generate an error, not call declFuncEnd, and the builder
-         * will be left in an inconsistent state. EndBlock fixes that.
-         *
-         * Correction^2: It did not fix it. Discussion continued at
-         * StatementBuilder::declFuncBegin definition
+	 * Correction: No it won't.
+	 * int f() { if (cond) { return 0; }
+	 * will generate an error, not call declFuncEnd, and the builder
+	 * will be left in an inconsistent state. EndBlock fixes that.
+     *
+     * Correction^2: It did not fix it. Discussion continued at
+     * StatementBuilder::declFuncBegin definition
          */
         Type Id OptionalParameterList '{' {
           CALL(@1, @2, decl_func_begin($2));
@@ -771,8 +774,8 @@ ProcDecl:
 
 ProcBody:
         ProcLocalDeclList States LocFlags Init Transitions
-        | ProcLocalDeclList States Branchpoints LocFlags Init Transitions
-        | /* empty */
+	| ProcLocalDeclList States Branchpoints LocFlags Init Transitions
+	| /* empty */
         ;
 
 ProcLocalDeclList:
@@ -795,17 +798,17 @@ StateDeclList:
 StateDecl:
           NonTypeId { CALL(@1, @1, proc_location($1, false, false)); }
         | NonTypeId '{' ';' ExpRate '}' {
-        CALL(@1, @5, proc_location($1, false, true));
-    }
+	    CALL(@1, @5, proc_location($1, false, true));
+	}
         | NonTypeId '{' Expression '}' {
-        CALL(@1, @4, proc_location($1, true, false));
+	    CALL(@1, @4, proc_location($1, true, false));
         }
         | NonTypeId '{' Expression ';' ExpRate '}' {
-        CALL(@1, @6, proc_location($1, true, true));
-    }
+	    CALL(@1, @6, proc_location($1, true, true));
+	}
         | NonTypeId '{' error '}' {
-        CALL(@1, @4, proc_location($1, false, false));
-    }
+	    CALL(@1, @4, proc_location($1, false, false));
+	}
         ;
 
 Branchpoints:
@@ -820,7 +823,7 @@ BranchpointDeclList:
 
 BranchpointDecl:
         NonTypeId {
-        CALL(@1, @1, proc_branchpoint($1));
+	    CALL(@1, @1, proc_branchpoint($1));
         };
 
 Init:
@@ -903,7 +906,7 @@ Sync:
 
 SyncExpr:
         Expression {
-        CALL(@1, @1, proc_sync(SYNC_CSP));
+	    CALL(@1, @1, proc_sync(SYNC_CSP));
         }
         | Expression T_EXCLAM {
           CALL(@1, @2, proc_sync(SYNC_BANG));
@@ -980,9 +983,9 @@ UStateList:
 
 ExpRate:
         Expression
-    | Expression ':' Expression {
-        CALL(@1,@3, expr_binary(FRACTION));
-    };
+	| Expression ':' Expression {
+	    CALL(@1,@3, expr_binary(FRACTION));
+	};
 
 /**********************************************************************
  * Uppaal C grammar
@@ -1020,18 +1023,18 @@ IfCondition: T_IF '(' { CALL(@1, @2, if_begin()); } ExprList ')' { CALL(@3, @3, 
 IfConditionThenMatched: IfCondition MatchedStatement T_ELSE { CALL(@1, @3, if_then()); };
 
 MatchedStatement: IfConditionThenMatched MatchedStatement {
-        CALL(@1, @2, if_end(true));
-    }
+	    CALL(@1, @2, if_end(true));
+	}
         | OtherStatement
-    ;
+	;
 
 UnmatchedStatement: IfCondition Statement {
             CALL(@2, @2, if_then());
             CALL(@1, @2, if_end(false));
-    }
+	}
         | IfConditionThenMatched UnmatchedStatement {
-        CALL(@1, @2, if_end(true));
-    }
+	    CALL(@1, @2, if_end(true));
+	}
         ;
 
 OtherStatement:
@@ -1043,7 +1046,7 @@ OtherStatement:
           CALL(@1, @2, expr_statement());
         }
         | ForStatement
-    | WhileStatement
+	| WhileStatement
         | T_BREAK ';' {
             CALL(@1, @2, break_statement());
           }
@@ -1063,8 +1066,8 @@ OtherStatement:
           CALL(@1, @2, return_statement(false));
         }
         | T_ASSERT Expression ';' {
-        CALL(@1, @2, assert_statement());
-    }
+	    CALL(@1, @2, assert_statement());
+	}
         ;
 
 ForStatement: T_FOR '(' ExprList ';' ExprList ';' ExprList ')' {
@@ -1080,18 +1083,18 @@ ForStatement: T_FOR '(' ExprList ';' ExprList ';' ExprList ')' {
             CALL(@7, @7, iteration_end($3));
         }
         | T_FOR '(' error ')' Statement
-    ;
+	;
 
 WhileStatement: T_WHILE '(' {
             CALL(@1, @2, while_begin());
         }
         ExprList ')' Statement {
             CALL(@3, @4, while_end());
-    }
+	}
         | T_WHILE '(' error ')' Statement
         | T_DO {
             CALL(@1, @1, do_while_begin());
-    }
+	}
           Statement T_WHILE '(' ExprList ')' ';' {
             CALL(@2, @7, do_while_end());
         }
@@ -1103,11 +1106,11 @@ SwitchCaseList: SwitchCase
 
 SwitchCase:
         T_CASE Expression ':' {
-        CALL(@1, @3, case_begin());
+	    CALL(@1, @3, case_begin());
         }
         StatementList {
             CALL(@4, @4, case_end());
-    }
+	}
         | T_DEFAULT ':' {
             CALL(@1, @2, default_begin());
         }
@@ -1124,32 +1127,32 @@ ExprList:
 
 Expression:
         T_FALSE {
-        CALL(@1, @1, expr_false());
+	    CALL(@1, @1, expr_false());
         }
         | T_TRUE {
-        CALL(@1, @1, expr_true());
+	    CALL(@1, @1, expr_true());
         }
         | T_NAT  {
-        CALL(@1, @1, expr_nat($1));
+	    CALL(@1, @1, expr_nat($1));
         }
         | T_FLOATING {
-        CALL(@1, @1, expr_double($1));
-    }
+	    CALL(@1, @1, expr_double($1));
+	}
         | T_CHARARR
         {
             CALL(@1, @1, expr_string($1));
         }
         | BuiltinFunction1 '(' Expression ')' {
-        CALL(@1, @4, expr_builtin_function1($1));
-    }
+	    CALL(@1, @4, expr_builtin_function1($1));
+	}
         | BuiltinFunction2 '(' Expression ',' Expression ')' {
-        CALL(@1, @6, expr_builtin_function2($1));
-    }
+	    CALL(@1, @6, expr_builtin_function2($1));
+	}
         | BuiltinFunction3 '(' Expression ',' Expression ',' Expression ')' {
-        CALL(@1, @8, expr_builtin_function3($1));
-    }
+	    CALL(@1, @8, expr_builtin_function3($1));
+	}
         | NonTypeId {
-        CALL(@1, @1, expr_identifier($1));
+	    CALL(@1, @1, expr_identifier($1));
         }
         | Expression '(' {
             CALL(@1, @2, expr_call_begin());
@@ -1184,8 +1187,8 @@ Expression:
           CALL(@1, @2, expr_pre_decrement());
         }
         | T_MINUS T_POS_NEG_MAX {
-      CALL(@1, @2, expr_nat(std::numeric_limits<int>::min()));
-    }
+	  CALL(@1, @2, expr_nat(std::numeric_limits<int>::min()));
+	}
         | UnaryOp Expression {
           CALL(@1, @2, expr_unary($1));
         } %prec UOPERATOR
@@ -1273,8 +1276,8 @@ Expression:
           CALL(@1, @3, expr_binary(OR));
         }
         | Expression T_KW_XOR Expression {
-        CALL(@1, @3, expr_binary(XOR));
-    }
+	    CALL(@1, @3, expr_binary(XOR));
+	}
         | Expression T_MIN Expression {
             CALL(@1, @3, expr_binary(MIN));
         }
@@ -1286,7 +1289,7 @@ Expression:
         } Expression {
             CALL(@1, @8, expr_sum_end($3));
         } %prec T_SUM
-        | T_FORALL '(' Id ':' Type ')' {
+	    | T_FORALL '(' Id ':' Type ')' {
             CALL(@1, @6, expr_forall_begin($3));
         } Expression {
             CALL(@1, @8, expr_forall_end($3));
@@ -1296,48 +1299,48 @@ Expression:
         } Expression {
             CALL(@1, @8, expr_exists_end($3));
         } %prec T_EXISTS
-    | DynamicExpression
-    | MITLExpression
+	| DynamicExpression
+	| MITLExpression
         | Assignment
         ;
 
 DynamicExpression:
         T_SPAWN NonTypeId {
-        CALL(@1,@2, expr_identifier($2));
-    } '(' ArgList ')' {
-        CALL(@1,@6, expr_spawn($5));
-    }
+	    CALL(@1,@2, expr_identifier($2));
+	} '(' ArgList ')' {
+	    CALL(@1,@6, expr_spawn($5));
+	}
         | T_EXIT '(' ')' {
-        CALL(@1,@3, expr_exit());
-    }
+	    CALL(@1,@3, expr_exit());
+	}
         | T_NUMOF '(' NonTypeId ')'{
-        CALL(@3,@3, expr_identifier($3));
-        CALL(@1,@4, expr_numof());
-    }
+	    CALL(@3,@3, expr_identifier($3));
+	    CALL(@1,@4, expr_numof());
+	}
         | T_FORALL '(' Id ':' NonTypeId {
-        CALL(@1,@5, expr_identifier($5));
-        CALL(@1,@5, expr_forall_dynamic_begin($3,$5));
-    } ')'  '(' Expression ')'   {
-        CALL(@1,@8, expr_forall_dynamic_end($3));
-    }
+	    CALL(@1,@5, expr_identifier($5));
+	    CALL(@1,@5, expr_forall_dynamic_begin($3,$5));
+	} ')'  '(' Expression ')'   {
+	    CALL(@1,@8, expr_forall_dynamic_end($3));
+	}
         | T_EXISTS '(' Id ':' NonTypeId {
-        CALL(@1,@5, expr_identifier($5));
-        CALL(@1,@5, expr_exists_dynamic_begin($3,$5));
-    } ')' '(' Expression ')'  {
-        CALL(@1,@8, expr_exists_dynamic_end($3));
-    }
+	    CALL(@1,@5, expr_identifier($5));
+	    CALL(@1,@5, expr_exists_dynamic_begin($3,$5));
+	} ')' '(' Expression ')'  {
+	    CALL(@1,@8, expr_exists_dynamic_end($3));
+	}
         | T_SUM '(' Id ':' NonTypeId {
-        CALL(@1,@5, expr_identifier($5));
-        CALL(@1,@5, expr_sum_dynamic_begin($3,$5));
-    } ')' Expression   {
-        CALL(@1,@8, expr_sum_dynamic_end($3));
-    }
+	    CALL(@1,@5, expr_identifier($5));
+	    CALL(@1,@5, expr_sum_dynamic_begin($3,$5));
+	} ')' Expression   {
+	    CALL(@1,@8, expr_sum_dynamic_end($3));
+	}
         | T_FOREACH '(' Id ':' NonTypeId {
-        CALL(@1,@5, expr_identifier($5));
-        CALL(@1,@5, expr_foreach_dynamic_begin($3,$5));
-    } ')' Expression   {
-        CALL(@1,@8, expr_foreach_dynamic_end($3));
-    }
+	    CALL(@1,@5, expr_identifier($5));
+	    CALL(@1,@5, expr_foreach_dynamic_begin($3,$5));
+	} ')' Expression   {
+	    CALL(@1,@8, expr_foreach_dynamic_end($3));
+	}
         ;
 
 
@@ -1586,10 +1589,10 @@ OldStateDeclList:
 
 OldStateDecl:
         NonTypeId {
-        CALL(@1, @1, proc_location($1, false, false));
+	    CALL(@1, @1, proc_location($1, false, false));
         }
         | NonTypeId '{' OldInvariant '}' {
-        CALL(@1, @4, proc_location($1, true, false));
+	    CALL(@1, @4, proc_location($1, true, false));
         }
         ;
 
@@ -1681,47 +1684,47 @@ PropertyList:
 PropertyList2:
         /* empty */
         | PropertyList2 Property '\n'
-    ;
+	;
 
 QueryList:
         /* empty */
-    | QueryList Query
-    ;
+	| QueryList Query
+	;
 
 Query:
         T_QUERY '{' Property '}'
         | T_QUERY '{' error '}'
-    ;
+	;
 
 BoolOrKWAnd:
         T_KW_AND | T_BOOL_AND;
 
 SubProperty:
         T_AF Expression {
-        CALL(@1, @2, expr_unary(AF));
-    }
+	    CALL(@1, @2, expr_unary(AF));
+	}
         | T_AG '(' Expression BoolOrKWAnd T_AF Expression ')' {
             CALL(@5, @6, expr_unary(AF));
             CALL(@3, @6, expr_binary(AND));
             CALL(@1, @7, expr_unary(AG));
         }
         | T_AG Expression {
-        CALL(@1, @2, expr_unary(AG));
+	    CALL(@1, @2, expr_unary(AG));
         }
-    | T_EF Expression {
-        CALL(@1, @2, expr_unary(EF));
+	| T_EF Expression {
+	    CALL(@1, @2, expr_unary(EF));
         }
-    | T_EG Expression {
-        CALL(@1, @2, expr_unary(EG));
+	| T_EG Expression {
+	    CALL(@1, @2, expr_unary(EG));
         }
-    | Expression T_LEADS_TO Expression {
-        CALL(@1, @3, expr_binary(LEADS_TO));
+	| Expression T_LEADS_TO Expression {
+	    CALL(@1, @3, expr_binary(LEADS_TO));
         }
-    | 'A' '[' Expression 'U' Expression ']' {
-        CALL(@1, @6, expr_binary(A_UNTIL));
+	| 'A' '[' Expression 'U' Expression ']' {
+	    CALL(@1, @6, expr_binary(A_UNTIL));
         }
-    | 'A' '[' Expression 'W' Expression ']' {
-        CALL(@1, @6, expr_binary(A_WEAK_UNTIL));
+	| 'A' '[' Expression 'W' Expression ']' {
+	    CALL(@1, @6, expr_binary(A_WEAK_UNTIL));
         }
 ;
 
@@ -1731,40 +1734,80 @@ Features: {
     }
     | BracketExprList T_ARROW BracketExprList;
 
+
+/* Binary tree inspired by BracketExprList */
+BracketIntervalList:
+	'{' IntervalList '}' {
+		CALL(@1, @3, expr_nary(INTERVAL_LIST, $2));
+	}
+	;
+
+/* $$ is number of intervals in the list. */
+IntervalList:
+	/* empty */ { $$ = 0; }
+	| NonEmptyIntervalList
+	;
+
+NonEmptyIntervalList:
+	Interval { $$ = 1; }
+	| NonEmptyIntervalList ',' Interval { $$ = $1 + 1; }
+	;
+
+Interval:
+	T_ID '[' Expression ',' Expression ']' {
+		CALL(@1, @1, expr_identifier($1));
+		CALL(@1, @6, expr_discrete_interval());
+	}
+	| T_ID '[' Expression ',' Expression ']' ':' T_NAT {
+		CALL(@1, @1, expr_identifier($1));
+		CALL(@1, @8, expr_interval($8));
+	}
+	| T_ID '.' T_LOCATION {
+		CALL(@1, @3, expr_location($1));
+	}
+	;
+
+Partition:
+	| BracketIntervalList;
+
 AssignablePropperty:
     T_CONTROL ':' SubProperty Subjection {
         CALL(@1, @3, expr_unary(CONTROL));
         CALL(@1, @3, property());
     }
     | T_CONTROL_T T_MULT '(' Expression ',' Expression ')' ':' SubProperty {
-    CALL(@1, @9, expr_ternary(CONTROL_TOPT));
-    CALL(@1, @9, property());
+	CALL(@1, @9, expr_ternary(CONTROL_TOPT));
+	CALL(@1, @9, property());
     }
     | T_CONTROL_T T_MULT '(' Expression ')' ':' SubProperty {
-    CALL(@1, @7, expr_binary(CONTROL_TOPT_DEF1));
-    CALL(@1, @7, property());
+	CALL(@1, @7, expr_binary(CONTROL_TOPT_DEF1));
+	CALL(@1, @7, property());
     }
     | T_CONTROL_T T_MULT ':' SubProperty {
-    CALL(@1, @4, expr_unary(CONTROL_TOPT_DEF2));
-    CALL(@1, @4, property());
+	CALL(@1, @4, expr_unary(CONTROL_TOPT_DEF2));
+	CALL(@1, @4, property());
     }
     | T_EF T_CONTROL ':' SubProperty Subjection {
-    CALL(@1, @4, expr_unary(EF_CONTROL));
-    CALL(@1, @4, property());
+	CALL(@1, @4, expr_unary(EF_CONTROL));
+	CALL(@1, @4, property());
+    }
+    | T_ACONTROL ':' T_AG Expression Partition {
+    	CALL(@1, @4, expr_acontrol());
+    	CALL(@1, @4, property());
     }
     | BracketExprList T_CONTROL ':' SubProperty Subjection {
         CALL(@1, @4, expr_binary(PO_CONTROL));
-    CALL(@1, @4, property());
+	CALL(@1, @4, property());
     }
     | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
         CALL(@1, @12, expr_optimize_exp($1,  ParserBuilder::EXPRPRICE, $10));
-    CALL(@1, @9, property());
+	CALL(@1, @9, property());
     }
     | ExpPrQuantifier '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
         CALL(@1, @9, expr_optimize_exp($1, ParserBuilder::TIMEPRICE, $7));
-    CALL(@1, @6, property());
+	CALL(@1, @6, property());
     }
     | T_LOAD_STRAT Features '(' Expression ')' {
         CALL(@1, @5, expr_load_strategy());
@@ -1781,7 +1824,7 @@ PropertyExpr:
         CALL(@1, @1, property());
     }
     | T_PMAX Expression {  // Deprecated, comes from old uppaal-prob.
-    CALL(@1, @2, expr_unary(PMAX));
+	CALL(@1, @2, expr_unary(PMAX));
         CALL(@1, @2, property());
     }
     | AssignablePropperty
@@ -1792,47 +1835,47 @@ PropertyExpr:
         CALL(@1, @3, property());
     }
     | T_PROBA SMCBounds '(' PathType Expression ')' CmpGLE T_FLOATING Subjection {
-    CALL(@1, @9, expr_proba_qualitative($4, $7, $8));
+	CALL(@1, @9, expr_proba_qualitative($4, $7, $8));
         CALL(@1, @9, property());
     }
     | T_PROBA SMCBounds '(' PathType Expression ')' Subjection {
         CALL(@6, @6, expr_true()); // push a trivial stop-predicate (see next rule)
         CALL(@1, @7, expr_proba_quantitative($4));
-    CALL(@1, @7, property());
+	CALL(@1, @7, property());
     }
     | T_PROBA SMCBounds '(' Expression 'U' Expression ')' Subjection {
         CALL(@1, @8, expr_proba_quantitative(DIAMOND));
-    CALL(@1, @8, property());
+	CALL(@1, @8, property());
     }
     | T_PROBA SMCBounds '(' PathType Expression ')' T_GEQ
       T_PROBA SMCBounds '(' PathType Expression ')' Subjection {
-    CALL(@1, @14, expr_proba_compare($4, $11));
-    CALL(@1, @14, property());
+	CALL(@1, @14, expr_proba_compare($4, $11));
+	CALL(@1, @14, property());
     }
     | T_PROBA SMCBounds '(' PathType Expression ')' T_SUBJECT SubjectionList T_GEQ
       T_PROBA SMCBounds '(' PathType Expression ')' Subjection {
-    CALL(@1, @16, expr_proba_compare($4, $13));
-    CALL(@1, @16, property());
+	CALL(@1, @16, expr_proba_compare($4, $13));
+	CALL(@1, @16, property());
     }//T_SUBJECT SubjectionList
     | T_SIMULATE SMCBounds '{' NonEmptyExpressionList '}' Subjection {
         CALL(@1, @6, expr_simulate($4));
         CALL(@1, @6, property());
     }
     | T_SIMULATE SMCBounds '{' NonEmptyExpressionList '}' ':' Expression Subjection {
-    CALL(@1, @8, expr_simulate($4, true));
-    CALL(@1, @8, property());
+	CALL(@1, @8, expr_simulate($4, true));
+	CALL(@1, @8, property());
     }
     | T_SIMULATE SMCBounds '{' NonEmptyExpressionList '}' ':' T_NAT ':' Expression Subjection {
         CALL(@1, @10, expr_simulate($4, true, $7));
-    CALL(@1, @10, property());
+	CALL(@1, @10, property());
     }
     | 'E' SMCBounds '(' Id ':' Expression ')' Subjection {
         CALL(@1, @8, expr_proba_expected($4));
-    CALL(@1, @8, property());
+	CALL(@1, @8, property());
     }
     | T_PROBA Expression Subjection {
-    CALL(@1, @3, expr_MITL_formula());
-    CALL(@1, @3, property());
+	CALL(@1, @3, expr_MITL_formula());
+	CALL(@1, @3, property());
     }
     | T_SAVE_STRAT '(' Expression ',' Id ')' {
         CALL(@1, @6, subjection($5));
@@ -1843,7 +1886,7 @@ PropertyExpr:
 
 MITLExpression :
     '(' Expression 'U' '['  T_NAT ',' T_NAT ']' Expression ')' {
-        CALL(@1,@10, expr_MITL_until($5,$7));
+	    CALL(@1,@10, expr_MITL_until($5,$7));
     }
     | '(' Expression 'R' '['  T_NAT ',' T_NAT ']' Expression ')' {
         CALL(@1,@10, expr_MITL_release($5,$7));
@@ -1852,7 +1895,7 @@ MITLExpression :
         CALL(@1,@4, expr_MITL_next());
     }
     | '(' T_DIAMOND '[' T_NAT ',' T_NAT ']' Expression ')' {
-        CALL(@1,@4, expr_MITL_diamond($4,$6));
+	    CALL(@1,@4, expr_MITL_diamond($4,$6));
     }
     | '(' T_BOX '[' T_NAT ',' T_NAT ']' Expression ')' {
         CALL(@1,@4, expr_MITL_box($4,$6));
@@ -1861,10 +1904,10 @@ MITLExpression :
 
 SMCBounds:
     '[' BoundType ']' {
-    CALL(@1, @1, expr_nat(-1));
+	CALL(@1, @1, expr_nat(-1));
     }
     | '[' BoundType ';' T_NAT ']' {
-    CALL(@1, @3, expr_nat($4));
+	CALL(@1, @3, expr_nat($4));
     };
 
 BoundType:
@@ -1879,21 +1922,21 @@ CmpGLE:
         ;
 
 PathType:
-        T_BOX { $$ = BOX; }
-        | T_DIAMOND { $$ = DIAMOND; }
-        ;
+	    T_BOX { $$ = BOX; }
+	    | T_DIAMOND { $$ = DIAMOND; }
+	    ;
 
 BracketExprList:
-    '{' ExpressionList '}' {
-        CALL(@1, @3, expr_nary(LIST,$2));
-    };
+	'{' ExpressionList '}' {
+	    CALL(@1, @3, expr_nary(LIST,$2));
+	};
 
 /* There is an ExprList but it's not a list, rather
  * a binary tree built with commas.
  */
 
 ExpressionList:
-    /* nothing */ { $$ = 0; }
+	/* nothing */ { $$ = 0; }
         | NonEmptyExpressionList
         ;
 
@@ -1904,24 +1947,24 @@ NonEmptyExpressionList:
 
 SupPrefix:
         T_SUP ':' {
-        CALL(@1, @2, expr_true());
-    }
-    | T_SUP '{' Expression '}' ':'
-    ;
+	    CALL(@1, @2, expr_true());
+	}
+	| T_SUP '{' Expression '}' ':'
+	;
 
 InfPrefix:
-    T_INF ':' {
-        CALL(@1, @2, expr_true());
-    }
-    | T_INF '{' Expression '}' ':'
-    ;
+	T_INF ':' {
+	    CALL(@1, @2, expr_true());
+	}
+	| T_INF '{' Expression '}' ':'
+	;
 
 BoundsPrefix:
-    T_BOUNDS ':' {
-        CALL(@1, @2, expr_true());
-    }
-    | T_BOUNDS '{' Expression '}' ':'
-    ;
+	T_BOUNDS ':' {
+	    CALL(@1, @2, expr_true());
+	}
+	| T_BOUNDS '{' Expression '}' ':'
+	;
 
             
 StrategyAssignment: 
@@ -1930,29 +1973,28 @@ StrategyAssignment:
         };
 
 Property:
-    /* empty */
+	/* empty */
         | StrategyAssignment
         | PropertyExpr
-    | SupPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(SUP_VAR));
-        CALL(@1, @2, property());
+	| SupPrefix NonEmptyExpressionList Subjection {
+	    CALL(@1, @2, expr_nary(LIST,$2));
+	    CALL(@1, @2, expr_binary(SUP_VAR));
+	    CALL(@1, @2, property());
         }
-    | InfPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(INF_VAR));
-        CALL(@1, @2, property());
-    }
-    | BoundsPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(BOUNDS_VAR));
-        CALL(@1, @2, property());
-    };
+	| InfPrefix NonEmptyExpressionList Subjection {
+	    CALL(@1, @2, expr_nary(LIST,$2));
+	    CALL(@1, @2, expr_binary(INF_VAR));
+	    CALL(@1, @2, property());
+	}
+	| BoundsPrefix NonEmptyExpressionList Subjection {
+	    CALL(@1, @2, expr_nary(LIST,$2));
+	    CALL(@1, @2, expr_binary(BOUNDS_VAR));
+	    CALL(@1, @2, property());
+	};
 
 %%
 
 #include "lexer.cc"
-
 //NOLINTEND
 
 static void utap_error(const char* msg)
@@ -1987,8 +2029,8 @@ static void setStartToken(XTAPart part, bool newxta)
         syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
         break;
     case S_EXPONENTIAL_RATE:
-    syntax_token = T_EXPONENTIAL_RATE;
-    break;
+	syntax_token = T_EXPONENTIAL_RATE;
+	break;
     case S_SELECT:
         syntax_token = T_NEW_SELECT;
         break;

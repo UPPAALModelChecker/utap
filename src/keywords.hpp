@@ -25,7 +25,6 @@
 #include "libparser.hpp"
 
 #include <string_view>
-#include <cinttypes>  // uint32_t
 
 namespace UTAP {
 struct Keyword

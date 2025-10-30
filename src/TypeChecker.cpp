@@ -37,6 +37,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+
 #include <cassert>
 #include <cstddef>  // size_t
 #include <cstdint>  // uint32_t
@@ -206,6 +207,18 @@ bool is_assignable(const Type& type)
 
     default: return type.size() > 0 && is_assignable(type[0]);
     }
+}
+
+static bool is_interval_list(Expression& expression)
+{
+    const auto n_expressions = expression.get_size();
+    for (auto i = 0u; i < n_expressions; ++i) {
+        auto e = expression[i];
+        if (!(e.get_type().is(INTERVAL) || e.get_type().is(DISCRETE_INTERVAL) || e.get_type().is(LOCATION_EXPR)))
+            return false;
+    }
+
+    return true;
 }
 
 using Error = TypeChecker::TypeError;
@@ -487,7 +500,7 @@ Error clock_difference_is_not_supported(const Expression& expr)
     return {expr, "$Clock_differences_are_not_supported"};
 }
 
-bool is_game_property(const Expression& expr)
+static bool is_game_property(const Expression& expr)
 {
     switch (expr.get_kind()) {
     case CONTROL:
@@ -496,7 +509,8 @@ bool is_game_property(const Expression& expr)
     case CONTROL_TOPT:
     case PO_CONTROL:
     case CONTROL_TOPT_DEF1:
-    case CONTROL_TOPT_DEF2: return true;
+    case CONTROL_TOPT_DEF2:
+    case ACONTROL: return true;
     default: return false;
     }
 }
@@ -512,7 +526,7 @@ bool has_MITL_in_quantified_sub(const Expression& expr)
     return hasIt;
 }
 
-bool has_spawn_or_exit(const Expression& expr)
+static bool has_spawn_or_exit(const Expression& expr)
 {
     bool hasIt = (expr.get_kind() == SPAWN || expr.get_kind() == EXIT);
     if (!hasIt) {
@@ -556,7 +570,6 @@ void static_analysis(Document& doc)
     }
 }
 }  // anonymous namespace
-
 ///////////////////////////////////////////////////////////////////////////
 
 void CompileTimeComputableValues::visit_variable(Variable& variable)
@@ -809,7 +822,7 @@ void TypeChecker::checkType(const Type& type, bool initialisable, bool inStruct)
     case Constants::STRING:
         if (inStruct)
             handleError(cannot_be_inside_struct(type));
-		break;
+        break;
     case Constants::CLOCK: break;
     case Constants::DOUBLE: break;
     case Constants::INT: break;
@@ -1211,6 +1224,7 @@ void TypeChecker::visit_progress(Progress& progress)
 {
     checkExpression(progress.guard);
     checkExpression(progress.measure);
+
     if (!progress.guard.empty() && !is_integral(progress.guard))
         handleError(progress_guard_must_evaluate_to_boolean(progress.guard));
     if (!is_integral(progress.measure))
@@ -1274,6 +1288,17 @@ void TypeChecker::visit_instance(Instance& instance)
 
         checkParameterCompatible(parameter.get_type(), argument);
     }
+}
+
+static bool hasMITLInQuantifiedSub(Expression& expr)
+{
+    bool hasIt = (expr.get_kind() == MITL_FORALL || expr.get_kind() == MITL_EXISTS);
+    if (!hasIt) {
+        for (uint32_t i = 0; i < expr.get_size(); i++) {
+            hasIt |= hasMITLInQuantifiedSub(expr.get(i));
+        }
+    }
+    return hasIt;
 }
 
 void TypeChecker::visitProperty(Expression& expr)
@@ -1653,16 +1678,20 @@ Expression TypeChecker::checkInitialiser(const Type& type, const Expression& ini
                     current = *index;
                 }
             }
+
             if (current >= type.get_record_size()) {
                 handleError(too_many_elements_in_initializer(init[i]));
                 break;
             }
+
             if (!result[current].empty()) {
                 handleError(multiple_initializers_for_field(init[i]));
                 continue;
             }
+
             result[current] = checkInitialiser(type.get_sub(current), init[i]);
         }
+
         // Check that all fields do have an initializer.
         for (const auto& res : result) {
             if (res.empty()) {
@@ -1670,6 +1699,7 @@ Expression TypeChecker::checkInitialiser(const Type& type, const Expression& ini
                 break;
             }
         }
+
         return Expression::create_nary(LIST, result, init.get_position(), type);
     }
     handleError(invalid_initializer(init));
@@ -2299,6 +2329,36 @@ bool TypeChecker::checkExpression(Expression& expr)
         }
         break;
 
+    case INTERVAL_LIST:
+        if (is_interval_list(expr)) {
+            type = Type::create_primitive(INTERVAL_LIST);
+        }
+        break;
+
+    case INTERVAL: {
+        const auto ident = expr[0].get_type();
+        const auto lower = expr[1].get_type();
+        const auto upper = expr[2].get_type();
+        const auto divisions = expr[3].get_type();
+        if ((ident.is_integer() || ident.is_double() || ident.is_clock()) &&
+            (lower.is_integer() || lower.is_double() || lower.is_clock()) &&
+            (upper.is_integer() || upper.is_double() || upper.is_clock()) && divisions.is_integer()) {
+            type = Type::create_primitive(INTERVAL);
+        }
+    } break;
+
+    case DISCRETE_INTERVAL:
+        if (expr[0].get_type().is_integer() && expr[1].get_type().is_integer()) {
+            type = Type::create_primitive(DISCRETE_INTERVAL);
+        }
+        break;
+
+    case ACONTROL:
+        if (expr[0].get_type().is_guard() && is_interval_list(expr[1])) {
+            type = Type::create_primitive(FORMULA);
+        }
+        break;
+
     case LEADS_TO:
     case SCENARIO2:
     case A_UNTIL:
@@ -2674,7 +2734,9 @@ int32_t parse_XML_buffer(const char* buffer, Document& doc, bool newxta,
     auto builder = DocumentBuilder{doc, paths};
     if (const auto err = parse_XML_buffer(buffer, builder, newxta); err != 0)
         return err;
+
     static_analysis(doc);
+
     return 0;
 }
 
@@ -2685,6 +2747,7 @@ int32_t parse_XML_file(const std::filesystem::path& file, Document& doc, bool ne
     if (const auto err = parse_XML_file(file, builder, newxta); err != 0)
         return err;
     static_analysis(doc);
+
     return 0;
 }
 
@@ -2694,6 +2757,7 @@ int32_t parse_XML_fd(int fd, Document& doc, bool newxta, const std::vector<std::
     if (const auto err = parse_XML_fd(fd, builder, newxta); err != 0)
         return err;
     static_analysis(doc);
+
     return 0;
 }
 

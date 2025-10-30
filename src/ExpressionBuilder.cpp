@@ -435,9 +435,7 @@ void ExpressionBuilder::expr_unary(Kind unaryop)  // 1 expr
     case PLUS:
         /* Unary plus can be ignored */
         break;
-    case MINUS:
-        unaryop = UNARY_MINUS;
-        [[fallthrough]];
+    case MINUS: unaryop = UNARY_MINUS; [[fallthrough]];
     default: fragments[0] = Expression::create_unary(unaryop, fragments[0], position, fragments[0].get_type());
     }
 }
@@ -530,6 +528,17 @@ void ExpressionBuilder::expr_comma()
     Expression e2 = fragments[0];
     fragments.pop(2);
     fragments.push(Expression::create_binary(COMMA, e1, e2, position, e2.get_type()));
+}
+
+void ExpressionBuilder::expr_location(std::string_view name)
+{
+    Symbol uid;
+    if (!resolve(name, uid)) {
+        expr_false();
+        throw unknown_identifier_error(name);
+    }
+    fragments.push(Expression::create_identifier(uid, position));
+    expr_location();
 }
 
 void ExpressionBuilder::expr_location()
@@ -725,7 +734,7 @@ void ExpressionBuilder::expr_load_strategy()
 
 void ExpressionBuilder::expr_save_strategy(std::string_view strategy_name)
 {
-    assert(fragments.size() == 1);
+    // assert(fragments.size() == 1);
     fragments[0] = Expression::create_binary(SAVE_STRAT, fragments[0], make_constant(strategy_name), position);
 }
 
@@ -890,6 +899,38 @@ void ExpressionBuilder::expr_MITL_box(int low, int high)
     Expression form = Expression::create_nary(MITL_RELEASE, std::move(args), position);
     fragments.pop(1);
     fragments.push(form);
+}
+
+void ExpressionBuilder::expr_acontrol()
+{
+    const auto partition = fragments[0];
+    assert(partition.get_kind() == INTERVAL_LIST);
+    const auto to_enforce = fragments[1];
+    fragments.pop(2);
+    fragments.push(Expression::create_binary(ACONTROL, to_enforce, partition, position));
+}
+
+void ExpressionBuilder::expr_discrete_interval()
+{
+    const auto identifier = fragments[0];
+    const auto upper = fragments[1];
+    const auto lower = fragments[2];
+    fragments.pop(3);
+    auto args = std::vector{identifier, lower, upper};
+    const auto discrete_interval = Expression::create_nary(DISCRETE_INTERVAL, std::move(args), position);
+    fragments.push(discrete_interval);
+}
+
+void ExpressionBuilder::expr_interval(int32_t divisions)
+{
+    const auto identifier = fragments[0];
+    const auto upper = fragments[1];
+    const auto lower = fragments[2];
+    fragments.pop(3);
+    const auto divisions2 = Expression::create_constant(divisions, position);
+    auto args = std::vector{identifier, lower, upper, divisions2};
+    const auto interval = Expression::create_nary(INTERVAL, std::move(args), position);
+    fragments.push(interval);
 }
 
 void ExpressionBuilder::expr_MITL_disj()
@@ -1065,7 +1106,6 @@ void ExpressionBuilder::push_dynamic_frame_of(Template* t, std::string_view name
         throw TypeException("Template referenced before used");
     dynamicFrames.emplace(std::string{name}, t->frame);
 }
-
 void ExpressionBuilder::pop_dynamic_frame_of(std::string_view name)
 {
     if (auto it = dynamicFrames.find(name); it != dynamicFrames.end())

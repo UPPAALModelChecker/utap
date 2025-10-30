@@ -23,12 +23,12 @@
 #ifndef UTAP_SYMBOLS_HH
 #define UTAP_SYMBOLS_HH
 
-#include "common.hpp"
 #include "position.hpp"
 #include "type.hpp"
 
 #include <exception>
 #include <optional>
+
 #include <cstdint>
 
 namespace UTAP {

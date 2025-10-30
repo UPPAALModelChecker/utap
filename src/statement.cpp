@@ -22,8 +22,8 @@
 
 #include "utap/statement.hpp"
 
-#include <iostream>
 #include <sstream>
+
 #include <cassert>
 
 using namespace UTAP;

@@ -27,6 +27,7 @@
 
 #include <stack>
 #include <vector>
+
 #include <cassert>
 
 namespace UTAP {
@@ -90,7 +91,6 @@ T pop_back(std::vector<T>& vec)
     vec.pop_back();
     return res;
 }
-
 /**
  * Partial implementation of the builder interface: The
  * ExpressionBuilder implements all expression related
@@ -190,6 +190,7 @@ public:
     void expr_double(double) override;
     void expr_string(std::string_view name) override;
     void expr_identifier(std::string_view varName) override;
+    void expr_location(std::string_view name) override;
     void expr_location() override;
     void expr_nat(int32_t) override;
     void expr_call_begin() override;
@@ -238,6 +239,11 @@ public:
     void expr_MITL_atom() override;
     void expr_MITL_diamond(int, int) override;
     void expr_MITL_box(int, int) override;
+
+    /** Coshy */
+    void expr_acontrol() override;
+    void expr_discrete_interval() override;
+    void expr_interval(int32_t divisions) override;
 
     /* Dynamic process creation */
     void expr_spawn(int params) override;

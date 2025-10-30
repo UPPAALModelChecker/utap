@@ -278,6 +278,15 @@ enum Kind {
     MITL_ATOM,
     MITL_EXISTS,
     MITL_FORALL,
+
+    /******************************************************
+     * HYPA
+     */
+    ACONTROL,
+    DISCRETE_INTERVAL,
+    INTERVAL,
+    INTERVAL_LIST,
+
     /*Dynamic */
     SPAWN,
     EXIT,
