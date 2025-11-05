@@ -26,6 +26,7 @@
 #include "utap/utap.h"
 
 #include <cassert>
+#include <array>
 
 using namespace UTAP;
 using namespace Constants;
