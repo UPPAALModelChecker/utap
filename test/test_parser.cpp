@@ -684,7 +684,7 @@ TEST_CASE("Freeze operator")
                    .parse();
 
     auto builder = std::make_unique<UTAP::AtlPropertyBuilder>(*doc);
-    auto res = parseProperty("x ¤ true", builder.get());
+    auto res = parseProperty("x @ true", builder.get());
     REQUIRE(res == 0);
     REQUIRE(doc->get_errors().empty());
 }

@@ -152,7 +152,8 @@ idchr        [a-zA-Z0-9_$#]
 "!="        	{ return T_NEQ; }
 "++"            { return T_INCREMENT; }
 "--"            { return T_DECREMENT; }
-"¤"             { return T_FREEZE; }
+
+"@"             { return T_FREEZE; }
 
 "A"             { return 'A'; }
 "U"             { return 'U'; }
