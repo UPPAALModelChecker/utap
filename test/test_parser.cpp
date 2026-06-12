@@ -538,7 +538,19 @@ TEST_CASE("Increment with multiple array subscripting and dot accessing")
     CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
 }
 
-TEST_CASE("T-ALT properties")
+TEST_CASE("Nested array subscripting")
+{
+    auto doc = document_fixture{}
+        .add_global_decl("int a[2];")
+        .add_global_decl("int b[2];")
+        .add_global_decl("int f(){ return a[b[a[0]]]; }")
+        .add_default_process()
+        .parse();
+
+    CHECK_MESSAGE(doc->get_errors().size() == 0, doc->get_errors().at(0).msg);
+}
+
+TEST_CASE("Timed ALT properties")
 {
     auto doc = std::make_unique<UTAP::Document>();
     auto builder = std::make_unique<UTAP::AtlPropertyBuilder>(*doc);
@@ -636,7 +648,7 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Nested ATL until property")
     {
-        auto res = parseProperty("<<red>> [(<<blue>> <> true) U false]", builder.get());
+        auto res = parseProperty("<<red>> [<<blue>> <> true U false]", builder.get());
         REQUIRE(res == 0);
         REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
@@ -646,7 +658,7 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Nested ATL eventually property")
     {
-        auto res = parseProperty("<<red>> <> ([[blue]] <> false)", builder.get());
+        auto res = parseProperty("<<red>> <> [[blue]] <> false", builder.get());
         REQUIRE(res == 0);
         REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
@@ -656,7 +668,7 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Nested ATL property with negation")
     {
-        auto res = parseProperty("<<red>> <> not ([[blue]] <> false)", builder.get());
+        auto res = parseProperty("<<red>> <> not [[blue]] <> false", builder.get());
         REQUIRE(res == 0);
         REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();
@@ -666,7 +678,7 @@ TEST_CASE("T-ALT properties")
     }
     SUBCASE("Nested ATL property with logical operators")
     {
-        auto res = parseProperty("<<red>> <> (<<blue>> [] false && true) || ([[black]] [(<<cyan>> <> true) && true U false])", builder.get());
+        auto res = parseProperty("<<red>> <> (<<blue>> [] false && true) || [[black]] [<<cyan>> <> true && true U false]", builder.get());
         REQUIRE(res == 0);
         REQUIRE(doc->get_errors().empty());
         auto expr = &builder->getProperties().front();

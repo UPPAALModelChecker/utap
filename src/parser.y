@@ -213,6 +213,9 @@ const char* utap_msg(const char *msg)
 /* Relation operations:*/
 %token T_LT T_LEQ T_EQ T_NEQ T_GEQ T_GT
 
+/* Parenthesis */
+%token T_LBRBR
+
 /* Special statement keywords: */
 %token T_FOR T_WHILE T_DO T_BREAK T_CONTINUE T_SWITCH T_IF T_ELSE
 %token T_CASE T_DEFAULT T_RETURN T_ASSERT
@@ -300,6 +303,7 @@ const char* utap_msg(const char *msg)
 %right T_AF T_AG T_EF T_EG 'A'  'M'
 %right T_AG_PLUS T_EF_PLUS T_AG_MULT T_EF_MULT
 %right T_PMAX T_SCENARIO
+%right T_FREEZE
 %left 'U' 'W' 'R' 'X'
 %right T_FORALL T_EXISTS T_SUM
 %right T_ASSIGNMENT T_ASSPLUS T_ASSMINUS T_ASSMULT T_ASSDIV T_ASSMOD T_ASSAND T_ASSOR T_ASSLSHIFT T_ASSRSHIFT T_ASSXOR
@@ -318,7 +322,7 @@ const char* utap_msg(const char *msg)
 %left T_POWOP
 %right T_EXCLAM T_KW_NOT UOPERATOR
 %right T_INCREMENT T_DECREMENT
-%left '(' ')' '[' ']' '.' '\''
+%left '(' ')' '[' ']' '.' '\'' T_LBRBR
 
 
 %union {
@@ -1348,6 +1352,7 @@ Expression:
             CALL(@1, @8, expr_exists_end($3));
         } %prec T_EXISTS
 	| DynamicExpression
+	| AtlExpression
 	| MITLExpression
         | Assignment
         ;
@@ -1391,48 +1396,33 @@ DynamicExpression:
 	}
         ;
 
-AtlExpressionOrExpression:
-    '(' AtlExpression ')'
-    // FIXME: Fix ambiguity and remove ugly parenthesis
-    | '(' AtlExpression ')' BoolOrKWAnd AtlExpressionOrExpression {
-      CALL(@1, @5, expr_binary(AND));
-    }
-    // FIXME: Fix ambiguity and remove ugly parenthesis
-    | '(' AtlExpression ')' BoolOrKWOr AtlExpressionOrExpression {
-      CALL(@1, @5, expr_binary(OR));
-    }
-    | T_KW_NOT '(' AtlExpression ')' {
-      CALL(@1, @4, expr_unary(NOT));
-    }
-    | Expression;
-
 AtlExpression:
-    NonTypeId { CALL(@1, @1, expr_identifier($1)); } T_FREEZE AtlExpressionOrExpression {
+    NonTypeId { CALL(@1, @1, expr_identifier($1)); } T_FREEZE Expression %prec T_ASSIGNMENT {
         CALL(@1, @3, expr_binary(FREEZE));
     }
-    | T_LSHIFT PlayerColorList T_RSHIFT '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
+    | T_LSHIFT PlayerColorList T_RSHIFT '[' Expression 'U' Expression ']' %prec T_ASSIGNMENT {
         CALL(@1, @8, expr_atl($2, ATL_ENFORCE_UNTIL));
     }
-    | '[' '[' PlayerColorList ']' ']' '[' AtlExpressionOrExpression 'U' AtlExpressionOrExpression ']' {
-        CALL(@1, @10, expr_atl($3, ATL_DESPITE_UNTIL));
+    | T_LBRBR PlayerColorList ']' ']' '[' Expression 'U' Expression ']' %prec T_ASSIGNMENT {
+        CALL(@1, @9, expr_atl($2, ATL_DESPITE_UNTIL));
     }
-    | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND AtlExpressionOrExpression {
+    | T_LSHIFT PlayerColorList T_RSHIFT T_DIAMOND Expression %prec T_ASSIGNMENT {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_F));
     }
-    | '[' '[' PlayerColorList ']' ']' T_DIAMOND AtlExpressionOrExpression {
-        CALL(@1, @7, expr_atl($3, ATL_DESPITE_F));
+    | T_LBRBR PlayerColorList ']' ']' T_DIAMOND Expression %prec T_ASSIGNMENT {
+        CALL(@1, @6, expr_atl($2, ATL_DESPITE_F));
     }
-    | T_LSHIFT PlayerColorList T_RSHIFT T_BOX AtlExpressionOrExpression {
+    | T_LSHIFT PlayerColorList T_RSHIFT T_BOX Expression %prec T_ASSIGNMENT {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_G));
     }
-    | '[' '[' PlayerColorList ']' ']' T_BOX AtlExpressionOrExpression {
-        CALL(@1, @7, expr_atl($3, ATL_DESPITE_G));
+    | T_LBRBR PlayerColorList ']' ']' T_BOX Expression %prec T_ASSIGNMENT {
+        CALL(@1, @6, expr_atl($2, ATL_DESPITE_G));
     }
-    | T_LSHIFT PlayerColorList T_RSHIFT 'X' AtlExpressionOrExpression {
+    | T_LSHIFT PlayerColorList T_RSHIFT 'X' Expression %prec T_ASSIGNMENT {
         CALL(@1, @5, expr_atl($2, ATL_ENFORCE_NEXT));
     }
-    | '[' '[' PlayerColorList ']' ']' 'X' AtlExpressionOrExpression {
-        CALL(@1, @7, expr_atl($3, ATL_DESPITE_NEXT));
+    | T_LBRBR PlayerColorList ']' ']' 'X' Expression %prec T_ASSIGNMENT {
+        CALL(@1, @6, expr_atl($2, ATL_DESPITE_NEXT));
     }
 ;
 
@@ -1791,12 +1781,8 @@ Query:
 BoolOrKWAnd:
         T_KW_AND | T_BOOL_AND;
 
-BoolOrKWOr:
-        T_KW_OR | T_BOOL_OR;
-
 SubProperty:
-    AtlExpression
-    | T_AF Expression {
+    T_AF Expression {
 	    CALL(@1, @2, expr_unary(AF));
 	}
         | T_AG '(' Expression BoolOrKWAnd T_AF Expression ')' {
@@ -1876,7 +1862,10 @@ AssignablePropperty:
 */
 
 PropertyExpr:
-    SubProperty Subjection {
+    Expression {
+        CALL(@1, @1, property());
+    }
+    | SubProperty Subjection {
         CALL(@1, @1, property());
     }
     | T_PMAX Expression {  // Deprecated, comes from old uppaal-prob.
