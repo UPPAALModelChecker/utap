@@ -26,8 +26,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-using namespace UTAP;
-
+namespace UTAP {
 /*
 void ParserBuilder::handleWarning(const char* msg, ...)
 {
@@ -118,12 +117,12 @@ void AbstractBuilder::proc_edge_begin(std::string_view from, std::string_view to
 void AbstractBuilder::proc_edge_end(std::string_view from, std::string_view to) { UNSUPPORTED; }
 void AbstractBuilder::proc_select(std::string_view id) { UNSUPPORTED; }
 void AbstractBuilder::proc_guard() { UNSUPPORTED; }
-void AbstractBuilder::proc_sync(Constants::Synchronisation type) { UNSUPPORTED; }
+void AbstractBuilder::proc_sync(Sync type) { UNSUPPORTED; }
 void AbstractBuilder::proc_update() { UNSUPPORTED; }
 void AbstractBuilder::proc_prob() { UNSUPPORTED; }
 
 // LSC
-void AbstractBuilder::proc_message(Constants::Synchronisation type) { UNSUPPORTED; }
+void AbstractBuilder::proc_message(Sync type) { UNSUPPORTED; }
 void AbstractBuilder::proc_instance_line() { UNSUPPORTED; }
 void AbstractBuilder::instance_name_begin(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::instance_name_end(std::string_view name, uint32_t arguments) { UNSUPPORTED; }
@@ -190,16 +189,16 @@ void AbstractBuilder::expr_post_increment() { UNSUPPORTED; }
 void AbstractBuilder::expr_pre_increment() { UNSUPPORTED; }
 void AbstractBuilder::expr_post_decrement() { UNSUPPORTED; }
 void AbstractBuilder::expr_pre_decrement() { UNSUPPORTED; }
-void AbstractBuilder::expr_assignment(Constants::Kind op) { UNSUPPORTED; }
-void AbstractBuilder::expr_unary(Constants::Kind unaryop) { UNSUPPORTED; }
-void AbstractBuilder::expr_binary(Constants::Kind binaryop) { UNSUPPORTED; }
-void AbstractBuilder::expr_nary(Constants::Kind kind, uint32_t num) { UNSUPPORTED; }
+void AbstractBuilder::expr_assignment(Kind op) { UNSUPPORTED; }
+void AbstractBuilder::expr_unary(Kind unaryop) { UNSUPPORTED; }
+void AbstractBuilder::expr_binary(Kind binaryop) { UNSUPPORTED; }
+void AbstractBuilder::expr_nary(Kind kind, uint32_t num) { UNSUPPORTED; }
 
 // LSC
 void AbstractBuilder::expr_scenario(std::string_view name) { UNSUPPORTED; }
 // end LSC
 
-void AbstractBuilder::expr_ternary(Constants::Kind ternaryop, bool firstMissing) { UNSUPPORTED; }
+void AbstractBuilder::expr_ternary(Kind ternaryop, bool firstMissing) { UNSUPPORTED; }
 void AbstractBuilder::expr_inline_if() { UNSUPPORTED; }
 void AbstractBuilder::expr_comma() { UNSUPPORTED; }
 void AbstractBuilder::expr_location() { UNSUPPORTED; }
@@ -210,12 +209,12 @@ void AbstractBuilder::expr_forall_end(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_sum_begin(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_sum_end(std::string_view name) { UNSUPPORTED; }
 
-void AbstractBuilder::expr_builtin_function1(Constants::Kind) { UNSUPPORTED; }
-void AbstractBuilder::expr_builtin_function2(Constants::Kind) { UNSUPPORTED; }
-void AbstractBuilder::expr_builtin_function3(Constants::Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_builtin_function1(Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_builtin_function2(Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_builtin_function3(Kind) { UNSUPPORTED; }
 
 void AbstractBuilder::expr_simulate(int no_of_exprs, bool, int) { UNSUPPORTED; }
-void AbstractBuilder::expr_optimize_exp(Constants::Kind, PRICETYPE, Constants::Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_optimize_exp(Kind, PriceType, Kind) { UNSUPPORTED; }
 void AbstractBuilder::expr_load_strategy() { UNSUPPORTED; }
 void AbstractBuilder::expr_save_strategy(std::string_view strategy_name) { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_formula() { UNSUPPORTED; }
@@ -227,9 +226,9 @@ void AbstractBuilder::expr_MITL_next() { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_atom() { UNSUPPORTED; }
 
 void AbstractBuilder::expr_optimize(int, int, int, int) { UNSUPPORTED; }
-void AbstractBuilder::expr_proba_qualitative(Constants::Kind, Constants::Kind, double) { UNSUPPORTED; }
-void AbstractBuilder::expr_proba_quantitative(Constants::Kind) { UNSUPPORTED; }
-void AbstractBuilder::expr_proba_compare(Constants::Kind, Constants::Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_proba_qualitative(Kind, Kind, double) { UNSUPPORTED; }
+void AbstractBuilder::expr_proba_quantitative(Kind) { UNSUPPORTED; }
+void AbstractBuilder::expr_proba_compare(Kind, Kind) { UNSUPPORTED; }
 void AbstractBuilder::expr_proba_expected(std::string_view) { UNSUPPORTED; }
 void AbstractBuilder::expr_exists_begin(std::string_view name) { UNSUPPORTED; }
 void AbstractBuilder::expr_exists_end(std::string_view name) { UNSUPPORTED; }
@@ -295,3 +294,5 @@ void AbstractBuilder::expect_resource(std::string_view, std::string_view, std::s
 void AbstractBuilder::query_results_begin() { UNSUPPORTED; }
 void AbstractBuilder::query_results_end() { UNSUPPORTED; }
 void AbstractBuilder::model_option(std::string_view, std::string_view) { UNSUPPORTED; }
+
+} // namenamespace UTAP

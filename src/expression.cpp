@@ -43,23 +43,22 @@
 #include <cstdint>  // uint32_t
 #include <cstring>
 
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {
 
-struct Expression::expression_data : public std::enable_shared_from_this<Expression::expression_data>
+struct Expression::Data : std::enable_shared_from_this<Data>
 {
     position_t position;  ///< The position of the expression
     Kind kind;            ///< The kind of the node
 
-    std::variant<int32_t, Synchronisation, double, StringIndex> value;
+    std::variant<int32_t, Sync, double, StringIndex> value;
 
     Symbol symbol;                ///< The symbol of the node
     Type type;                    ///< The type of the expression
     std::vector<Expression> sub;  ///< Subexpressions
-    expression_data(const position_t& p, Kind kind, int32_t value): position{p}, kind{kind}, value{value} {}
+    Data(const position_t& p, Kind kind, int32_t value): position{p}, kind{kind}, value{value} {}
 };
 
-Expression::Expression(Kind kind, const position_t& pos) { data = std::make_shared<expression_data>(pos, kind, 0); }
+Expression::Expression(Kind kind, const position_t& pos) { data = std::make_shared<Data>(pos, kind, 0); }
 
 Expression Expression::clone() const
 {
@@ -130,7 +129,7 @@ Expression Expression::subst(const Symbol& symbol, Expression expr) const
 {
     if (empty()) {
         return *this;
-    } else if (get_kind() == IDENTIFIER && get_symbol() == symbol) {
+    } else if (get_kind() == Kind::IDENTIFIER && get_symbol() == symbol) {
         return expr;
     } else if (get_size() == 0) {
         return *this;
@@ -160,10 +159,11 @@ bool Expression::uses_fp() const
     if (empty()) {
         return false;
     }
-    if (data->type.is(Constants::DOUBLE)) {
+    if (data->type.is(Kind::DOUBLE)) {
         return true;
     }
     switch (data->kind) {
+        using namespace KindNames;
     case FABS_F:
     case FMOD_F:
     case FMA_F:
@@ -243,7 +243,7 @@ bool Expression::uses_hybrid() const
     if (empty()) {
         return false;
     }
-    if (get_type().is(HYBRID)) {
+    if (get_type().is(Kind::HYBRID)) {
         return true;
     }
     const auto n = get_size();
@@ -278,6 +278,7 @@ bool Expression::is_dynamic() const
         return false;
     } else {
         switch (data->kind) {
+            using namespace KindNames;
         case SPAWN:
         case NUMOF:
         case EXIT:
@@ -310,6 +311,7 @@ uint32_t Expression::get_size() const
         return 0;
 
     switch (data->kind) {
+        using namespace KindNames;
     case MINUS:
     case PLUS:
     case MULT:
@@ -506,7 +508,7 @@ int32_t Expression::get_value() const
 {
     assert(data);
     assert(data->type.is_integral());
-    assert(data->kind == CONSTANT || data->kind == IDENTIFIER || data->kind == VAR_INDEX);
+    assert(data->kind == Kind::CONSTANT || data->kind == Kind::IDENTIFIER || data->kind == Kind::VAR_INDEX);
     const auto value = std::get<int32_t>(data->value);
     return data->type.is_integer() ? value : (value != 0 ? 1 : 0);
 }
@@ -521,29 +523,29 @@ int32_t Expression::get_record_label_index() const
 double Expression::get_double_value() const
 {
     assert(data);
-    assert(data->kind == CONSTANT);
-    assert(data->type.is(Constants::DOUBLE));
+    assert(data->kind == Kind::CONSTANT);
+    assert(data->type.is(Kind::DOUBLE));
     return std::get<double>(data->value);
 }
 
 int32_t Expression::get_index() const
 {
     assert(data);
-    assert(data->kind == DOT);
+    assert(data->kind == Kind::DOT);
     return std::get<int32_t>(data->value);
 }
 
-Synchronisation Expression::get_sync() const
+Sync Expression::get_sync() const
 {
     assert(data);
-    assert(data->kind == SYNC);
-    return std::get<Synchronisation>(data->value);
+    assert(data->kind == Kind::SYNC);
+    return std::get<Sync>(data->value);
 }
 
 std::string_view Expression::get_string_value() const
 {
     assert(data);
-    assert(data->kind == CONSTANT);
+    assert(data->kind == Kind::CONSTANT);
     assert(data->type.is_string());
     return std::get<StringIndex>(data->value).str();
 }
@@ -551,7 +553,7 @@ std::string_view Expression::get_string_value() const
 size_t Expression::get_string_index() const
 {
     assert(data);
-    assert(data->kind == CONSTANT);
+    assert(data->kind == Kind::CONSTANT);
     assert(data->type.is_string());
     return std::get<StringIndex>(data->value).index();
 }
@@ -584,7 +586,7 @@ bool Expression::empty() const { return data == nullptr; }
 
 bool Expression::is_true() const
 {
-    return data == nullptr || (get_type().is_integral() && data->kind == CONSTANT && get_value() == 1);
+    return data == nullptr || (get_type().is_integral() && data->kind == Kind::CONSTANT && get_value() == 1);
 }
 
 /**
@@ -614,7 +616,7 @@ bool Expression::equal(const Expression& e) const
     if (get_size() != e.get_size() || data->kind != e.data->kind ||
         !std::visit(ValueTypeEquality{}, data->value, e.data->value) || data->symbol != e.data->symbol) {
         return false;
-    }
+        }
 
     for (uint32_t i = 0; i < get_size(); i++) {
         if (!data->sub[i].equal(e[i])) {
@@ -638,6 +640,7 @@ Symbol Expression::get_symbol() const
     assert(data);
 
     switch (get_kind()) {
+        using namespace KindNames;
     case IDENTIFIER: return data->symbol;
 
     case DOT: return get(0).get_symbol();
@@ -681,6 +684,7 @@ void Expression::get_symbols(std::set<Symbol>& symbols) const
     }
 
     switch (get_kind()) {
+        using namespace KindNames;
     case IDENTIFIER: symbols.insert(data->symbol); break;
 
     case DOT: get(0).get_symbols(symbols); break;
@@ -728,7 +732,7 @@ bool Expression::is_reference_to(const std::set<Symbol>& symbols) const
 
 bool Expression::contains_deadlock() const
 {
-    if (get_kind() == UTAP::Constants::DEADLOCK)
+    if (get_kind() == Kind::DEADLOCK)
         return true;
     if (data)
         for (const auto& subexp : data->sub)
@@ -763,6 +767,7 @@ int Expression::get_precedence() const { return get_precedence(data->kind); }
 int Expression::get_precedence(Kind kind)
 {
     switch (kind) {
+        using namespace KindNames;
     case PLUS:
     case MINUS: return 70;
 
@@ -964,8 +969,8 @@ int Expression::get_precedence(Kind kind)
 
 std::ostream& Expression::print_bound_type(std::ostream& os, const Expression& e) const
 {
-    if (e.get_kind() == CONSTANT) {
-        assert(e.get_type().is(Constants::INT));  // Encoding used here.
+    if (e.get_kind() == Kind::CONSTANT) {
+        assert(e.get_type().is(Kind::INT));  // Encoding used here.
 
         if (e.get_value() == 0) {
             os << "#";
@@ -1041,10 +1046,10 @@ static const char* get_builtin_fun_name(Kind kind)
                                      "random_poisson",
                                      "random_tri",
                                      "random_weibull"};
-    static_assert(RANDOM_WEIBULL_F - ABS_F + 1 == std::size(funNames), "Builtin function name list is wrong");
-    assert(ABS_F <= kind);
-    assert(kind <= RANDOM_WEIBULL_F);
-    return funNames[kind - ABS_F];
+    static_assert(Kind::RANDOM_WEIBULL_F - Kind::ABS_F + 1 == std::size(funNames), "Builtin function name list is wrong");
+    assert(Kind::ABS_F <= kind);
+    assert(kind <= Kind::RANDOM_WEIBULL_F);
+    return funNames[kind - Kind::ABS_F];
 }
 
 static inline std::ostream& embrace_strict(std::ostream& os, bool old, const Expression& expr, int precedence)
@@ -1080,6 +1085,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
     uint32_t nb;
 
     switch (data->kind) {
+        using namespace KindNames;
     case PROBA_MIN_BOX: flag = true; [[fallthrough]];
     case PROBA_MIN_DIAMOND:
         os << "Pr[";
@@ -1360,9 +1366,9 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
     case SYNC:
         get(0).print(os, old);
         switch (get_sync()) {
-        case SYNC_QUE: os << '?'; break;
-        case SYNC_BANG: os << '!'; break;
-        case SYNC_CSP:
+        case Sync::QUE: os << '?'; break;
+        case Sync::BANG: os << '!'; break;
+        case Sync::CSP:
             // no append
             break;
         }
@@ -1461,7 +1467,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         os << "minE(";
         get(3).print(os, old);
         os << ")[";
-        if (get(0).get_kind() == Constants::CONSTANT) {
+        if (get(0).get_kind() == CONSTANT) {
             if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
@@ -1470,10 +1476,10 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         os << "<=";
         get(1).print(os, old);
         os << "]";
-        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+        if (auto features1 = get(5); features1.get_kind() == LIST) {
             features1.print(os << " {", old);
             os << "} -> {";
-            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+            if (auto features2 = get(6); features2.get_kind() == LIST)
                 features2.print(os, old);
             os << "}";
         }
@@ -1485,7 +1491,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         os << "maxE(";
         get(3).print(os, old);
         os << ")[";
-        if (get(0).get_kind() == Constants::CONSTANT) {
+        if (get(0).get_kind() == CONSTANT) {
             if (bool is_step_bound = (get(0).get_value() == 0); is_step_bound)
                 os << "#";
         } else {
@@ -1494,10 +1500,10 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         os << "<=";
         get(1).print(os, old);
         os << "]";
-        if (auto features1 = get(5); features1.get_kind() == Constants::LIST) {
+        if (auto features1 = get(5); features1.get_kind() == LIST) {
             features1.print(os << " {", old);
             os << "} -> {";
-            if (auto features2 = get(6); features2.get_kind() == Constants::LIST)
+            if (auto features2 = get(6); features2.get_kind() == LIST)
                 features2.print(os, old);
             os << "}";
         }
@@ -1628,7 +1634,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
         break;
     case TYPEDEF: os << "typedef"; break;
 
-    // Types - Not applicable in expression printing
+        // Types - Not applicable in expression printing
     case RANGE:
     case RECORD:
     case REF:
@@ -1663,7 +1669,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
     case BRANCHPOINT:
     case PROBABILITY:
     case DOUBLE_INV_GUARD:
-    // Deprecated LSC features
+        // Deprecated LSC features
     case SCENARIO:
     case SCENARIO2:
     case INSTANCE_LINE:
@@ -1671,7 +1677,7 @@ std::ostream& Expression::print(std::ostream& os, bool old) const
     case CONDITION:
     case UPDATE:
     case LSC_INSTANCE:
-    // Deprecated probability feature
+        // Deprecated probability feature
     case PMAX:
 
     case UNKNOWN: break;
@@ -1703,6 +1709,7 @@ void Expression::collect_possible_writes(std::set<Symbol>& symbols) const
     }
 
     switch (get_kind()) {
+        using namespace KindNames;
     case ASSIGN:
     case ASS_PLUS:
     case ASS_MINUS:
@@ -1735,7 +1742,7 @@ void Expression::collect_possible_writes(std::set<Symbol>& symbols) const
                     get(i).get_symbols(symbols);
                 }
             }
-        }
+            }
         break;
 
     default: break;
@@ -1751,6 +1758,7 @@ void Expression::collect_possible_reads(std::set<Symbol>& symbols, bool collectR
         get(i).collect_possible_reads(symbols);
 
     switch (get_kind()) {
+        using namespace KindNames;
     case IDENTIFIER: symbols.insert(get_symbol()); break;
 
     case FUN_CALL: {
@@ -1794,47 +1802,47 @@ void Expression::collect_possible_reads(std::set<Symbol>& symbols, bool collectR
 
 Expression Expression::create_constant(int32_t value, position_t pos)
 {
-    auto expr = Expression{CONSTANT, pos};
+    auto expr = Expression{Kind::CONSTANT, pos};
     expr.data->value = value;
-    expr.data->type = Type::create_primitive(Constants::INT);
+    expr.data->type = Type::create_primitive(Kind::INT);
     return expr;
 }
 
 Expression Expression::create_var_index(int32_t value, position_t pos)
 {
-    auto expr = Expression{VAR_INDEX, pos};
+    auto expr = Expression{Kind::VAR_INDEX, pos};
     expr.data->value = value;
-    expr.data->type = Type::create_primitive(Constants::INT);
+    expr.data->type = Type::create_primitive(Kind::INT);
     return expr;
 }
 
 Expression Expression::create_exit(position_t pos)
 {
-    auto expr = Expression{EXIT, pos};
+    auto expr = Expression{Kind::EXIT, pos};
     expr.data->value = 0;
-    expr.data->type = Type::create_primitive(Constants::VOID_TYPE);
+    expr.data->type = Type::create_primitive(Kind::VOID_TYPE);
     return expr;
 }
 
 Expression Expression::create_double(double value, position_t pos)
 {
-    auto expr = Expression{CONSTANT, pos};
+    auto expr = Expression{Kind::CONSTANT, pos};
     expr.data->value = value;
-    expr.data->type = Type::create_primitive(Constants::DOUBLE);
+    expr.data->type = Type::create_primitive(Kind::DOUBLE);
     return expr;
 }
 
 Expression Expression::create_string(StringIndex str, position_t pos)
 {
-    auto expr = Expression{CONSTANT, pos};
+    auto expr = Expression{Kind::CONSTANT, pos};
     expr.data->value = str;
-    expr.data->type = Type::create_primitive(Constants::STRING);
+    expr.data->type = Type::create_primitive(Kind::STRING);
     return expr;
 }
 
 Expression Expression::create_identifier(const Symbol& symbol, position_t pos)
 {
-    auto expr = Expression{IDENTIFIER, pos};
+    auto expr = Expression{Kind::IDENTIFIER, pos};
     expr.data->symbol = symbol;
     if (symbol != Symbol()) {
         expr.data->type = symbol.get_type();
@@ -1884,16 +1892,16 @@ Expression Expression::create_ternary(Kind kind, Expression e1, Expression e2, E
 
 Expression Expression::create_dot(Expression e, int32_t idx, position_t pos, Type type)
 {
-    auto expr = Expression{DOT, pos};
+    auto expr = Expression{Kind::DOT, pos};
     expr.data->value = idx;
     expr.data->sub.push_back(std::move(e));
     expr.data->type = std::move(type);
     return expr;
 }
 
-Expression Expression::create_sync(Expression e, Synchronisation s, position_t pos)
+Expression Expression::create_sync(Expression e, Sync s, position_t pos)
 {
-    auto expr = Expression{SYNC, pos};
+    auto expr = Expression{Kind::SYNC, pos};
     expr.data->value = s;
     expr.data->sub.push_back(std::move(e));
     return expr;
@@ -1901,7 +1909,9 @@ Expression Expression::create_sync(Expression e, Synchronisation s, position_t p
 
 Expression Expression::create_deadlock(position_t pos)
 {
-    auto expr = Expression{DEADLOCK, pos};
-    expr.data->type = Type::create_primitive(CONSTRAINT);
+    auto expr = Expression{Kind::DEADLOCK, pos};
+    expr.data->type = Type::create_primitive(Kind::CONSTRAINT);
     return expr;
 }
+
+} // nanamespace UTAP

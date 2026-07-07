@@ -208,9 +208,9 @@ private:
 protected:
     std::list<PropInfo> properties{};  // TigaPropertyBuilder assumes stable list and stores pointers.
 
-    UTAP::Variable* addVariable(UTAP::Type type, std::string_view name, UTAP::Expression init,
+    UTAP::Variable* add_variable(UTAP::Type type, std::string_view name, UTAP::Expression init,
                                 UTAP::position_t pos) override;
-    bool addFunction(UTAP::Type type, std::string_view name, UTAP::position_t pos) override;
+    bool add_function(UTAP::Type type, std::string_view name, UTAP::position_t pos) override;
 
     void typeCheck(UTAP::Expression& expr);
     bool allowProcessReferences() override;

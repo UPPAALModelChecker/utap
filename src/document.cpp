@@ -37,8 +37,7 @@
 #include <dlfcn.h>
 #endif
 
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {  // Explicit instantiations to generate implementation
 
 template <typename Item>
 std::string Stringify<Item>::str() const
@@ -56,7 +55,6 @@ std::string StringifyIndent<Item>::str(const std::string& indent) const
     return os.str();
 }
 
-namespace UTAP {  // Explicit instantiations to generate implementation
 template struct Stringify<ChanPriority>;
 template struct Stringify<Variable>;
 template struct Stringify<Location>;
@@ -65,7 +63,6 @@ template struct Stringify<Function>;
 template struct Stringify<Declarations>;
 template struct Stringify<LSCSimRegion>;
 template struct Stringify<LSCCut>;
-}  // namespace UTAP
 
 std::ostream& Location::print(std::ostream& os) const
 {
@@ -148,7 +145,7 @@ std::ostream& Declarations::print_constants(std::ostream& os) const
     if (!variables.empty()) {
         bool first = true;
         for (const auto& variable : variables) {
-            if (variable.uid.get_type().get_kind() == CONSTANT) {
+            if (variable.uid.get_type().get_kind() == Kind::CONSTANT) {
                 if (first) {
                     os << "// constants\n";
                     first = false;
@@ -164,7 +161,7 @@ std::ostream& Declarations::print_typedefs(std::ostream& os) const
 {
     bool first = true;
     for (const auto& symbol : frame) {
-        if (symbol.get_type().get_kind() == TYPEDEF) {
+        if (symbol.get_type().get_kind() == Kind::TYPEDEF) {
             if (first) {
                 os << "// type definitions\n";
                 first = false;
@@ -180,7 +177,7 @@ std::ostream& Declarations::print_variables(std::ostream& os, bool global) const
     if (!variables.empty()) {
         os << "// variables\n";
         for (const auto& var : variables)
-            if (var.uid.get_type().get_kind() != CONSTANT)
+            if (var.uid.get_type().get_kind() != Kind::CONSTANT)
                 var.print(os) << ";\n";
     }
     return os;
@@ -255,7 +252,7 @@ Location& Template::add_location(std::string_view name, Expression inv, Expressi
 {
     bool duplicate = frame.contains(name);
     auto& loc = locations.emplace_back();
-    loc.uid = frame.add_symbol(name, Type::create_primitive(LOCATION), pos, &loc);
+    loc.uid = frame.add_symbol(name, Type::create_primitive(Kind::LOCATION), pos, &loc);
     loc.nr = static_cast<int32_t>(locations.size() - 1);
     loc.invariant = std::move(inv);
     loc.exp_rate = std::move(er);
@@ -270,7 +267,7 @@ Branchpoint& Template::add_branchpoint(std::string_view name, position_t pos)
 {
     bool duplicate = frame.contains(name);
     auto& branchpoint = branchpoints.emplace_back();
-    branchpoint.uid = frame.add_symbol(name, Type::create_primitive(BRANCHPOINT), pos, &branchpoint);
+    branchpoint.uid = frame.add_symbol(name, Type::create_primitive(Kind::BRANCHPOINT), pos, &branchpoint);
     branchpoint.bpNr = static_cast<int32_t>(branchpoints.size() - 1);
     if (duplicate)
         throw duplicate_definition_error(name);
@@ -946,7 +943,7 @@ static void visit(DocumentVisitor& visitor, Frame& frame)
 {
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
         Type type = frame[i].get_type();
-        if (type.get_kind() == TYPEDEF) {
+        if (type.get_kind() == Kind::TYPEDEF) {
             visitor.visit_typedef(frame[i]);
             continue;
         }
@@ -954,21 +951,21 @@ static void visit(DocumentVisitor& visitor, Frame& frame)
         void* data = frame[i].get_data();
         type = type.strip_array();
         // TODO: use visitor dispatch to recover the type
-        if ((type.is(Constants::INT) || type.is(Constants::STRING) || type.is(Constants::DOUBLE) ||
-             type.is(Constants::BOOL) || type.is(CLOCK) || type.is(CHANNEL) || type.is(SCALAR) ||
-             type.get_kind() == RECORD) &&
+        if ((type.is(Kind::INT) || type.is(Kind::STRING) || type.is(Kind::DOUBLE) ||
+             type.is(Kind::BOOL) || type.is(Kind::CLOCK) || type.is(Kind::CHANNEL) || type.is(Kind::SCALAR) ||
+             type.get_kind() == Kind::RECORD) &&
             data != nullptr)  // <--- ignore parameters
         {
             visitor.visit_variable(*static_cast<Variable*>(data));
-        } else if (type.is(LOCATION)) {
+        } else if (type.is(Kind::LOCATION)) {
             visitor.visit_location(*static_cast<Location*>(data));
-        } else if (type.is(LOCATION_EXPR)) {
+        } else if (type.is(Kind::LOCATION_EXPR)) {
             visitor.visit_location(*static_cast<Location*>(data));
-        } else if (type.is(FUNCTION)) {
+        } else if (type.is(Kind::FUNCTION)) {
             visitor.visit_function(*static_cast<Function*>(data));
-        } else if (type.is(FUNCTION_EXTERNAL)) {
+        } else if (type.is(Kind::FUNCTION_EXTERNAL)) {
             // we cannot look inside a external function, skip.
-        } else if (type.is(INSTANCE_LINE)) {
+        } else if (type.is(Kind::INSTANCE_LINE)) {
             visitor.visit_instance_line(*static_cast<LSCInstanceLine*>(data));
         }
     }
@@ -1002,11 +999,11 @@ void Document::accept(DocumentVisitor& visitor)
     for (auto i = 0u; i < global.frame.get_size(); ++i) {
         const Type type = global.frame[i].get_type().strip_array();
         void* data = global.frame[i].get_data();
-        if (type.is(PROCESS) || type.is(PROCESS_SET)) {
+        if (type.is(Kind::PROCESS) || type.is(Kind::PROCESS_SET)) {
             visitor.visit_process(*static_cast<Instance*>(data));
-        } else if (type.is(INSTANCE)) {
+        } else if (type.is(Kind::INSTANCE)) {
             visitor.visit_instance(*static_cast<Instance*>(data));
-        } else if (type.is(LSC_INSTANCE)) {
+        } else if (type.is(Kind::LSC_INSTANCE)) {
             visitor.visit_instance(*static_cast<Instance*>(data));
         }
     }
@@ -1083,3 +1080,5 @@ void Document::set_supported_methods(const SupportedMethods& supported_methods)
 {
     this->supported_methods = supported_methods;
 }
+
+}  // namespace UTAP

@@ -59,7 +59,6 @@ class NoParentException : public std::exception
 */
 class Symbol
 {
-private:
     struct Data;
     std::shared_ptr<Data> data{nullptr};  // pImpl pattern
 
@@ -70,22 +69,15 @@ protected:
 public:
     /// Default constructor
     Symbol() = default;
-    Symbol(const Symbol&) = default;
+    ~Symbol() noexcept; ///< hidden dtor due to pImpl
+    Symbol(const Symbol&) = default; ///< light/shallow copy
+    Symbol& operator=(const Symbol&) = default; ///< light/shallow copy
     Symbol(Symbol&&) = default;
-    Symbol& operator=(const Symbol&) = default;
     Symbol& operator=(Symbol&&) = default;
 
-    /// Destructor
-    ~Symbol() noexcept;
-
-    /// Equality operator
-    bool operator==(const Symbol&) const;
-
-    /// Inequality operator
-    bool operator!=(const Symbol&) const;
-
-    /// Less-than operator
-    bool operator<(const Symbol&) const;
+    bool operator==(const Symbol& other) const { return data == other.data; }
+    bool operator!=(const Symbol& other) const { return !(*this == other); }
+    bool operator<(const Symbol& other) const { return data < other.data; }
 
     /// Get frame this symbol belongs to
     Frame get_frame() const;  // TODO: consider removing this method (mostly unused)
@@ -159,10 +151,10 @@ public:
     Frame make_sub();
 
     /// Equality operator
-    bool operator==(const Frame&) const;
+    bool operator==(const Frame& other) const { return data == other.data; }
 
     /// Inequality operator
-    bool operator!=(const Frame&) const;
+    bool operator!=(const Frame& other) const { return !(*this == other); }
 
     /// Returns the number of symbols in this frame
     uint32_t get_size() const;

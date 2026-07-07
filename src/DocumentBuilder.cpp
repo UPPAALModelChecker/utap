@@ -28,8 +28,8 @@
 #include <vector>
 #include <cassert>
 
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {
+
 using namespace std::string_view_literals;
 
 DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::path> paths):
@@ -39,7 +39,7 @@ DocumentBuilder::DocumentBuilder(Document& doc, std::vector<std::filesystem::pat
 /************************************************************
  * Variable and function declarations
  */
-Variable* DocumentBuilder::addVariable(Type type, std::string_view name, Expression init, position_t pos)
+Variable* DocumentBuilder::add_variable(Type type, std::string_view name, Expression init, position_t pos)
 {
     if (currentFun != nullptr) {
         return document.add_variable_to_function(currentFun, frames.top(), type, name, init, pos);
@@ -48,7 +48,7 @@ Variable* DocumentBuilder::addVariable(Type type, std::string_view name, Express
     }
 }
 
-bool DocumentBuilder::addFunction(Type type, std::string_view name, position_t pos)
+bool DocumentBuilder::add_function(Type type, std::string_view name, position_t pos)
 {
     return getCurrentDeclarationBlock()->add_function(type, name, pos, currentFun);
 }
@@ -61,12 +61,12 @@ Declarations* DocumentBuilder::getCurrentDeclarationBlock()
 void DocumentBuilder::addSelectSymbolToFrame(std::string_view id, Frame& frame, position_t pos)
 {
     auto type = typeFragments.pop();
-    if (!type.is(CONSTANT)) {
-        type = type.create_prefix(CONSTANT);
+    if (!type.is(Kind::CONSTANT)) {
+        type = type.create_prefix(Kind::CONSTANT);
     }
     if (!type.is_scalar() && !type.is_integer()) {
         handle_error(TypeException{"$Scalar_set_or_integer_expected"});
-    } else if (!type.is(RANGE)) {
+    } else if (!type.is(Kind::RANGE)) {
         handle_error(TypeException{"$Range_expected"});
     } else {
         if (auto uid = Symbol{}; resolve(id, uid))
@@ -178,10 +178,10 @@ void DocumentBuilder::proc_location_commit(std::string_view name)
 {
     if (auto uid = Symbol{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
-    } else if (uid.get_type().is(URGENT)) {
+    } else if (uid.get_type().is(Kind::URGENT)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
     } else {
-        uid.set_type(uid.get_type().create_prefix(COMMITTED, position));
+        uid.set_type(uid.get_type().create_prefix(Kind::COMMITTED, position));
     }
 }
 
@@ -189,10 +189,10 @@ void DocumentBuilder::proc_location_urgent(std::string_view name)
 {
     if (auto uid = Symbol{}; !resolve(name, uid) || !uid.get_type().is_location()) {
         handle_error(TypeException{"$Location_expected"});
-    } else if (uid.get_type().is(COMMITTED)) {
+    } else if (uid.get_type().is(Kind::COMMITTED)) {
         handle_error(TypeException{"$States_cannot_be_committed_and_urgent_at_the_same_time"});
     } else {
-        uid.set_type(uid.get_type().create_prefix(URGENT, position));
+        uid.set_type(uid.get_type().create_prefix(Kind::URGENT, position));
     }
 }
 
@@ -214,18 +214,18 @@ void DocumentBuilder::proc_edge_begin(std::string_view from, std::string_view to
         !resolve(from, fid) || (!fid.get_type().is_location() && !fid.get_type().is_branchpoint())) {
         handle_error(TypeException{"$No_such_location_or_branchpoint_(source)"});
         push_frame(frames.top().make_sub());  // dummy frame for upcoming popFrame
-    } else if (auto tid = Symbol{};
-               !resolve(to, tid) || (!tid.get_type().is_location() && !tid.get_type().is_branchpoint())) {
-        handle_error(TypeException{"$No_such_location_or_branchpoint_(destination)"});
-        push_frame(frames.top().make_sub());  // dummy frame for upcoming popFrame
-    } else {
-        currentEdge = &currentTemplate->add_edge(fid, tid, control, actname);
-        currentEdge->guard = make_constant(1);
-        currentEdge->assign = make_constant(1);
-        // default "probability" weight is 1.
-        currentEdge->prob = make_constant(1);
-        push_frame(currentEdge->select = frames.top().make_sub());
-    }
+        } else if (auto tid = Symbol{};
+                   !resolve(to, tid) || (!tid.get_type().is_location() && !tid.get_type().is_branchpoint())) {
+            handle_error(TypeException{"$No_such_location_or_branchpoint_(destination)"});
+            push_frame(frames.top().make_sub());  // dummy frame for upcoming popFrame
+                   } else {
+                       currentEdge = &currentTemplate->add_edge(fid, tid, control, actname);
+                       currentEdge->guard = make_constant(1);
+                       currentEdge->assign = make_constant(1);
+                       // default "probability" weight is 1.
+                       currentEdge->prob = make_constant(1);
+                       push_frame(currentEdge->select = frames.top().make_sub());
+                   }
 }
 
 void DocumentBuilder::proc_edge_end(std::string_view from, std::string_view to) { frames.pop(); }
@@ -241,7 +241,7 @@ void DocumentBuilder::proc_guard()
     currentEdge->guard = fragments.pop();
 }
 
-void DocumentBuilder::proc_sync(Synchronisation type)
+void DocumentBuilder::proc_sync(Sync type)
 {
     if (currentEdge == nullptr) {
         handle_error(TypeException("Must be declared inside of an edge"));
@@ -281,9 +281,9 @@ void DocumentBuilder::instantiation_begin(std::string_view name, uint32_t parame
     // Lookup symbol.
     auto id = Symbol{};
     if (!resolve(templ_name, id) ||
-        (id.get_type().get_kind() != INSTANCE && id.get_type().get_kind() != LSC_INSTANCE)) {
+        (id.get_type().get_kind() != Kind::INSTANCE && id.get_type().get_kind() != Kind::LSC_INSTANCE)) {
         handle_error(TypeException{"$Not_a_template"});
-    }
+        }
 
     // Push parameters to frame stack.
     auto frame = frames.top().make_sub();
@@ -303,7 +303,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
      * reported the problem.
      */
     auto id = Symbol{};
-    if (resolve(templ_name, id) && (id.get_type().get_kind() == INSTANCE || id.get_type().get_kind() == LSC_INSTANCE)) {
+    if (resolve(templ_name, id) && (id.get_type().get_kind() == Kind::INSTANCE || id.get_type().get_kind() == Kind::LSC_INSTANCE)) {
         auto* old_instance = static_cast<Instance*>(id.get_data());
         // Check number of arguments. If too many arguments, pop the rest.
         auto expected = id.get_type().size();
@@ -318,7 +318,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
                 exprs[arguments] = fragments.pop();
             arguments = 0;
             // Create template composition.
-            Instance& new_instance = (id.get_type().get_kind() == INSTANCE)
+            Instance& new_instance = (id.get_type().get_kind() == Kind::INSTANCE)
                                          ? document.add_instance(name, *old_instance, params, exprs, position)
                                          : document.add_LSC_instance(name, *old_instance, params, exprs, position);
 
@@ -331,7 +331,7 @@ void DocumentBuilder::instantiation_end(std::string_view name, uint32_t paramete
             std::set<Symbol>& restricted = old_instance->restricted;
             for (uint32_t i = 0; i < expected; i++) {
                 if (restricted.find(old_instance->parameters[i]) != restricted.end()) {
-                    collectDependencies(new_instance.restricted, exprs[i]);
+                    collect_dependencies(new_instance.restricted, exprs[i]);
                 }
             }
         }
@@ -348,7 +348,7 @@ void DocumentBuilder::process(std::string_view name)
         throw no_such_process_error(name);
 
     auto type = symbol.get_type();
-    if (type.get_kind() != INSTANCE)
+    if (type.get_kind() != Kind::INSTANCE)
         throw not_a_template_error(symbol.get_name());
     if (type.size() > 0) {
         // FIXME: Check type of unbound parameters
@@ -408,10 +408,10 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
     if (templ) {
         auto instName = std::string{name};
         auto templName = instName.substr(0, instName.find('('));
-        if (!resolve(templName, uid) || (uid.get_type().get_kind() != INSTANCE))
+        if (!resolve(templName, uid) || (uid.get_type().get_kind() != Kind::INSTANCE))
             handle_error(not_a_template_error(templName));
     } else {
-        if (resolve(name, uid) && (uid.get_type().get_kind() == INSTANCE)) {
+        if (resolve(name, uid) && (uid.get_type().get_kind() == Kind::INSTANCE)) {
             const auto* t = static_cast<Template*>(uid.get_data());
             if (t->parameters.get_size() > 0) {
                 handle_error(TypeException{"$Wrong_number_of_arguments_in_instance_line_name"});
@@ -419,7 +419,7 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
         }
     }
     currentInstanceLine->uid =
-        currentTemplate->frame.add_symbol(name, Type::create_primitive(INSTANCE_LINE), position, currentInstanceLine);
+        currentTemplate->frame.add_symbol(name, Type::create_primitive(Kind::INSTANCE_LINE), position, currentInstanceLine);
 }
 
 void DocumentBuilder::instance_name_begin(std::string_view name)
@@ -440,7 +440,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
     // assert(parameters == params.get_size());
 
     // Lookup symbol. In case of failure, instance_name_begin already reported the problem.
-    if (auto id = Symbol{}; resolve(name, id) && id.get_type().get_kind() == INSTANCE) {
+    if (auto id = Symbol{}; resolve(name, id) && id.get_type().get_kind() == Kind::INSTANCE) {
         auto* old_instance = static_cast<Instance*>(id.get_data());
 
         /* Check number of arguments. If too many arguments, pop the
@@ -471,7 +471,7 @@ void DocumentBuilder::instance_name_end(std::string_view name, uint32_t argument
             std::set<Symbol>& restricted = old_instance->restricted;
             for (uint32_t i = 0; i < expected; i++) {
                 if (restricted.find(old_instance->parameters[i]) != restricted.end()) {
-                    collectDependencies(currentInstanceLine->restricted, exprs[i]);
+                    collect_dependencies(currentInstanceLine->restricted, exprs[i]);
                 }
             }
         }
@@ -495,7 +495,7 @@ void DocumentBuilder::proc_message(std::string_view from, std::string_view to, c
     }
 }
 
-void DocumentBuilder::proc_message(Synchronisation type)  // Label
+void DocumentBuilder::proc_message(Sync type)  // Label
 {
     if (currentMessage != nullptr)
         currentMessage->label = Expression::create_sync(fragments[0], type, position);
@@ -572,7 +572,7 @@ void DocumentBuilder::decl_dynamic_template(std::string_view name)
 
     for (uint32_t i = 0; i < params.get_size(); i++) {
         if (!params[i].get_type().is_integer() && !params[i].get_type().is_boolean() &&
-            !(params[i].get_type().is(REF) && params[i].get_type()[0].is(BROADCAST)))
+            !(params[i].get_type().is(Kind::REF) && params[i].get_type()[0].is(Kind::BROADCAST)))
             handle_error(TypeException{"Dynamic template parameters can either be boolean or integer and "
                                        "cannot be references"});
     }
@@ -664,3 +664,5 @@ void DocumentBuilder::model_option(std::string_view key, std::string_view value)
         handle_error(TypeException{"options tag found without attribute 'key'"});
     document.get_options().emplace_back(std::string{key}, std::string{value});
 }
+
+} // namespace UTAP

@@ -34,8 +34,7 @@
 #include <dlfcn.h>
 #endif
 
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {
 
 StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::path> libpaths):
     ExpressionBuilder{doc}, libpaths{std::move(libpaths)}
@@ -44,7 +43,7 @@ StatementBuilder::StatementBuilder(Document& doc, std::vector<std::filesystem::p
     this->libpaths.emplace(this->libpaths.begin(), "");
 }
 
-void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const Expression& expr)
+void StatementBuilder::collect_dependencies(std::set<Symbol>& dependencies, const Expression& expr)
 {
     auto symbols = std::set<Symbol>{};
     expr.collect_possible_reads(symbols);
@@ -66,16 +65,16 @@ void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const
     }
 }
 
-void StatementBuilder::collectDependencies(std::set<Symbol>& dependencies, const Type& type)
+void StatementBuilder::collect_dependencies(std::set<Symbol>& dependencies, const Type& type)
 {
-    if (type.get_kind() == RANGE) {
+    if (type.get_kind() == Kind::RANGE) {
         auto [lower, upper] = type.get_range();
-        collectDependencies(dependencies, lower);
-        collectDependencies(dependencies, upper);
-        collectDependencies(dependencies, type[0]);
+        collect_dependencies(dependencies, lower);
+        collect_dependencies(dependencies, upper);
+        collect_dependencies(dependencies, type[0]);
     } else {
         for (uint32_t i = 0; i < type.size(); ++i)
-            collectDependencies(dependencies, type[i]);
+            collect_dependencies(dependencies, type[i]);
     }
 }
 
@@ -88,7 +87,7 @@ void StatementBuilder::type_array_of_size(uint32_t n)
     expr_nat(0);
     fragments.push(expr);
     expr_nat(1);
-    expr_binary(MINUS);
+    expr_binary(Kind::MINUS);
     type_bounded_int(TypePrefix::NONE);
     type_array_of_type(n + 1);
 }
@@ -104,10 +103,10 @@ void StatementBuilder::type_array_of_type(uint32_t n)
      * processes.
      */
     if (currentTemplate != nullptr) {
-        collectDependencies(currentTemplate->restricted, size);
+        collect_dependencies(currentTemplate->restricted, size);
     }
 
-    if ((!size.is_integer() && !size.is_scalar()) || !size.is(RANGE)) {
+    if ((!size.is_integer() && !size.is_scalar()) || !size.is(Kind::RANGE)) {
         handle_error(TypeException{"$Array_must_be_defined_over_an_integer_range_or_a_scalar_set"});
     }
 }
@@ -135,7 +134,7 @@ void StatementBuilder::struct_field(std::string_view name)
     auto type = typeFragments.pop();
 
     // Constant fields are not allowed
-    if (type.is(CONSTANT))
+    if (type.is(Kind::CONSTANT))
         handle_error(TypeException{"$Constant_fields_not_allowed_in_struct"});
 
     fields.push_back(type);
@@ -171,7 +170,7 @@ static bool initialisable(Type type)
 {
     type = type.strip();
     switch (type.get_kind()) {
-    case RECORD:
+    case Kind::RECORD:
         for (auto i = 0u; i < type.size(); i++) {
             if (!initialisable(type[i])) {
                 return false;
@@ -179,12 +178,12 @@ static bool initialisable(Type type)
         }
         return true;
 
-    case ARRAY:
+    case Kind::ARRAY:
         if (type.get_array_size().is_scalar()) {
             return false;
         }
         return initialisable(type.get_sub());
-    case STRING: return true;
+    case Kind::STRING: return true;
     default: return type.is_integral() || type.is_clock() || type.is_double();
     }
 }
@@ -192,15 +191,15 @@ static bool initialisable(Type type)
 static bool mustInitialise(const Type& type)
 {
     const auto k = type.get_kind();
-    assert(k != FUNCTION);
-    assert(k != FUNCTION_EXTERNAL);
-    assert(k != PROCESS);
-    assert(k != INSTANCE);
-    assert(k != LSC_INSTANCE);
+    assert(k != Kind::FUNCTION);
+    assert(k != Kind::FUNCTION_EXTERNAL);
+    assert(k != Kind::PROCESS);
+    assert(k != Kind::INSTANCE);
+    assert(k != Kind::LSC_INSTANCE);
 
     switch (k) {
-    case CONSTANT: return true;
-    case RECORD:
+    case Kind::CONSTANT: return true;
+    case Kind::RECORD:
         for (auto i = 0u; i < type.size(); i++) {
             if (mustInitialise(type[i])) {
                 return true;
@@ -243,7 +242,7 @@ void StatementBuilder::decl_var(std::string_view name, bool hasInit)
     }
 
     // Add variable to document
-    addVariable(type, name, init, position_t());
+    add_variable(type, name, init, position_t());
 }
 
 // Array and struct initialisers are represented as expressions having
@@ -284,13 +283,13 @@ Expression StatementBuilder::make_initialiser(const Type& type, const Expression
 {
     if (type.is_assignment_compatible(init.get_type(), true)) {
         return init;
-    } else if (type.is_array() && init.get_kind() == LIST) {
+    } else if (type.is_array() && init.get_kind() == Kind::LIST) {
         auto subtype = type.get_sub();
         auto result = std::vector<Expression>(init.get_size());
         for (uint32_t i = 0; i < init.get_type().size(); i++)
             result[i] = make_initialiser(subtype, init[i]);
-        return Expression::create_nary(LIST, result, init.get_position(), type);
-    } else if (type.is_record() && init.get_kind() == LIST) {
+        return Expression::create_nary(Kind::LIST, result, init.get_position(), type);
+    } else if (type.is_record() && init.get_kind() == Kind::LIST) {
         /* In order to access the record labels we have to strip any
          * prefixes and labels from the record type.
          */
@@ -317,7 +316,7 @@ Expression StatementBuilder::make_initialiser(const Type& type, const Expression
             }
             result[current] = make_initialiser(type.get_sub(current), init[i]);
         }
-        return Expression::create_nary(LIST, result, init.get_position(), type);
+        return Expression::create_nary(Kind::LIST, result, init.get_position(), type);
     }
     document.add_error(init.get_position(), "$Invalid_initialiser", type.str());
     return init;
@@ -343,7 +342,7 @@ void StatementBuilder::decl_init_list(uint32_t num)
         fields[i].set_type(type[0]);
     }
     // Create list expression
-    fragments.push(Expression::create_nary(LIST, fields, position, Type::create_record(types, labels, position)));
+    fragments.push(Expression::create_nary(Kind::LIST, fields, position, Type::create_record(types, labels, position)));
 }
 
 /********************************************************************
@@ -353,7 +352,7 @@ void StatementBuilder::decl_parameter(std::string_view name, bool ref)
 {
     Type type = typeFragments.pop();
     if (ref)
-        type = type.create_prefix(REF);
+        type = type.create_prefix(Kind::REF);
     params.add_symbol(name, type, position);
 }
 
@@ -383,7 +382,7 @@ void StatementBuilder::decl_func_begin(std::string_view name)
         labels.push_back(param.get_name());
     }
     auto type = Type::create_function(return_type, types, labels, position);
-    if (!addFunction(type, name, {}))
+    if (!add_function(type, name, {}))
         handle_error(duplicate_definition_error(name));
 
     /* We maintain a stack of frames. As the function has a local
@@ -473,7 +472,7 @@ void StatementBuilder::decl_external_func(std::string_view name, std::string_vie
     }
 
     auto type = Type::create_external_function(return_type, types, labels, position);
-    if (!addFunction(type, alias, position_t()))
+    if (!add_function(type, alias, position_t()))
         handle_error(duplicate_definition_error(alias));
     push_frame(frames.top().make_sub());
     params.move_to(frames.top());  // params is emptied here
@@ -520,15 +519,15 @@ void StatementBuilder::iteration_begin(std::string_view name)
 {
     Type type = typeFragments.pop();
     // The iterator cannot be modified.
-    if (!type.is(CONSTANT)) {
-        type = type.create_prefix(CONSTANT);
+    if (!type.is(Kind::CONSTANT)) {
+        type = type.create_prefix(Kind::CONSTANT);
     }
 
     // The iteration statement has a local scope for the iterator.
     push_frame(frames.top().make_sub());
 
     // Add variable.
-    Variable* variable = addVariable(type, name, Expression(), position_t());
+    Variable* variable = add_variable(type, name, Expression(), position_t());
 
     /* Create a new statement for the loop. We need to already create
      * this here as the statement is the only thing that can keep the
@@ -621,3 +620,5 @@ void StatementBuilder::expr_call_begin()
         handle_error(TypeException{"$Recursion_is_not_allowed"});
     }
 }
+
+} // namespace UTAP

@@ -28,6 +28,8 @@
 #include <memory>
 #include <system_error>
 
+namespace UTAP {
+
 // The maximum length is 4000 (see error message) + 1 for the
 // terminating \0.
 constexpr auto MAXLEN = 4001u;
@@ -57,7 +59,6 @@ constexpr Syntax operator&(const Syntax& s1, const Syntax& s2)
     return Syntax{static_cast<T>(s1) & static_cast<T>(s2)};
 }
 
-namespace UTAP {
 /**
  * Help class used by the lexer, parser and xmlreader to keep
  * track of the current position.

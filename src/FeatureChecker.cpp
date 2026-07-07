@@ -27,7 +27,7 @@
 
 #include <cassert>
 
-using namespace UTAP;
+namespace UTAP {
 
 FeatureChecker::FeatureChecker(Document& document)
 {
@@ -62,14 +62,15 @@ void FeatureChecker::visit_edge(Edge& edge)
 void FeatureChecker::visit_guard(Expression& guard)
 {
     switch (guard.get_kind()) {
-    case Constants::LT:
-    case Constants::LE:
-    case Constants::EQ:
+        using namespace KindNames;
+    case LT:
+    case LE:
+    case EQ:
         for (auto i = 0u; i < guard.get_size(); ++i) {
             if (guard.get(i).uses_fp())
                 supported_methods.symbolic = false;
         }
-		[[fallthrough]];
+        [[fallthrough]];
     default: break;
     }
 }
@@ -77,11 +78,11 @@ void FeatureChecker::visit_guard(Expression& guard)
 void FeatureChecker::visit_assignment(Expression& ass)
 {
     switch (ass.get_kind()) {
-    case Constants::ASSIGN:
+    case Kind::ASSIGN:
         if (ass.uses_fp() && !ass.uses_hybrid())
             supported_methods.symbolic = false;
         break;
-    case Constants::COMMA:
+    case Kind::COMMA:
         for (auto i = 0u; i < ass.get_size(); ++i)
             visit_assignment(ass.get(i));
         break;
@@ -104,16 +105,16 @@ void FeatureChecker::visit_location(Location& location)
  */
 bool FeatureChecker::is_rate_disallowed_in_symbolic(const Expression& e)
 {
-    if (e.get_kind() == Constants::EQ) {
+    if (e.get_kind() == Kind::EQ) {
         assert(e.get_size() >= 2);
 
         Expression rate;
         Expression clock;
 
-        if (e.get(0).get_kind() == Constants::RATE) {
+        if (e.get(0).get_kind() == Kind::RATE) {
             clock = e.get(0);
             rate = e.get(1);
-        } else if (e.get(1).get_kind() == Constants::RATE) {
+        } else if (e.get(1).get_kind() == Kind::RATE) {
             clock = e.get(1);
             rate = e.get(0);
         } else {
@@ -121,10 +122,10 @@ bool FeatureChecker::is_rate_disallowed_in_symbolic(const Expression& e)
         }
 
         // rates over hybrid clocks are allowed, because they are ignored/abstracted in symbolic analysis
-        if (clock.get(0).get_symbol().get_type().is(Constants::HYBRID))
+        if (clock.get(0).get_symbol().get_type().is(Kind::HYBRID))
             return false;
 
-        if (rate.get_kind() != Constants::CONSTANT)
+        if (rate.get_kind() != Kind::CONSTANT)
             return false;
         if (rate.get_value() != 0 && rate.get_value() != 1)
             return true;  // NOLINT(readability-simplify-boolean-expr)
@@ -132,7 +133,7 @@ bool FeatureChecker::is_rate_disallowed_in_symbolic(const Expression& e)
         return false;
     }
 
-    if (e.get_kind() == Constants::AND) {
+    if (e.get_kind() == Kind::AND) {
         for (uint32_t i = 0; i < e.get_size(); ++i) {
             if (is_rate_disallowed_in_symbolic(e.get(i)))
                 return true;
@@ -146,7 +147,9 @@ void FeatureChecker::visit_frame(const Frame& frame)
 {
     for (uint32_t i = 0; i < frame.get_size(); ++i) {
         Type t = frame.get_symbol(i).get_type();
-        if (t.is_channel() && !t.is(Constants::BROADCAST))
+        if (t.is_channel() && !t.is(Kind::BROADCAST))
             supported_methods.stochastic = false;
     }
 }
+
+} // namespace UTAP

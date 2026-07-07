@@ -26,7 +26,7 @@
 #include <sstream>
 #include <cassert>
 
-using namespace UTAP;
+namespace UTAP {
 
 std::string Statement::to_string(const std::string& indent) const
 {
@@ -364,7 +364,7 @@ public:
     CollectChangesVisitor() = default;
 };
 
-std::set<Symbol> UTAP::collect_changes(Statement& stat)
+std::set<Symbol> collect_changes(Statement& stat)
 {
     auto visitor = CollectChangesVisitor{};
     stat.accept(visitor);
@@ -381,7 +381,7 @@ public:
     CollectDependenciesVisitor() = default;
 };
 
-std::set<Symbol> UTAP::collect_dependencies(Statement& stat)
+std::set<Symbol> collect_dependencies(Statement& stat)
 {
     auto visitor = CollectDependenciesVisitor{};
     stat.accept(visitor);
@@ -402,9 +402,11 @@ public:
     CollectDynamicExpressions() = default;
 };
 
-std::vector<Expression> UTAP::collect_dynamic_expressions(Statement& stat)
+std::vector<Expression> collect_dynamic_expressions(Statement& stat)
 {
     auto visitor = CollectDynamicExpressions{};
     stat.accept(visitor);
     return std::move(visitor.expressions);
 }
+
+} // namespace UTAP

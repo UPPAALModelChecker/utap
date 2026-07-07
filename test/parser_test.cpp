@@ -136,7 +136,6 @@ TEST_CASE("SMC bounds in queries")
 
 TEST_CASE("Parsing implicit goals for learning queries")
 {
-    using Constants::Kind;
     auto doc = read_document("simpleSystem.xml");
     auto builder = QueryBuilder(doc);
     const auto& errs = doc.get_errors();

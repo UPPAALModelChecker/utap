@@ -51,8 +51,16 @@
 #include <limits>
 #include <cstring> // strlen
 
-using namespace UTAP;
-using namespace Constants;
+using UTAP::position_t;
+using UTAP::Syntax;
+using UTAP::ParserBuilder;
+using UTAP::tracker;
+using UTAP::TypeException;
+using UTAP::MAXLEN;
+using UTAP::Kind;
+using UTAP::Sync;
+using UTAP::XTAPart;
+using UTAP::PriceType;
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)    \
     do                                     \
@@ -302,7 +310,7 @@ const char* utap_msg(const char *msg)
 %union {
     bool flag;
     int number;
-    ParserBuilder::TypePrefix prefix;
+    UTAP::TypePrefix prefix;
     Kind kind;
     char string[MAXLEN];
     double floating;
@@ -648,56 +656,56 @@ TypeId:
 
 Type:
         T_TYPENAME {
-            CALL(@1, @1, type_name(ParserBuilder::TypePrefix::NONE, $1));
+            CALL(@1, @1, type_name(UTAP::TypePrefix::NONE, $1));
         }
         | TypePrefix T_TYPENAME {
             CALL(@1, @2, type_name($1, $2));
         }
         | T_STRUCT '{' FieldDeclList '}' {
-            CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, $3));
+            CALL(@1, @4, type_struct(UTAP::TypePrefix::NONE, $3));
         }
         | TypePrefix T_STRUCT '{' FieldDeclList '}' {
             CALL(@1, @5, type_struct($1, $4));
         }
         | T_STRUCT '{' error '}' {
-          CALL(@1, @4, type_struct(ParserBuilder::TypePrefix::NONE, 0));
+          CALL(@1, @4, type_struct(UTAP::TypePrefix::NONE, 0));
         }
         | TypePrefix T_STRUCT '{' error '}' {
-          CALL(@1, @5, type_struct(ParserBuilder::TypePrefix::NONE, 0));
+          CALL(@1, @5, type_struct(UTAP::TypePrefix::NONE, 0));
         }
         | T_BOOL {
-          CALL(@1, @1, type_bool(ParserBuilder::TypePrefix::NONE));
+          CALL(@1, @1, type_bool(UTAP::TypePrefix::NONE));
         }
         | TypePrefix T_BOOL {
           CALL(@1, @2, type_bool($1));
         }
-        | T_DOUBLE { CALL(@1, @1, type_double(ParserBuilder::TypePrefix::NONE)); }
+        | T_DOUBLE { CALL(@1, @1, type_double(UTAP::TypePrefix::NONE)); }
         | TypePrefix T_DOUBLE { CALL(@1, @2, type_double($1)); }
-        | T_STRING { CALL(@1, @1, type_string(ParserBuilder::TypePrefix::NONE)); }
+        | T_STRING { CALL(@1, @1, type_string(UTAP::TypePrefix::NONE)); }
         | TypePrefix T_STRING { CALL(@1, @2, type_string($1)); }
-        | T_INT { CALL(@1, @1, type_int(ParserBuilder::TypePrefix::NONE)); }
+        | T_INT { CALL(@1, @1, type_int(UTAP::TypePrefix::NONE)); }
         | TypePrefix T_INT { CALL(@1, @2, type_int($1)); }
         | T_INT '[' Expression ',' Expression ']'
         {
-          CALL(@1, @6, type_bounded_int(ParserBuilder::TypePrefix::NONE));
+          CALL(@1, @6, type_bounded_int(UTAP::TypePrefix::NONE));
         }
         | TypePrefix T_INT  '[' Expression ',' Expression ']' {
           CALL(@1, @7, type_bounded_int($1));
         }
         | T_CHAN {
-          CALL(@1, @1, type_channel(ParserBuilder::TypePrefix::NONE));
+          CALL(@1, @1, type_channel(UTAP::TypePrefix::NONE));
         }
         | TypePrefix T_CHAN {
           CALL(@1, @2, type_channel($1));
         }
-        | T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::NONE)); }
-        | T_HYBRID T_CLOCK { CALL(@1, @1, type_clock(ParserBuilder::TypePrefix::HYBRID)); }
+        | T_CLOCK { CALL(@1, @1, type_clock(UTAP::TypePrefix::NONE)); }
+        | T_HYBRID T_CLOCK { CALL(@1, @1, type_clock(UTAP::TypePrefix::HYBRID)); }
         | T_VOID {
           CALL(@1, @1, type_void());
         }
         | T_SCALAR '[' Expression ']'
         {
-          CALL(@1, @4, type_scalar(ParserBuilder::TypePrefix::NONE));
+          CALL(@1, @4, type_scalar(UTAP::TypePrefix::NONE));
         }
         | TypePrefix T_SCALAR  '[' Expression ']' {
           CALL(@1, @5, type_scalar($1));
@@ -749,11 +757,11 @@ FieldDeclId:
         ;
 
 TypePrefix:
-          T_URGENT    { $$ = ParserBuilder::TypePrefix::URGENT; }
-        | T_BROADCAST { $$ = ParserBuilder::TypePrefix::BROADCAST; }
-        | T_URGENT T_BROADCAST { $$ = ParserBuilder::TypePrefix::URGENT_BROADCAST; }
-        | T_CONST  { $$ = ParserBuilder::TypePrefix::CONST; }
-        | T_META { $$ = ParserBuilder::TypePrefix::SYSTEM_META; }
+          T_URGENT    { $$ = UTAP::TypePrefix::URGENT; }
+        | T_BROADCAST { $$ = UTAP::TypePrefix::BROADCAST; }
+        | T_URGENT T_BROADCAST { $$ = UTAP::TypePrefix::URGENT_BROADCAST; }
+        | T_CONST  { $$ = UTAP::TypePrefix::CONST; }
+        | T_META { $$ = UTAP::TypePrefix::SYSTEM_META; }
         ;
 
 /*********************************************************************
@@ -903,28 +911,28 @@ Sync:
 
 SyncExpr:
         Expression {
-        CALL(@1, @1, proc_sync(SYNC_CSP));
+        CALL(@1, @1, proc_sync(Sync::CSP));
         }
         | Expression T_EXCLAM {
-          CALL(@1, @2, proc_sync(SYNC_BANG));
+          CALL(@1, @2, proc_sync(Sync::BANG));
         }
         | Expression error T_EXCLAM {
-          CALL(@1, @2, proc_sync(SYNC_BANG));
+          CALL(@1, @2, proc_sync(Sync::BANG));
         }
         | Expression '?' {
-          CALL(@1, @2, proc_sync(SYNC_QUE));
+          CALL(@1, @2, proc_sync(Sync::QUE));
         }
         | Expression error '?' {
-          CALL(@1, @2, proc_sync(SYNC_QUE));
+          CALL(@1, @2, proc_sync(Sync::QUE));
         }
         ;
 
 MessExpr:
         Expression {
-          CALL(@1, @1, proc_message(SYNC_QUE));
+          CALL(@1, @1, proc_message(Sync::QUE));
         }
         | Expression error {
-          CALL(@1, @1, proc_message(SYNC_QUE));
+          CALL(@1, @1, proc_message(Sync::QUE));
         }
         ;
 
@@ -981,7 +989,7 @@ UStateList:
 ExpRate:
         Expression
     | Expression ':' Expression {
-        CALL(@1,@3, expr_binary(FRACTION));
+        CALL(@1,@3, expr_binary(Kind::FRACTION));
     };
 
 /**********************************************************************
@@ -1190,61 +1198,61 @@ Expression:
           CALL(@1, @2, expr_unary($1));
         } %prec UOPERATOR
         | Expression T_LT Expression {
-          CALL(@1, @3, expr_binary(LT));
+          CALL(@1, @3, expr_binary(Kind::LT));
         }
         | Expression T_LEQ Expression {
-          CALL(@1, @3, expr_binary(LE));
+          CALL(@1, @3, expr_binary(Kind::LE));
         }
         | Expression T_EQ Expression {
-          CALL(@1, @3, expr_binary(EQ));
+          CALL(@1, @3, expr_binary(Kind::EQ));
         }
         | Expression T_NEQ Expression {
-          CALL(@1, @3, expr_binary(NEQ));
+          CALL(@1, @3, expr_binary(Kind::NEQ));
         }
         | Expression T_GT Expression {
-          CALL(@1, @3, expr_binary(GT));
+          CALL(@1, @3, expr_binary(Kind::GT));
         }
         | Expression T_GEQ Expression {
-          CALL(@1, @3, expr_binary(GE));
+          CALL(@1, @3, expr_binary(Kind::GE));
         }
         | Expression T_PLUS Expression {
-          CALL(@1, @3, expr_binary(PLUS));
+          CALL(@1, @3, expr_binary(Kind::PLUS));
         }
         | Expression T_MINUS Expression {
-          CALL(@1, @3, expr_binary(MINUS));
+          CALL(@1, @3, expr_binary(Kind::MINUS));
         }
         | Expression T_MULT Expression {
-          CALL(@1, @3, expr_binary(MULT));
+          CALL(@1, @3, expr_binary(Kind::MULT));
         }
         | Expression T_DIV Expression {
-          CALL(@1, @3, expr_binary(DIV));
+          CALL(@1, @3, expr_binary(Kind::DIV));
         }
         | Expression T_MOD Expression {
-          CALL(@1, @3, expr_binary(MOD));
+          CALL(@1, @3, expr_binary(Kind::MOD));
         }
         | Expression T_POWOP Expression {
-          CALL(@1, @3, expr_binary(POW));
+          CALL(@1, @3, expr_binary(Kind::POW));
         }
         | Expression '&' Expression {
-          CALL(@1, @3, expr_binary(BIT_AND));
+          CALL(@1, @3, expr_binary(Kind::BIT_AND));
         }
         | Expression T_OR Expression {
-          CALL(@1, @3, expr_binary(BIT_OR));
+          CALL(@1, @3, expr_binary(Kind::BIT_OR));
         }
         | Expression T_XOR Expression {
-          CALL(@1, @3, expr_binary(BIT_XOR));
+          CALL(@1, @3, expr_binary(Kind::BIT_XOR));
         }
         | Expression T_LSHIFT Expression {
-          CALL(@1, @3, expr_binary(BIT_LSHIFT));
+          CALL(@1, @3, expr_binary(Kind::BIT_LSHIFT));
         }
         | Expression T_RSHIFT Expression {
-          CALL(@1, @3, expr_binary(BIT_RSHIFT));
+          CALL(@1, @3, expr_binary(Kind::BIT_RSHIFT));
         }
         | Expression T_BOOL_AND Expression {
-          CALL(@1, @3, expr_binary(AND));
+          CALL(@1, @3, expr_binary(Kind::AND));
         }
         | Expression T_BOOL_OR Expression {
-          CALL(@1, @3, expr_binary(OR));
+          CALL(@1, @3, expr_binary(Kind::OR));
         }
         | Expression '?' Expression ':' Expression {
           CALL(@1, @5, expr_inline_if());
@@ -1256,30 +1264,30 @@ Expression:
           CALL(@1, @3, expr_dot($3));
         }
         | Expression T_APOS {
-            CALL(@1, @2, expr_unary(RATE));
+            CALL(@1, @2, expr_unary(Kind::RATE));
         }
         | T_DEADLOCK {
           CALL(@1, @1, expr_deadlock());
         }
         | Expression T_KW_IMPLY {
-          CALL(@1, @1, expr_unary(NOT));
+          CALL(@1, @1, expr_unary(Kind::NOT));
         } Expression {
-          CALL(@3, @3, expr_binary(OR));
+          CALL(@3, @3, expr_binary(Kind::OR));
         }
         | Expression T_KW_AND Expression {
-          CALL(@1, @3, expr_binary(AND));
+          CALL(@1, @3, expr_binary(Kind::AND));
         }
         | Expression T_KW_OR Expression {
-          CALL(@1, @3, expr_binary(OR));
+          CALL(@1, @3, expr_binary(Kind::OR));
         }
         | Expression T_KW_XOR Expression {
-        CALL(@1, @3, expr_binary(XOR));
+        CALL(@1, @3, expr_binary(Kind::XOR));
     }
         | Expression T_MIN Expression {
-            CALL(@1, @3, expr_binary(MIN));
+            CALL(@1, @3, expr_binary(Kind::MIN));
         }
         | Expression T_MAX Expression {
-            CALL(@1, @3, expr_binary(MAX));
+            CALL(@1, @3, expr_binary(Kind::MAX));
         }
         | T_SUM '(' Id ':' Type ')' {
             CALL(@1, @6, expr_sum_begin($3));
@@ -1348,95 +1356,95 @@ Assignment:
 
 AssignOp:
         /* = += -= /= %= &= |= ^= <<= >>= */
-          T_ASSIGNMENT { $$ = ASSIGN; }
-        | T_ASSPLUS   { $$ = ASS_PLUS; }
-        | T_ASSMINUS  { $$ = ASS_MINUS; }
-        | T_ASSDIV    { $$ = ASS_DIV; }
-        | T_ASSMOD    { $$ = ASS_MOD; }
-        | T_ASSMULT   { $$ = ASS_MULT; }
-        | T_ASSAND    { $$ = ASS_AND; }
-        | T_ASSOR     { $$ = ASS_OR; }
-        | T_ASSXOR    { $$ = ASS_XOR; }
-        | T_ASSLSHIFT { $$ = ASS_LSHIFT; }
-        | T_ASSRSHIFT { $$ = ASS_RSHIFT; }
+          T_ASSIGNMENT { $$ = Kind::ASSIGN; }
+        | T_ASSPLUS   { $$ = Kind::ASS_PLUS; }
+        | T_ASSMINUS  { $$ = Kind::ASS_MINUS; }
+        | T_ASSDIV    { $$ = Kind::ASS_DIV; }
+        | T_ASSMOD    { $$ = Kind::ASS_MOD; }
+        | T_ASSMULT   { $$ = Kind::ASS_MULT; }
+        | T_ASSAND    { $$ = Kind::ASS_AND; }
+        | T_ASSOR     { $$ = Kind::ASS_OR; }
+        | T_ASSXOR    { $$ = Kind::ASS_XOR; }
+        | T_ASSLSHIFT { $$ = Kind::ASS_LSHIFT; }
+        | T_ASSRSHIFT { $$ = Kind::ASS_RSHIFT; }
         ;
 
 UnaryOp:
         /* - + ! */
-        T_MINUS       { $$ = MINUS; }
-        | T_PLUS      { $$ = PLUS; }
-        | T_EXCLAM    { $$ = NOT; }
-        | T_KW_NOT    { $$ = NOT; }
+        T_MINUS       { $$ = Kind::MINUS; }
+        | T_PLUS      { $$ = Kind::PLUS; }
+        | T_EXCLAM    { $$ = Kind::NOT; }
+        | T_KW_NOT    { $$ = Kind::NOT; }
         ;
 
 BuiltinFunction1:
-          T_ABS   { $$ = ABS_F; }
-        | T_FABS   { $$ = FABS_F; }
-        | T_EXP    { $$ = EXP_F; }
-        | T_EXP2   { $$ = EXP2_F; }
-        | T_EXPM1  { $$ = EXPM1_F; }
-        | T_LN     { $$ = LN_F; }
-        | T_LOG    { $$ = LOG_F; }
-        | T_LOG10  { $$ = LOG10_F; }
-        | T_LOG2   { $$ = LOG2_F; }
-        | T_LOG1P  { $$ = LOG1P_F; }
-        | T_SQRT   { $$ = SQRT_F; }
-        | T_CBRT   { $$ = CBRT_F; }
-        | T_SIN    { $$ = SIN_F; }
-        | T_COS    { $$ = COS_F; }
-        | T_TAN    { $$ = TAN_F; }
-        | T_ASIN   { $$ = ASIN_F; }
-        | T_ACOS   { $$ = ACOS_F; }
-        | T_ATAN   { $$ = ATAN_F; }
-        | T_SINH   { $$ = SINH_F; }
-        | T_COSH   { $$ = COSH_F; }
-        | T_TANH   { $$ = TANH_F; }
-        | T_ASINH  { $$ = ASINH_F; }
-        | T_ACOSH  { $$ = ACOSH_F; }
-        | T_ATANH  { $$ = ATANH_F; }
-        | T_ERF    { $$ = ERF_F; }
-        | T_ERFC   { $$ = ERFC_F; }
-        | T_TGAMMA { $$ = TGAMMA_F; }
-        | T_LGAMMA { $$ = LGAMMA_F; }
-        | T_CEIL   { $$ = CEIL_F; }
-        | T_FLOOR  { $$ = FLOOR_F; }
-        | T_TRUNC  { $$ = TRUNC_F; }
-        | T_ROUND  { $$ = ROUND_F; }
-        | T_FINT   { $$ = FINT_F; }
-        | T_ILOGB  { $$ = ILOGB_F; }
-        | T_LOGB   { $$ = LOGB_F; }
-        | T_FPCLASSIFY { $$ = FP_CLASSIFY_F; }
-        | T_ISFINITE { $$ = IS_FINITE_F; }
-        | T_ISINF  { $$ = IS_INF_F; }
-        | T_ISNAN  { $$ = IS_NAN_F; }
-        | T_ISNORMAL { $$ = IS_NORMAL_F; }
-        | T_SIGNBIT { $$ = SIGNBIT_F; }
-        | T_ISUNORDERED { $$ = IS_UNORDERED_F; }
-        | T_RANDOM { $$ = RANDOM_F; }
-        | T_RANDOM_POISSON { $$ = RANDOM_POISSON_F; }
+          T_ABS   { $$ = Kind::ABS_F; }
+        | T_FABS   { $$ = Kind::FABS_F; }
+        | T_EXP    { $$ = Kind::EXP_F; }
+        | T_EXP2   { $$ = Kind::EXP2_F; }
+        | T_EXPM1  { $$ = Kind::EXPM1_F; }
+        | T_LN     { $$ = Kind::LN_F; }
+        | T_LOG    { $$ = Kind::LOG_F; }
+        | T_LOG10  { $$ = Kind::LOG10_F; }
+        | T_LOG2   { $$ = Kind::LOG2_F; }
+        | T_LOG1P  { $$ = Kind::LOG1P_F; }
+        | T_SQRT   { $$ = Kind::SQRT_F; }
+        | T_CBRT   { $$ = Kind::CBRT_F; }
+        | T_SIN    { $$ = Kind::SIN_F; }
+        | T_COS    { $$ = Kind::COS_F; }
+        | T_TAN    { $$ = Kind::TAN_F; }
+        | T_ASIN   { $$ = Kind::ASIN_F; }
+        | T_ACOS   { $$ = Kind::ACOS_F; }
+        | T_ATAN   { $$ = Kind::ATAN_F; }
+        | T_SINH   { $$ = Kind::SINH_F; }
+        | T_COSH   { $$ = Kind::COSH_F; }
+        | T_TANH   { $$ = Kind::TANH_F; }
+        | T_ASINH  { $$ = Kind::ASINH_F; }
+        | T_ACOSH  { $$ = Kind::ACOSH_F; }
+        | T_ATANH  { $$ = Kind::ATANH_F; }
+        | T_ERF    { $$ = Kind::ERF_F; }
+        | T_ERFC   { $$ = Kind::ERFC_F; }
+        | T_TGAMMA { $$ = Kind::TGAMMA_F; }
+        | T_LGAMMA { $$ = Kind::LGAMMA_F; }
+        | T_CEIL   { $$ = Kind::CEIL_F; }
+        | T_FLOOR  { $$ = Kind::FLOOR_F; }
+        | T_TRUNC  { $$ = Kind::TRUNC_F; }
+        | T_ROUND  { $$ = Kind::ROUND_F; }
+        | T_FINT   { $$ = Kind::FINT_F; }
+        | T_ILOGB  { $$ = Kind::ILOGB_F; }
+        | T_LOGB   { $$ = Kind::LOGB_F; }
+        | T_FPCLASSIFY { $$ = Kind::FP_CLASSIFY_F; }
+        | T_ISFINITE { $$ = Kind::IS_FINITE_F; }
+        | T_ISINF  { $$ = Kind::IS_INF_F; }
+        | T_ISNAN  { $$ = Kind::IS_NAN_F; }
+        | T_ISNORMAL { $$ = Kind::IS_NORMAL_F; }
+        | T_SIGNBIT { $$ = Kind::SIGNBIT_F; }
+        | T_ISUNORDERED { $$ = Kind::IS_UNORDERED_F; }
+        | T_RANDOM { $$ = Kind::RANDOM_F; }
+        | T_RANDOM_POISSON { $$ = Kind::RANDOM_POISSON_F; }
         ;
 
 BuiltinFunction2:
-          T_FMOD   { $$ = FMOD_F; }
-        | T_FMAX   { $$ = FMAX_F; }
-        | T_FMIN   { $$ = FMIN_F; }
-        | T_FDIM   { $$ = FDIM_F; }
-        | T_POW    { $$ = POW_F; }
-        | T_HYPOT  { $$ = HYPOT_F; }
-        | T_ATAN2  { $$ = ATAN2_F; }
-        | T_LDEXP  { $$ = LDEXP_F; }
-        | T_NEXTAFTER { $$ = NEXT_AFTER_F; }
-        | T_COPYSIGN { $$ = COPY_SIGN_F; }
-        | T_RANDOM_ARCSINE { $$ = RANDOM_ARCSINE_F; }
-        | T_RANDOM_BETA    { $$ = RANDOM_BETA_F;    }
-        | T_RANDOM_GAMMA   { $$ = RANDOM_GAMMA_F;   }
-        | T_RANDOM_NORMAL  { $$ = RANDOM_NORMAL_F;  }
-        | T_RANDOM_WEIBULL { $$ = RANDOM_WEIBULL_F; }
+          T_FMOD   { $$ = Kind::FMOD_F; }
+        | T_FMAX   { $$ = Kind::FMAX_F; }
+        | T_FMIN   { $$ = Kind::FMIN_F; }
+        | T_FDIM   { $$ = Kind::FDIM_F; }
+        | T_POW    { $$ = Kind::POW_F; }
+        | T_HYPOT  { $$ = Kind::HYPOT_F; }
+        | T_ATAN2  { $$ = Kind::ATAN2_F; }
+        | T_LDEXP  { $$ = Kind::LDEXP_F; }
+        | T_NEXTAFTER { $$ = Kind::NEXT_AFTER_F; }
+        | T_COPYSIGN { $$ = Kind::COPY_SIGN_F; }
+        | T_RANDOM_ARCSINE { $$ = Kind::RANDOM_ARCSINE_F; }
+        | T_RANDOM_BETA    { $$ = Kind::RANDOM_BETA_F;    }
+        | T_RANDOM_GAMMA   { $$ = Kind::RANDOM_GAMMA_F;   }
+        | T_RANDOM_NORMAL  { $$ = Kind::RANDOM_NORMAL_F;  }
+        | T_RANDOM_WEIBULL { $$ = Kind::RANDOM_WEIBULL_F; }
         ;
 
 BuiltinFunction3:
-          T_FMA    { $$ = FMA_F; }
-        | T_RANDOM_TRI { $$ = RANDOM_TRI_F; }
+          T_FMA    { $$ = Kind::FMA_F; }
+        | T_RANDOM_TRI { $$ = Kind::RANDOM_TRI_F; }
         ;
 
 ArgList:
@@ -1467,7 +1475,7 @@ OldDeclaration:
 OldVarDecl:
         VariableDecl
         | T_OLDCONST {
-          CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
+          CALL(@1, @1, type_int(UTAP::TypePrefix::CONST));
         } OldConstDeclIdList ';' {
           CALL(@1, @3, type_pop());
         }
@@ -1554,12 +1562,12 @@ OldProcParam:
 
 OldProcConstParam:
         T_OLDCONST {
-            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
+            CALL(@1, @1, type_int(UTAP::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@3, @4, decl_parameter($3, false));
         }
         | OldProcConstParam ',' {
-            CALL(@1, @1, type_int(ParserBuilder::TypePrefix::CONST));
+            CALL(@1, @1, type_int(UTAP::TypePrefix::CONST));
         } NonTypeId ArrayDecl {
             CALL(@4, @5, decl_parameter($4, false));
         }
@@ -1598,7 +1606,7 @@ OldInvariant:
         | Expression error ',' {
         }
         | OldInvariant ',' Expression {
-          CALL(@1, @3, expr_binary(AND));
+          CALL(@1, @3, expr_binary(Kind::AND));
         }
         ;
 
@@ -1645,19 +1653,19 @@ OldGuard:
 OldGuardList:
         Expression
         | OldGuardList ',' Expression {
-          CALL(@1, @3, expr_binary(AND));
+          CALL(@1, @3, expr_binary(Kind::AND));
         }
         ;
 
 /* TIGA-SMC Expanded syntax */
         
 ExpQuantifier:
-         T_MINEXP { $$ = MIN_EXP;} 
-         | T_MAXEXP { $$ = MAX_EXP;};
+         T_MINEXP { $$ = Kind::MIN_EXP;}
+         | T_MAXEXP { $$ = Kind::MAX_EXP;};
 
 ExpPrQuantifier:
-         T_MINPR { $$ = MIN_EXP;} 
-         | T_MAXPR { $$ = MAX_EXP;};
+         T_MINPR { $$ = Kind::MIN_EXP;}
+         | T_MAXPR { $$ = Kind::MAX_EXP;};
 
 SubjectionList: // do not allow multiple subjections for the time being
         /*Id ',' SubjectionList {
@@ -1698,30 +1706,30 @@ BoolOrKWAnd:
 
 SubProperty:
         T_AF Expression {
-        CALL(@1, @2, expr_unary(AF));
+        CALL(@1, @2, expr_unary(Kind::AF));
     }
         | T_AG '(' Expression BoolOrKWAnd T_AF Expression ')' {
-            CALL(@5, @6, expr_unary(AF));
-            CALL(@3, @6, expr_binary(AND));
-            CALL(@1, @7, expr_unary(AG));
+            CALL(@5, @6, expr_unary(Kind::AF));
+            CALL(@3, @6, expr_binary(Kind::AND));
+            CALL(@1, @7, expr_unary(Kind::AG));
         }
         | T_AG Expression {
-        CALL(@1, @2, expr_unary(AG));
+        CALL(@1, @2, expr_unary(Kind::AG));
         }
     | T_EF Expression {
-        CALL(@1, @2, expr_unary(EF));
+        CALL(@1, @2, expr_unary(Kind::EF));
         }
     | T_EG Expression {
-        CALL(@1, @2, expr_unary(EG));
+        CALL(@1, @2, expr_unary(Kind::EG));
         }
     | Expression T_LEADS_TO Expression {
-        CALL(@1, @3, expr_binary(LEADS_TO));
+        CALL(@1, @3, expr_binary(Kind::LEADS_TO));
         }
     | 'A' '[' Expression 'U' Expression ']' {
-        CALL(@1, @6, expr_binary(A_UNTIL));
+        CALL(@1, @6, expr_binary(Kind::A_UNTIL));
         }
     | 'A' '[' Expression 'W' Expression ']' {
-        CALL(@1, @6, expr_binary(A_WEAK_UNTIL));
+        CALL(@1, @6, expr_binary(Kind::A_WEAK_UNTIL));
         }
 ;
 
@@ -1733,37 +1741,37 @@ Features: {
 
 AssignablePropperty:
     T_CONTROL ':' SubProperty Subjection {
-        CALL(@1, @3, expr_unary(CONTROL));
+        CALL(@1, @3, expr_unary(Kind::CONTROL));
         CALL(@1, @3, property());
     }
     | T_CONTROL_T T_MULT '(' Expression ',' Expression ')' ':' SubProperty {
-    CALL(@1, @9, expr_ternary(CONTROL_TOPT));
+    CALL(@1, @9, expr_ternary(Kind::CONTROL_TOPT));
     CALL(@1, @9, property());
     }
     | T_CONTROL_T T_MULT '(' Expression ')' ':' SubProperty {
-    CALL(@1, @7, expr_binary(CONTROL_TOPT_DEF1));
+    CALL(@1, @7, expr_binary(Kind::CONTROL_TOPT_DEF1));
     CALL(@1, @7, property());
     }
     | T_CONTROL_T T_MULT ':' SubProperty {
-    CALL(@1, @4, expr_unary(CONTROL_TOPT_DEF2));
+    CALL(@1, @4, expr_unary(Kind::CONTROL_TOPT_DEF2));
     CALL(@1, @4, property());
     }
     | T_EF T_CONTROL ':' SubProperty Subjection {
-    CALL(@1, @4, expr_unary(EF_CONTROL));
+    CALL(@1, @4, expr_unary(Kind::EF_CONTROL));
     CALL(@1, @4, property());
     }
     | BracketExprList T_CONTROL ':' SubProperty Subjection {
-        CALL(@1, @4, expr_binary(PO_CONTROL));
+        CALL(@1, @4, expr_binary(Kind::PO_CONTROL));
     CALL(@1, @4, property());
     }
     | ExpQuantifier '(' Expression ')' '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
-        CALL(@1, @12, expr_optimize_exp($1,  ParserBuilder::EXPRPRICE, $10));
+        CALL(@1, @12, expr_optimize_exp($1,  PriceType::EXPR, $10));
     CALL(@1, @9, property());
     }
     | ExpPrQuantifier '[' BoundType ']' Features ':' PathType Expression Subjection Imitation
     {
-        CALL(@1, @9, expr_optimize_exp($1, ParserBuilder::TIMEPRICE, $7));
+        CALL(@1, @9, expr_optimize_exp($1, PriceType::TIME, $7));
     CALL(@1, @6, property());
     }
     | T_LOAD_STRAT Features '(' Expression ')' {
@@ -1772,8 +1780,8 @@ AssignablePropperty:
     }
     ;
 /**
-    | T_MINPR { $$ = MIN_PR;}
-    | T_MAXPR { $$ = MAX_PR;}
+    | T_MINPR { $$ = Kind::MIN_PR;}
+    | T_MAXPR { $$ = Kind::MAX_PR;}
 */
 
 PropertyExpr:
@@ -1781,7 +1789,7 @@ PropertyExpr:
         CALL(@1, @1, property());
     }
     | T_PMAX Expression {  // Deprecated, comes from old uppaal-prob.
-    CALL(@1, @2, expr_unary(PMAX));
+    CALL(@1, @2, expr_unary(Kind::PMAX));
         CALL(@1, @2, property());
     }
     | AssignablePropperty
@@ -1801,7 +1809,7 @@ PropertyExpr:
     CALL(@1, @7, property());
     }
     | T_PROBA SMCBounds '(' Expression 'U' Expression ')' Subjection {
-        CALL(@1, @8, expr_proba_quantitative(DIAMOND));
+        CALL(@1, @8, expr_proba_quantitative(Kind::DIAMOND));
     CALL(@1, @8, property());
     }
     | T_PROBA SMCBounds '(' PathType Expression ')' T_GEQ
@@ -1874,18 +1882,18 @@ BoundType:
         ;
 
 CmpGLE:
-        T_GEQ { $$ = GE; }
-        | T_LEQ { $$ = LE; }
+        T_GEQ { $$ = Kind::GE; }
+        | T_LEQ { $$ = Kind::LE; }
         ;
 
 PathType:
-        T_BOX { $$ = BOX; }
-        | T_DIAMOND { $$ = DIAMOND; }
+        T_BOX { $$ = Kind::BOX; }
+        | T_DIAMOND { $$ = Kind::DIAMOND; }
         ;
 
 BracketExprList:
     '{' ExpressionList '}' {
-        CALL(@1, @3, expr_nary(LIST,$2));
+        CALL(@1, @3, expr_nary(Kind::LIST,$2));
     };
 
 /* There is an ExprList but it's not a list, rather
@@ -1934,18 +1942,18 @@ Property:
         | StrategyAssignment
         | PropertyExpr
     | SupPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(SUP_VAR));
+        CALL(@1, @2, expr_nary(Kind::LIST,$2));
+        CALL(@1, @2, expr_binary(Kind::SUP_VAR));
         CALL(@1, @2, property());
         }
     | InfPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(INF_VAR));
+        CALL(@1, @2, expr_nary(Kind::LIST,$2));
+        CALL(@1, @2, expr_binary(Kind::INF_VAR));
         CALL(@1, @2, property());
     }
     | BoundsPrefix NonEmptyExpressionList Subjection {
-        CALL(@1, @2, expr_nary(LIST,$2));
-        CALL(@1, @2, expr_binary(BOUNDS_VAR));
+        CALL(@1, @2, expr_nary(Kind::LIST,$2));
+        CALL(@1, @2, expr_binary(Kind::BOUNDS_VAR));
         CALL(@1, @2, property());
     };
 
@@ -1965,74 +1973,75 @@ static void setStartToken(XTAPart part, bool newxta)
 {
     switch (part)
     {
-    case S_XTA:
+    using namespace UTAP::XTAPartNames;
+    case XTA:
         syntax_token = newxta ? T_NEW : T_OLD;
         break;
-    case S_DECLARATION:
+    case DECLARATION:
         syntax_token = newxta ? T_NEW_DECLARATION : T_OLD_DECLARATION;
         break;
-    case S_LOCAL_DECL:
+    case LOCAL_DECL:
         syntax_token = newxta ? T_NEW_LOCAL_DECL : T_OLD_LOCAL_DECL;
         break;
-    case S_INST:
+    case INST:
         syntax_token = newxta ? T_NEW_INST : T_OLD_INST;
         break;
-    case S_SYSTEM:
+    case SYSTEM:
         syntax_token = T_NEW_SYSTEM;
         break;
-    case S_PARAMETERS:
+    case PARAMETERS:
         syntax_token = newxta ? T_NEW_PARAMETERS : T_OLD_PARAMETERS;
         break;
-    case S_INVARIANT:
+    case INVARIANT:
         syntax_token = newxta ? T_NEW_INVARIANT : T_OLD_INVARIANT;
         break;
-    case S_EXPONENTIAL_RATE:
+    case EXPONENTIAL_RATE:
     syntax_token = T_EXPONENTIAL_RATE;
     break;
-    case S_SELECT:
+    case SELECT:
         syntax_token = T_NEW_SELECT;
         break;
-    case S_GUARD:
+    case GUARD:
         syntax_token = newxta ? T_NEW_GUARD : T_OLD_GUARD;
         break;
-    case S_SYNC:
+    case SYNC:
         syntax_token = T_NEW_SYNC;
         break;
-    case S_ASSIGN:
+    case ASSIGN:
         syntax_token = newxta ? T_NEW_ASSIGN : T_OLD_ASSIGN;
         break;
-    case S_EXPRESSION:
+    case EXPRESSION:
         syntax_token = T_EXPRESSION;
         break;
-    case S_EXPRESSION_LIST:
+    case EXPRESSION_LIST:
         syntax_token = T_EXPRESSION_LIST;
         break;
-    case S_PROPERTY:
+    case PROPERTY:
         syntax_token = T_PROPERTY;
         break;
-    case S_XTA_PROCESS:
+    case XTA_PROCESS:
         syntax_token = T_XTA_PROCESS;
         break;
-    case S_PROBABILITY:
+    case PROBABILITY:
         syntax_token = T_PROBABILITY;
         break;
     // LSC
-    case S_INSTANCE_LINE:
+    case INSTANCE_LINE:
         syntax_token = T_INSTANCE_LINE;
         break;
-    case S_MESSAGE:
+    case MESSAGE:
         syntax_token = T_MESSAGE;
         break;
-    case S_UPDATE:
+    case UPDATE:
         syntax_token = T_UPDATE;
         break;
-    case S_CONDITION:
+    case CONDITION:
         syntax_token = T_CONDITION;
         break;
     }
 }
 
-static int32_t parse_XTA(ParserBuilder& aParserBuilder,
+static int32_t builder_parse_XTA(ParserBuilder& aParserBuilder,
                 bool newxta, XTAPart part, std::string_view xpath)
 {
     // Select syntax
@@ -2055,11 +2064,11 @@ static int32_t parse_XTA(ParserBuilder& aParserBuilder,
     return res;
 }
 
-static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xpath)
+static int32_t builder_parse_property(ParserBuilder& aParserBuilder, std::string_view xpath)
 {
     // Select syntax
     syntax = Syntax::PROPERTY;
-    setStartToken(S_PROPERTY, false);
+    setStartToken(UTAP::XTAPart::PROPERTY, false);
 
     // Set parser builder
     ch = &aParserBuilder;
@@ -2070,14 +2079,7 @@ static int32_t parse_property(ParserBuilder& aParserBuilder, std::string_view xp
     return (utap_parse() != 0) ? -1 : 0;
 }
 
-int32_t parse_XTA(const char *str, ParserBuilder& builder,
-             bool newxta, XTAPart part, std::string_view xpath)
-{
-    utap__scan_string(str);
-    int32_t res = parse_XTA(builder, newxta, part, xpath);
-    utap__delete_buffer(YY_CURRENT_BUFFER);
-    return res;
-}
+namespace UTAP {
 
 const char* utap_builtin_declarations() {
 static const char* res =
@@ -2115,19 +2117,28 @@ static const char* res =
     return res;
 }
 
+int32_t parse_XTA(const char *str, ParserBuilder& builder,
+             bool newxta, XTAPart part, std::string_view xpath)
+{
+    utap__scan_string(str);
+    int32_t res = builder_parse_XTA(builder, newxta, part, xpath);
+    utap__delete_buffer(YY_CURRENT_BUFFER);
+    return res;
+}
+
 int32_t parse_XTA(const char *str, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
-        parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
-    return parse_XTA(str, builder, newxta, S_XTA, "");
+        parse_XTA(utap_builtin_declarations(), builder, newxta, XTAPart::DECLARATION, "");
+    return parse_XTA(str, builder, newxta, XTAPart::XTA, "");
 }
 
 int32_t parse_XTA(FILE *file, ParserBuilder& builder, bool newxta)
 {
     if (newxta)
-        parse_XTA(utap_builtin_declarations(), builder, newxta, S_DECLARATION, "");
+        parse_XTA(utap_builtin_declarations(), builder, newxta, XTAPart::DECLARATION, "");
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int res = parse_XTA(builder, newxta, S_XTA, "");
+    int res = builder_parse_XTA(builder, newxta, XTAPart::XTA, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
@@ -2135,7 +2146,7 @@ int32_t parse_XTA(FILE *file, ParserBuilder& builder, bool newxta)
 int32_t parse_property(const char *str, ParserBuilder& aParserBuilder, const std::string& xpath)
 {
     utap__scan_string(str);
-    int32_t res = parse_property(aParserBuilder, xpath);
+    int32_t res = builder_parse_property(aParserBuilder, xpath);
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
@@ -2143,7 +2154,9 @@ int32_t parse_property(const char *str, ParserBuilder& aParserBuilder, const std
 int32_t parse_property(FILE *file, ParserBuilder& aParserBuilder)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int32_t res = parse_property(aParserBuilder, "");
+    int32_t res = builder_parse_property(aParserBuilder, "");
     utap__delete_buffer(YY_CURRENT_BUFFER);
     return res;
 }
+
+} // namespace UTAP

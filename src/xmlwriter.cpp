@@ -29,7 +29,6 @@
 #include <cstring>  // strlen
 
 namespace UTAP {
-using namespace Constants;
 
 static constexpr auto MY_ENCODING = "utf-8";        // xml encoding
 static constexpr auto ERR_STATE_COLOR = "#ff6666";  // pink
@@ -197,10 +196,10 @@ void XMLWriter::location(const Location& loc)
         label("exponentialrate", loc.exp_rate.str(), x, y);
     }
     // "committed" or "urgent" element
-    if (loc.uid.get_type().is(COMMITTED)) {
+    if (loc.uid.get_type().is(Kind::COMMITTED)) {
         startElement("committed");
         endElement();
-    } else if (loc.uid.get_type().is(URGENT)) {
+    } else if (loc.uid.get_type().is(Kind::URGENT)) {
         startElement("urgent");
         endElement();
     }
@@ -427,17 +426,16 @@ xmlChar* ConvertInput(const char* in, const char* encoding)
     return out;
 }
 
-}  // namespace UTAP
-
-int32_t write_XML_file(const char* filename, UTAP::Document& doc)
+int32_t write_XML_file(const char* filename, Document& doc)
 {
     /* Create a new XmlWriter for filename, with no compression. */
     auto* writer = xmlNewTextWriterFilename(filename, 0);
     if (writer == nullptr) {
-        throw UTAP::XMLWriterError{"construction"};
+        throw XMLWriterError{"construction"};
     }
-    UTAP::XMLWriter(writer, doc).project();
-
+    XMLWriter{writer, doc}.project();
     // xmlFreeTextWriter(writer);
     return 0;
 }
+
+}  // namespace UTAP

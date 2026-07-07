@@ -1,7 +1,7 @@
 // -*- mode: C++; c-file-style: "stroustrup"; c-basic-offset: 4; indent-tabs-mode: nil; -*-
 
 /* libutap - Uppaal Timed Automata Parser.
-   Copyright (C) 2020 Aalborg University.
+   Copyright (C) 2020-2026 Aalborg University.
    Copyright (C) 2002-2006 Uppsala University and Aalborg University.
 
    This library is free software; you can redistribute it and/or
@@ -24,7 +24,9 @@
 #define UTAP_COMMON_HH
 
 namespace UTAP {
-namespace Constants {
+
+//TODO: upgrade to `using enum` from C++20
+namespace KindNames {
 enum Kind {
     PLUS,
     MINUS,
@@ -289,39 +291,62 @@ enum Kind {
     DYNAMIC_EVAL,
     PROCESS_VAR,
     DOUBLE_INV_GUARD,
-
 };
+} // namespace KindNames
+using KindNames::Kind;
 
 /**********************************************************
  * Synchronisations:
  */
-enum Synchronisation { SYNC_QUE, SYNC_BANG, SYNC_CSP };
-}  // namespace Constants
+namespace SyncNames { enum Sync { QUE, BANG, CSP }; }
+using SyncNames::Sync;
 
 /** Type for specifying which XTA part to parse (syntax switch) */
+namespace XTAPartNames {
 enum XTAPart {
-    S_XTA,  // entire document
-    S_DECLARATION,
-    S_LOCAL_DECL,
-    S_INST,
-    S_SYSTEM,
-    S_PARAMETERS,
-    S_INVARIANT,
-    S_EXPONENTIAL_RATE,
-    S_SELECT,
-    S_GUARD,
-    S_SYNC,
-    S_ASSIGN,
-    S_EXPRESSION,
-    S_EXPRESSION_LIST,
-    S_PROPERTY,
-    S_XTA_PROCESS,
-    S_PROBABILITY,
-    /*LSC*/ S_INSTANCE_LINE,
-    S_MESSAGE,
-    S_UPDATE,
-    S_CONDITION
+    XTA,  // entire document
+    DECLARATION,
+    LOCAL_DECL,
+    INST,
+    SYSTEM,
+    PARAMETERS,
+    INVARIANT,
+    EXPONENTIAL_RATE,
+    SELECT,
+    GUARD,
+    SYNC,
+    ASSIGN,
+    EXPRESSION,
+    EXPRESSION_LIST,
+    PROPERTY,
+    XTA_PROCESS,
+    PROBABILITY,
+    /*LSC*/ INSTANCE_LINE,
+    MESSAGE,
+    UPDATE,
+    CONDITION
 };
+} // namespace XTAPartNS
+using XTAPartNames::XTAPart;
+
+/*********************************************************************
+ * Type prefix which can be applied in front of some type.
+ */
+namespace TypePrefixNames {
+enum TypePrefix {
+    NONE = 0,
+    CONST = 1,
+    URGENT = 2,
+    BROADCAST = 4,
+    URGENT_BROADCAST = 6,
+    SYSTEM_META = 8,
+    HYBRID = 16
+};
+} // namespace TypePrefixNames
+using TypePrefixNames::TypePrefix;
+
+namespace PriceTypeNames { enum PriceType { TIME, EXPR, PROBA }; }
+using PriceTypeNames::PriceType;
 
 }  // namespace UTAP
 

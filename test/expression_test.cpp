@@ -28,40 +28,41 @@ TEST_SUITE_BEGIN("Expressions");
 TEST_CASE("Expression")
 {
     using UTAP::Type;
-    using exp_t = UTAP::Expression;
-    const auto i_prim_type = Type::create_primitive(UTAP::Constants::INT);
-    REQUIRE(i_prim_type.get_kind() == UTAP::Constants::INT);
-    const auto d_prim_type = Type::create_primitive(UTAP::Constants::DOUBLE);
-    REQUIRE(d_prim_type.get_kind() == UTAP::Constants::DOUBLE);
+    using UTAP::Kind;
+    using Exp = UTAP::Expression;
+    const auto i_prim_type = Type::create_primitive(Kind::INT);
+    REQUIRE(i_prim_type.get_kind() == Kind::INT);
+    const auto d_prim_type = Type::create_primitive(Kind::DOUBLE);
+    REQUIRE(d_prim_type.get_kind() == Kind::DOUBLE);
 
-    const auto i0 = exp_t::create_constant(0);
-    REQUIRE(i0.get_kind() == UTAP::Constants::CONSTANT);
-    const auto i2 = exp_t::create_constant(2);
-    REQUIRE(i2.get_kind() == UTAP::Constants::CONSTANT);
-    CHECK(i2.get_type().get_kind() == UTAP::Constants::INT);
+    const auto i0 = Exp::create_constant(0);
+    REQUIRE(i0.get_kind() == Kind::CONSTANT);
+    const auto i2 = Exp::create_constant(2);
+    REQUIRE(i2.get_kind() == Kind::CONSTANT);
+    CHECK(i2.get_type().get_kind() == Kind::INT);
     CHECK(i2.get_value() == 2);
-    const auto i5 = exp_t::create_constant(5);
-    REQUIRE(i5.get_kind() == UTAP::Constants::CONSTANT);
-    CHECK(i5.get_type().get_kind() == UTAP::Constants::INT);
+    const auto i5 = Exp::create_constant(5);
+    REQUIRE(i5.get_kind() == Kind::CONSTANT);
+    CHECK(i5.get_type().get_kind() == Kind::INT);
     CHECK(i5.get_value() == 5);
-    const auto d3 = exp_t::create_double(3.0);
-    REQUIRE(d3.get_kind() == UTAP::Constants::CONSTANT);
-    CHECK(d3.get_type().get_kind() == UTAP::Constants::DOUBLE);
+    const auto d3 = Exp::create_double(3.0);
+    REQUIRE(d3.get_kind() == Kind::CONSTANT);
+    CHECK(d3.get_type().get_kind() == Kind::DOUBLE);
     CHECK(d3.get_double_value() == 3.0);
-    const auto d1_2 = exp_t::create_double(0.5);
-    REQUIRE(d1_2.get_kind() == UTAP::Constants::CONSTANT);
-    CHECK(d1_2.get_type().get_kind() == UTAP::Constants::DOUBLE);
+    const auto d1_2 = Exp::create_double(0.5);
+    REQUIRE(d1_2.get_kind() == Kind::CONSTANT);
+    CHECK(d1_2.get_type().get_kind() == Kind::DOUBLE);
     CHECK(d1_2.get_double_value() == 0.5);
 
     SUBCASE("Types")
     {
         const auto i02 = Type::create_range(i_prim_type, i0, i2);
-        REQUIRE(i02.get_kind() == UTAP::Constants::RANGE);
+        REQUIRE(i02.get_kind() == Kind::RANGE);
         const auto i02_range = i02.get_range();
         CHECK(i02_range.first == i0);
         CHECK(i02_range.second == i2);
         const auto i25 = Type::create_range(i_prim_type, i2, i5);
-        REQUIRE(i25.get_kind() == UTAP::Constants::RANGE);
+        REQUIRE(i25.get_kind() == Kind::RANGE);
         const auto i25_range = i25.get_range();
         CHECK(i25_range.first == i2);
         CHECK(i25_range.second == i5);
@@ -70,55 +71,55 @@ TEST_CASE("Expression")
 
     SUBCASE("Operator precedence")
     {
-        using namespace UTAP::Constants;
+        using namespace UTAP::KindNames;
         // Follow table at https://en.cppreference.com/w/cpp/language/operator_precedence
-        REQUIRE(exp_t::get_precedence(POST_INCREMENT) == exp_t::get_precedence(POST_DECREMENT));
-        REQUIRE(exp_t::get_precedence(POST_INCREMENT) >= exp_t::get_precedence(FUN_CALL));
-        REQUIRE(exp_t::get_precedence(FUN_CALL) == exp_t::get_precedence(FUN_CALL_EXT));
-        REQUIRE(exp_t::get_precedence(FUN_CALL) >= exp_t::get_precedence(ARRAY));
-        REQUIRE(exp_t::get_precedence(ARRAY) >= exp_t::get_precedence(DOT));
-        REQUIRE(exp_t::get_precedence(ARRAY) > exp_t::get_precedence(NOT));
-        REQUIRE(exp_t::get_precedence(DOT) >= exp_t::get_precedence(RATE));
-        REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(NOT));
-        REQUIRE(exp_t::get_precedence(PRE_INCREMENT) == exp_t::get_precedence(PRE_DECREMENT));
-        REQUIRE(exp_t::get_precedence(PRE_INCREMENT) >= exp_t::get_precedence(UNARY_MINUS));
-        REQUIRE(exp_t::get_precedence(UNARY_MINUS) >= exp_t::get_precedence(NOT));
-        REQUIRE(exp_t::get_precedence(NOT) > exp_t::get_precedence(POW));
-        REQUIRE(exp_t::get_precedence(POW) > exp_t::get_precedence(MULT));
-        REQUIRE(exp_t::get_precedence(MULT) == exp_t::get_precedence(DIV));
-        REQUIRE(exp_t::get_precedence(MULT) == exp_t::get_precedence(MOD));
-        REQUIRE(exp_t::get_precedence(MULT) > exp_t::get_precedence(PLUS));
-        REQUIRE(exp_t::get_precedence(PLUS) == exp_t::get_precedence(MINUS));
-        REQUIRE(exp_t::get_precedence(PLUS) > exp_t::get_precedence(BIT_LSHIFT));
-        REQUIRE(exp_t::get_precedence(BIT_LSHIFT) == exp_t::get_precedence(BIT_RSHIFT));
-        REQUIRE(exp_t::get_precedence(BIT_LSHIFT) > exp_t::get_precedence(LT));
-        REQUIRE(exp_t::get_precedence(LT) == exp_t::get_precedence(LE));
-        REQUIRE(exp_t::get_precedence(LT) == exp_t::get_precedence(GT));
-        REQUIRE(exp_t::get_precedence(LT) == exp_t::get_precedence(GE));
-        REQUIRE(exp_t::get_precedence(LT) > exp_t::get_precedence(EQ));
-        REQUIRE(exp_t::get_precedence(EQ) == exp_t::get_precedence(NEQ));
-        REQUIRE(exp_t::get_precedence(NEQ) > exp_t::get_precedence(BIT_AND));
-        REQUIRE(exp_t::get_precedence(BIT_AND) > exp_t::get_precedence(BIT_XOR));
-        REQUIRE(exp_t::get_precedence(BIT_XOR) > exp_t::get_precedence(BIT_OR));
-        REQUIRE(exp_t::get_precedence(BIT_OR) > exp_t::get_precedence(AND));
-        REQUIRE(exp_t::get_precedence(AND) > exp_t::get_precedence(OR));
-        REQUIRE(exp_t::get_precedence(AND) > exp_t::get_precedence(ASSIGN));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_PLUS));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_MINUS));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_MULT));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_DIV));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_MOD));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_LSHIFT));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_RSHIFT));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_AND));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_OR));
-        REQUIRE(exp_t::get_precedence(ASSIGN) == exp_t::get_precedence(ASS_XOR));
-        REQUIRE(exp_t::get_precedence(ASSIGN) > exp_t::get_precedence(COMMA));
+        REQUIRE(Exp::get_precedence(POST_INCREMENT) == Exp::get_precedence(POST_DECREMENT));
+        REQUIRE(Exp::get_precedence(POST_INCREMENT) >= Exp::get_precedence(FUN_CALL));
+        REQUIRE(Exp::get_precedence(FUN_CALL) == Exp::get_precedence(FUN_CALL_EXT));
+        REQUIRE(Exp::get_precedence(FUN_CALL) >= Exp::get_precedence(ARRAY));
+        REQUIRE(Exp::get_precedence(ARRAY) >= Exp::get_precedence(DOT));
+        REQUIRE(Exp::get_precedence(ARRAY) > Exp::get_precedence(NOT));
+        REQUIRE(Exp::get_precedence(DOT) >= Exp::get_precedence(RATE));
+        REQUIRE(Exp::get_precedence(PRE_INCREMENT) == Exp::get_precedence(NOT));
+        REQUIRE(Exp::get_precedence(PRE_INCREMENT) == Exp::get_precedence(PRE_DECREMENT));
+        REQUIRE(Exp::get_precedence(PRE_INCREMENT) >= Exp::get_precedence(UNARY_MINUS));
+        REQUIRE(Exp::get_precedence(UNARY_MINUS) >= Exp::get_precedence(NOT));
+        REQUIRE(Exp::get_precedence(NOT) > Exp::get_precedence(POW));
+        REQUIRE(Exp::get_precedence(POW) > Exp::get_precedence(MULT));
+        REQUIRE(Exp::get_precedence(MULT) == Exp::get_precedence(DIV));
+        REQUIRE(Exp::get_precedence(MULT) == Exp::get_precedence(MOD));
+        REQUIRE(Exp::get_precedence(MULT) > Exp::get_precedence(PLUS));
+        REQUIRE(Exp::get_precedence(PLUS) == Exp::get_precedence(MINUS));
+        REQUIRE(Exp::get_precedence(PLUS) > Exp::get_precedence(BIT_LSHIFT));
+        REQUIRE(Exp::get_precedence(BIT_LSHIFT) == Exp::get_precedence(BIT_RSHIFT));
+        REQUIRE(Exp::get_precedence(BIT_LSHIFT) > Exp::get_precedence(LT));
+        REQUIRE(Exp::get_precedence(LT) == Exp::get_precedence(LE));
+        REQUIRE(Exp::get_precedence(LT) == Exp::get_precedence(GT));
+        REQUIRE(Exp::get_precedence(LT) == Exp::get_precedence(GE));
+        REQUIRE(Exp::get_precedence(LT) > Exp::get_precedence(EQ));
+        REQUIRE(Exp::get_precedence(EQ) == Exp::get_precedence(NEQ));
+        REQUIRE(Exp::get_precedence(NEQ) > Exp::get_precedence(BIT_AND));
+        REQUIRE(Exp::get_precedence(BIT_AND) > Exp::get_precedence(BIT_XOR));
+        REQUIRE(Exp::get_precedence(BIT_XOR) > Exp::get_precedence(BIT_OR));
+        REQUIRE(Exp::get_precedence(BIT_OR) > Exp::get_precedence(AND));
+        REQUIRE(Exp::get_precedence(AND) > Exp::get_precedence(OR));
+        REQUIRE(Exp::get_precedence(AND) > Exp::get_precedence(ASSIGN));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_PLUS));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_MINUS));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_MULT));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_DIV));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_MOD));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_LSHIFT));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_RSHIFT));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_AND));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_OR));
+        REQUIRE(Exp::get_precedence(ASSIGN) == Exp::get_precedence(ASS_XOR));
+        REQUIRE(Exp::get_precedence(ASSIGN) > Exp::get_precedence(COMMA));
     }
 
     SUBCASE("Unary")
     {
-        using namespace UTAP::Constants;
+        using namespace UTAP::KindNames;
         const auto ops = {// clang-format off
             UNARY_MINUS, NOT, DOT, /*SYNC,*/ PRE_INCREMENT, POST_INCREMENT, PRE_DECREMENT, POST_DECREMENT,
             RATE, ABS_F, FABS_F, EXP_F, EXP2_F, EXPM1_F, LN_F, LOG_F, LOG10_F, LOG2_F, LOG1P_F, SQRT_F,
@@ -128,20 +129,20 @@ TEST_CASE("Expression")
             SIGNBIT_F, IS_UNORDERED_F, RANDOM_F, RANDOM_POISSON_F
         };  // clang-format on
         for (const auto& op : ops) {
-            REQUIRE(exp_t::get_precedence(op) > 0);
-            const auto op_i0 = exp_t::create_unary(op, i0);
+            REQUIRE(Exp::get_precedence(op) > 0);
+            const auto op_i0 = Exp::create_unary(op, i0);
             CHECK(op_i0.get_kind() == op);
             REQUIRE(op_i0.get_size() == 1);
             CHECK(op_i0.get(0) == i0);
-            const auto op_i2 = exp_t::create_unary(op, i2);
+            const auto op_i2 = Exp::create_unary(op, i2);
             CHECK(op_i2.get_kind() == op);
             REQUIRE(op_i2.get_size() == 1);
             CHECK(op_i2.get(0) == i2);
-            const auto op_d3 = exp_t::create_unary(op, d3);
+            const auto op_d3 = Exp::create_unary(op, d3);
             CHECK(op_d3.get_kind() == op);
             REQUIRE(op_d3.get_size() == 1);
             CHECK(op_d3.get(0) == d3);
-            const auto op_d1_2 = exp_t::create_unary(op, d1_2);
+            const auto op_d1_2 = Exp::create_unary(op, d1_2);
             CHECK(op_d1_2.get_kind() == op);
             REQUIRE(op_d1_2.get_size() == 1);
             CHECK(op_d1_2.get(0) == d1_2);
@@ -149,7 +150,7 @@ TEST_CASE("Expression")
     }
     SUBCASE("Binary")
     {
-        using namespace UTAP::Constants;
+        using namespace UTAP::KindNames;
         const auto ops = {
             // clang-format off
             MINUS, PLUS, MULT, DIV, MOD, BIT_AND, BIT_OR, BIT_XOR, BIT_LSHIFT, BIT_RSHIFT,
@@ -160,13 +161,13 @@ TEST_CASE("Expression")
             RANDOM_ARCSINE_F, RANDOM_BETA_F, RANDOM_GAMMA_F, RANDOM_NORMAL_F, RANDOM_WEIBULL_F,
         };  // clang-format on
         for (const auto& op : ops) {
-            REQUIRE(exp_t::get_precedence(op) > 0);
-            const auto op_i25 = exp_t::create_binary(op, i2, i5);
+            REQUIRE(Exp::get_precedence(op) > 0);
+            const auto op_i25 = Exp::create_binary(op, i2, i5);
             CHECK(op_i25.get_kind() == op);
             REQUIRE(op_i25.get_size() == 2);
             CHECK(op_i25.get(0) == i2);
             CHECK(op_i25.get(1) == i5);
-            const auto op_d3_2 = exp_t::create_binary(op, d3, d1_2);
+            const auto op_d3_2 = Exp::create_binary(op, d3, d1_2);
             CHECK(op_d3_2.get_kind() == op);
             REQUIRE(op_d3_2.get_size() == 2);
             CHECK(op_d3_2.get(0) == d3);
@@ -177,27 +178,28 @@ TEST_CASE("Expression")
 
 TEST_CASE("Expression to string conversion")
 {
-    using exp_t = UTAP::Expression;
-    const auto i2 = exp_t::create_constant(2);
-    const auto i3 = exp_t::create_constant(3);
-    const auto i5 = exp_t::create_constant(5);
-    const auto i7 = exp_t::create_constant(7);
+    using UTAP::Kind;
+    using Exp = UTAP::Expression;
+    const auto i2 = Exp::create_constant(2);
+    const auto i3 = Exp::create_constant(3);
+    const auto i5 = Exp::create_constant(5);
+    const auto i7 = Exp::create_constant(7);
     SUBCASE("Addition and multiplication")
     {
-        const auto add1 = exp_t::create_binary(UTAP::Constants::PLUS, i2, i3);
+        const auto add1 = Exp::create_binary(Kind::PLUS, i2, i3);
         CHECK(add1.str() == "2 + 3");
-        const auto add2 = exp_t::create_binary(UTAP::Constants::PLUS, i5, i7);
+        const auto add2 = Exp::create_binary(Kind::PLUS, i5, i7);
         CHECK(add2.str() == "5 + 7");
-        const auto mult = exp_t::create_binary(UTAP::Constants::MULT, add1, add2);
+        const auto mult = Exp::create_binary(Kind::MULT, add1, add2);
         CHECK(mult.str() == "(2 + 3) * (5 + 7)");
     }
     SUBCASE("Multiplication and power")
     {
-        const auto m1 = exp_t::create_binary(UTAP::Constants::MULT, i2, i3);
+        const auto m1 = Exp::create_binary(Kind::MULT, i2, i3);
         CHECK(m1.str() == "2 * 3");
-        const auto m2 = exp_t::create_binary(UTAP::Constants::MULT, i5, i7);
+        const auto m2 = Exp::create_binary(Kind::MULT, i5, i7);
         CHECK(m2.str() == "5 * 7");
-        const auto p = exp_t::create_binary(UTAP::Constants::POW, m1, m2);
+        const auto p = Exp::create_binary(Kind::POW, m1, m2);
         CHECK(p.str() == "(2 * 3) ** (5 * 7)");
     }
 }

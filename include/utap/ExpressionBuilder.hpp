@@ -199,13 +199,13 @@ public:
     void expr_pre_increment() override;
     void expr_post_decrement() override;
     void expr_pre_decrement() override;
-    void expr_assignment(Constants::Kind op) override;
-    void expr_unary(Constants::Kind unaryop) override;
-    void expr_binary(Constants::Kind binaryop) override;
-    void expr_nary(Constants::Kind op, uint32_t num) override;
+    void expr_assignment(Kind op) override;
+    void expr_unary(Kind unaryop) override;
+    void expr_binary(Kind binaryop) override;
+    void expr_nary(Kind op, uint32_t num) override;
     void expr_scenario(std::string_view name) override;
     Expression exprScenario();
-    void expr_ternary(Constants::Kind ternaryop, bool firstMissing) override;
+    void expr_ternary(Kind ternaryop, bool firstMissing) override;
     void expr_inline_if() override;
     void expr_comma() override;
     void expr_dot(std::string_view) override;
@@ -217,14 +217,14 @@ public:
     void expr_sum_begin(std::string_view name) override;
     void expr_sum_end(std::string_view name) override;
 
-    void expr_proba_qualitative(Constants::Kind, Constants::Kind, double) override;
-    void expr_proba_quantitative(Constants::Kind) override;
-    void expr_proba_compare(Constants::Kind, Constants::Kind) override;
+    void expr_proba_qualitative(Kind, Kind, double) override;
+    void expr_proba_quantitative(Kind) override;
+    void expr_proba_compare(Kind, Kind) override;
     void expr_proba_expected(std::string_view) override;
-    void expr_builtin_function1(Constants::Kind) override;
-    void expr_builtin_function2(Constants::Kind) override;
-    void expr_builtin_function3(Constants::Kind) override;
-    void expr_optimize_exp(Constants::Kind, PRICETYPE, Constants::Kind) override;
+    void expr_builtin_function1(Kind) override;
+    void expr_builtin_function2(Kind) override;
+    void expr_builtin_function3(Kind) override;
+    void expr_optimize_exp(Kind, PriceType, Kind) override;
     void expr_save_strategy(std::string_view strategy_name) override;
     void expr_load_strategy() override;
 

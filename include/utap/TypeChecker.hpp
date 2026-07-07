@@ -144,7 +144,7 @@ private:
     bool checkBound(const Expression& expr);
     bool checkPredicate(const Expression& expr);
     bool checkProbBound(const Expression& expr);
-    bool checkUntilCond(Constants::Kind kind, const Expression& expr);
+    bool checkUntilCond(Kind kind, const Expression& expr);
     bool checkMonitoredExpr(const Expression& expr);
     bool checkPathQuant(const Expression& expr);
     bool checkAggregationOp(const Expression& expr);

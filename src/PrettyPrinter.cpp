@@ -31,26 +31,26 @@
 #include <stdexcept>
 #include <string>
 
-using namespace UTAP;
-using namespace UTAP::Constants;
+namespace UTAP {
+
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-static inline const std::string& label(AbstractBuilder::TypePrefix prefix)
+static const std::string& label(TypePrefix prefix)
 {
     static const std::string labels[] = {"", "const ", "urgent ", "", "broadcast ", "", "urgent broadcast ",
                                          "", "meta "};
-    return labels[(uint8_t)prefix];
+    return labels[static_cast<uint8_t>(prefix)];
 }
 
-static inline std::string pop_back(std::vector<std::string>& vs)
+static std::string pop_back(std::vector<std::string>& vs)
 {
     auto res = std::move(vs.back());
     vs.pop_back();
     return res;
 }
 
-static inline std::string pop_top(std::stack<std::string>& ss)
+static std::string pop_top(std::stack<std::string>& ss)
 {
     auto res = std::move(ss.top());
     ss.pop();
@@ -59,16 +59,15 @@ static inline std::string pop_top(std::stack<std::string>& ss)
 
 void PrettyPrinter::indent()
 {
-    for (uint32_t i = 0; i < level; i++) {
+    for (uint32_t i = 0; i < level; i++)
         *o.top() << '\t';
-    }
 }
 
-void PrettyPrinter::indent(std::string& s)
+void PrettyPrinter::indent(std::string& s) const
 {
-    for (uint32_t i = 0; i < level; i++) {
+    s.reserve(s.size() + level);
+    for (uint32_t i = 0; i < level; i++)
         s += '\t';
-    }
 }
 
 PrettyPrinter::PrettyPrinter(std::ostream& stream)
@@ -205,7 +204,7 @@ void PrettyPrinter::expr_nary(Kind kind, uint32_t num)
 {
     auto opString = std::string{};
     switch (kind) {
-    case LIST: opString = ", "; break;
+    case Kind::LIST: opString = ", "; break;
     default: throw TypeException{"Invalid operator"};
     }
 
@@ -492,12 +491,12 @@ void PrettyPrinter::proc_select(std::string_view id)
 
 void PrettyPrinter::proc_guard() { guard = static_cast<int>(st.size()); }
 
-void PrettyPrinter::proc_sync(Synchronisation type)
+void PrettyPrinter::proc_sync(Sync type)
 {
     switch (type) {
-    case SYNC_QUE: st.back() += '?'; break;
-    case SYNC_BANG: st.back() += '!'; break;
-    case SYNC_CSP:
+    case Sync::QUE: st.back() += '?'; break;
+    case Sync::BANG: st.back() += '!'; break;
+    case Sync::CSP:
         // no append
         break;
     }
@@ -722,10 +721,10 @@ static std::string_view get_builtin_fun_name(Kind kind)
                                           "random_poisson",
                                           "random_tri",
                                           "random_weibull"};
-    static_assert(RANDOM_WEIBULL_F - ABS_F + 1 == sizeof(funNames) / sizeof(funNames[0]),
+    static_assert(Kind::RANDOM_WEIBULL_F - Kind::ABS_F + 1 == sizeof(funNames) / sizeof(funNames[0]),
                   "Builtin function name list is wrong");
-    assert(ABS_F <= kind && kind <= RANDOM_WEIBULL_F);
-    return funNames[kind - ABS_F];
+    assert(Kind::ABS_F <= kind && kind <= Kind::RANDOM_WEIBULL_F);
+    return funNames[kind - Kind::ABS_F];
 }
 
 void PrettyPrinter::expr_builtin_function1(Kind kind)
@@ -752,6 +751,7 @@ void PrettyPrinter::expr_assignment(Kind op)
     auto lhs = pop_back(st);
     st.emplace_back();
     switch (op) {
+        using namespace KindNames;
     case ASSIGN: st.back() = '(' + lhs + " = " + rhs + ')'; break;
     case ASS_PLUS: st.back() = '(' + lhs + " += " + rhs + ')'; break;
     case ASS_MINUS: st.back() = '(' + lhs + " -= " + rhs + ')'; break;
@@ -772,6 +772,7 @@ void PrettyPrinter::expr_unary(Kind op)
     auto exp = pop_back(st);
     st.emplace_back();
     switch (op) {
+        using namespace KindNames;
     case MINUS: st.back() = '-' + exp; break;
     case NOT: st.back() = '!' + exp; break;
     case PLUS: st.back() = '+' + exp; break;
@@ -789,6 +790,7 @@ void PrettyPrinter::expr_binary(Kind op)
     auto exp1 = pop_back(st);
     st.emplace_back();
     switch (op) {
+        using namespace KindNames;
     case PO_CONTROL: st.back() = exp1 + " control: " + exp2; break;
     case CONTROL_TOPT_DEF1: st.back() = "control_t*(" + exp1 + "): " + exp2; break;
     case PLUS: st.back() = '(' + exp1 + " + " + exp2 + ')'; break;
@@ -824,8 +826,8 @@ void PrettyPrinter::expr_ternary(Kind op, bool firstMissing)
     auto exp1 = (firstMissing) ? "1"s : pop_back(st);
     st.emplace_back();
     switch (op) {
-    case CONTROL_TOPT: st.back() = "control_t*(" + exp1 + "," + exp2 + "): " + exp3; break;
-    case SMC_CONTROL: st.back() = "control[" + exp1 + "<=" + exp2 + "]: " + exp3; break;
+    case Kind::CONTROL_TOPT: st.back() = "control_t*(" + exp1 + "," + exp2 + "): " + exp3; break;
+    case Kind::SMC_CONTROL: st.back() = "control[" + exp1 + "<=" + exp2 + "]: " + exp3; break;
     default: throw TypeException{"Invalid operator"};
     }
 }
@@ -964,7 +966,7 @@ void PrettyPrinter::exprProba2(bool isTimedBound, int type)
     st.push_back(ss.str());
 }
 */
-void PrettyPrinter::expr_proba_quantitative(Constants::Kind type)
+void PrettyPrinter::expr_proba_quantitative(Kind type)
 {
     const auto pred2 = pop_back(st);
     const auto pred1 = pop_back(st);
@@ -1045,3 +1047,5 @@ void PrettyPrinter::query_comment(std::string_view comment)
         *o.top() << "/* Comment: " << comment << " */\n";
 }
 void PrettyPrinter::query_end() { *o.top() << "/** Query end. */\n"; }
+
+} // namespace UTAP

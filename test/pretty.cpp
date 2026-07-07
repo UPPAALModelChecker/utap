@@ -27,9 +27,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-using namespace std;
-using namespace UTAP::Constants;
-
 static bool newSyntax = (getenv("UPPAAL_OLD_SYNTAX") == nullptr);
 
 /**
@@ -49,7 +46,7 @@ int main(int argc, char* argv[])
         if (!std::filesystem::is_regular_file(path))
             throw std::runtime_error("Path is not a regular file: " + path.string());
 
-        auto pretty = UTAP::PrettyPrinter{cout};
+        auto pretty = UTAP::PrettyPrinter{std::cout};
 
         if (path.extension() == ".xml") {
             parse_XML_file(path, pretty, newSyntax);

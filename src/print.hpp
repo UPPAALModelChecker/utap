@@ -28,8 +28,8 @@
 template <typename View>
 std::ostream& print_infix(std::ostream& os, const View& view, std::string_view delim = ",")
 {
-    auto b = std::begin(view), e = std::end(view);
-    if (b != e) {
+    const auto e = std::end(view);
+    if (auto b = std::begin(view); b != e) {
         os << *b;
         while (++b != e)
             os << delim << *b;
@@ -49,10 +49,10 @@ std::ostream& print_infix(std::ostream& os, const View& view, std::string_view d
 template <typename View, typename Print>
 std::ostream& print_infix_p(std::ostream& os, const View& view, Print&& print, std::string_view delim = ",")
 {
-    auto b = std::begin(view), e = std::end(view);
-    using E = typename std::iterator_traits<decltype(b)>::value_type;
+    const auto e = std::end(view);
+    using E = typename std::iterator_traits<decltype(e)>::value_type;
     static_assert(std::is_invocable_v<Print, std::ostream&, const E&>, "print should accept istream and range element");
-    if (b != e) {
+    if (auto b = std::begin(view); b != e) {
         print(os, *b);
         while (++b != e)
             print(os << delim, *b);
