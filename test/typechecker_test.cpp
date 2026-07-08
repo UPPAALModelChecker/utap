@@ -1099,3 +1099,198 @@ system Process;
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
     }
 }
+
+TEST_SUITE("CSP/refinement and urgent/deterministic edge checks")
+{
+    TEST_CASE("urgent edge with a clock guard and a strict bound")
+    {
+        // Exercises both clock_guards_not_allowed_on_urgent_edges and
+        // strict_bounds_on_urgent_edges, since an urgent channel with a
+        // strict clock upper bound guard hits both independent checks.
+        auto doc = document_fixture{}
+                       .add_global_decl("urgent chan c; clock x;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="guard">x &lt; 5</label>
+            <label kind="synchronisation">c!</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        const auto& warns = doc.get_warnings();
+        REQUIRE(warns.size() == 2);
+        CHECK(warns[0].msg == "$Clock_guards_are_not_allowed_on_urgent_edges");
+        CHECK(warns[1].msg == "$Strict_bounds_on_urgent_edges_may_not_make_sense");
+    }
+
+    TEST_CASE("broadcast input edge into a branchpoint must be deterministic")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("broadcast chan c;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <branchpoint id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c?</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        const auto& warns = doc.get_warnings();
+        REQUIRE(warns.size() == 1);
+        CHECK(warns[0].msg == "SMC requires input edges to be deterministic");
+    }
+
+    TEST_CASE("broadcast input edge into a location with a non-true invariant")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("broadcast chan c; clock x;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10">
+            <label kind="invariant">x &lt; 5</label>
+        </location>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c?</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        const auto& warns = doc.get_warnings();
+        bool found = false;
+        for (const auto& w : warns)
+            found |= (w.msg == "$It_may_be_needed_to_add_a_guard_involving_the_target_invariant");
+        CHECK(found);
+    }
+
+    TEST_CASE("mixing CSP-style and IO-style synchronisation is not allowed")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan c;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <location id="id2" x="20" y="20"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c!</label>
+        </transition>
+        <transition>
+            <source ref="id1"/>
+            <target ref="id2"/>
+            <label kind="synchronisation">c</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$CSP_and_IO_synchronisations_cannot_be_mixed");
+    }
+
+    // The remaining refinement-only checks (outputs_should_be_uncontrollable,
+    // inputs_should_be_controllable, csp_sync_is_incompatible_with_refinement_checking)
+    // only run when TypeChecker is constructed with refinement=true, which
+    // static_analysis() (used by every parse_XTA/parse_XML_* overload) never
+    // does -- so a document must be re-visited manually with a
+    // refinement-enabled checker to reach them.
+    TEST_CASE("refinement warnings: uncontrollable output, controllable input, CSP incompatibility")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan c;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <location id="id2" x="20" y="20"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c!</label>
+        </transition>
+        <transition>
+            <source ref="id1"/>
+            <target ref="id2"/>
+            <label kind="synchronisation">c</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$CSP_and_IO_synchronisations_cannot_be_mixed");
+
+        auto checker = UTAP::TypeChecker{doc, true};
+        doc.accept(checker);
+
+        const auto& warns = doc.get_warnings();
+        bool has_output_warning = false;
+        bool has_csp_refinement_warning = false;
+        for (const auto& w : warns) {
+            has_output_warning |= (w.msg == "$Outputs_should_be_uncontrollable_for_refinement_checking");
+            has_csp_refinement_warning |= (w.msg == "$CSP_synchronisations_are_incompatible_with_refinement_checking");
+        }
+        CHECK(has_output_warning);
+        CHECK(has_csp_refinement_warning);
+    }
+
+    TEST_CASE("refinement warning: input edge should be controllable")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan c;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition controllable="false">
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c?</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+
+        auto checker = UTAP::TypeChecker{doc, true};
+        doc.accept(checker);
+
+        const auto& warns = doc.get_warnings();
+        bool found = false;
+        for (const auto& w : warns)
+            found |= (w.msg == "$Inputs_should_be_controllable_for_refinement_checking");
+        CHECK(found);
+    }
+}
