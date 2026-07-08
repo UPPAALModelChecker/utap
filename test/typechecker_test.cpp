@@ -1033,4 +1033,69 @@ system Process;
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$Progress_measure_must_evaluate_to_a_integer_value");
     }
+
+    TEST_CASE("incompatible type for array index")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("int a[3]; void f() { clock c; int x = a[c]; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_type");
+    }
+
+    TEST_CASE("incompatible type for comma expression")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("chan c; void f() { int i; for (i = 0, c; i < 1; i++) {} }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_type_for_comma_expression");
+    }
+
+    TEST_CASE("incompatible argument: reference parameter given a non-unique-reference argument")
+    {
+        // Also exercises isUniqueReference(), which returns false for a
+        // literal passed where a non-const reference parameter is expected.
+        auto doc = document_fixture{}
+                       .add_template(template_fixture{"T"}.add_parameter("int& x").str())
+                       .add_system_decl("Process = T(5);")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+
+    TEST_CASE("spawning a fully-defined dynamic template with matching arguments on an edge")
+    {
+        // Exercises checkSpawnParameterCompatible() on the success path.
+        auto doc = document_fixture{}
+                       .add_global_decl("dynamic Child(int p);")
+                       .add_template(R"XML(<template>
+        <name>Child</name>
+        <parameter>int p</parameter>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<template>
+        <name>Parent</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="assignment">spawn Child(1)</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = Parent();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
 }
