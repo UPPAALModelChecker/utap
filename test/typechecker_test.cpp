@@ -913,3 +913,124 @@ TEST_SUITE("SMC/probability property checks")
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
     }
 }
+
+TEST_SUITE("More expression and edge errors")
+{
+    TEST_CASE("edge guard must be side-effect free")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int i;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="guard">(i++ &gt; 0)</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("channel expected for edge synchronisation")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan c[2];")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition>
+            <source ref="id0"/>
+            <target ref="id1"/>
+            <label kind="synchronisation">c</label>
+        </transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Channel_expected");
+    }
+
+    TEST_CASE("scalar set or integer expected for iteration variable")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() { for (i : bool) {} }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Scalar_set_or_integer_expected");
+    }
+
+    TEST_CASE("field name not allowed in array initialiser")
+    {
+        auto doc =
+            document_fixture{}.add_default_process().add_global_decl("int a[2] = {x: 1, 2};").parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Field_name_not_allowed_in_array_initialiser");
+    }
+
+    TEST_CASE("number expected and unknown type in sum body")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("chan carr[3]; void f() { int x = sum(i:int[0,2]) carr[i]; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 2);
+        CHECK(errs[0].msg == "$Number_expected");
+        CHECK(errs[1].msg == "$Unknown_type_of_the_expression");
+    }
+
+    static UTAP::Document parse_with_progress(const std::string& progress_decl)
+    {
+        // The `progress { ... }` block must follow the `system ...;` line
+        // (grammar: System: SysDecl Progress GanttDecl), which
+        // document_fixture::add_system_decl() cannot express since it
+        // inserts text before that line -- build the document manually.
+        auto doc = UTAP::Document{};
+        auto xml = std::string{R"XML(<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'https://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+    <declaration>clock c;</declaration>
+    <template>
+        <name x="5" y="5">Template</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>
+    <system>
+Process = Template();
+system Process;
+)XML"} + progress_decl + "\n    </system>\n</nta>\n";
+        parse_XML_buffer(xml.c_str(), doc, true);
+        return doc;
+    }
+
+    TEST_CASE("progress guard must evaluate to a boolean value")
+    {
+        auto doc = parse_with_progress("progress { c : 1; }");
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Progress_guard_must_evaluate_to_a_boolean_value");
+    }
+
+    TEST_CASE("progress measure must evaluate to an integer value")
+    {
+        auto doc = parse_with_progress("progress { true : c; }");
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Progress_measure_must_evaluate_to_a_integer_value");
+    }
+}
