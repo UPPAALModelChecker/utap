@@ -11,7 +11,7 @@ function show_vars() {
 # Absolute path to the example directory:
 EXAMPLE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Path to UTAP library source directory:
-[ -n "$UTAP_SRC" ] || UTAP_SRC=${EXAMPLE_DIR%/*}
+[ -n "$UTAP_SRC" ] || UTAP_SRC=$(dirname "$EXAMPLE_DIR")
 
 # Figure out the native host target (architecture and kernel);
 if [ -z "$TARGET" ] ; then

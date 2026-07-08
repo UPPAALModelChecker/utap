@@ -26,6 +26,23 @@
         "UTAP_CLANG_TIDY": { "type": "bool", "value": "OFF" }
       },
       "displayName": "Configure quick build (no testing) with Sanitizers for Debug and Release"
+    },
+    {
+      "name": "coverage",
+      "inherits": "multi",
+      "binaryDir": "${sourceDir}/build-coverage-gcov",
+      "cacheVariables": { "UTAP_COVERAGE": "ON" },
+      "displayName": "Configure gcov coverage build"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "multi",
+      "binaryDir": "${sourceDir}/build-coverage-llvm",
+      "cacheVariables": {
+        "UTAP_COVERAGE": "ON",
+        "UTAP_COVERAGE_TYPE": "llvm"
+      },
+      "displayName": "Configure llvm coverage build"
     }
   ],
   "buildPresets": [
@@ -52,9 +69,34 @@
       "inherits": "debug-san",
       "configurePreset": "quick-san",
       "displayName": "Build quick (no testing) with Sanitizers and Debug"
+    },
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "configurePreset": "coverage",
+      "displayName": "Build with gcov coverage"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "debug",
+      "configurePreset": "coverage-llvm",
+      "displayName": "Build with llvm coverage"
     }
   ],
-  "testPresets": [],
+  "testPresets": [
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "configurePreset": "coverage",
+      "displayName": "Test the Debug with gcov coverage"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "debug",
+      "configurePreset": "coverage-llvm",
+      "displayName": "Test the Debug with llvm coverage"
+    }
+  ],
   "workflowPresets": [
     {
       "name": "quick",
@@ -145,6 +187,42 @@
         {
           "type": "build",
           "name": "quick-debug-san"
+        }
+      ]
+    },
+    {
+      "name": "coverage",
+      "displayName": "Configure, Build and Test with gcov Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage"
+        },
+        {
+          "type": "build",
+          "name": "coverage"
+        },
+        {
+          "type": "test",
+          "name": "coverage"
+        }
+      ]
+    },
+    {
+      "name": "coverage-llvm",
+      "displayName": "Configure, Build and Test with llvm Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage-llvm"
+        },
+        {
+          "type": "build",
+          "name": "coverage-llvm"
+        },
+        {
+          "type": "test",
+          "name": "coverage-llvm"
         }
       ]
     }

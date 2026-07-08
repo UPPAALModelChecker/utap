@@ -1,0 +1,17 @@
+# Enables compiler warnings
+
+option(UTAP_WARNINGS "UTAP Compiler Warnings" ON)
+if (UTAP_WARNINGS)
+    set(UTAP_COMMON_WARN -Wpedantic -Wall -Wextra -Wimplicit-fallthrough -Werror=vla)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(UTAP_WARN ${UTAP_COMMON_WARN} -Wconversion -Wno-sign-conversion)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(UTAP_WARN ${UTAP_COMMON_WARN} -Wconversion -Wno-sign-conversion)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        set(UTAP_WARN ${UTAP_COMMON_WARN})
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(UTAP_WARN /W4)
+    else ()
+        message(WARNING "Failed to enable warnings for ${CMAKE_CXX_COMPILER_ID}")
+    endif ()
+endif ()

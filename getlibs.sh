@@ -13,11 +13,10 @@ LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
 LIBXML2_SHA256=a2c9ae7b770da34860050c309f903221c67830c86e4a7e760692b803df95143a
 
-
-DOCTEST=doctest-2.4.12
+DOCTEST=doctest-2.5.2
 DOCTEST_Z="${DOCTEST}.tar.gz"
 DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doctest-}.tar.gz"
-DOCTEST_SHA256=73381c7aa4dee704bd935609668cf41880ea7f19fa0504a200e13b74999c2d70
+DOCTEST_SHA256=9189960c2bbbc4f3382ce0773b2bb5f13e3afd8fed47f55f193e11e85a4f9854
 
 BISON=bison-3.8.2
 BISON_Z="${BISON}.tar.xz"
