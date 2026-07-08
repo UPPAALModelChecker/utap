@@ -50,6 +50,19 @@ target_compile_definitions(
 target_link_libraries(prettyprinter_test PRIVATE UTAP doctest::doctest_with_main)
 add_test(NAME prettyprinter_test COMMAND prettyprinter_test)
 
+add_executable(typeexception_test typeexception_test.cpp)
+target_link_libraries(typeexception_test PRIVATE UTAP doctest::doctest_with_main)
+add_test(NAME typeexception_test COMMAND typeexception_test)
+
+add_executable(print_test print_test.cpp)
+target_include_directories(print_test PRIVATE "${PROJECT_SOURCE_DIR}/src")
+target_link_libraries(print_test PRIVATE UTAP doctest::doctest_with_main)
+# print.hpp is header-only, so its templates are instantiated directly in
+# this test binary rather than inside the already-instrumented UTAP library;
+# it needs its own coverage instrumentation to be measured.
+target_coverage(print_test)
+add_test(NAME print_test COMMAND print_test)
+
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test PRIVATE UTAP)
 add_test(NAME example_train_gate
@@ -66,6 +79,8 @@ if(UTAP_STATIC)
   target_link_options(typechecker_test PRIVATE -static)
   target_link_options(prettyprint_test PRIVATE -static)
   target_link_options(prettyprinter_test PRIVATE -static)
+  target_link_options(typeexception_test PRIVATE -static)
+  target_link_options(print_test PRIVATE -static)
   target_link_options(example_test PRIVATE -static)
   message(STATUS "Enabled Unit Tests -static")
 endif(UTAP_STATIC)
