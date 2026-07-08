@@ -48,6 +48,15 @@ TEST_CASE("Power expressions")
 TEST_CASE("External functions")
 {
     using namespace UTAP;
+    auto libpath = std::filesystem::current_path();
+    if constexpr (is(OS::Linux)) {
+        libpath /= "libexternal_fn.so";
+    } else if constexpr (is(OS::Linux)) {
+        libpath /= "libexternal_fn.dylib";
+    } else if constexpr (is(OS::Windows)) {
+        libpath /= "libexternal_fn.dll";
+    }
+    REQUIRE_MESSAGE(exists(libpath), ("expecting library at " + libpath.string()));
     auto doc = read_document("external_fn.xml");
     const auto& errs = doc.get_errors();
     REQUIRE(errs.size() == 3);

@@ -51,8 +51,8 @@ add_subdirectory(src)
 if (UTAP_TESTS)
     include(cmake/doctest.cmake)
     enable_testing()
+    add_subdirectory(test)
 endif(UTAP_TESTS)
-add_subdirectory(test)
 
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/UTAPConfigVersion.cmake VERSION ${PACKAGE_VERSION} COMPATIBILITY SameMajorVersion)
 

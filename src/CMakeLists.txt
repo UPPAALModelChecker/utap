@@ -78,3 +78,20 @@ target_include_directories(UTAP
 target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
                                    ${LIBXML_WINLIBS})
 add_library(UTAP::UTAP ALIAS UTAP) # in case the library is not exported-imported
+
+add_executable(pretty pretty.cpp)
+target_link_libraries(pretty PRIVATE UTAP)
+
+add_executable(syntaxcheck syntaxcheck.cpp)
+target_link_libraries(syntaxcheck PRIVATE UTAP)
+
+add_executable(featurecheck featurechecker.cpp)
+target_link_libraries(featurecheck PRIVATE UTAP)
+
+if (UTAP_STATIC)
+  target_link_options(pretty PRIVATE -static)
+  target_link_options(syntaxcheck PRIVATE -static)
+  target_link_options(featurecheck PRIVATE -static)
+endif (UTAP_STATIC)
+
+install(TARGETS pretty syntaxcheck featurecheck)
