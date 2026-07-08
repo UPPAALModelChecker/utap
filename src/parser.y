@@ -2079,6 +2079,14 @@ static int32_t builder_parse_property(ParserBuilder& aParserBuilder, std::string
     return (utap_parse() != 0) ? -1 : 0;
 }
 
+/** Deletes the current flex scan buffer on scope exit, even if parsing
+ * throws (a ParserBuilder is explicitly allowed to report errors by
+ * throwing, see builder.hpp), so the buffer is never leaked. */
+struct ScanBufferGuard
+{
+    ~ScanBufferGuard() { utap__delete_buffer(YY_CURRENT_BUFFER); }
+};
+
 namespace UTAP {
 
 const char* utap_builtin_declarations() {
@@ -2121,9 +2129,8 @@ int32_t parse_XTA(const char *str, ParserBuilder& builder,
              bool newxta, XTAPart part, std::string_view xpath)
 {
     utap__scan_string(str);
-    int32_t res = builder_parse_XTA(builder, newxta, part, xpath);
-    utap__delete_buffer(YY_CURRENT_BUFFER);
-    return res;
+    auto guard = ScanBufferGuard{};
+    return builder_parse_XTA(builder, newxta, part, xpath);
 }
 
 int32_t parse_XTA(const char *str, ParserBuilder& builder, bool newxta)
@@ -2138,25 +2145,22 @@ int32_t parse_XTA(FILE *file, ParserBuilder& builder, bool newxta)
     if (newxta)
         parse_XTA(utap_builtin_declarations(), builder, newxta, XTAPart::DECLARATION, "");
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int res = builder_parse_XTA(builder, newxta, XTAPart::XTA, "");
-    utap__delete_buffer(YY_CURRENT_BUFFER);
-    return res;
+    auto guard = ScanBufferGuard{};
+    return builder_parse_XTA(builder, newxta, XTAPart::XTA, "");
 }
 
 int32_t parse_property(const char *str, ParserBuilder& aParserBuilder, const std::string& xpath)
 {
     utap__scan_string(str);
-    int32_t res = builder_parse_property(aParserBuilder, xpath);
-    utap__delete_buffer(YY_CURRENT_BUFFER);
-    return res;
+    auto guard = ScanBufferGuard{};
+    return builder_parse_property(aParserBuilder, xpath);
 }
 
 int32_t parse_property(FILE *file, ParserBuilder& aParserBuilder)
 {
     utap__switch_to_buffer(utap__create_buffer(file, YY_BUF_SIZE));
-    int32_t res = builder_parse_property(aParserBuilder, "");
-    utap__delete_buffer(YY_CURRENT_BUFFER);
-    return res;
+    auto guard = ScanBufferGuard{};
+    return builder_parse_property(aParserBuilder, "");
 }
 
 } // namespace UTAP
