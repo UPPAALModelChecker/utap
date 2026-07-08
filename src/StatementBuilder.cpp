@@ -536,7 +536,7 @@ void StatementBuilder::iteration_begin(std::string_view name)
     get_block().push(std::make_unique<RangeStatement>(variable->uid, frames.top(), nullptr));
 }
 
-void StatementBuilder::iteration_end(std::string_view name)
+void StatementBuilder::iteration_end(std::string_view)
 {
     // Retrieve the statement that we iterate over.
     auto statement = get_block().pop();
@@ -564,6 +564,12 @@ void StatementBuilder::do_while_end()
     auto substat = get_block().pop();
     get_block().push(std::make_unique<DoWhileStatement>(std::move(substat), fragments.pop()));
 }
+
+void StatementBuilder::if_begin() {}
+
+void StatementBuilder::if_condition() {}
+
+void StatementBuilder::if_then() {}
 
 void StatementBuilder::if_end(bool elsePart)
 {  // 1 expr, 1 or 2 statements
