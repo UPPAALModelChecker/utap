@@ -276,12 +276,12 @@ void PropertyBuilder::parse(const char* buf, const std::string& xpath, const Opt
         properties.back().options = options;
 }
 
-Variable* PropertyBuilder::add_variable(Type type, std::string_view name, Expression init, position_t pos)
+Variable* PropertyBuilder::add_variable(Type, std::string_view, Expression, position_t)
 {
     throw NotSupportedException("add_variable is not supported");
 }
 
-bool PropertyBuilder::add_function(Type type, std::string_view name, position_t pos)
+bool PropertyBuilder::add_function(Type, std::string_view, position_t)
 {
     throw NotSupportedException("add_function is not supported");
 }

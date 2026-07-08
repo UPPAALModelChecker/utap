@@ -172,7 +172,7 @@ std::ostream& Declarations::print_typedefs(std::ostream& os) const
     return os;
 }
 
-std::ostream& Declarations::print_variables(std::ostream& os, bool global) const
+std::ostream& Declarations::print_variables(std::ostream& os, bool) const
 {
     if (!variables.empty()) {
         os << "// variables\n";
@@ -929,7 +929,7 @@ void Document::copy_variables_from_to(const Template* from, Template* to) const
     }
 }
 
-void Document::copy_functions_from_to(const Template* from, Template* to) const
+void Document::copy_functions_from_to(const Template* /*from*/, Template* /*to*/) const
 {
     // TODO to be implemented and to be used in Translator::lscProcBegin (see Translator.cpp)
 }

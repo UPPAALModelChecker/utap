@@ -131,8 +131,6 @@ public:
     </template>")XML";
         return string_format(simple_template, name.c_str(), parameters.c_str(), declarations.c_str());
     }
-
-private:
 };
 
 class QueryBuilder : public UTAP::StatementBuilder
@@ -150,15 +148,14 @@ public:
         query = fragments[0];
         fragments.pop();
     }
-    void strategy_declaration(std::string_view strategy_name) override {}
+    void strategy_declaration(std::string_view /* strategy_name */) override {}
     void typecheck() { checker.checkExpression(query); }
     [[nodiscard]] UTAP::Expression getQuery() const { return query; }
-    UTAP::Variable* add_variable(UTAP::Type type, std::string_view name, UTAP::Expression init,
-                                UTAP::position_t pos) override
+    UTAP::Variable* add_variable(UTAP::Type, std::string_view, UTAP::Expression,UTAP::position_t) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }
-    bool add_function(UTAP::Type type, std::string_view name, UTAP::position_t pos) override
+    bool add_function(UTAP::Type, std::string_view, UTAP::position_t) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }

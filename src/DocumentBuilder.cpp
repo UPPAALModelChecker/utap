@@ -228,7 +228,7 @@ void DocumentBuilder::proc_edge_begin(std::string_view from, std::string_view to
                    }
 }
 
-void DocumentBuilder::proc_edge_end(std::string_view from, std::string_view to) { frames.pop(); }
+void DocumentBuilder::proc_edge_end(std::string_view, std::string_view) { frames.pop(); }
 
 void DocumentBuilder::proc_select(std::string_view id) { addSelectSymbolToFrame(id, currentEdge->select, position); }
 
@@ -272,7 +272,7 @@ void DocumentBuilder::proc_prob()
  * System declaration
  */
 
-void DocumentBuilder::instantiation_begin(std::string_view name, uint32_t parameters, std::string_view templ_name)
+void DocumentBuilder::instantiation_begin(std::string_view name, uint32_t, std::string_view templ_name)
 {
     // Make sure this identifier is new.
     if (frames.top().contains(name))
@@ -422,7 +422,7 @@ void DocumentBuilder::instance_name(std::string_view name, bool templ)
         currentTemplate->frame.add_symbol(name, Type::create_primitive(Kind::INSTANCE_LINE), position, currentInstanceLine);
 }
 
-void DocumentBuilder::instance_name_begin(std::string_view name)
+void DocumentBuilder::instance_name_begin(std::string_view)
 {
     // Push parameters to frame stack.
     auto frame = frames.top().make_sub();

@@ -79,7 +79,7 @@ PrettyPrinter::PrettyPrinter(std::ostream& stream)
     select = guard = sync = update = probability = -1;
 }
 
-void PrettyPrinter::add_position(uint32_t position, uint32_t offset, uint32_t line, std::shared_ptr<std::string> path)
+void PrettyPrinter::add_position(uint32_t, uint32_t, uint32_t, std::shared_ptr<std::string>)
 {}
 
 void PrettyPrinter::handle_error(const TypeException& msg) { throw msg; }
@@ -125,9 +125,9 @@ void PrettyPrinter::type_name(TypePrefix prefix, std::string_view name)
     type.push(label(prefix) + std::string{name});
 }
 
-void PrettyPrinter::type_array_of_size(uint32_t n) { array.push(pop_back(st)); }
+void PrettyPrinter::type_array_of_size(uint32_t) { array.push(pop_back(st)); }
 
-void PrettyPrinter::type_array_of_type(uint32_t n)
+void PrettyPrinter::type_array_of_type(uint32_t)
 {
     array.push(type.top());
     type.pop();
@@ -249,9 +249,9 @@ void PrettyPrinter::decl_func_end()
     *o.top() << "}\n";
 }
 
-void PrettyPrinter::dynamic_load_lib(std::string_view name) {}
+void PrettyPrinter::dynamic_load_lib(std::string_view) {}
 
-void PrettyPrinter::decl_external_func(std::string_view name, std::string_view alias)
+void PrettyPrinter::decl_external_func(std::string_view, std::string_view)
 {
     pop_top(type);  // discard the return type pushed for this declaration
     param.clear();  // discard the parameters accumulated by decl_parameter()
@@ -287,7 +287,7 @@ void PrettyPrinter::iteration_begin(std::string_view id)
     type.pop();
 }
 
-void PrettyPrinter::iteration_end(std::string_view id)
+void PrettyPrinter::iteration_end(std::string_view)
 {
     *o.top() << '\n';
     level--;
@@ -413,7 +413,7 @@ void PrettyPrinter::return_statement(bool hasValue)
     }
 }
 
-void PrettyPrinter::proc_begin(std::string_view id, const bool isTA, std::string_view type, std::string_view mode)
+void PrettyPrinter::proc_begin(std::string_view id, const bool, std::string_view, std::string_view)
 {
     *o.top() << "process " << id << templateset << '(' << param << ")\n{\n";
     param.clear();
@@ -558,7 +558,7 @@ void PrettyPrinter::proc_edge_begin(std::string_view source, std::string_view ta
     }
 }
 
-void PrettyPrinter::proc_edge_end(std::string_view source, std::string_view target)
+void PrettyPrinter::proc_edge_end(std::string_view, std::string_view)
 {
     level++;
 
@@ -880,7 +880,7 @@ void PrettyPrinter::expr_forall_begin(std::string_view name)
     st.push_back("forall (" + std::string{name} + ":" + pop_top(type) + ") ");
 }
 
-void PrettyPrinter::expr_forall_end(std::string_view name)
+void PrettyPrinter::expr_forall_end(std::string_view)
 {
     auto expr = pop_back(st);
     st.back() += expr;
@@ -891,7 +891,7 @@ void PrettyPrinter::expr_exists_begin(std::string_view name)
     st.push_back("exists (" + std::string{name} + ":" + pop_top(type) + ") ");
 }
 
-void PrettyPrinter::expr_exists_end(std::string_view name)
+void PrettyPrinter::expr_exists_end(std::string_view)
 {
     auto expr = pop_back(st);
     st.back() += expr;
@@ -902,7 +902,7 @@ void PrettyPrinter::expr_sum_begin(std::string_view name)
     st.push_back("sum (" + std::string{name} + ":" + pop_top(type) + ") ");
 }
 
-void PrettyPrinter::expr_sum_end(std::string_view name)
+void PrettyPrinter::expr_sum_end(std::string_view)
 {
     auto expr = pop_back(st);
     st.back() += expr;
@@ -928,12 +928,12 @@ void PrettyPrinter::after_update()
     *o.top() << "}\n";
 }
 
-void PrettyPrinter::instantiation_begin(std::string_view id, uint32_t, std::string_view templ)
+void PrettyPrinter::instantiation_begin(std::string_view, uint32_t, std::string_view)
 {
     // Ignore
 }
 
-void PrettyPrinter::instantiation_end(std::string_view id, uint32_t parameters, std::string_view templ,
+void PrettyPrinter::instantiation_end(std::string_view id, uint32_t, std::string_view templ,
                                       uint32_t arguments)
 {
     auto s = std::stack<std::string>{};
@@ -986,7 +986,7 @@ void PrettyPrinter::exprProba2(bool isTimedBound, int type)
     st.push_back(ss.str());
 }
 */
-void PrettyPrinter::expr_proba_quantitative(Kind type)
+void PrettyPrinter::expr_proba_quantitative(Kind)
 {
     const auto pred2 = pop_back(st);
     const auto pred1 = pop_back(st);
@@ -1056,7 +1056,7 @@ void PrettyPrinter::expr_simulate(int nbExpr, bool hasReach, int nbOfAcceptingRu
 
 /** Built-in verification queries if any */
 void PrettyPrinter::query_begin() { *o.top() << "\n/** Query begin: */\n"; }
-void PrettyPrinter::query_formula(std::string_view formula, std::string_view location)
+void PrettyPrinter::query_formula(std::string_view formula, std::string_view)
 {
     if (not formula.empty())
         *o.top() << "/* Formula: " << formula << " */\n";

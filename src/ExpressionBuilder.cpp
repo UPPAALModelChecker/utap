@@ -615,7 +615,7 @@ void ExpressionBuilder::expr_forall_begin(std::string_view name)
     }
 }
 
-void ExpressionBuilder::expr_forall_end(std::string_view name)
+void ExpressionBuilder::expr_forall_end(std::string_view)
 {
     /* Create the forall expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded
@@ -629,7 +629,7 @@ void ExpressionBuilder::expr_forall_end(std::string_view name)
 
 void ExpressionBuilder::expr_exists_begin(std::string_view name) { expr_forall_begin(name); }
 
-void ExpressionBuilder::expr_exists_end(std::string_view name)
+void ExpressionBuilder::expr_exists_end(std::string_view)
 {
     /* Create the exists expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded
@@ -643,7 +643,7 @@ void ExpressionBuilder::expr_exists_end(std::string_view name)
 
 void ExpressionBuilder::expr_sum_begin(std::string_view name) { expr_forall_begin(name); }
 
-void ExpressionBuilder::expr_sum_end(std::string_view name)
+void ExpressionBuilder::expr_sum_end(std::string_view)
 {
     /* Create the sum expression. The symbol is added as an identifier
      * expression as the first child. Notice that the frame is discarded

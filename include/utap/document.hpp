@@ -460,7 +460,7 @@ struct Resource
     std::string value;
     std::optional<std::string> unit;
     Resource(std::string name, std::string value, std::optional<std::string> unit):
-        name{std::move(name)}, value{std::move(name)}, unit{std::move(unit)}
+        name{std::move(name)}, value{std::move(value)}, unit{std::move(unit)}
     {}
 };
 
