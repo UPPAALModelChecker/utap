@@ -224,6 +224,8 @@ void AbstractBuilder::expr_MITL_disj() { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_conj() { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_next() { UNSUPPORTED; }
 void AbstractBuilder::expr_MITL_atom() { UNSUPPORTED; }
+void AbstractBuilder::expr_MITL_diamond(int, int) { UNSUPPORTED; }
+void AbstractBuilder::expr_MITL_box(int, int) { UNSUPPORTED; }
 
 void AbstractBuilder::expr_optimize(int, int, int, int) { UNSUPPORTED; }
 void AbstractBuilder::expr_proba_qualitative(Kind, Kind, double) { UNSUPPORTED; }

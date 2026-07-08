@@ -224,6 +224,8 @@ public:
     void expr_MITL_conj() override;
     void expr_MITL_next() override;
     void expr_MITL_atom() override;
+    void expr_MITL_diamond(int, int) override;
+    void expr_MITL_box(int, int) override;
     void expr_optimize(int, int, int, int) override;
 
     /************************************************************

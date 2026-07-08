@@ -1,6 +1,10 @@
 set(MODELS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/models")
 set(EXAMPLES_PATH "${PROJECT_SOURCE_DIR}/examples")
 
+add_executable(abstractbuilder_test AbstractBuilder_test.cpp)
+target_link_libraries(abstractbuilder_test PRIVATE UTAP doctest::doctest_with_main)
+add_test(NAME abstractbuilder_test COMMAND abstractbuilder_test)
+
 add_executable(expression_test expression_test.cpp)
 target_link_libraries(expression_test PRIVATE UTAP doctest::doctest_with_main)
 add_test(NAME expression_test COMMAND expression_test)
@@ -47,6 +51,7 @@ add_test(NAME example_train_gate
                  "${EXAMPLES_PATH}/train-gate-out.xml")
 
 if(UTAP_STATIC)
+  target_link_options(abstractbuilder_test PRIVATE -static)
   target_link_options(expression_test PRIVATE -static)
   target_link_options(statement_test PRIVATE -static)
   target_link_options(parser_test PRIVATE -static)
