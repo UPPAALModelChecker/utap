@@ -1,0 +1,274 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "default",
+      "binaryDir": "${sourceDir}/build",
+      "displayName": "Configure with Defaults (Debug)"
+    },
+    {
+      "name": "multi",
+      "inherits": "default",
+      "binaryDir": "${sourceDir}/build-multi",
+      "generator": "Ninja Multi-Config",
+      "displayName": "Configure for Ninja Debug/Release"
+    },
+    {
+      "name": "multi-san",
+      "inherits": "multi",
+      "binaryDir": "${sourceDir}/build-multi-san",
+      "cacheVariables": {
+        "UBSAN" : { "type": "BOOL", "value": "ON"},
+        "ASAN" : { "type": "BOOL", "value": "ON"},
+        "SSP" : { "type": "BOOL", "value": "ON"}
+      },
+      "displayName": "Configure for Ninja Debug/Release with Sanitizers"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "displayName": "Build for default configuration"
+    },
+    {
+      "name": "debug",
+      "configurePreset": "multi",
+      "configuration": "Debug",
+      "displayName": "Build for Debug"
+    },
+    {
+      "name": "debug-san",
+      "inherits": "debug",
+      "configurePreset": "multi-san",
+      "displayName": "Build for Debug with Sanitizers"
+    },
+    {
+      "name": "release",
+      "configurePreset": "multi",
+      "configuration": "Release",
+      "displayName": "Build for Release"
+    },
+    {
+      "name": "release-debug",
+      "configurePreset": "multi",
+      "configuration": "RelWithDebInfo",
+      "displayName": "Build for Release with Debug Info"
+    },
+    {
+      "name": "release-san",
+      "inherits": "release-debug",
+      "configurePreset": "multi-san",
+      "displayName": "Build for Release with Sanitizers and Debug Info"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "output": { "outputOnFailure": true, "verbosity": "verbose" },
+      "execution": { "noTestsAction": "error", "stopOnFailure": true },
+      "displayName": "Test with default options"
+    },
+    {
+      "name": "debug",
+      "inherits": "default",
+      "configurePreset": "multi",
+      "configuration": "Debug",
+      "displayName": "Test the Debug"
+    },
+    {
+      "name": "debug-san",
+      "inherits": "debug",
+      "configurePreset": "multi-san",
+      "displayName": "Test the Debug with Sanitizers"
+    },
+    {
+      "name": "release",
+      "inherits": "default",
+      "configurePreset": "multi",
+      "configuration": "Release",
+      "displayName": "Test the Release"
+    },
+    {
+      "name": "release-debug",
+      "inherits": "default",
+      "configurePreset": "multi",
+      "configuration": "RelWithDebInfo",
+      "displayName": "Test the Release with Debug Info"
+    },
+    {
+      "name": "release-san",
+      "inherits": "release-debug",
+      "configurePreset": "multi-san",
+      "displayName": "Test the Release with Sanitizers and Debug Info"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "default",
+      "displayName": "Configure, Build and Test with Defaults (Debug)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "default"
+        },
+        {
+          "type": "build",
+          "name": "default"
+        },
+        {
+          "type": "test",
+          "name": "default"
+        }
+      ]
+    },
+    {
+      "name": "debug",
+      "displayName": "Configure, Build and Test with Debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi"
+        },
+        {
+          "type": "build",
+          "name": "debug"
+        },
+        {
+          "type": "test",
+          "name": "debug"
+        }
+      ]
+    },
+    {
+      "name": "release",
+      "displayName": "Configure, Build and Test with Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi"
+        },
+        {
+          "type": "build",
+          "name": "release"
+        },
+        {
+          "type": "test",
+          "name": "release"
+        }
+      ]
+    },
+    {
+      "name": "release-debug",
+      "displayName": "Configure, Build and Test Release with Debug Info",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi"
+        },
+        {
+          "type": "build",
+          "name": "release-debug"
+        },
+        {
+          "type": "test",
+          "name": "release-debug"
+        }
+      ]
+    },
+    {
+      "name": "debug-san",
+      "displayName": "Configure, Build and Test with Debug and Sanitizers",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi-san"
+        },
+        {
+          "type": "build",
+          "name": "debug-san"
+        },
+        {
+          "type": "test",
+          "name": "debug-san"
+        }
+      ]
+    },
+    {
+      "name": "release-san",
+      "displayName": "Configure, Build and Test with Release and Sanitizers",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi-san"
+        },
+        {
+          "type": "build",
+          "name": "release-san"
+        },
+        {
+          "type": "test",
+          "name": "release-san"
+        }
+      ]
+    },
+    {
+      "name": "multi",
+      "displayName": "Configure, Build and Test with Debug and Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi"
+        },
+        {
+          "type": "build",
+          "name": "debug"
+        },
+        {
+          "type": "test",
+          "name": "debug"
+        },
+        {
+          "type": "build",
+          "name": "release-debug"
+        },
+        {
+          "type": "test",
+          "name": "release-debug"
+        }
+      ]
+    },
+    {
+      "name": "multi-san",
+      "displayName": "Configure, Build and Test with Debug and Release and Sanitizers",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "multi-san"
+        },
+        {
+          "type": "build",
+          "name": "debug-san"
+        },
+        {
+          "type": "test",
+          "name": "debug-san"
+        },
+        {
+          "type": "build",
+          "name": "release-san"
+        },
+        {
+          "type": "test",
+          "name": "release-san"
+        }
+      ]
+    }
+  ]
+}
