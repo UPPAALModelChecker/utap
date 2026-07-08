@@ -732,6 +732,41 @@ TEST_SUITE("Expression type errors")
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$First_argument_of_inline_if_must_be_an_integer");
     }
+
+    TEST_CASE("multiple initialisers for the same field")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("struct { int x; } s = {x: 1, x: 2};")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Multiple_initialisers_for_field");
+    }
+
+    TEST_CASE("too many elements in initialiser")
+    {
+        auto doc =
+            document_fixture{}.add_default_process().add_global_decl("struct { int x; } s = {1, 2};").parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Too_many_elements_in_initialiser");
+    }
+
+    TEST_CASE("spawn outside an edge, on a declared-but-undefined dynamic template")
+    {
+        // Exercises both template_only_declared_and_undefined (the
+        // template has no body) and dynamic_constructs_supported_only_on_edges
+        // (spawn is used in a function body, not on an edge update).
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("dynamic Child(); void f() { int x = spawn Child(); }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 2);
+        CHECK(errs[0].msg == "$Template_is_only_declared_and_not_defined");
+        CHECK(errs[1].msg == "$Dynamic_constructs_supported_only_on_edges");
+    }
 }
 
 TEST_SUITE("Document-based parse entry points")
