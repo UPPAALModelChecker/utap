@@ -33,7 +33,6 @@
 
 namespace UTAP {
 class Frame;
-class expression_t;
 
 class NoParentException : public std::exception
 {};

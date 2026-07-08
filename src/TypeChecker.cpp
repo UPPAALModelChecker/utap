@@ -2705,7 +2705,7 @@ int32_t parse_XML_fd(int fd, Document& doc, bool newxta, const std::vector<std::
     return 0;
 }
 
-Expression parseExpression(const char* str, Document& doc, bool newxtr)
+Expression parse_expression(const char* str, Document& doc, bool newxtr)
 {
     auto builder = ExpressionBuilder{doc};
     parse_XTA(str, builder, newxtr, XTAPart::EXPRESSION, "");
