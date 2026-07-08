@@ -844,3 +844,72 @@ system Process;
         CHECK(expr.get_kind() == UTAP::Kind::PLUS);
     }
 }
+
+TEST_SUITE("SMC/probability property checks")
+{
+    // These SMC query forms exercise TypeChecker's PROBA_EXP/PROBA_BOX/
+    // PROBA_DIAMOND/PROBA_CMP handling (checkNrOfRuns, checkBoundTypeOrBoundedExpr,
+    // checkBound, checkAggregationOp, checkMonitoredExpr, checkPredicate,
+    // checkUntilCond, checkPathQuant, checkProbBound), none of which any
+    // existing test reached.
+    static UTAP::Document make_doc()
+    {
+        return document_fixture{}.add_default_process().add_global_decl("clock c; bool b;").parse();
+    }
+
+    TEST_CASE("expected value query (min aggregation)")
+    {
+        auto doc = make_doc();
+        auto qb = QueryBuilder{doc};
+        auto res = parse_property("E[<=10;100] (min: c)", qb);
+        REQUIRE(res == 0);
+        qb.typecheck();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("probability of eventually reaching a predicate")
+    {
+        auto doc = make_doc();
+        auto qb = QueryBuilder{doc};
+        auto res = parse_property("Pr[<=10;100](<> b)", qb);
+        REQUIRE(res == 0);
+        qb.typecheck();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("probability comparison between two runs")
+    {
+        auto doc = make_doc();
+        auto qb = QueryBuilder{doc};
+        auto res = parse_property("Pr[<=10](<> b) >= Pr[<=10](<> b)", qb);
+        REQUIRE(res == 0);
+        qb.typecheck();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("probability quantitative comparison against a threshold")
+    {
+        auto doc = make_doc();
+        auto qb = QueryBuilder{doc};
+        auto res = parse_property("Pr[<=10;100](<> b) <= 0.5", qb);
+        REQUIRE(res == 0);
+        qb.typecheck();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Explicit_number_of_runs_is_not_supported_here");
+    }
+
+    TEST_CASE("simulate query")
+    {
+        auto doc = make_doc();
+        auto qb = QueryBuilder{doc};
+        auto res = parse_property("simulate[<=10;100] {b}", qb);
+        REQUIRE(res == 0);
+        qb.typecheck();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+}
