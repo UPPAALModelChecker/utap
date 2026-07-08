@@ -44,6 +44,12 @@ target_compile_definitions(
 target_link_libraries(prettyprint_test PRIVATE UTAP doctest::doctest_with_main)
 add_test(NAME prettyprint_test COMMAND prettyprint_test)
 
+add_executable(prettyprinter_test PrettyPrinter_test.cpp)
+target_compile_definitions(
+  prettyprinter_test PRIVATE MODELS_DIR="${MODELS_PATH}")
+target_link_libraries(prettyprinter_test PRIVATE UTAP doctest::doctest_with_main)
+add_test(NAME prettyprinter_test COMMAND prettyprinter_test)
+
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test PRIVATE UTAP)
 add_test(NAME example_train_gate
@@ -59,6 +65,7 @@ if(UTAP_STATIC)
   target_link_options(range_test PRIVATE -static)
   target_link_options(typechecker_test PRIVATE -static)
   target_link_options(prettyprint_test PRIVATE -static)
+  target_link_options(prettyprinter_test PRIVATE -static)
   target_link_options(example_test PRIVATE -static)
   message(STATUS "Enabled Unit Tests -static")
 endif(UTAP_STATIC)

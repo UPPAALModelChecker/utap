@@ -251,7 +251,11 @@ void PrettyPrinter::decl_func_end()
 
 void PrettyPrinter::dynamic_load_lib(std::string_view name) {}
 
-void PrettyPrinter::decl_external_func(std::string_view name, std::string_view alias) {}
+void PrettyPrinter::decl_external_func(std::string_view name, std::string_view alias)
+{
+    pop_top(type);  // discard the return type pushed for this declaration
+    param.clear();  // discard the parameters accumulated by decl_parameter()
+}
 
 void PrettyPrinter::block_begin()
 {
@@ -328,9 +332,25 @@ void PrettyPrinter::while_end()  // 1 expr, 1 stat
     delete s;
 }
 
-void PrettyPrinter::do_while_begin() {}
+void PrettyPrinter::do_while_begin()
+{
+    level++;
+    o.push(new std::ostringstream{});
+}
 
-void PrettyPrinter::do_while_end() {}
+void PrettyPrinter::do_while_end()
+{
+    auto expr = pop_back(st);
+    auto* s = dynamic_cast<std::ostringstream*>(o.top());
+    o.pop();
+
+    level--;
+    indent();
+    *o.top() << "do\n" << s->str() << '\n';
+    indent();
+    *o.top() << "while (" << expr << ");\n";
+    delete s;
+}
 
 void PrettyPrinter::if_begin()
 {
