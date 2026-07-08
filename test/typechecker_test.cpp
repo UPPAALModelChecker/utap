@@ -23,6 +23,10 @@
 
 #include <doctest/doctest.h>
 
+#include <filesystem>
+#include <fstream>
+#include <cstdio>
+
 TEST_SUITE("Quantifier sum")
 {
     TEST_CASE("sum expression")
@@ -527,4 +531,281 @@ TEST_CASE("Nested structs")
     CHECK(errs[0].msg == "$Invalid_initialiser");
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+}
+
+TEST_SUITE("Statement forms")
+{
+    TEST_CASE("assert, empty, for, iteration and do-while statements")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() {"
+                                        "  int i;"
+                                        "  int total = 0;"
+                                        "  ;"  // empty statement
+                                        "  assert(true);"
+                                        "  for (i = 0; i < 3; i++) { total += i; }"
+                                        "  for (i : int[0,2]) { total += i; }"
+                                        "  do { total--; } while (total > 0);"
+                                        "}")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        const auto& warns = doc.get_warnings();
+        CHECK_MESSAGE(warns.empty(), warns.front().msg);
+    }
+}
+
+TEST_SUITE("Type prefix errors")
+{
+    TEST_CASE("meta not allowed for clocks")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("typedef clock ClockT; meta ClockT c;")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Prefix_meta_not_allowed_for_clocks");
+    }
+
+    TEST_CASE("const not allowed for clocks")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("typedef clock ClockT; const ClockT c = 0;")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Prefix_const_not_allowed_for_clocks");
+    }
+
+    TEST_CASE("urgent only allowed for locations and channels")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("typedef clock ClockT; urgent ClockT c;")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Prefix_urgent_only_allowed_for_locations_and_channels");
+    }
+
+    TEST_CASE("broadcast only allowed for channels")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("typedef clock ClockT; broadcast ClockT c;")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Prefix_broadcast_only_allowed_for_channels");
+    }
+
+    TEST_CASE("type cannot be declared const or meta")
+    {
+        auto doc = document_fixture{}.add_default_process().add_global_decl("meta chan c;").parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Type_cannot_be_declared_const_or_meta");
+    }
+}
+
+TEST_SUITE("Expression type errors")
+{
+    TEST_CASE("invalid assignment expression")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("chan c; void f() { c; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Invalid_assignment_expression");
+    }
+
+    TEST_CASE("boolean expected in if-condition")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("clock c; void f() { if (c) {} }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Boolean_expected");
+    }
+
+    TEST_CASE("invalid return type")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("clock clock_returning_function() { clock c; return c; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Invalid_return_type");
+    }
+
+    TEST_CASE("increment only integers and cost")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() { double d; d += 1; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Increment_can_only_be_used_for_integers_and_cost_variables");
+    }
+
+    TEST_CASE("non-integer types must use regular assignment")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() { double d; d -= 1; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Non-integer_types_must_use_regular_assignment_operator");
+    }
+
+    TEST_CASE("integer expected for increment/decrement")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() { double d; d++; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Integer_expected");
+    }
+
+    TEST_CASE("array expected")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("void f() { int x; x[0] = 1; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Array_expected");
+    }
+
+    TEST_CASE("wrong number of arguments, too many")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("int f(int a) { return a; } void g() { f(1,2); }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Wrong_number_of_arguments");
+    }
+
+    TEST_CASE("wrong number of arguments, too few")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("int f(int a, int b) { return a; } void g() { int x = f(1); }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Wrong_number_of_arguments");
+    }
+
+    TEST_CASE("unknown field name and incomplete initialiser")
+    {
+        auto doc =
+            document_fixture{}.add_default_process().add_global_decl("struct { int x; } s = {y: 1};").parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 2);
+        CHECK(errs[0].msg == "$Unknown_field_name");
+        CHECK(errs[1].msg == "$Incomplete_initialiser");
+    }
+
+    TEST_CASE("first argument of inline if must be an integer")
+    {
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("int x = (1.5) ? 1 : 2;")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$First_argument_of_inline_if_must_be_an_integer");
+    }
+}
+
+TEST_SUITE("Document-based parse entry points")
+{
+    TEST_CASE("parse_XTA from a buffer")
+    {
+        static constexpr auto xta = R"XTA(
+clock c;
+process Template()
+{
+    state L0;
+    init L0;
+}
+Process = Template();
+system Process;
+)XTA";
+        auto doc = UTAP::Document{};
+        CHECK(parse_XTA(xta, doc, true));
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("parse_XTA from a FILE*")
+    {
+        static constexpr auto xta = R"XTA(
+clock c;
+process Template()
+{
+    state L0;
+    init L0;
+}
+Process = Template();
+system Process;
+)XTA";
+        auto path = std::filesystem::temp_directory_path() / "utap_typechecker_test.xta";
+        {
+            auto ofs = std::ofstream{path};
+            ofs << xta;
+        }
+        auto* file = std::fopen(path.string().c_str(), "r");
+        REQUIRE(file != nullptr);
+        auto doc = UTAP::Document{};
+        auto ok = parse_XTA(file, doc, true);
+        std::fclose(file);
+        std::filesystem::remove(path);
+        CHECK(ok);
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("parse_XML_fd from a file descriptor")
+    {
+        auto path = std::filesystem::temp_directory_path() / "utap_typechecker_test.xml";
+        {
+            auto ofs = std::ofstream{path};
+            ofs << document_fixture{}.add_default_process().str();
+        }
+        auto* file = std::fopen(path.string().c_str(), "r");
+        REQUIRE(file != nullptr);
+        auto doc = UTAP::Document{};
+        auto res = parse_XML_fd(fileno(file), doc, true);
+        std::fclose(file);
+        std::filesystem::remove(path);
+        CHECK(res == 0);
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+    }
+
+    TEST_CASE("parse_expression parses and type-checks a bare expression")
+    {
+        auto doc = UTAP::Document{};
+        auto expr = parse_expression("1+1", doc, true);
+        const auto& errs = doc.get_errors();
+        CHECK_MESSAGE(errs.empty(), errs.front().msg);
+        CHECK(expr.get_kind() == UTAP::Kind::PLUS);
+    }
 }
