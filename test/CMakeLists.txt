@@ -73,6 +73,11 @@ target_compile_definitions(expressionbuilder_test PRIVATE MODELS_DIR="${MODELS_P
 target_link_libraries(expressionbuilder_test PRIVATE UTAP doctest::doctest_with_main)
 add_test(NAME expressionbuilder_test COMMAND expressionbuilder_test)
 
+add_executable(document_test document_test.cpp)
+target_compile_definitions(document_test PRIVATE MODELS_DIR="${MODELS_PATH}")
+target_link_libraries(document_test PRIVATE UTAP doctest::doctest_with_main)
+add_test(NAME document_test COMMAND document_test)
+
 add_executable(example_test example_test.cpp)
 target_link_libraries(example_test PRIVATE UTAP)
 add_test(NAME example_train_gate
@@ -93,6 +98,7 @@ if(UTAP_STATIC)
   target_link_options(print_test PRIVATE -static)
   target_link_options(property_test PRIVATE -static)
   target_link_options(expressionbuilder_test PRIVATE -static)
+  target_link_options(document_test PRIVATE -static)
   target_link_options(example_test PRIVATE -static)
   message(STATUS "Enabled Unit Tests -static")
 endif(UTAP_STATIC)
