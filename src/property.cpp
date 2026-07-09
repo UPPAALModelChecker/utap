@@ -278,12 +278,12 @@ void PropertyBuilder::parse(const char* buf, const std::string& xpath, const Opt
 
 Variable* PropertyBuilder::add_variable(Type, std::string_view, Expression, position_t)
 {
-    throw NotSupportedException("add_variable is not supported");
+    throw NotSupportedException("add_variable");
 }
 
 bool PropertyBuilder::add_function(Type, std::string_view, position_t)
 {
-    throw NotSupportedException("add_function is not supported");
+    throw NotSupportedException("add_function");
 }
 
 bool PropertyBuilder::isSMC(Expression* expr)
