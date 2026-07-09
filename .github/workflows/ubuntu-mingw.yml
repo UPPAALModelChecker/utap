@@ -29,7 +29,7 @@ on:
       - 'examples/cmake/*.cmake'
 
 jobs:
-  build:
+  ubuntu-mingw:
     runs-on: ubuntu-latest
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
@@ -39,17 +39,16 @@ jobs:
       CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-w64-mingw32.cmake
       CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-w64-mingw32
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-w64-mingw32
-      CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
       WINEPREFIX: ${{ github.workspace }}/.wine64
       WINEARCH: win64
       WINEDEBUG: fixme-all,-all
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Get Ubuntu dependencies
         run: |
           sudo apt-get -qq update
-          sudo apt-get -qq install curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-mingw-w64-x86-64-posix wine wine-binfmt binfmt-support xvfb 
+          sudo apt-get -qq install curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-mingw-w64-x86-64-posix wine wine-binfmt binfmt-support xvfb
           sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
       - name: Setup Wine
@@ -57,7 +56,7 @@ jobs:
           sudo update-binfmts --disable cli  # disable mono attempts to execute windows binaries
           sudo update-binfmts --import /usr/share/binfmts/wine  # enable wine to execute windows binaries
           rm -Rf "$WINEPREFIX"
-          xvfb-run wineboot --init   # must init WINEPREFIX before WINEPATH is set!!          
+          xvfb-run wineboot --init   # must init WINEPREFIX before WINEPATH is set!!
           export WINEPATH=$($PWD/winepath-for x86_64-w64-mingw32)
           echo "WINEPATH=$WINEPATH" >> $GITHUB_ENV
 
@@ -71,7 +70,7 @@ jobs:
 
       - name: Restore CCache
         id: ccache-restore
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.CCACHE_DIR }}
           key: ${{ steps.x86_64-w64-mingw32-keys.outputs.key1 }}
@@ -83,7 +82,7 @@ jobs:
 
       - name: Restore Libs
         id: restore-libs
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: local/x86_64-w64-mingw32
           key: libs-x86_64-w64-mingw32-${{ hashFiles('getlibs.sh') }}
@@ -97,18 +96,20 @@ jobs:
       - name: Save Libs
         if: steps.restore-libs.outputs.cache-hit != 'true'
         id: save-libs
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: local/x86_64-w64-mingw32
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake -B "$BUILD_DIR" -DUTAP_CLANG_TIDY=OFF
+        run: cmake -DUTAP_CLANG_TIDY=OFF --preset multi
       - name: Build UTAP
-        run: cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
+        run: cmake --build --preset debug
       - name: Test UTAP
-        run: ctest --test-dir "$BUILD_DIR" -C $CMAKE_BUILD_TYPE
-      - name: Build UTAP
-        run: cmake --install "$BUILD_DIR" --config $CMAKE_BUILD_TYPE --prefix "$CMAKE_INSTALL_PREFIX"
+        run: ctest --preset debug
+      - name: Quick UTAP Release
+        run: cmake --workflow --preset quick-release
+      - name: Install UTAP
+        run: cmake --install build-quick --config Release --prefix "$CMAKE_INSTALL_PREFIX"
       - name: CCache Statistics
         run: ccache --show-stats
       - name: Configure Examples

@@ -1,0 +1,108 @@
+---
+name: Build for Windows using Clang
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - src/**
+      - test/**
+      - benchmark/**
+      - cmake/**
+      - CMakeLists.txt
+      - CMakePresets.json
+      - .github/workflows/build-windows-clang.yml
+  pull_request:
+    branches: [main]
+    types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+      - src/**
+      - test/**
+      - benchmark/**
+      - cmake/**
+      - CMakeLists.txt
+      - CMakePresets.json
+      - github/workflows/build-windows-clang.yml
+
+jobs:
+  windows-clang:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    env:
+      CC: clang
+      CXX: clang++
+      CTEST_OUTPUT_ON_FAILURE: 1
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-windows-clang
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-windows-clang
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-windows-clang.cmake
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-git mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-clang mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ccache
+      - name: Setup Runner Environment
+        run: |
+          uname -a
+          CORES=$(nproc)
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$CORES" >> $GITHUB_ENV
+          echo "CTEST_TEST_PARALLEL_LEVEL=$CORES" >> $GITHUB_ENV
+          echo "CTEST_TEST_LOAD=$CORES" >> $GITHUB_ENV
+      - uses: actions/checkout@v6
+      - name: Compute CCache keys
+        id: x86_64-windows-clang-keys
+        run: |
+          key2=ccache-x86_64-windows-clang-
+          key1="${key2}$(date +%W)"
+          echo "key1=${key1}" >> $GITHUB_OUTPUT
+          echo "key2=${key2}" >> $GITHUB_OUTPUT
+
+      - name: Restore CCache
+        id: ccache-restore
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.x86_64-windows-clang-keys.outputs.key1 }}
+          restore-keys: ${{ steps.x86_64-windows-clang-keys.outputs.key2 }}
+      - name: CCache limits and stats
+        run: |
+          ccache -M120M
+          ccache --show-stats
+
+      - name: Restore Libs
+        id: restore-libs
+        uses: actions/cache/restore@v5
+        with:
+          path: local/x86_64-windows-clang
+          key: libs-x86_64-windows-clang-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-x86_64-windows-clang-
+      - name: Get library dependencies
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        run: ./getlibs.sh x86_64-windows-clang
+      - name: Save Libs
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        id: save-libs
+        uses: actions/cache/save@v5
+        with:
+          path: local/x86_64-windows-clang
+          key: ${{ steps.restore-libs.outputs.cache-primary-key }}
+      - name: Configure UTAP
+        run: cmake -DUTAP_CLANG_TIDY=OFF --preset multi
+      - name: Build UTAP
+        run: cmake --build --preset debug
+      - name: Test UTAP
+        run: ctest --preset debug
+      - name: Quick UTAP Release
+        run: cmake --workflow --preset quick-release
+      - name: Install UTAP
+        run: cmake --install build-quick --config Release --prefix "$CMAKE_INSTALL_PREFIX"
+      - name: CCache Statistics
+        run: ccache --show-stats
+      - name: Configure Examples
+        run: cmake -B "examples/${BUILD_DIR}" -S examples
+      - name: Build Examples
+        run: cmake --build "examples/${BUILD_DIR}" --config "$CMAKE_BUILD_TYPE"
+      - name: Test Examples
+        run: ctest --test-dir "examples/${BUILD_DIR}"

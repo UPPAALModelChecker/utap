@@ -13,10 +13,10 @@ LIBXML2_Z="${LIBXML2}.tar.xz"
 LIBXML2_URL="https://people.cs.aau.dk/~marius/mirrors/libxml2/${LIBXML2_Z}"
 LIBXML2_SHA256=a2c9ae7b770da34860050c309f903221c67830c86e4a7e760692b803df95143a
 
-DOCTEST=doctest-2.5.2
+DOCTEST=doctest-2.5.3
 DOCTEST_Z="${DOCTEST}.tar.gz"
 DOCTEST_URL="https://github.com/doctest/doctest/archive/refs/tags/v${DOCTEST#doctest-}.tar.gz"
-DOCTEST_SHA256=9189960c2bbbc4f3382ce0773b2bb5f13e3afd8fed47f55f193e11e85a4f9854
+DOCTEST_SHA256=174ebc4e769928959614789c5b4e9c3d0a0f81a62bb608756b127bfebfb21331
 
 BISON=bison-3.8.2
 BISON_Z="${BISON}.tar.xz"
@@ -120,7 +120,6 @@ for target in "$@" ; do
         echo -e "${BW}${target}: Configuring ${DOCTEST}${NC}"
         cmake -S "$SOURCE/$DOCTEST" -B "$BUILD" -DCMAKE_TOOLCHAIN_FILE="$PROJECT_DIR/cmake/toolchain/${target}.cmake" \
           -DCMAKE_PREFIX_PATH="$LIBS" -DCMAKE_INSTALL_PREFIX="$LIBS" -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
           -DDOCTEST_WITH_TESTS=OFF -DDOCTEST_WITH_MAIN_IN_STATIC_LIB=ON -DDOCTEST_USE_STD_HEADERS=OFF
         echo -e "${BW}${target}: Building ${DOCTEST}${NC}"
         cmake --build "$BUILD"
