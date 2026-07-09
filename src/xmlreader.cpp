@@ -1298,6 +1298,10 @@ bool XMLReader::expectation()
             char* type = getAttribute("type");
             char* value = getAttribute("value");
             parser.expectation_value(outcome, type, value);
+            xmlFree(outcome);
+            xmlFree(type);
+            xmlFree(value);
+            read();
             zero_or_more(Tag::EXPECT, [this] {
                 if (begin(Tag::RESOURCE, false)) {
                     auto type = getAttributeStr("type");
@@ -1348,11 +1352,12 @@ void XMLReader::project()
 
 bool XMLReader::model_options()
 {
-    while (begin(Tag::OPTION)) {
-        read();
+    while (begin(Tag::OPTION, false)) {
         char* key = getAttribute("key");
         char* value = getAttribute("value");
         parser.model_option(key, value);
+        xmlFree(key);
+        xmlFree(value);
         close(Tag::OPTION);
     }
     return true;
