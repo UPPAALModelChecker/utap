@@ -67,9 +67,12 @@ template struct Stringify<LSCCut>;
 std::ostream& Location::print(std::ostream& os) const
 {
     os << "LOCATION (" << uid.get_name() << ", ";
-    invariant.print(os) << ", ";
-    exp_rate.print(os) << ')';
-    return os;
+    if (!invariant.empty())
+        invariant.print(os);
+    os << ", ";
+    if (!exp_rate.empty())
+        exp_rate.print(os);
+    return os << ')';
 }
 
 std::ostream& Edge::print(std::ostream& os) const
@@ -78,9 +81,14 @@ std::ostream& Edge::print(std::ostream& os) const
     src->print(os) << ' ';
     dst->print(os) << ")\n";
     os << "\t";
-    guard.print(os) << ", ";
-    sync.print(os) << ", ";
-    assign.print(os);
+    if (!guard.empty())
+        guard.print(os);
+    os << ", ";
+    if (!sync.empty())
+        sync.print(os);
+    os << ", ";
+    if (!assign.empty())
+        assign.print(os);
     return os;
 }
 
