@@ -101,6 +101,7 @@ public:
 
     /// Alters the name of this symbol
     void set_name(std::string);
+    friend std::ostream& operator<<(std::ostream&, const Symbol&);
 };
 
 /**
@@ -212,10 +213,9 @@ public:
 
     /// Creates and returns a new root-frame.
     static Frame make();
+    friend std::ostream& operator<<(std::ostream&, const Frame&);
 };
-}  // namespace UTAP
 
-std::ostream& operator<<(std::ostream& o, const UTAP::Symbol& t);
-std::ostream& operator<<(std::ostream& o, const UTAP::Frame& t);
+}  // namespace UTAP
 
 #endif /* UTAP_SYMBOLS_HH */
