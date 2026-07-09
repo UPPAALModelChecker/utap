@@ -257,4 +257,15 @@ TEST_CASE("subjection referring to an undeclared strategy is an error")
     CHECK(errs[0].msg == "$strategy_not_declared: NoSuchStrategy");
 }
 
+TEST_CASE("sat: over a non-LSC-template is rejected by PropertyBuilder::scenario()")
+{
+    // Unlike most PropertyBuilder checks, scenario() throws a raw
+    // std::runtime_error rather than TypeException, so it is *not* caught
+    // by the CALL() macro in parser.y (which only catches TypeException) --
+    // it propagates straight out of parse_property(), bypassing
+    // QueryFixture's own doc.get_errors() check entirely.
+    auto f = document_fixture{}.add_default_process().build_query_fixture();
+    CHECK_THROWS_WITH_AS(f.parse_query("sat: Process"), "$Not_a_LSC_template: Process", std::runtime_error);
+}
+
 TEST_SUITE_END();
