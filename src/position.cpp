@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& os, const Error& e)
         os << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position) << " to line "
            << e.end.line << " column " << (e.position.end - e.end.position);
     } else {
-        os << e.msg << " in " << e.start.path << " at line " << e.start.line << " column "
+        os << e.msg << " in " << *e.start.path << " at line " << e.start.line << " column "
            << (e.position.start - e.start.position) << " to line " << e.end.line << " column "
            << (e.position.end - e.end.position);
     }
