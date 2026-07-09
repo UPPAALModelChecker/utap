@@ -6,6 +6,7 @@ target_link_libraries(abstractbuilder_test PRIVATE UTAP doctest::doctest_with_ma
 add_test(NAME abstractbuilder_test COMMAND abstractbuilder_test)
 
 add_executable(expression_test expression_test.cpp)
+target_compile_definitions(expression_test PRIVATE MODELS_DIR="${MODELS_PATH}")
 target_link_libraries(expression_test PRIVATE UTAP doctest::doctest_with_main)
 add_test(NAME expression_test COMMAND expression_test)
 
