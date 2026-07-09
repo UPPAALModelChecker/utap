@@ -536,24 +536,32 @@ std::vector<LSCSimRegion> LSCInstanceLine::get_simregions(const std::vector<LSCS
 {
     auto i_simregions = std::vector<LSCSimRegion>{};
     // get the simregions anchored to this instance
+    // A simregion has 1 or 0 of {message, update, condition} (see get_simregions()
+    // above), so each must be null-checked before being dereferenced.
     for (const auto& reg : simregions) {
-        const LSCMessage* m = reg.message;
-        if ((m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr)) {
-            i_simregions.push_back(reg);
-            continue;
-        }
-
-        const LSCUpdate* u = reg.update;
-        if (u->anchor->instance_nr == this->instance_nr) {
-            i_simregions.push_back(reg);
-            continue;
-        }
-
-        const LSCCondition* c = reg.condition;
-        for (auto* instance : c->anchors) {
-            if (instance->instance_nr == this->instance_nr) {
+        if (reg.has_message()) {
+            const LSCMessage* m = reg.message;
+            if (m->src->instance_nr == this->instance_nr || m->dst->instance_nr == this->instance_nr) {
                 i_simregions.push_back(reg);
-                break;
+                continue;
+            }
+        }
+
+        if (reg.has_update()) {
+            const LSCUpdate* u = reg.update;
+            if (u->anchor->instance_nr == this->instance_nr) {
+                i_simregions.push_back(reg);
+                continue;
+            }
+        }
+
+        if (reg.has_condition()) {
+            const LSCCondition* c = reg.condition;
+            for (auto* instance : c->anchors) {
+                if (instance->instance_nr == this->instance_nr) {
+                    i_simregions.push_back(reg);
+                    break;
+                }
             }
         }
     }
