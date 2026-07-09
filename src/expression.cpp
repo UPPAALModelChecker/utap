@@ -1079,6 +1079,9 @@ static int get_precedence_or_default(const Expression& expr)
 
 std::ostream& Expression::print(std::ostream& os, bool old) const
 {
+    if (empty())
+        return os;
+
     const int precedence = get_precedence_or_default(*this);
 
     bool flag = false;
