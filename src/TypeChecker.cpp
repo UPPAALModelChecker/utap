@@ -2020,10 +2020,13 @@ bool TypeChecker::checkExpression(Expression& expr)
         break;
 
     case ASS_PLUS:
-        if ((!is_integer(expr[0]) && !is_cost(expr[0])) || !is_integral(expr[1]))
+        if ((!is_integer(expr[0]) && !is_cost(expr[0])) || !is_integral(expr[1])) {
             handleError(increment_only_integers_and_cost(expr));
-        else if (!isModifiableLValue(expr[0]))
+            return false;
+        } else if (!isModifiableLValue(expr[0])) {
             handleError(lvalue_expected(expr[0]));
+            return false;
+        }
         type = expr[0].get_type();
         break;
 
