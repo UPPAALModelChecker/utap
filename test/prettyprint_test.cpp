@@ -6,7 +6,7 @@
 
 #include <doctest/doctest.h>
 
-#include <iostream>
+#include <sstream>
 
 using namespace UTAP;
 
