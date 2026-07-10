@@ -41,6 +41,7 @@ std::string write_and_read(Document& doc)
     REQUIRE(res == 0);
     auto ifs = std::ifstream{path};
     auto content = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
+    ifs.close();  // Windows locks open files, so close explicitly before removing.
     std::filesystem::remove(path);
     return content;
 }
