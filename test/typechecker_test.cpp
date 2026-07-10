@@ -1294,3 +1294,928 @@ TEST_SUITE("CSP/refinement and urgent/deterministic edge checks")
         CHECK(found);
     }
 }
+
+TEST_SUITE("checkType coverage")
+{
+    TEST_CASE("reference to a disallowed type (void) is rejected")
+    {
+        auto doc = document_fixture{}.add_global_decl("void f(void &x) {}").add_default_process().parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Reference_to_this_type_is_not_allowed");
+    }
+
+    TEST_CASE("bounded-int range with a non-integer bound")
+    {
+        auto doc =
+            document_fixture{}.add_global_decl("double d = 1.5; int[0,d] x;").add_default_process().parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 2);
+        CHECK(errs[0].msg == "$Integer_expected");
+        CHECK(errs[1].msg == "$Must_be_computable_at_compile_time");
+    }
+
+    TEST_CASE("bounded-int range with a non-const bound")
+    {
+        auto doc = document_fixture{}.add_global_decl("int g(int p){ int[0,p] a; return 0; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Must_be_computable_at_compile_time");
+    }
+
+    TEST_CASE("a const string declaration is accepted at top level but not inside a struct")
+    {
+        // Strings must always be const (StatementBuilder::type_string rejects
+        // a non-const string before checkType is even reached), so a plain
+        // "string s;" never reaches checkType's STRING case at all.
+        auto doc =
+            document_fixture{}.add_global_decl("const string s = \"abc\";").add_default_process().parse();
+        CHECK(doc.get_errors().empty());
+
+        // Inside a struct, const-qualified fields are separately rejected
+        // (constant_fields_not_allowed_in_struct), in addition to the
+        // STRING-specific cannot_be_inside_struct check we're targeting.
+        auto doc2 = document_fixture{}
+                        .add_global_decl("typedef struct { const string s; } Rec;")
+                        .add_default_process()
+                        .parse();
+        const auto& errs = doc2.get_errors();
+        REQUIRE(errs.size() == 2);
+        bool found = false;
+        for (const auto& e : errs)
+            found |= (e.msg == "$Invalid_type_in_structure");
+        CHECK(found);
+    }
+
+    TEST_CASE("a committed location type-checks without error")
+    {
+        auto doc = document_fixture{}
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"><committed/></location>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        CHECK(doc.get_errors().empty());
+    }
+}
+
+TEST_SUITE("Priority declarations: arrays and errors")
+{
+    TEST_CASE("priority declarations accept array-of-channel and indexed-channel elements")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan a[2]; chan b; chan priority a < b;")
+                       .add_default_process()
+                       .parse();
+        CHECK(doc.get_errors().empty());
+
+        auto doc2 = document_fixture{}
+                        .add_global_decl("chan a[2]; chan b; chan priority a[0] < b;")
+                        .add_default_process()
+                        .parse();
+        CHECK(doc2.get_errors().empty());
+    }
+
+    TEST_CASE("a priority element that is not a channel is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int x; chan b; chan priority x < b;")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Channel_expected");
+    }
+}
+
+TEST_SUITE("visit_process/visit_variable/visit_location gaps")
+{
+    TEST_CASE("unbound process parameters must be a bounded integer or scalar")
+    {
+        // "process P(...) { ... } system P;" (using the template directly in
+        // the system list without instantiating it) leaves P's parameter
+        // unbound -- the only way to reach TypeChecker::visit_process's
+        // per-parameter checks.
+        auto doc = UTAP::Document{};
+        REQUIRE(parse_XTA(R"XTA(
+process P(bool x) {
+    state s0;
+    init s0;
+}
+system P;
+)XTA",
+                          doc, true) == false);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Free_process_parameters_must_be_a_bounded_integer_or_a_scalar");
+    }
+
+    TEST_CASE("unbound process parameters must not be used in an array size or select expression")
+    {
+        auto doc = UTAP::Document{};
+        REQUIRE(parse_XTA(R"XTA(
+process P(int[0,2] x) {
+    int a[x];
+    state s0;
+    init s0;
+}
+system P;
+)XTA",
+                          doc, true) == false);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 2);
+        bool found = false;
+        for (const auto& e : errs)
+            found |= (e.msg == "$Free_process_parameters_must_not_be_used_directly_or_indirectly_in_an_array_"
+                                "declaration_or_select_expression");
+        CHECK(found);
+    }
+
+    TEST_CASE("a variable initialiser using a dynamic construct is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("dynamic Child();")
+                       .add_template(R"XML(<template>
+        <name>Child</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_global_decl("int x = spawn Child();")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "Dynamic constructions cannot be used as initialisers");
+    }
+
+    TEST_CASE("a location invariant of an incompatible type is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"><label kind="invariant">ch</label></location>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_of_type (channel) $cannot_be_used_as_an_invariant");
+    }
+
+    TEST_CASE("a side-effecting location invariant is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("clock c; bool b;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"><label kind="invariant">c&lt;5 &amp;&amp; (b=true)</label></location>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("an exponential rate of an incompatible type is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"><label kind="exponentialrate">ch</label></location>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Number_expected");
+    }
+}
+
+TEST_SUITE("visit_io_decl (IODecl) coverage")
+{
+    // The "IO" keyword is registered in keywords.cpp/lexer.l (Syntax::NEW),
+    // but no grammar production in parser.y ever consumes the T_IO token,
+    // so IODecl can only ever be populated and checked by constructing it
+    // directly via Document::add_io_decl() and TypeChecker::visit_io_decl(),
+    // as done throughout this suite.
+    static UTAP::Document make_doc()
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("const int p = 1; chan ch; chan ch_arr[2]; int nonconst; bool b;")
+                       .add_default_process()
+                       .parse();
+        REQUIRE(doc.get_errors().empty());
+        return doc;
+    }
+
+    TEST_CASE("a well-formed param, channel input and array-indexed output type-check without error")
+    {
+        auto doc = make_doc();
+        UTAP::Symbol p_sym, ch_sym, arr_sym;
+        REQUIRE(doc.get_globals().frame.resolve("p", p_sym));
+        REQUIRE(doc.get_globals().frame.resolve("ch", ch_sym));
+        REQUIRE(doc.get_globals().frame.resolve("ch_arr", arr_sym));
+
+        auto* iodecl = doc.add_io_decl();
+        iodecl->param.push_back(UTAP::Expression::create_identifier(p_sym));
+        iodecl->inputs.push_back(UTAP::Expression::create_identifier(ch_sym));
+        iodecl->outputs.push_back(UTAP::Expression::create_binary(
+            UTAP::Kind::ARRAY, UTAP::Expression::create_identifier(arr_sym), UTAP::Expression::create_constant(0)));
+
+        auto checker = UTAP::TypeChecker{doc};
+        checker.visit_io_decl(*iodecl);
+        CHECK(doc.get_errors().empty());
+    }
+
+    TEST_CASE("a non-integer param is rejected")
+    {
+        auto doc = make_doc();
+        UTAP::Symbol b_sym;
+        REQUIRE(doc.get_globals().frame.resolve("b", b_sym));
+        auto* iodecl = doc.add_io_decl();
+        iodecl->param.push_back(UTAP::Expression::create_identifier(b_sym));
+
+        auto checker = UTAP::TypeChecker{doc};
+        checker.visit_io_decl(*iodecl);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Integer_expected");
+    }
+
+    TEST_CASE("a non-channel input is rejected")
+    {
+        auto doc = make_doc();
+        UTAP::Symbol nc_sym;
+        REQUIRE(doc.get_globals().frame.resolve("nonconst", nc_sym));
+        auto* iodecl = doc.add_io_decl();
+        iodecl->inputs.push_back(UTAP::Expression::create_identifier(nc_sym));
+
+        auto checker = UTAP::TypeChecker{doc};
+        checker.visit_io_decl(*iodecl);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Channel_expected");
+    }
+
+    TEST_CASE("a non-compile-time-computable output array index is rejected")
+    {
+        auto doc = make_doc();
+        UTAP::Symbol arr_sym, nc_sym;
+        REQUIRE(doc.get_globals().frame.resolve("ch_arr", arr_sym));
+        REQUIRE(doc.get_globals().frame.resolve("nonconst", nc_sym));
+        auto* iodecl = doc.add_io_decl();
+        iodecl->outputs.push_back(UTAP::Expression::create_binary(
+            UTAP::Kind::ARRAY, UTAP::Expression::create_identifier(arr_sym), UTAP::Expression::create_identifier(nc_sym)));
+
+        auto checker = UTAP::TypeChecker{doc};
+        checker.visit_io_decl(*iodecl);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Must_be_computable_at_compile_time");
+    }
+
+    TEST_CASE("a CSP-style iodecl followed by an IO-style one is rejected")
+    {
+        // Regression test: visit_io_decl's mismatch handler used to
+        // unconditionally reference iodecl.csp.front(), but when the
+        // mismatch is triggered by *this* iodecl's inputs/outputs (having
+        // followed a previous CSP-style iodecl), its own csp list is empty
+        // -- .front() on that empty std::list was undefined behaviour
+        // (observed as an assertion failure / crash in practice).
+        auto doc = make_doc();
+        UTAP::Symbol ch_sym;
+        REQUIRE(doc.get_globals().frame.resolve("ch", ch_sym));
+
+        auto* iodecl1 = doc.add_io_decl();
+        iodecl1->csp.push_back(UTAP::Expression::create_identifier(ch_sym));
+        auto* iodecl2 = doc.add_io_decl();
+        iodecl2->inputs.push_back(UTAP::Expression::create_identifier(ch_sym));
+
+        auto checker = UTAP::TypeChecker{doc};
+        CHECK_NOTHROW(checker.visit_io_decl(*iodecl1));
+        CHECK_NOTHROW(checker.visit_io_decl(*iodecl2));
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$CSP_and_IO_synchronisations_cannot_be_mixed");
+    }
+}
+
+TEST_SUITE("visit_edge gaps")
+{
+    TEST_CASE("a guard of an incompatible type is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="guard">ch</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_of_type (channel) $cannot_be_used_as_a_guard");
+    }
+
+    TEST_CASE("a side-effecting guard is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("bool b;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="guard">b=true</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("a probability of an incompatible type is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="probability">ch</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_of_type (channel) $cannot_be_used_as_a_probability");
+    }
+
+    TEST_CASE("a side-effecting probability is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int x;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="probability">(x=1)</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("CSP-style synchronisation followed by IO-style is also rejected (reverse of the IO-then-CSP order)")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan c;")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <location id="id2" x="20" y="20"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="synchronisation">c</label></transition>
+        <transition><source ref="id1"/><target ref="id2"/><label kind="synchronisation">c!</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$CSP_and_IO_synchronisations_cannot_be_mixed");
+    }
+}
+
+TEST_SUITE("LSC message/condition error branches")
+{
+    TEST_CASE("an LSC message label that is not a channel is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int notchan;")
+                       .add_template(R"XML(<template>
+        <name>A</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<lsc>
+        <name>LscTemplate</name>
+        <type>Universal</type>
+        <mode>invariant</mode>
+        <instance id="id1" x="0" y="0"><name x="0" y="0">A</name></instance>
+        <instance id="id2" x="100" y="0"><name x="0" y="0">A</name></instance>
+        <prechart x="0" y="0"><lsclocation>0</lsclocation></prechart>
+        <message x="0" y="20">
+            <source ref="id1"/><target ref="id2"/><lsclocation>1</lsclocation>
+            <label kind="message">notchan</label>
+        </message>
+    </lsc>)XML")
+                       .add_system_decl("P1 = A(); P2 = A();")
+                       .add_process("P1")
+                       .add_process("P2")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Channel_expected");
+    }
+
+    TEST_CASE("a side-effecting LSC message label is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch_arr[2]; int x;")
+                       .add_template(R"XML(<template>
+        <name>A</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<lsc>
+        <name>LscTemplate</name>
+        <type>Universal</type>
+        <mode>invariant</mode>
+        <instance id="id1" x="0" y="0"><name x="0" y="0">A</name></instance>
+        <instance id="id2" x="100" y="0"><name x="0" y="0">A</name></instance>
+        <prechart x="0" y="0"><lsclocation>0</lsclocation></prechart>
+        <message x="0" y="20">
+            <source ref="id1"/><target ref="id2"/><lsclocation>1</lsclocation>
+            <label kind="message">ch_arr[x=1]</label>
+        </message>
+    </lsc>)XML")
+                       .add_system_decl("P1 = A(); P2 = A();")
+                       .add_process("P1")
+                       .add_process("P2")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("an LSC condition label that cannot be used as a condition is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch;")
+                       .add_template(R"XML(<template>
+        <name>A</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<lsc>
+        <name>LscTemplate</name>
+        <type>Universal</type>
+        <mode>invariant</mode>
+        <instance id="id1" x="0" y="0"><name x="0" y="0">A</name></instance>
+        <prechart x="0" y="0"><lsclocation>0</lsclocation></prechart>
+        <condition x="0" y="20">
+            <anchor instanceid="id1"/><lsclocation>1</lsclocation><temperature>cold</temperature>
+            <label kind="condition">ch</label>
+        </condition>
+    </lsc>)XML")
+                       .add_system_decl("P1 = A();")
+                       .add_process("P1")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_of_type (channel) $cannot_be_used_as_a_condition");
+    }
+
+    TEST_CASE("a side-effecting LSC condition label is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("bool b;")
+                       .add_template(R"XML(<template>
+        <name>A</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<lsc>
+        <name>LscTemplate</name>
+        <type>Universal</type>
+        <mode>invariant</mode>
+        <instance id="id1" x="0" y="0"><name x="0" y="0">A</name></instance>
+        <prechart x="0" y="0"><lsclocation>0</lsclocation></prechart>
+        <condition x="0" y="20">
+            <anchor instanceid="id1"/><lsclocation>1</lsclocation><temperature>cold</temperature>
+            <label kind="condition">b=true</label>
+        </condition>
+    </lsc>)XML")
+                       .add_system_decl("P1 = A();")
+                       .add_process("P1")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+}
+
+TEST_SUITE("visit_instance argument compatibility")
+{
+    TEST_CASE("a side-effecting instantiation argument is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int x; process T(int p) { state s0; init s0; }")
+                       .add_system_decl("Process = T(x=1);")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("a value-parameter argument that is not compile-time computable is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int g; process T(int p) { state s0; init s0; }")
+                       .add_system_decl("Process = T(g);")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+
+    TEST_CASE("a const-reference argument that is not compile-time computable is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int g; process T(const int &p) { state s0; init s0; }")
+                       .add_system_decl("Process = T(g);")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+
+    TEST_CASE("a non-const-reference argument accepts an identifier, a struct field and an array element")
+    {
+        auto doc1 = document_fixture{}
+                        .add_global_decl("int x; process T(int &p) { state s0; init s0; }")
+                        .add_system_decl("Process2 = T(x);")
+                        .add_process("Process2")
+                        .parse();
+        CHECK(doc1.get_errors().empty());
+
+        auto doc2 = document_fixture{}
+                        .add_global_decl("typedef struct { int f; } Rec; Rec r; process T(int &p) { state s0; init s0; }")
+                        .add_system_decl("Process2 = T(r.f);")
+                        .add_process("Process2")
+                        .parse();
+        CHECK(doc2.get_errors().empty());
+
+        auto doc3 = document_fixture{}
+                        .add_global_decl("int arr[3]; process T(int &p) { state s0; init s0; }")
+                        .add_system_decl("Process2 = T(arr[0]);")
+                        .add_process("Process2")
+                        .parse();
+        CHECK(doc3.get_errors().empty());
+    }
+}
+
+TEST_SUITE("visitProperty error branches")
+{
+    TEST_CASE("a side-effecting property is rejected")
+    {
+        auto doc = document_fixture{}.add_global_decl("bool b;").add_default_process().parse();
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("A[] (b=true)", pb);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("loadStrategy with a non-string argument is rejected")
+    {
+        auto doc = document_fixture{}.add_default_process().parse();
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("loadStrategy(5)", pb);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$loadStrategy_and_saveStrategy_expect_a_string");
+    }
+
+    TEST_CASE("nested path quantifiers outside of a constraint are rejected")
+    {
+        auto doc = document_fixture{}.add_global_decl("bool b;").add_default_process().parse();
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("A[] (b && A<> b)", pb);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Nested_path_quantifiers_are_not_supported");
+    }
+}
+
+TEST_SUITE("checkObservationConstraints (PO_CONTROL)")
+{
+    TEST_CASE("an int/clock lower-or-upper bound comparison in an observation set is rejected")
+    {
+        auto doc = document_fixture{}.add_global_decl("clock c; int x;").add_default_process().parse();
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("{x < c} control: A<> true", pb);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Clock_lower_bound_must_be_weak_and_upper_bound_strict");
+    }
+
+    TEST_CASE("a clock-difference comparison in an observation set is rejected")
+    {
+        auto doc = document_fixture{}.add_global_decl("clock c1; clock c2;").add_default_process().parse();
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("{c1==c2} control: A<> true", pb);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Clock_differences_are_not_supported");
+    }
+}
+
+TEST_SUITE("Statement visitor side-effect/range checks")
+{
+    TEST_CASE("a side-effecting assert expression is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int y; void f() { assert(y=1==1); }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("iterating over a non-range type is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("typedef const int MyInt; int f() { int s=0; for (i : MyInt) { s+=1; } return s; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Range_expected");
+    }
+
+    TEST_CASE("a side-effecting local variable initialiser in a block is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("int f() { int y; int x = (y=1); return x; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+}
+
+TEST_SUITE("Parameter compatibility gaps")
+{
+    TEST_CASE("a non-const-reference function parameter requires a modifiable lvalue argument")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("void f(int &p) { } void g() { f(5); }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+
+    TEST_CASE("a channel argument with insufficient capability is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("void f(chan &c) { } urgent chan mychan; void g() { f(mychan); }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+
+    TEST_CASE("checkParameterCompatible rejects an incompatible return type")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("double f() { return 1; } int g() { return f(); }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_argument");
+    }
+}
+
+TEST_SUITE("getInlineIfCommonType gaps")
+{
+    TEST_CASE("ternary with the second operand a record type")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("struct { int x; } s; double x; void f(bool b) { x = b? 0.5 : s; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_arguments_to_inline_if");
+    }
+
+    TEST_CASE("ternary between two distinct (structurally equivalent but not assignment-compatible) scalar sets")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("scalar[3] a; scalar[3] c; void f(bool b) { b ? a : c; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Incompatible_arguments_to_inline_if");
+    }
+}
+
+TEST_SUITE("SPAWN/NUMOF/EXIT")
+{
+    TEST_CASE("spawning a non-dynamic template is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("process NotDyn() { state s0; init s0; }")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="assignment">spawn NotDyn()</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Cannot_spawn_a_non-dynamic_template");
+    }
+
+    TEST_CASE("spawn with the wrong number of arguments is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("dynamic Child();")
+                       .add_template(R"XML(<template>
+        <name>Child</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="assignment">spawn Child(1)</label></transition>
+    </template>)XML")
+                       .add_system_decl("Process = T();")
+                       .add_process("Process")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Wrong_number_of_arguments");
+    }
+
+    TEST_CASE("exit() is only valid inside a dynamic template")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("dynamic Child();")
+                       .add_template(R"XML(<template>
+        <name>Child</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="assignment">exit()</label></transition>
+    </template>)XML")
+                       .add_default_process()
+                       .add_system_decl("ChildProc = Child();")
+                       .parse();
+        CHECK(doc.get_errors().empty());
+
+        auto doc2 = document_fixture{}
+                        .add_template(R"XML(<template>
+        <name>T</name>
+        <location id="id0" x="0" y="0"/>
+        <location id="id1" x="10" y="10"/>
+        <init ref="id0"/>
+        <transition><source ref="id0"/><target ref="id1"/><label kind="assignment">exit()</label></transition>
+    </template>)XML")
+                        .add_system_decl("Process = T();")
+                        .add_process("Process")
+                        .parse();
+        const auto& errs2 = doc2.get_errors();
+        REQUIRE(errs2.size() == 1);
+        CHECK(errs2[0].msg == "$Exit_can_only_be_used_in_dynamic_templates");
+    }
+
+    TEST_CASE("numOf() succeeds for a dynamic template and fails for a non-dynamic one")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("dynamic Child();")
+                       .add_template(R"XML(<template>
+        <name>Child</name>
+        <location id="id0" x="0" y="0"/>
+        <init ref="id0"/>
+    </template>)XML")
+                       .add_default_process()
+                       .add_system_decl("ChildProc = Child();")
+                       .parse();
+        REQUIRE(doc.get_errors().empty());
+        auto pb = UTAP::TigaPropertyBuilder{doc};
+        parse_property("Pr[<=10](<> numOf(Child) >= 1)", pb);
+        CHECK(doc.get_errors().empty());
+
+        auto doc2 = document_fixture{}
+                        .add_global_decl("process NotDyn() { state s0; init s0; }")
+                        .add_default_process()
+                        .parse();
+        auto pb2 = UTAP::TigaPropertyBuilder{doc2};
+        parse_property("A[] numOf(NotDyn) >= 0", pb2);
+        const auto& errs2 = doc2.get_errors();
+        REQUIRE(errs2.size() == 1);
+        CHECK(errs2[0].msg == "$Not_a_dynamic_template");
+    }
+}
+
+TEST_SUITE("FORALL/EXISTS/SUM alternate result types")
+{
+    TEST_CASE("forall over a clock comparison (guard-typed body) and its side-effect check")
+    {
+        auto doc = document_fixture{}.add_global_decl("clock c[3]; int x;").add_default_process().parse();
+        auto expr = parse_expression("forall (i:int[0,2]) c[i] < 5", doc, true);
+        CHECK(doc.get_errors().empty());
+
+        auto doc2 = document_fixture{}.add_global_decl("int x;").add_default_process().parse();
+        parse_expression("forall (i:int[0,2]) (x=1)", doc2, true);
+        const auto& errs2 = doc2.get_errors();
+        REQUIRE(errs2.size() == 1);
+        CHECK(errs2[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("exists' side-effect check")
+    {
+        auto doc = document_fixture{}.add_global_decl("int x;").add_default_process().parse();
+        parse_expression("exists (i:int[0,2]) (x=1)", doc, true);
+        const auto& errs = doc.get_errors();
+        REQUIRE(errs.size() == 1);
+        CHECK(errs[0].msg == "$Expression_must_be_side-effect_free");
+    }
+
+    TEST_CASE("sum over a double-typed body and its side-effect check")
+    {
+        auto doc = document_fixture{}.add_global_decl("double d[3];").add_default_process().parse();
+        auto expr = parse_expression("sum (i:int[0,2]) d[i]", doc, true);
+        CHECK(doc.get_errors().empty());
+
+        auto doc2 = document_fixture{}.add_global_decl("int x;").add_default_process().parse();
+        parse_expression("sum (i:int[0,2]) (x=1)", doc2, true);
+        const auto& errs2 = doc2.get_errors();
+        REQUIRE(errs2.size() == 1);
+        CHECK(errs2[0].msg == "$Expression_must_be_side-effect_free");
+    }
+}
+
+TEST_SUITE("COMMA/ARRAY index edge cases")
+{
+    TEST_CASE("a comma expression with an incompatible left operand is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("chan ch; int f() { int i=0; for (ch, i=0; i<5; i=i+1) {} return i; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE(!errs.empty());
+        CHECK(errs[0].msg == "$Incompatible_type_for_comma_expression");
+    }
+
+    TEST_CASE("indexing an array by a mismatched scalar set is rejected")
+    {
+        auto doc = document_fixture{}
+                       .add_global_decl("scalar[3] a; scalar[4] b; int arr[a]; void f() { arr[b]; }")
+                       .add_default_process()
+                       .parse();
+        const auto& errs = doc.get_errors();
+        bool found = false;
+        for (const auto& e : errs)
+            found |= (e.msg == "$Incompatible_type");
+        CHECK(found);
+    }
+}
