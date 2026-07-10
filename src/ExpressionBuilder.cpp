@@ -1029,8 +1029,9 @@ void ExpressionBuilder::expr_sum_dynamic_end(std::string_view name)
     Expression& process = fragments[1];
     Expression identifier = Expression::create_identifier(frames.top()[0], position);
     auto exprs = std::vector<Expression>{identifier, process, expr};
+    auto type = expr.get_type();  // save before pop() invalidates the reference
     fragments.pop(2);
-    fragments.push(Expression::create_nary(Kind::SUM_DYNAMIC, std::move(exprs), position, expr.get_type()));
+    fragments.push(Expression::create_nary(Kind::SUM_DYNAMIC, std::move(exprs), position, std::move(type)));
     pop_frame();
     pop_dynamic_frame_of(name);
 }
