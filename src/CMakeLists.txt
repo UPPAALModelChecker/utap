@@ -73,7 +73,7 @@ target_link_libraries(pretty PRIVATE UTAP)
 add_executable(syntaxcheck syntaxcheck.cpp)
 target_link_libraries(syntaxcheck PRIVATE UTAP)
 
-add_executable(featurecheck featurechecker.cpp)
+add_executable(featurecheck featurecheck.cpp)
 target_link_libraries(featurecheck PRIVATE UTAP)
 
 if (UTAP_STATIC)
