@@ -40,8 +40,8 @@ jobs:
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/darwin
       CMAKE_GENERATOR: Ninja
       CMAKE_BUILD_TYPE: Debug
-      CC: clang
-      CXX: clang++
+      CC: cc
+      CXX: c++
     steps:
       - uses: actions/checkout@v6
       - uses: maxim-lobanov/setup-xcode@v1
