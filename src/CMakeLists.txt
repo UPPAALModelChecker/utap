@@ -19,6 +19,12 @@ add_custom_command(
   DEPENDS lexer_generate parser.y)
 add_custom_target(parser_generate DEPENDS "${parser_source}")
 
+# Bison's stack-growth cleanup trips a GCC false positive: it can't prove
+# yyss is heap-allocated before YYSTACK_FREE conditionally frees it.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set_source_files_properties("${parser_source}" PROPERTIES COMPILE_OPTIONS "-Wno-free-nonheap-object")
+endif ()
+
 add_library(UTAP
   AbstractBuilder.cpp
   DocumentBuilder.cpp
