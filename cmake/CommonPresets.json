@@ -28,6 +28,26 @@
         "SSP" : { "type": "BOOL", "value": "ON"}
       },
       "displayName": "Configure for Ninja Debug/Release with Sanitizers"
+    },
+    {
+      "name": "debug",
+      "inherits": "multi",
+      "displayName": "Configure for Ninja Debug/Release (alias of multi)"
+    },
+    {
+      "name": "release",
+      "inherits": "multi",
+      "displayName": "Configure for Ninja Debug/Release (alias of multi)"
+    },
+    {
+      "name": "debug-san",
+      "inherits": "multi-san",
+      "displayName": "Configure for Ninja Debug/Release with Sanitizers (alias of multi-san)"
+    },
+    {
+      "name": "release-san",
+      "inherits": "multi-san",
+      "displayName": "Configure for Ninja Debug/Release with Sanitizers (alias of multi-san)"
     }
   ],
   "buildPresets": [

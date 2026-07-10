@@ -29,14 +29,14 @@
     },
     {
       "name": "coverage",
-      "inherits": "multi",
+      "inherits": "debug",
       "binaryDir": "${sourceDir}/build-coverage-gcov",
       "cacheVariables": { "UTAP_COVERAGE": "ON" },
       "displayName": "Configure gcov coverage build"
     },
     {
       "name": "coverage-llvm",
-      "inherits": "multi",
+      "inherits": "debug",
       "binaryDir": "${sourceDir}/build-coverage-llvm",
       "cacheVariables": {
         "UTAP_COVERAGE": "ON",
@@ -47,25 +47,25 @@
   ],
   "buildPresets": [
     {
-      "name": "quick-release",
+      "name": "release-quick",
       "inherits": "release",
       "configurePreset": "quick",
       "displayName": "Build quick (no testing) for Release"
     },
     {
-      "name": "quick-debug",
+      "name": "debug-quick",
       "inherits": "debug",
       "configurePreset": "quick",
       "displayName": "Build quick (no testing) for Debug"
     },
     {
-      "name": "quick-release-san",
+      "name": "release-quick-san",
       "inherits": "release-san",
       "configurePreset": "quick-san",
       "displayName": "Build quick (no testing) with Sanitizers and Release"
     },
     {
-      "name": "quick-debug-san",
+      "name": "debug-quick-san",
       "inherits": "debug-san",
       "configurePreset": "quick-san",
       "displayName": "Build quick (no testing) with Sanitizers and Debug"
@@ -108,16 +108,16 @@
         },
         {
           "type": "build",
-          "name": "quick-release"
+          "name": "release-quick"
         },
         {
           "type": "build",
-          "name": "quick-debug"
+          "name": "debug-quick"
         }
       ]
     },
     {
-      "name": "quick-release",
+      "name": "release-quick",
       "displayName": "Configure and Build quick (no testing) for Release",
       "steps": [
         {
@@ -126,12 +126,12 @@
         },
         {
           "type": "build",
-          "name": "quick-release"
+          "name": "release-quick"
         }
       ]
     },
     {
-      "name": "quick-debug",
+      "name": "debug-quick",
       "displayName": "Configure and Build quick (no testing) for Debug",
       "steps": [
         {
@@ -140,7 +140,7 @@
         },
         {
           "type": "build",
-          "name": "quick-debug"
+          "name": "debug-quick"
         }
       ]
     },
@@ -154,16 +154,16 @@
         },
         {
           "type": "build",
-          "name": "quick-release-san"
+          "name": "release-quick-san"
         },
         {
           "type": "build",
-          "name": "quick-debug-san"
+          "name": "debug-quick-san"
         }
       ]
     },
     {
-      "name": "quick-release-san",
+      "name": "release-quick-san",
       "displayName": "Configure and Build quick (no testing) with Sanitizers for Release",
       "steps": [
         {
@@ -172,12 +172,12 @@
         },
         {
           "type": "build",
-          "name": "quick-release-san"
+          "name": "release-quick-san"
         }
       ]
     },
     {
-      "name": "quick-debug-san",
+      "name": "debug-quick-san",
       "displayName": "Configure and Build quick (no testing) with Sanitizers for Debug",
       "steps": [
         {
@@ -186,7 +186,7 @@
         },
         {
           "type": "build",
-          "name": "quick-debug-san"
+          "name": "debug-quick-san"
         }
       ]
     },

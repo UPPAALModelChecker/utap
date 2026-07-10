@@ -96,13 +96,13 @@ jobs:
           path: local/darwin-brew-gcc15
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake -DUTAP_CLANG_TIDY=OFF --preset multi
+        run: cmake -DUTAP_CLANG_TIDY=OFF --preset debug
       - name: Build UTAP
         run: cmake --build --preset debug
       - name: Test UTAP
         run: ctest --preset debug
       - name: Quick UTAP Release
-        run: cmake --workflow --preset quick-release
+        run: cmake --workflow --preset release-quick
       - name: Install UTAP
         run: cmake --install build-quick --config Release --prefix="$CMAKE_INSTALL_PREFIX"
       - name: CCache Statistics

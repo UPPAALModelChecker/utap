@@ -90,13 +90,13 @@ jobs:
           path: local/x86_64-linux-clang20
           key: ${{ steps.restore-libs.outputs.cache-primary-key }}
       - name: Configure UTAP
-        run: cmake -DUTAP_CLANG_TIDY=OFF --preset multi-san
+        run: cmake -DUTAP_CLANG_TIDY=OFF --preset debug-san
       - name: Build UTAP
         run: cmake --build --preset debug-san
       - name: Test UTAP
         run: ctest --preset debug-san
       - name: Quick UTAP Release
-        run: cmake --workflow --preset quick-release
+        run: cmake --workflow --preset release-quick
       - name: Install UTAP
         run: cmake --install build-quick --config Release --prefix "$CMAKE_INSTALL_PREFIX"
       - name: CCache Statistics
