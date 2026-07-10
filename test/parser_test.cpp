@@ -27,6 +27,9 @@ TEST_SUITE_BEGIN("parser");
 
 using namespace UTAP;
 
+/// Checks text containment in unit testing
+using doctest::Contains;
+
 TEST_CASE("Double Serialization Test")
 {
     const auto doc = read_document("if_statement.xml");

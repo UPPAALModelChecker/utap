@@ -29,6 +29,9 @@ TEST_SUITE_BEGIN("Document");
 
 using namespace UTAP;
 
+/// Checks text containment in unit testing
+using doctest::Contains;
+
 TEST_CASE("find_template finds an existing template and returns nullptr otherwise")
 {
     auto doc = document_fixture{}.add_default_process().parse();

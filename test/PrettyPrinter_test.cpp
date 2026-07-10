@@ -40,6 +40,9 @@
 
 using namespace UTAP;
 
+/// Checks text containment in unit testing
+using doctest::Contains;
+
 TEST_SUITE_BEGIN("PrettyPrinter");
 
 TEST_CASE("Template with locations, rates, invariants and guarded edges")

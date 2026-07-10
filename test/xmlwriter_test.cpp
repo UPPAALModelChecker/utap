@@ -30,6 +30,9 @@
 
 using namespace UTAP;
 
+/// Checks text containment in unit testing
+using doctest::Contains;
+
 namespace {
 /// Writes doc to a temp file via write_XML_file(), reads it back as text,
 /// and cleans up. Used to inspect XMLWriter's output since it only writes
