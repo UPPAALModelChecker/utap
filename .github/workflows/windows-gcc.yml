@@ -1,5 +1,5 @@
 ---
-name: Build for Windows using GCC
+name: Windows GCC
 on:
   workflow_dispatch:
   push:
@@ -32,17 +32,19 @@ jobs:
         shell: msys2 {0}
     env:
       CCACHE_DIR: ${{ github.workspace }}/CCACHE
-      BUILD_DIR: build-x86_windows-gcc
       CTEST_OUTPUT_ON_FAILURE: 1
       CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-windows-gcc
       CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-windows-gcc
       CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-windows-gcc.cmake
+      CMAKE_BUILD_TYPE: Debug
+      CC: gcc
+      CXX: g++
     steps:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
-          install: mingw-w64-ucrt-x86_64-git mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ccache
+          install: bison flex mingw-w64-ucrt-x86_64-git mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-ninja mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-ccache
       - name: Setup Runner Environment
         run: |
           uname -a
