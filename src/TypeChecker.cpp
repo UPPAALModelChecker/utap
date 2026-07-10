@@ -917,8 +917,16 @@ void TypeChecker::visit_io_decl(IODecl& iodecl)
             syncUsed = -1;
         }
     }
-    if (syncUsed == -1)
-        handleError(csp_and_io_cannot_be_mixed(iodecl.csp.front()));
+    if (syncUsed == -1) {
+        // The mismatch may have been triggered by this iodecl's csp field
+        // (if it followed an IO-style one) or by its inputs/outputs (if it
+        // followed a CSP-style one) -- whichever of the three is actually
+        // populated here, since only one of them is guaranteed non-empty.
+        const Expression& offender = !iodecl.csp.empty()      ? iodecl.csp.front()
+                                     : !iodecl.inputs.empty()  ? iodecl.inputs.front()
+                                                               : iodecl.outputs.front();
+        handleError(csp_and_io_cannot_be_mixed(offender));
+    }
 
     document.set_sync_used(syncUsed);
 
