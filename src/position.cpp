@@ -61,7 +61,8 @@ const PositionIndex::Line& PositionIndex::find(uint32_t position) const
 std::ostream& PositionIndex::print(std::ostream& os) const
 {
     for (const auto& line : lines)
-        os << line.position << " " << line.offset << " " << line.line << " " << line.path << std::endl;
+        os << line.position << " " << line.offset << " " << line.line << " " << (line.path ? *line.path : "")
+           << std::endl;
     return os;
 }
 

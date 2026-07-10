@@ -103,7 +103,16 @@ TEST_CASE("PositionIndex::print dumps the table")
     doc.add_position(20, 5, 2, nullptr);
     auto oss = std::ostringstream{};
     doc.get_positions().print(oss);
-    CHECK(oss.str() == "0 0 1 0\n20 5 2 0\n");
+    CHECK(oss.str() == "0 0 1 \n20 5 2 \n");
+}
+
+TEST_CASE("PositionIndex::print dumps the path when present")
+{
+    auto doc = Document{};
+    doc.add_position(0, 0, 1, std::make_shared<std::string>("foo.xml"));
+    auto oss = std::ostringstream{};
+    doc.get_positions().print(oss);
+    CHECK(oss.str() == "0 0 1 foo.xml\n");
 }
 
 TEST_SUITE_END();
