@@ -1179,11 +1179,14 @@ TEST_SUITE("CSP/refinement and urgent/deterministic edge checks")
                        .parse();
         const auto& errs = doc.get_errors();
         CHECK_MESSAGE(errs.empty(), errs.front().msg);
+#ifndef NDEBUG
+        // This warning is only compiled in debug builds (see visit_edge in TypeChecker.cpp).
         const auto& warns = doc.get_warnings();
         bool found = false;
         for (const auto& w : warns)
             found |= (w.msg == "$It_may_be_needed_to_add_a_guard_involving_the_target_invariant");
         CHECK(found);
+#endif
     }
 
     TEST_CASE("mixing CSP-style and IO-style synchronisation is not allowed")
