@@ -31,10 +31,9 @@
 #include <string>
 #include <utility>  // std::pair
 
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {
 
-struct child_t
+struct Child
 {
     std::string label;
     Type child;
@@ -45,7 +44,7 @@ struct Type::type_data
     Kind kind;            // Kind of type object
     position_t position;  // Position in the input file
     Expression expr;      //
-    std::vector<child_t> children;
+    std::vector<Child> children;
     type_data(Kind kind, position_t position): kind{kind}, position{position} {}
 };
 
@@ -54,12 +53,6 @@ Type::Type(Kind kind, const position_t& pos, size_t size)
     data = std::make_shared<type_data>(kind, pos);
     data->children.resize(size);
 }
-
-bool Type::operator==(const Type& type) const { return data == type.data; }
-
-bool Type::operator!=(const Type& type) const { return data != type.data; }
-
-bool Type::operator<(const Type& type) const { return data < type.data; }
 
 uint32_t Type::size() const
 {
@@ -98,59 +91,60 @@ std::optional<uint32_t> Type::find_index_of(std::string_view label) const
     return {};
 }
 
-Kind Type::get_kind() const { return unknown() ? UNKNOWN : data->kind; }
+Kind Type::get_kind() const { return unknown() ? Kind::UNKNOWN : data->kind; }
 
 bool Type::is_prefix() const
 {
     switch (get_kind()) {
-    case Constants::FRACTION:
-    case Constants::UNKNOWN:
-    case Constants::VOID_TYPE:
-    case Constants::CLOCK:
-    case Constants::INT:
-    case Constants::DOUBLE:
-    case Constants::BOOL:
-    case Constants::STRING:
-    case Constants::SCALAR:
-    case Constants::LOCATION:
-    case Constants::LOCATION_EXPR:
-    case Constants::BRANCHPOINT:
-    case Constants::CHANNEL:
-    case Constants::COST:
-    case Constants::INVARIANT:
-    case Constants::INVARIANT_WR:
-    case Constants::GUARD:
-    case Constants::DIFF:
-    case Constants::CONSTRAINT:
-    case Constants::FORMULA:
-    case Constants::ARRAY:
-    case Constants::RECORD:
-    case Constants::PROCESS:
-    case Constants::PROCESS_SET:
-    case Constants::FUNCTION:
-    case Constants::FUNCTION_EXTERNAL:
-    case Constants::INSTANCE:
-    case Constants::RANGE:
-    case Constants::REF:
-    case Constants::TYPEDEF:
-    case Constants::LABEL:
-    case Constants::RATE:
-    case Constants::INSTANCE_LINE:  // LSC
-    case Constants::MESSAGE:        // LSC
-    case Constants::CONDITION:      // LSC
-    case Constants::UPDATE:         // LSC
-    case Constants::LSC_INSTANCE:   // LSC
+    using namespace KindNames;
+    case FRACTION:
+    case UNKNOWN:
+    case VOID_TYPE:
+    case CLOCK:
+    case INT:
+    case DOUBLE:
+    case BOOL:
+    case STRING:
+    case SCALAR:
+    case LOCATION:
+    case LOCATION_EXPR:
+    case BRANCHPOINT:
+    case CHANNEL:
+    case COST:
+    case INVARIANT:
+    case INVARIANT_WR:
+    case GUARD:
+    case DIFF:
+    case CONSTRAINT:
+    case FORMULA:
+    case ARRAY:
+    case RECORD:
+    case PROCESS:
+    case PROCESS_SET:
+    case FUNCTION:
+    case FUNCTION_EXTERNAL:
+    case INSTANCE:
+    case RANGE:
+    case REF:
+    case TYPEDEF:
+    case LABEL:
+    case RATE:
+    case INSTANCE_LINE:  // LSC
+    case MESSAGE:        // LSC
+    case CONDITION:      // LSC
+    case UPDATE:         // LSC
+    case LSC_INSTANCE:   // LSC
         return false;
 
     default: return true;
     }
 }
 
-bool Type::unknown() const { return data == nullptr || data->kind == UNKNOWN; }
+bool Type::unknown() const { return data == nullptr || data->kind == Kind::UNKNOWN; }
 
 bool Type::is(Kind kind) const
 {
-    using namespace Constants;
+    using namespace KindNames;
     const auto k = get_kind();
     if (k == PROCESS_VAR) {
         return kind == PROCESS_VAR;
@@ -166,72 +160,71 @@ Type Type::get_sub() const
 {
     assert(is_array());
     const auto k = get_kind();
-    if (k == REF || get_kind() == LABEL) {
+    if (k == Kind::REF || get_kind() == Kind::LABEL) {
         return get(0).get_sub();
-    } else if (is_prefix()) {
-        return get(0).get_sub().create_prefix(k);
-    } else {
-        return get(0);
     }
+    if (is_prefix()) {
+        return get(0).get_sub().create_prefix(k);
+    }
+    return get(0);
 }
 
 Type Type::get_sub(uint32_t i) const
 {
     assert(is_record() || is_process());
     const auto k = get_kind();
-    if (k == REF || k == LABEL) {
+    if (k == Kind::REF || k == Kind::LABEL) {
         return get(0).get_sub(i);
-    } else if (is_prefix()) {
-        return get(0).get_sub(i).create_prefix(k);
-    } else {
-        return get(i);
     }
+    if (is_prefix()) {
+        return get(0).get_sub(i).create_prefix(k);
+    }
+    return get(i);
 }
 
 const Type& Type::get_array_size() const
 {
     const auto k = get_kind();
-    if (is_prefix() || k == REF || k == LABEL) {
+    if (is_prefix() || k == Kind::REF || k == Kind::LABEL) {
         return get(0).get_array_size();
-    } else {
-        assert(k == ARRAY);
-        return get(1);
     }
+    assert(k == Kind::ARRAY);
+    return get(1);
 }
 
 uint32_t Type::get_record_size() const
 {
-    if (const auto k = get_kind(); is_prefix() || k == REF || k == LABEL) {
+    const auto k = get_kind();
+    if (is_prefix() || k == Kind::REF || k == Kind::LABEL) {
         return get(0).get_record_size();
-    } else {
-        assert(k == RECORD);
-        return size();
     }
+    assert(k == Kind::RECORD);
+    return size();
 }
 
 const std::string& Type::get_record_label(uint32_t i) const
 {
     static const auto location = std::string{"location"};
-    if (const auto k = get_kind(); is_prefix() || k == REF || k == LABEL) {
+    const auto k = get_kind();
+    if (is_prefix() || k == Kind::REF || k == Kind::LABEL) {
         return get(0).get_record_label(i);
-    } else if (i == static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
+    }
+    if (i == static_cast<size_t>(std::numeric_limits<int32_t>::max())) {
         // TODO: create a separate type for location expressions
         // TODO: get rid of magical constants
         return location;
-    } else {
-        assert(k == RECORD || k == PROCESS);
-        return get_label(i);
     }
+    assert(k == Kind::RECORD || k == Kind::PROCESS);
+    return get_label(i);
 }
 
 std::pair<Expression, Expression> Type::get_range() const
 {
-    assert(is(RANGE));
-    if (get_kind() == RANGE) {
+    assert(is(Kind::RANGE));
+    if (get_kind() == Kind::RANGE) {
         return std::make_pair(get(1).get_expression(), get(2).get_expression());
-    } else {
-        return get(0).get_range();
     }
+    return get(0).get_range();
 }
 
 const Expression& Type::get_expression() const
@@ -243,7 +236,7 @@ const Expression& Type::get_expression() const
 Type Type::strip() const
 {
     const auto k = get_kind();
-    if (is_prefix() || k == RANGE || k == REF || k == LABEL) {
+    if (is_prefix() || k == Kind::RANGE || k == Kind::REF || k == Kind::LABEL) {
         return get(0).strip();
     } else {
         return *this;
@@ -253,7 +246,7 @@ Type Type::strip() const
 Type Type::strip_array() const
 {
     Type type = strip();
-    while (type.get_kind() == ARRAY) {
+    while (type.get_kind() == Kind::ARRAY) {
         type = type.get(0).strip();
     }
     return type;
@@ -267,7 +260,7 @@ Type Type::rename(const std::string& from, const std::string& to) const
         type.data->children[i].child = get(i).rename(from, to);
         type.data->children[i].label = get_label(i);
     }
-    if (get_kind() == LABEL && get_label(0) == from) {
+    if (get_kind() == Kind::LABEL && get_label(0) == from) {
         type.data->children[0].label = to;
     }
     return type;
@@ -291,6 +284,7 @@ const position_t& Type::get_position() const { return data->position; }
 bool Type::is_constant() const
 {
     switch (get_kind()) {
+        using namespace KindNames;
     case FUNCTION:
     case FUNCTION_EXTERNAL:
     case PROCESS:
@@ -299,7 +293,7 @@ bool Type::is_constant() const
     case CONSTANT: return true;
     case RECORD:
         return std::all_of(data->children.begin(), data->children.end(),
-                           [](const child_t& c) { return c.child.is_constant(); });
+                           [](const Child& c) { return c.child.is_constant(); });
     default: return size() > 0 && get(0).is_constant();
     }
 }
@@ -307,6 +301,7 @@ bool Type::is_constant() const
 bool Type::is_mutable() const
 {
     switch (get_kind()) {
+        using namespace KindNames;
     case FUNCTION:
     case FUNCTION_EXTERNAL:
     case PROCESS:
@@ -315,7 +310,7 @@ bool Type::is_mutable() const
     case CONSTANT: return false;
     case RECORD:
         return std::all_of(data->children.begin(), data->children.end(),
-                           [](const child_t& c) { return c.child.is_mutable(); });
+                           [](const Child& c) { return c.child.is_mutable(); });
     default: return size() == 0 || get(0).is_mutable();
     }
 }
@@ -324,11 +319,11 @@ bool Type::is_equality_compatible(const Type& other) const
 {
     if (is_integral() && other.is_integral()) {
         return true;
-    } else if (is(PROCESS_VAR) && other.is(PROCESS_VAR)) {
-        return true;
-    } else {
-        return is_equivalent(other);
     }
+    if (is(Kind::PROCESS_VAR) && other.is(Kind::PROCESS_VAR)) {
+        return true;
+    }
+    return is_equivalent(other);
 }
 
 bool Type::is_assignment_compatible(const Type& rhs, bool init) const
@@ -337,7 +332,8 @@ bool Type::is_assignment_compatible(const Type& rhs, bool init) const
                 (is_double() && (rhs.is_double() || rhs.is_integral())))
              : ((is_clock() || is_double()) && (rhs.is_integral() || rhs.is_double() || rhs.is_clock()))) {
         return true;
-    } else if (is_integral() && rhs.is_integral()) {
+    }
+    if (is_integral() && rhs.is_integral()) {
         return true;
     }
     return is_equivalent(rhs);
@@ -353,9 +349,9 @@ bool Type::is_inline_if_compatible(const Type& t1, const Type& t2) const
 int Type::channel_capability() const
 {
     assert(is_channel());
-    if (is(URGENT))
+    if (is(Kind::URGENT))
         return 0;
-    if (is(BROADCAST))
+    if (is(Kind::BROADCAST))
         return 1;
     return 2;
 }
@@ -365,38 +361,47 @@ int Type::channel_capability() const
  */
 bool Type::is_same_scalar(const Type& o) const
 {
-    if (get_kind() == REF || get_kind() == CONSTANT || get_kind() == SYSTEM_META) {
+    if (get_kind() == Kind::REF || get_kind() == Kind::CONSTANT || get_kind() == Kind::SYSTEM_META) {
         return (*this)[0].is_same_scalar(o);
-    } else if (o.get_kind() == EF || o.get_kind() == CONSTANT || o.get_kind() == SYSTEM_META) {
+    }
+    if (o.get_kind() == Kind::EF || o.get_kind() == Kind::CONSTANT || o.get_kind() == Kind::SYSTEM_META) {
         return is_same_scalar(o[0]);
-    } else if (get_kind() == LABEL && o.get_kind() == LABEL) {
+    }
+    if (get_kind() == Kind::LABEL && o.get_kind() == Kind::LABEL) {
         return get_label(0) == o.get_label(0) && (*this)[0].is_same_scalar(o[0]);
-    } else if (get_kind() == SCALAR && o.get_kind() == SCALAR) {
+    }
+    if (get_kind() == Kind::SCALAR && o.get_kind() == Kind::SCALAR) {
         return true;
-    } else if (get_kind() == RANGE && o.get_kind() == RANGE) {
+    }
+    if (get_kind() == Kind::RANGE && o.get_kind() == Kind::RANGE) {
         return (*this)[0].is_same_scalar(o[0]) && get_range().first.equal(o.get_range().first) &&
                get_range().second.equal(o.get_range().second);
-    } else {
-        return false;
     }
+    return false;
 }
 
 bool Type::is_equivalent(const Type& o) const
 {
     if (is_integer() && o.is_integer()) {
-        return !is(RANGE) || !o.is(RANGE) ||
+        return !is(Kind::RANGE) || !o.is(Kind::RANGE) ||
                (get_range().first.equal(o.get_range().first) && get_range().second.equal(o.get_range().second));
-    } else if (is_clock() && o.is_clock()) {
+    }
+    if (is_clock() && o.is_clock()) {
         return true;
-    } else if (is_scalar() && o.is_scalar()) {
+    }
+    if (is_scalar() && o.is_scalar()) {
         return is_same_scalar(o);
-    } else if (is_double() && o.is_double()) {
+    }
+    if (is_double() && o.is_double()) {
         return true;
-    } else if (is_boolean() && o.is_boolean()) {
+    }
+    if (is_boolean() && o.is_boolean()) {
         return true;
-    } else if (is_channel() && o.is_channel()) {
+    }
+    if (is_channel() && o.is_channel()) {
         return channel_capability() == o.channel_capability();
-    } else if (is_record() && o.is_record()) {
+    }
+    if (is_record() && o.is_record()) {
         const auto size = get_record_size();
         if (const auto oSize = o.get_record_size(); size == oSize) {
             for (uint32_t i = 0; i < size; ++i) {
@@ -423,10 +428,10 @@ bool Type::is_equivalent(const Type& o) const
 
 Type Type::create_range(Type type, Expression lower, Expression upper, position_t pos)
 {
-    auto t = Type{RANGE, pos, 3};
+    auto t = Type{Kind::RANGE, pos, 3};
     t.data->children[0].child = std::move(type);
-    t.data->children[1].child = Type{UNKNOWN, pos, 0};
-    t.data->children[2].child = Type{UNKNOWN, pos, 0};
+    t.data->children[1].child = Type{Kind::UNKNOWN, pos, 0};
+    t.data->children[2].child = Type{Kind::UNKNOWN, pos, 0};
     t[1].data->expr = std::move(lower);
     t[2].data->expr = std::move(upper);
     return t;
@@ -435,7 +440,7 @@ Type Type::create_range(Type type, Expression lower, Expression upper, position_
 Type Type::create_record(const std::vector<Type>& types, const std::vector<std::string>& labels, position_t pos)
 {
     assert(types.size() == labels.size());
-    auto type = Type{RECORD, pos, types.size()};
+    auto type = Type{Kind::RECORD, pos, types.size()};
     for (size_t i = 0; i < types.size(); i++) {
         type.data->children[i].child = types[i];
         type.data->children[i].label = labels[i];
@@ -447,7 +452,7 @@ Type Type::create_function(Type ret, const std::vector<Type>& parameters, const 
                            position_t pos)
 {
     assert(parameters.size() == labels.size());
-    auto type = Type{FUNCTION, pos, parameters.size() + 1};
+    auto type = Type{Kind::FUNCTION, pos, parameters.size() + 1};
     type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
@@ -460,7 +465,7 @@ Type Type::create_external_function(Type ret, const std::vector<Type>& parameter
                                     const std::vector<std::string>& labels, position_t pos)
 {
     assert(parameters.size() == labels.size());
-    auto type = Type{FUNCTION_EXTERNAL, pos, parameters.size() + 1};
+    auto type = Type{Kind::FUNCTION_EXTERNAL, pos, parameters.size() + 1};
     type.data->children[0].child = std::move(ret);
     for (size_t i = 0; i < parameters.size(); i++) {
         type.data->children[i + 1].child = parameters[i];
@@ -471,7 +476,7 @@ Type Type::create_external_function(Type ret, const std::vector<Type>& parameter
 
 Type Type::create_array(Type sub, Type size, position_t pos)
 {
-    auto type = Type{ARRAY, pos, 2};
+    auto type = Type{Kind::ARRAY, pos, 2};
     type.data->children[0].child = std::move(sub);
     type.data->children[1].child = std::move(size);
     return type;
@@ -479,7 +484,7 @@ Type Type::create_array(Type sub, Type size, position_t pos)
 
 Type Type::create_typedef(std::string label, Type type, position_t pos)
 {
-    auto t = Type{TYPEDEF, pos, 1};
+    auto t = Type{Kind::TYPEDEF, pos, 1};
     t.data->children[0].label = std::move(label);
     t.data->children[0].child = std::move(type);
     return t;
@@ -487,7 +492,7 @@ Type Type::create_typedef(std::string label, Type type, position_t pos)
 
 Type Type::create_instance(const Frame& parameters, position_t pos)
 {
-    auto type = Type{INSTANCE, pos, parameters.get_size()};
+    auto type = Type{Kind::INSTANCE, pos, parameters.get_size()};
     for (auto i = 0u; i < parameters.get_size(); ++i) {
         type.data->children[i].child = parameters[i].get_type();
         type.data->children[i].label = parameters[i].get_name();
@@ -497,7 +502,7 @@ Type Type::create_instance(const Frame& parameters, position_t pos)
 
 Type Type::create_LSC_instance(const Frame& parameters, position_t pos)
 {
-    auto type = Type{LSC_INSTANCE, pos, parameters.get_size()};
+    auto type = Type{Kind::LSC_INSTANCE, pos, parameters.get_size()};
     for (auto i = 0u; i < parameters.get_size(); ++i) {
         type.data->children[i].child = parameters[i].get_type();
         type.data->children[i].label = parameters[i].get_name();
@@ -507,7 +512,7 @@ Type Type::create_LSC_instance(const Frame& parameters, position_t pos)
 
 Type Type::create_process(const Frame& frame, position_t pos)
 {
-    auto type = Type{PROCESS, pos, frame.get_size()};
+    auto type = Type{Kind::PROCESS, pos, frame.get_size()};
     for (auto i = 0u; i < frame.get_size(); ++i) {
         type.data->children[i].child = frame[i].get_type();
         type.data->children[i].label = frame[i].get_name();
@@ -517,7 +522,7 @@ Type Type::create_process(const Frame& frame, position_t pos)
 
 Type Type::create_process_set(const Type& instance, position_t pos)
 {
-    auto type = Type{PROCESS_SET, pos, instance.size()};
+    auto type = Type{Kind::PROCESS_SET, pos, instance.size()};
     for (auto i = 0u; i < instance.size(); ++i) {
         type.data->children[i].child = instance[i];
         type.data->children[i].label = instance.get_label(i);
@@ -536,7 +541,7 @@ Type Type::create_prefix(Kind kind, position_t pos) const
 
 Type Type::create_label(std::string_view label, position_t pos) const
 {
-    auto type = Type{LABEL, pos, 1};
+    auto type = Type{Kind::LABEL, pos, 1};
     type.data->children[0].child = *this;
     type.data->children[0].label = label;
     return type;
@@ -552,6 +557,7 @@ std::ostream& Type::print(std::ostream& os) const
 
     os << "(";
     switch (get_kind()) {
+        using namespace KindNames;
     case UNKNOWN: os << "unknown"; break;
     case RANGE: os << "range"; break;
     case ARRAY: os << "array"; break;
@@ -586,7 +592,7 @@ std::ostream& Type::print(std::ostream& os) const
     case LOCATION_EXPR:
     case LOCATION: os << "location"; break;
     case BRANCHPOINT: os << "branchpoint"; break;
-    // LSC
+        // LSC
     case INSTANCE_LINE: os << "instance line"; break;
     case MESSAGE: os << "message"; break;
     case CONDITION: os << "condition"; break;
@@ -620,6 +626,7 @@ std::ostream& Type::print_declaration(std::ostream& os) const
     auto typeDef = false;
 
     switch (get_kind()) {
+        using namespace KindNames;
     case UNKNOWN: kind = "unknown"; break;
     case RANGE: range = true; break;
     case ARRAY: array = true; break;
@@ -699,3 +706,5 @@ std::string Type::declaration() const
 }
 
 std::ostream& operator<<(std::ostream& os, const Type& t) { return t.print(os); }
+
+} // namespace UTAP

@@ -93,23 +93,22 @@ class Symbol;
 */
 class Type
 {
-private:
     struct type_data;
     std::shared_ptr<type_data> data;
 
 public:
-    explicit Type(Constants::Kind kind, const position_t& pos, size_t size);
+    explicit Type(Kind kind, const position_t& pos, size_t size);
     /// Default constructor creates a null-type.
     Type() = default;
 
     /// Checks if types are equal
-    bool operator==(const Type&) const;
+    bool operator==(const Type& other) const { return data == other.data; }
 
     /// Checks if types are not equal
-    bool operator!=(const Type&) const;
+    bool operator!=(const Type& other) const { return !(*this == other); }
 
     /// Returns the kind of type object.
-    Constants::Kind get_kind() const;
+    Kind get_kind() const;
 
     /**
      * Returns the position of the type in the input file. This
@@ -121,7 +120,7 @@ public:
     uint32_t size() const;
 
     /// Less-than operator.
-    bool operator<(const Type&) const;
+    bool operator<(const Type& other) const { return data < other.data; }
 
     /// Returns the \a i'th child.
     const Type& operator[](uint32_t) const;
@@ -176,72 +175,72 @@ public:
     std::string declaration() const;
 
     /// Shortcut for is(RANGE).
-    bool is_range() const { return is(Constants::RANGE); }
+    bool is_range() const { return is(Kind::RANGE); }
 
     /// Shortcut for is(INT).
-    bool is_integer() const { return is(Constants::INT); }
+    bool is_integer() const { return is(Kind::INT); }
 
     /// Shortcut for is(BOOL).
-    bool is_boolean() const { return is(Constants::BOOL); }
+    bool is_boolean() const { return is(Kind::BOOL); }
 
     /// Shortcut for is(FUNCTION).
-    bool is_function() const { return is(Constants::FUNCTION); }
+    bool is_function() const { return is(Kind::FUNCTION); }
 
     /// Shortcut for is(FUNCTION_EXTERNAL).
-    bool is_function_external() const { return is(Constants::FUNCTION_EXTERNAL); }
+    bool is_function_external() const { return is(Kind::FUNCTION_EXTERNAL); }
 
     /// Shortcut for is(PROCESS).
-    bool is_process() const { return is(Constants::PROCESS); }
+    bool is_process() const { return is(Kind::PROCESS); }
 
     /// Shortcut for is(PROCESS_SET).
-    bool is_process_set() const { return is(Constants::PROCESS_SET); }
+    bool is_process_set() const { return is(Kind::PROCESS_SET); }
 
     /// Shortcut for is(LOCATION).
-    bool is_location() const { return is(Constants::LOCATION); }
+    bool is_location() const { return is(Kind::LOCATION); }
 
     /// Shortcut for is(LOCATION_EXPR).
-    bool is_location_expr() const { return is(Constants::LOCATION_EXPR); }
+    bool is_location_expr() const { return is(Kind::LOCATION_EXPR); }
 
     /// Shortcut for is(INSTANCELINE).
-    bool is_instance_line() const { return is(Constants::INSTANCE_LINE); }
+    bool is_instance_line() const { return is(Kind::INSTANCE_LINE); }
 
     /// Shortcut for is(BRANCHPOINT).
-    bool is_branchpoint() const { return is(Constants::BRANCHPOINT); }
+    bool is_branchpoint() const { return is(Kind::BRANCHPOINT); }
 
     /// Shortcut for is(CHANNEL).
-    bool is_channel() const { return is(Constants::CHANNEL); }
+    bool is_channel() const { return is(Kind::CHANNEL); }
 
     /// Shortcut for is(ARRAY).
-    bool is_array() const { return is(Constants::ARRAY); }
+    bool is_array() const { return is(Kind::ARRAY); }
 
     /// Shortcut for is(SCALAR).
-    bool is_scalar() const { return is(Constants::SCALAR); }
+    bool is_scalar() const { return is(Kind::SCALAR); }
 
     /// Shortcut for is(CLOCK).
-    bool is_clock() const { return is(Constants::CLOCK); }
+    bool is_clock() const { return is(Kind::CLOCK); }
 
     /// Shortcut for is(RECORD).
-    bool is_record() const { return is(Constants::RECORD); }
+    bool is_record() const { return is(Kind::RECORD); }
 
     /// Shortcut for is(DIFF).
-    bool is_diff() const { return is(Constants::DIFF); }
+    bool is_diff() const { return is(Kind::DIFF); }
 
     /// Shortcut for is(VOID_TYPE).
-    bool is_void() const { return is(Constants::VOID_TYPE); }
+    bool is_void() const { return is(Kind::VOID_TYPE); }
 
     /// Shortcut for is(COST).
-    bool is_cost() const { return is(Constants::COST); }
+    bool is_cost() const { return is(Kind::COST); }
 
     /// Shortcut for is(DOUBLE).
-    bool is_double() const { return is(Constants::DOUBLE); }
+    bool is_double() const { return is(Kind::DOUBLE); }
 
     /// Shortcut for is(STRING).
-    bool is_string() const { return is(Constants::STRING); }
+    bool is_string() const { return is(Kind::STRING); }
 
     /// True if the type is a boolean, integer, or location
     bool is_integral() const
     {
-        using namespace Constants;
+        using namespace KindNames;
         return is(INT) || is(BOOL) || is(PROCESS_VAR) || is(LOCATION) || is(LOCATION_EXPR);
     }
 
@@ -249,33 +248,33 @@ public:
      * Returns true if this is an invariant, boolean or
      * integer. Shortcut for isIntegral() || is(INVARIANT).
      */
-    bool is_invariant() const { return is(Constants::INVARIANT) || is_integral(); }
+    bool is_invariant() const { return is(Kind::INVARIANT) || is_integral(); }
 
     /**
      * Returns true if this is a guard, invariant, boolean or
      * integer.  Shortcut for is(GUARD) || is_invariant().
      */
-    bool is_guard() const { return is(Constants::GUARD) || is_invariant(); }
+    bool is_guard() const { return is(Kind::GUARD) || is_invariant(); }
 
     /**
      * Returns true if this is a probability or integer.  Shortcut
      * for is(PROBABILITY) || isInteger().
      */
-    bool is_probability() const { return is(Constants::PROBABILITY) || is_integer() || is_double() || is_clock(); }
+    bool is_probability() const { return is(Kind::PROBABILITY) || is_integer() || is_double() || is_clock(); }
 
     /**
      * Returns true if this is a constraint, guard, invariant,
      * boolean or integer. Shortcut for is(CONSTRAINT) ||
      * is_guard().
      */
-    bool is_constraint() const { return is(Constants::CONSTRAINT) || is_guard(); }
+    bool is_constraint() const { return is(Kind::CONSTRAINT) || is_guard(); }
 
     /**
      * Returns true if this is a formula, constraint, guard,
      * invariant, boolean or integer. Shortcut for is(FORMULA) ||
      * is_constraint().
      */
-    bool is_formula() const { return is(Constants::FORMULA) || is_constraint(); }
+    bool is_formula() const { return is(Kind::FORMULA) || is_constraint(); }
 
     /**
      * Removes any leading prefixes, RANGE, REF and LABEL types
@@ -305,7 +304,7 @@ public:
     /** Returns true if the type has kind \a kind or if type is a
      * prefix, RANGE or REF type and the getChild().is(kind)
      * returns true. */
-    bool is(Constants::Kind kind) const;
+    bool is(Kind kind) const;
 
     /** Returns true if two types are compatible for equality operator.
      * Types are compatible if they are structurally
@@ -364,7 +363,7 @@ public:
      * could be anything and it is the responsibility of the
      * caller to make sure that the given kind is a valid prefix.
      */
-    Type create_prefix(Constants::Kind kind, position_t = position_t()) const;
+    Type create_prefix(Kind kind, position_t = position_t()) const;
 
     /// Creates a LABEL.
     Type create_label(std::string_view, position_t = position_t()) const;
@@ -373,7 +372,7 @@ public:
     static Type create_range(Type primitive, Expression from, Expression till, position_t = position_t());
 
     /// Creates a primitive type
-    static Type create_primitive(Constants::Kind, position_t = position_t());
+    static Type create_primitive(Kind, position_t = position_t());
 
     /// Creates an array type.
     static Type create_array(Type sub, Type size, position_t = position_t());
@@ -401,9 +400,8 @@ public:
     static Type create_instance(const Frame&, position_t = position_t());
     /// Creates a new LSC instance type
     static Type create_LSC_instance(const Frame&, position_t = position_t());
+    friend std::ostream& operator<<(std::ostream&, const Type&);
 };
 }  // namespace UTAP
-
-std::ostream& operator<<(std::ostream& o, const UTAP::Type& t);
 
 #endif  // UTAP_TYPE_HH

@@ -26,7 +26,9 @@
 #include <sstream>
 #include <cassert>
 
-using namespace UTAP;
+namespace UTAP {
+
+Statement::~Statement() noexcept = default;
 
 std::string Statement::to_string(const std::string& indent) const
 {
@@ -35,12 +37,20 @@ std::string Statement::to_string(const std::string& indent) const
     return os.str();
 }
 
+int32_t EmptyStatement::accept(StatementVisitor& v) { return v.visit_empty_statement(*this); }
+bool EmptyStatement::returns() const { return false; }
 std::ostream& EmptyStatement::print(std::ostream& os, const std::string& indent) const { return os << indent << ";"; }
+
+int32_t ExprStatement::accept(StatementVisitor& v) { return v.visit_expr_statement(*this); }
+bool ExprStatement::returns() const { return false; }
 
 std::ostream& ExprStatement::print(std::ostream& os, const std::string& indent) const
 {
     return expr.print(os << indent) << ";";
 }
+
+int32_t AssertStatement::accept(StatementVisitor& v) { return v.visit_assert_statement(*this); }
+bool AssertStatement::returns() const { return false; }
 
 std::ostream& AssertStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -52,6 +62,9 @@ IfStatement::IfStatement(Expression cond, std::unique_ptr<Statement> trueCase, s
 {
     assert(this->trueCase);
 }
+
+int32_t IfStatement::accept(StatementVisitor& v) { return v.visit_if_statement(*this); }
+bool IfStatement::returns() const { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
 
 std::ostream& IfStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -71,6 +84,9 @@ ForStatement::ForStatement(Expression init, Expression cond, Expression step, st
     assert(this->stat != nullptr);
 }
 
+int32_t ForStatement::accept(StatementVisitor& v) { return v.visit_for_statement(*this); }
+bool ForStatement::returns() const { return false; }
+
 std::ostream& ForStatement::print(std::ostream& os, const std::string& indent) const
 {
     init.print(os << indent << "for (") << "; ";
@@ -78,6 +94,9 @@ std::ostream& ForStatement::print(std::ostream& os, const std::string& indent) c
     step.print(os) << ")\n";
     return stat->print(os, indent + INDENT) << "\n";
 }
+
+int32_t RangeStatement::accept(StatementVisitor& v) { return v.visit_iteration_statement(*this); }
+bool RangeStatement::returns() const { return false; }
 
 std::ostream& RangeStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -93,6 +112,9 @@ WhileStatement::WhileStatement(Expression cond, std::unique_ptr<Statement> stat)
     assert(this->stat != nullptr);
 }
 
+int32_t WhileStatement::accept(StatementVisitor& v) { return v.visit_while_statement(*this); }
+bool WhileStatement::returns() const { return false; }
+
 std::ostream& WhileStatement::print(std::ostream& os, const std::string& indent) const
 {
     cond.print(os << indent << "while (") << ")\n";
@@ -105,11 +127,17 @@ DoWhileStatement::DoWhileStatement(std::unique_ptr<Statement> stat, Expression c
     assert(this->stat != nullptr);
 }
 
+int32_t DoWhileStatement::accept(StatementVisitor& v) { return v.visit_do_while_statement(*this); }
+bool DoWhileStatement::returns() const { return stat->returns(); }
+
 std::ostream& DoWhileStatement::print(std::ostream& os, const std::string& indent) const
 {
     stat->print(os << indent << "do\n", indent + INDENT) << "\n" << indent << "while (";
     return cond.print(os) << ");\n";
 }
+
+bool CompositeStatement::returns() const { return empty() || back().returns(); }
+bool CompositeStatement::empty() const { return stats.empty(); }
 
 std::ostream& CompositeStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -151,6 +179,8 @@ std::unique_ptr<Statement> CompositeStatement::pop()
     return st;
 }
 
+int32_t BlockStatement::accept(StatementVisitor& v) { return v.visit_block_statement(*this); }
+
 std::ostream& BlockStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << "{\n";
@@ -158,6 +188,9 @@ std::ostream& BlockStatement::print(std::ostream& os, const std::string& indent)
         st->print(os, indent + INDENT) << "\n";
     return os << indent << "}";
 }
+
+int32_t SwitchStatement::accept(StatementVisitor& v) { return v.visit_switch_statement(*this); }
+bool SwitchStatement::returns() const { return false; }
 
 std::ostream& SwitchStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -168,6 +201,9 @@ std::ostream& SwitchStatement::print(std::ostream& os, const std::string& indent
     return CompositeStatement::print(os, indent) << "\n";
 }
 
+int32_t CaseStatement::accept(StatementVisitor& v) { return v.visit_case_statement(*this); }
+bool CaseStatement::returns() const { return false; }
+
 std::ostream& CaseStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << indent << "case ";
@@ -177,6 +213,9 @@ std::ostream& CaseStatement::print(std::ostream& os, const std::string& indent) 
     return os;
 }
 
+int32_t DefaultStatement::accept(StatementVisitor& v) { return v.visit_default_statement(*this); }
+bool DefaultStatement::returns() const { return false; }
+
 std::ostream& DefaultStatement::print(std::ostream& os, const std::string& indent) const
 {
     os << indent << "default:\n";
@@ -185,15 +224,25 @@ std::ostream& DefaultStatement::print(std::ostream& os, const std::string& inden
     return os;
 }
 
+int32_t BreakStatement::accept(StatementVisitor& v) { return v.visit_break_statement(*this); }
+bool BreakStatement::returns() const { return false; }
+
 std::ostream& BreakStatement::print(std::ostream& os, const std::string& indent) const
 {
     return os << indent << "break;";
 }
 
+int32_t ContinueStatement::accept(StatementVisitor& v) { return v.visit_continue_statement(*this); }
+bool ContinueStatement::returns() const { return false; }
+
 std::ostream& ContinueStatement::print(std::ostream& os, const std::string& indent) const
 {
     return os << indent << "continue;";
 }
+
+ReturnStatement::ReturnStatement() = default;
+int32_t ReturnStatement::accept(StatementVisitor& v) { return v.visit_return_statement(*this); }
+bool ReturnStatement::returns() const { return true; }
 
 std::ostream& ReturnStatement::print(std::ostream& os, const std::string& indent) const
 {
@@ -364,7 +413,7 @@ public:
     CollectChangesVisitor() = default;
 };
 
-std::set<Symbol> UTAP::collect_changes(Statement& stat)
+std::set<Symbol> collect_changes(Statement& stat)
 {
     auto visitor = CollectChangesVisitor{};
     stat.accept(visitor);
@@ -381,7 +430,7 @@ public:
     CollectDependenciesVisitor() = default;
 };
 
-std::set<Symbol> UTAP::collect_dependencies(Statement& stat)
+std::set<Symbol> collect_dependencies(Statement& stat)
 {
     auto visitor = CollectDependenciesVisitor{};
     stat.accept(visitor);
@@ -402,9 +451,11 @@ public:
     CollectDynamicExpressions() = default;
 };
 
-std::vector<Expression> UTAP::collect_dynamic_expressions(Statement& stat)
+std::vector<Expression> collect_dynamic_expressions(Statement& stat)
 {
     auto visitor = CollectDynamicExpressions{};
     stat.accept(visitor);
     return std::move(visitor.expressions);
 }
+
+} // namespace UTAP

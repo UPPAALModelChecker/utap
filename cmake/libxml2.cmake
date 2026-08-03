@@ -10,7 +10,7 @@ FetchContent_Declare(LibXml2
     GIT_SHALLOW ON
     GIT_PROGRESS ON
     EXCLUDE_FROM_ALL ON # don't build if not used
-    FIND_PACKAGE_ARGS 2.9.14)
+    FIND_PACKAGE_ARGS 2.13.9)
 
 set(LIBXML2_SHARED_LIBS OFF CACHE BOOL "LibXml2 shared libraries")
 set(LIBXML2_WITH_FTP OFF CACHE BOOL "LibXml2 FTP support")

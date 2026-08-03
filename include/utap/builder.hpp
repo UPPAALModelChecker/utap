@@ -79,19 +79,6 @@ public:
 class ParserBuilder
 {
 public:
-    /*********************************************************************
-     * Type prefix which can be applied in front of some type.
-     */
-    enum class TypePrefix : uint8_t {
-        NONE = 0,
-        CONST = 1,
-        URGENT = 2,
-        BROADCAST = 4,
-        URGENT_BROADCAST = 6,
-        SYSTEM_META = 8,
-        HYBRID = 16
-    };
-
     std::vector<std::string> lscTemplateNames;
 
     virtual ~ParserBuilder() noexcept = default;
@@ -253,7 +240,7 @@ public:
     virtual void proc_edge_end(std::string_view from, std::string_view to) = 0;
     virtual void proc_select(std::string_view id) = 0;            // 1 expr
     virtual void proc_guard() = 0;                                // 1 expr
-    virtual void proc_sync(Constants::Synchronisation type) = 0;  // 1 expr
+    virtual void proc_sync(Sync type) = 0;  // 1 expr
     virtual void proc_update() = 0;                               // 1 expr
     virtual void proc_prob() = 0;
     virtual void proc_branchpoint(std::string_view name) = 0;
@@ -265,7 +252,7 @@ public:
     virtual void instance_name_begin(std::string_view name) = 0;
     virtual void instance_name_end(std::string_view name, uint32_t arguments) = 0;
     virtual void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) = 0;
-    virtual void proc_message(Constants::Synchronisation type) = 0;
+    virtual void proc_message(Sync type) = 0;
     virtual void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                                 const bool hot) = 0;
     virtual void proc_condition() = 0;  // 1 expr
@@ -330,13 +317,12 @@ public:
     virtual void expr_pre_increment() = 0;                      // 1 expr
     virtual void expr_post_decrement() = 0;                     // 1 expr
     virtual void expr_pre_decrement() = 0;                      // 1 expr
-    virtual void expr_assignment(Constants::Kind op) = 0;       // 2 expr
-    virtual void expr_unary(Constants::Kind unaryop) = 0;       // 1 expr
-    virtual void expr_binary(Constants::Kind binaryop) = 0;     // 2 expr
-    virtual void expr_nary(Constants::Kind, uint32_t num) = 0;  // n expr
+    virtual void expr_assignment(Kind op) = 0;       // 2 expr
+    virtual void expr_unary(Kind unaryop) = 0;       // 1 expr
+    virtual void expr_binary(Kind binaryop) = 0;     // 2 expr
+    virtual void expr_nary(Kind, uint32_t num) = 0;  // n expr
     virtual void expr_scenario(std::string_view name) = 0;      // LSC
-    virtual void expr_ternary(Constants::Kind ternaryop,
-                              bool firstMissing = false) = 0;  // 3 expr
+    virtual void expr_ternary(Kind ternaryop, bool firstMissing = false) = 0;  // 3 expr
     virtual void expr_inline_if() = 0;                         // 3 expr
     virtual void expr_comma() = 0;                             // 2 expr
     virtual void expr_dot(std::string_view) = 0;               // 1 expr
@@ -349,19 +335,17 @@ public:
     virtual void expr_sum_end(std::string_view name) = 0;
 
     // Extensions for SMC:
-    virtual void expr_proba_qualitative(Constants::Kind, Constants::Kind, double) = 0;  ///< estimate Pr
-    virtual void expr_proba_quantitative(Constants::Kind) = 0;                          ///< evaluate if Pr >= value
-    virtual void expr_proba_compare(Constants::Kind, Constants::Kind) = 0;              ///< compare two Prs
+    virtual void expr_proba_qualitative(Kind, Kind, double) = 0;  ///< estimate Pr
+    virtual void expr_proba_quantitative(Kind) = 0;                          ///< evaluate if Pr >= value
+    virtual void expr_proba_compare(Kind, Kind) = 0;              ///< compare two Prs
     virtual void expr_proba_expected(std::string_view identifier) = 0;                  ///< estimate mean value
     virtual void expr_simulate(int nb_of_exprs, bool filter_prop = false, int max_accepting_runs = 0) = 0;
-    virtual void expr_builtin_function1(Constants::Kind) = 0;
-    virtual void expr_builtin_function2(Constants::Kind) = 0;
-    virtual void expr_builtin_function3(Constants::Kind) = 0;
+    virtual void expr_builtin_function1(Kind) = 0;
+    virtual void expr_builtin_function2(Kind) = 0;
+    virtual void expr_builtin_function3(Kind) = 0;
 
     // Extensions for learning:
-    enum PRICETYPE { TIMEPRICE, EXPRPRICE, PROBAPRICE };
-    virtual void expr_optimize_exp(Constants::Kind, PRICETYPE,
-                                   Constants::Kind) = 0;  ///< minimize/maximize expected value query
+    virtual void expr_optimize_exp(Kind, PriceType, Kind) = 0;  ///< minimize/maximize expected value query
     virtual void expr_load_strategy() = 0;
     virtual void expr_save_strategy(std::string_view strategy_name) = 0;
 
@@ -461,8 +445,6 @@ TypeException strategy_not_declared_error(std::string_view name);
 TypeException unknown_dynamic_template_error(std::string_view name);
 TypeException shadows_a_variable_warning(std::string_view name);
 
-}  // namespace UTAP
-
 /**
  * Parse a file in the XTA format, reporting the document to the given
  * implementation of the the ParserBuilder interface and reporting
@@ -470,9 +452,9 @@ TypeException shadows_a_variable_warning(std::string_view name);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(FILE*, UTAP::ParserBuilder&, bool newxta);
+int32_t parse_XTA(FILE*, ParserBuilder&, bool newxta);
 
-int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta);
+int32_t parse_XTA(const char*, ParserBuilder&, bool newxta);
 
 /**
  * Parse a buffer in the XTA format, reporting the document to the given
@@ -481,7 +463,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta);
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta, UTAP::XTAPart part, std::string_view xpath);
+int32_t parse_XTA(const char*, ParserBuilder&, bool newxta, XTAPart part, std::string_view xpath);
 
 /**
  * Parse a buffer in the XML format, reporting the document to the given
@@ -490,7 +472,7 @@ int32_t parse_XTA(const char*, UTAP::ParserBuilder&, bool newxta, UTAP::XTAPart 
  * is used; otherwise the 3.x syntax is used. On success, this
  * function returns with a positive value.
  */
-int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder&, bool newxta);
+int32_t parse_XML_buffer(const char* buffer, ParserBuilder&, bool newxta);
 
 /**
  * Parse the file with the given name assuming it is in the XML
@@ -500,21 +482,22 @@ int32_t parse_XML_buffer(const char* buffer, UTAP::ParserBuilder&, bool newxta);
  * otherwise the 3.x syntax is used. On success, this function returns
  * with a positive value.
  */
-int32_t parse_XML_file(const std::filesystem::path& path, UTAP::ParserBuilder&, bool newxta);
+int32_t parse_XML_file(const std::filesystem::path& path, ParserBuilder&, bool newxta);
 
-int32_t parse_XML_fd(int fd, UTAP::ParserBuilder& pb, bool newxta);
+int32_t parse_XML_fd(int fd, ParserBuilder& pb, bool newxta);
 
 /**
  * Parse properties from a buffer. The properties are reported using
  * the given ParserBuilder and errors are reported using the
  * ErrorHandler.
  */
-int32_t parse_property(const char* buffer, UTAP::ParserBuilder& aParserBuilder, const std::string& xpath = {});
+int32_t parse_property(const char* buffer, ParserBuilder& aParserBuilder, const std::string& xpath = {});
 
 /**
  * Parse properties from a file. The properties are reported using the
  * given ParserBuilder and errors are reported using the ErrorHandler.
  */
-int32_t parse_property(FILE*, UTAP::ParserBuilder& aParserBuilder);
+int32_t parse_property(FILE*, ParserBuilder& aParserBuilder);
 
+}  // namespace UTAP
 #endif /* UTAP_BUILDER_HH */

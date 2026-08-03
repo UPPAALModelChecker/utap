@@ -33,21 +33,6 @@
 #include <string>
 #include <cstring>
 
-/// Checks text containment in unit testing
-class Contains
-{
-    std::string_view text;
-
-public:
-    Contains(std::string_view text): text{text} {}
-    friend bool operator==(std::string_view text, const Contains& sub)
-    {
-        return text.find(sub.text) != std::string_view::npos;
-    }
-    friend bool operator!=(std::string_view text, const Contains& sub) { return !(text == sub); }
-    friend std::ostream& operator<<(std::ostream& os, const Contains& sub) { return os << sub.text; }
-};
-
 inline std::string read_content(const std::string& file_name)
 {
     const auto path = std::filesystem::path{MODELS_DIR} / file_name;
@@ -131,8 +116,6 @@ public:
     </template>")XML";
         return string_format(simple_template, name.c_str(), parameters.c_str(), declarations.c_str());
     }
-
-private:
 };
 
 class QueryBuilder : public UTAP::StatementBuilder
@@ -150,15 +133,14 @@ public:
         query = fragments[0];
         fragments.pop();
     }
-    void strategy_declaration(std::string_view strategy_name) override {}
+    void strategy_declaration(std::string_view /* strategy_name */) override {}
     void typecheck() { checker.checkExpression(query); }
     [[nodiscard]] UTAP::Expression getQuery() const { return query; }
-    UTAP::Variable* addVariable(UTAP::Type type, std::string_view name, UTAP::Expression init,
-                                UTAP::position_t pos) override
+    UTAP::Variable* add_variable(UTAP::Type, std::string_view, UTAP::Expression,UTAP::position_t) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }
-    bool addFunction(UTAP::Type type, std::string_view name, UTAP::position_t pos) override
+    bool add_function(UTAP::Type, std::string_view, UTAP::position_t) override
     {
         throw UTAP::NotSupportedException(__FUNCTION__);
     }

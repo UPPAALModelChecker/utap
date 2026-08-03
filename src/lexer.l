@@ -174,6 +174,7 @@ idchr        [a-zA-Z0-9_$#]
 "#"             { return T_HASH; }
 "location"      { return T_LOCATION; }
 {alpha}{idchr}* {
+    using namespace UTAP;
     const auto utap_string = std::string{utap_text};
     const auto* keyword_ptr = find_keyword(utap_string);
 	if (keyword_ptr) {

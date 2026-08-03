@@ -58,11 +58,11 @@ protected:
     /** path to libraries*/
     std::vector<std::filesystem::path> libpaths;
 
-    virtual Variable* addVariable(Type type, std::string_view name, Expression init, position_t pos) = 0;
-    virtual bool addFunction(Type type, std::string_view name, position_t pos) = 0;
+    virtual Variable* add_variable(Type type, std::string_view name, Expression init, position_t pos) = 0;
+    virtual bool add_function(Type type, std::string_view name, position_t pos) = 0;
 
-    static void collectDependencies(std::set<Symbol>&, const Expression&);
-    static void collectDependencies(std::set<Symbol>&, const Type&);
+    static void collect_dependencies(std::set<Symbol>&, const Expression&);
+    static void collect_dependencies(std::set<Symbol>&, const Type&);
 
 public:
     explicit StatementBuilder(Document&, std::vector<std::filesystem::path> libpaths = {});
@@ -95,9 +95,9 @@ public:
     void while_end() override;
     void do_while_begin() override;
     void do_while_end() override;
-    void if_begin() override {};
-    void if_condition() override {};
-    void if_then() override {};
+    void if_begin() override;
+    void if_condition() override;
+    void if_then() override;
     void if_end(bool) override;
     void expr_statement() override;
     void return_statement(bool) override;

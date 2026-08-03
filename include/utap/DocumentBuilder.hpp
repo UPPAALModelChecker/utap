@@ -94,8 +94,8 @@ protected:
 
     Declarations* getCurrentDeclarationBlock();
 
-    Variable* addVariable(Type type, std::string_view name, Expression init, position_t pos) override;
-    bool addFunction(Type type, std::string_view name, position_t pos) override;
+    Variable* add_variable(Type type, std::string_view name, Expression init, position_t pos) override;
+    bool add_function(Type type, std::string_view name, position_t pos) override;
 
     void addSelectSymbolToFrame(std::string_view name, Frame&, position_t pos);
 
@@ -122,7 +122,7 @@ public:
     void proc_edge_end(std::string_view from = {}, std::string_view to = {}) override;
     void proc_select(std::string_view id) override;
     void proc_guard() override;
-    void proc_sync(Constants::Synchronisation type) override;
+    void proc_sync(Sync type) override;
     void proc_update() override;
     void proc_prob() override;
     void instantiation_begin(std::string_view, uint32_t, std::string_view) override;
@@ -142,7 +142,7 @@ public:
     void instance_name_begin(std::string_view name) override;
     void instance_name_end(std::string_view name, uint32_t arguments) override;
     void proc_message(std::string_view from, std::string_view to, const int loc, const bool pch) override;
-    void proc_message(Constants::Synchronisation type) override;
+    void proc_message(Sync type) override;
     void proc_condition(const std::vector<std::string>& anchors, const int loc, const bool pch,
                         const bool hot) override;
     void proc_condition() override;  // Label

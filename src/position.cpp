@@ -61,7 +61,8 @@ const PositionIndex::Line& PositionIndex::find(uint32_t position) const
 std::ostream& PositionIndex::print(std::ostream& os) const
 {
     for (const auto& line : lines)
-        os << line.position << " " << line.offset << " " << line.line << " " << line.path << std::endl;
+        os << line.position << " " << line.offset << " " << line.line << " " << (line.path ? *line.path : "")
+           << std::endl;
     return os;
 }
 
@@ -71,7 +72,7 @@ std::ostream& operator<<(std::ostream& os, const Error& e)
         os << e.msg << " at line " << e.start.line << " column " << (e.position.start - e.start.position) << " to line "
            << e.end.line << " column " << (e.position.end - e.end.position);
     } else {
-        os << e.msg << " in " << e.start.path << " at line " << e.start.line << " column "
+        os << e.msg << " in " << *e.start.path << " at line " << e.start.line << " column "
            << (e.position.start - e.start.position) << " to line " << e.end.line << " column "
            << (e.position.end - e.end.position);
     }

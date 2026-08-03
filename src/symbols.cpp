@@ -25,18 +25,16 @@
 #include "utap/range.hpp"
 
 #include <algorithm>
-#include <cstdlib>
 #include <map>
 #include <stdexcept>
 #include <vector>
 
 // The base types
-using namespace UTAP;
-using namespace Constants;
+namespace UTAP {
 
 //////////////////////////////////////////////////////////////////////////
 
-struct Symbol::Data : public std::enable_shared_from_this<Symbol::Data>
+struct Symbol::Data : std::enable_shared_from_this<Data>
 {
     Frame::Data* frame = nullptr;  // Uncounted pointer to containing frame // TODO: consider removing
     Type type;                     // The type of the symbol
@@ -53,15 +51,7 @@ Symbol::Symbol(Frame& frame, Type type, std::string_view name, position_t positi
     data = std::make_shared<Data>(frame.data.get(), std::move(type), user, name, position);
 }
 
-/* Destructor */
 Symbol::~Symbol() noexcept = default;
-
-bool Symbol::operator==(const Symbol& symbol) const { return data == symbol.data; }
-
-/* Inequality operator */
-bool Symbol::operator!=(const Symbol& symbol) const { return data != symbol.data; }
-
-bool Symbol::operator<(const Symbol& symbol) const { return data < symbol.data; }
 
 /* Get frame this symbol belongs to */
 Frame Symbol::get_frame() const { return Frame(data->frame); }
@@ -84,13 +74,15 @@ const std::string& Symbol::get_name() const { return data->name; }
 
 void Symbol::set_name(std::string name) { data->name = std::move(name); }
 
-std::ostream& operator<<(std::ostream& o, const UTAP::Symbol& t) { return o << t.get_type() << " " << t.get_name(); }
+std::ostream& operator<<(std::ostream& o, const Symbol& t)
+{
+    return o << t.get_type() << " " << t.get_name();
+}
 
 //////////////////////////////////////////////////////////////////////////
 
-struct Frame::Data : public std::enable_shared_from_this<Frame::Data>
+struct Frame::Data : std::enable_shared_from_this<Data>
 {
-    // bool hasParent;                // True if there is a parent
     Data* parent;                                         // The parent frame data
     std::vector<Symbol> symbols;                          // The symbols in the frame
     std::map<std::string, int32_t, std::less<>> mapping;  // Mapping from names to indices
@@ -102,12 +94,6 @@ Frame::Frame(Data* frame) { data = frame->shared_from_this(); }
 
 /* Destructor */
 Frame::~Frame() noexcept = default;
-
-/* Equality operator */
-bool Frame::operator==(const Frame& frame) const { return data == frame.data; }
-
-/* Inequality operator */
-bool Frame::operator!=(const Frame& frame) const { return data != frame.data; }
 
 /* Returns the number of symbols in this frame */
 uint32_t Frame::get_size() const { return static_cast<uint32_t>(data->symbols.size()); }
@@ -244,14 +230,16 @@ Frame Frame::make_sub()
     return Frame{data.get()};
 }
 
-std::ostream& operator<<(std::ostream& os, const UTAP::Frame& t)
+std::ostream& operator<<(std::ostream& os, const Frame& t)
 {
     os << "{";
-    auto b = std::begin(t), e = std::end(t);
-    if (b != e) {
+    const auto e = std::end(t);
+    if (auto b = std::begin(t); b != e) {
         os << *b;
         while (++b != e)
             os << ", " << *b;
     }
     return os << "}";
 }
+
+} // namespace UTAP

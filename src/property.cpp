@@ -29,10 +29,7 @@
 #include <sstream>
 #include <utility>
 
-using UTAP::Expression;
-
-using namespace UTAP::Constants;
-using namespace UTAP;
+namespace UTAP {
 
 void PropertyBuilder::typeCheck(Expression& expr) { tc.visitProperty(expr); }
 
@@ -116,27 +113,27 @@ void PropertyBuilder::property()
         if (  // expr.get_kind() == AF ||
               // expr.get_kind() == EG ||
               // expr.get_kind() == LEADS_TO ||
-            expr.get_kind() == SCENARIO || expr.get_kind() == SCENARIO2) {
-            throw UTAP::TypeException("$Cannot_handle_this_formula_for_models_with_priorities_or_guarded_broadcast_"
-                                      "receivers");
-        }
+            expr.get_kind() == Kind::SCENARIO || expr.get_kind() == Kind::SCENARIO2) {
+            throw TypeException{"$Cannot_handle_this_formula_for_models_with_priorities_or_guarded_broadcast_"
+                                      "receivers"};
+            }
         // Undid Marius' change.
         // The error says clearly for models with priorities or guarded broadcast.
         // The reason is theoretical. There is no proof of correctness for either of these
         // cases. In fact they are very similar because they are both based on partitioning
         // the states with subtractions. This was added in rev. 4528.
         if (/*document->has_priority_declaration() &&*/ expr.contains_deadlock())
-            throw UTAP::TypeException(
+            throw TypeException{
                 "$Cannot_handle_deadlock_predicate_for_models_with_priorities_or_guarded_broadcast_"
-                "receivers");
+                "receivers"};
     }
 
-    if (expr.get_kind() != EF && expr.get_kind() != AG && expr.contains_deadlock()) {
-        throw UTAP::TypeException("$Cannot_handle_this_deadlock_predicate");
+    if (expr.get_kind() != Kind::EF && expr.get_kind() != Kind::AG && expr.contains_deadlock()) {
+        throw TypeException{"$Cannot_handle_this_deadlock_predicate"};
     }
 
     if (document.has_dynamic_templates() && !isSMC(&expr))
-        throw UTAP::TypeException("Dynamic templates are only supported for SMC queries");
+        throw TypeException{"Dynamic templates are only supported for SMC queries"};
 
     /* Compile expression. */
     properties.emplace_back(document.find_position(position.start).line, properties.size(), expr);
@@ -148,6 +145,7 @@ void PropertyBuilder::property()
 static bool symbolicProperty(const Expression& expr)
 {
     switch (expr.get_kind()) {
+        using namespace KindNames;
     case EF:
     case EG:
     case AF:
@@ -181,6 +179,7 @@ void PropertyBuilder::typeProperty(Expression expr)  // NOLINT
     bool prob = false;
 
     switch (expr.get_kind()) {
+        using namespace KindNames;
     case EF: properties.back().type = quant_t::EE; break;
     case EG: properties.back().type = quant_t::EG; break;
     case AF: properties.back().type = quant_t::AE; break;
@@ -226,20 +225,19 @@ void PropertyBuilder::typeProperty(Expression expr)  // NOLINT
         prob = true;
         break;
     case MITL_FORMULA: properties.back().type = quant_t::Mitl; break;
-    default: throw UTAP::TypeException("$Invalid_property_type"); prob = true;
+    default: throw TypeException{"$Invalid_property_type"};
     }
 
     if (prob) {
         if (document.has_priority_declaration())
-            throw UTAP::TypeException("Priorities are not supported");
+            throw TypeException{"Priorities are not supported"};
         if (!document.all_broadcast())
-            throw UTAP::TypeException("All channels must be broadcast");
+            throw TypeException{"All channels must be broadcast"};
     }
     if (document.get_sync_used() == 2 && document.has_priority_declaration())
-        throw UTAP::TypeException("CSP synchronization is not implemented with priorities.");
+        throw TypeException{"CSP synchronization is not implemented with priorities."};
     if (symbolicProperty(expr) && (expr.uses_hybrid() || expr.uses_fp()))
-        throw UTAP::TypeException("Symbolic verification and synthesis exclude usage of doubles and hybrid clocks in "
-                                  "properties.");
+        throw TypeException{"Symbolic verification and synthesis exclude usage of doubles and hybrid clocks in properties."};
 }
 
 void PropertyBuilder::scenario(std::string_view name)
@@ -248,7 +246,7 @@ void PropertyBuilder::scenario(std::string_view name)
     if (!resolve(name, symbol))
         throw std::runtime_error("$No_such_scenario: " + std::string{name});
     Type type = symbol.get_type();
-    if (type.get_kind() != LSC_INSTANCE)
+    if (type.get_kind() != Kind::LSC_INSTANCE)
         throw std::runtime_error("$Not_a_LSC_template: " + symbol.get_name());
 }
 
@@ -268,7 +266,7 @@ void PropertyBuilder::parse(FILE* file)
     parse_property(file, *this);
 }
 
-void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTAP::Options& options)
+void PropertyBuilder::parse(const char* buf, const std::string& xpath, const Options& options)
 {
     size_t num_props = properties.size();
     parse_property(buf, *this, xpath);
@@ -278,21 +276,22 @@ void PropertyBuilder::parse(const char* buf, const std::string& xpath, const UTA
         properties.back().options = options;
 }
 
-Variable* PropertyBuilder::addVariable(Type type, std::string_view name, Expression init, position_t pos)
+Variable* PropertyBuilder::add_variable(Type, std::string_view, Expression, position_t)
 {
-    throw UTAP::NotSupportedException("addVariable is not supported");
+    throw NotSupportedException("add_variable");
 }
 
-bool PropertyBuilder::addFunction(Type type, std::string_view name, position_t pos)
+bool PropertyBuilder::add_function(Type, std::string_view, position_t)
 {
-    throw UTAP::NotSupportedException("addFunction is not supported");
+    throw NotSupportedException("add_function");
 }
 
-bool PropertyBuilder::isSMC(UTAP::Expression* expr)
+bool PropertyBuilder::isSMC(Expression* expr)
 {
     if (expr == nullptr)
         expr = &(fragments[0]);
-    Kind k = expr->get_kind();
+    const Kind k = expr->get_kind();
+    using namespace KindNames;
     return (k == PMAX || k == PROBA_MIN_BOX || k == PROBA_MIN_DIAMOND || k == PROBA_BOX || k == PROBA_DIAMOND ||
             k == PROBA_CMP || k == PROBA_EXP || k == SIMULATE || k == SIMULATEREACH || k == MITL_FORMULA ||
             k == MIN_EXP || k == MAX_EXP);
@@ -310,6 +309,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
     _imitation = nullptr;
 
     switch (expr.get_kind()) {
+        using namespace KindNames;
     case LOAD_STRAT:
         properties.back().result_type = NonZoneStrategy;
         properties.back().type = quant_t::strategy_load;
@@ -335,7 +335,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         switch (expr[2].get_kind()) {
         case A_UNTIL: properties.back().type = quant_t::control_SMC_AUntil; break;
         case AF: properties.back().type = quant_t::control_SMC_AF; break;
-        default: throw UTAP::TypeException("$Invalid_control_synthesis_property_type");
+        default: throw TypeException{"$Invalid_control_synthesis_property_type"};
         }
         break;
 
@@ -361,7 +361,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
             }
             break;
         case A_WEAK_UNTIL: properties.back().type = quant_t::control_AWeakUntil; break;
-        default: throw UTAP::TypeException("$Invalid_control_synthesis_property_type");
+        default: throw TypeException{"$Invalid_control_synthesis_property_type"};
         }
         break;
 
@@ -374,7 +374,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         case A_UNTIL: properties.back().type = quant_t::EF_control_AUntil; break;
         case AG: properties.back().type = quant_t::EF_control_AG; break;
         case A_WEAK_UNTIL: properties.back().type = quant_t::EF_control_AWeakUntil; break;
-        default: throw UTAP::TypeException("$Invalid_control_synthesis_property_type");
+        default: throw TypeException{"$Invalid_control_synthesis_property_type"};
         }
         break;
 
@@ -386,7 +386,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         case AG: properties.back().type = quant_t::PO_control_AG; break;
         case A_UNTIL: properties.back().type = quant_t::PO_control_AUntil; break;
         case A_WEAK_UNTIL: properties.back().type = quant_t::PO_control_AWeakUntil; break;
-        default: throw UTAP::TypeException("$Invalid_control_synthesis_property_type");
+        default: throw TypeException{"$Invalid_control_synthesis_property_type"};
         }
         break;
 
@@ -396,7 +396,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         switch (expr[2].get_kind()) {
         case AF: properties.back().type = quant_t::control_opt_AF; break;
         case A_UNTIL: properties.back().type = quant_t::control_opt_AUntil; break;
-        default: throw UTAP::TypeException("$Invalid_type_of_time_optimal_control_synthesis_property");
+        default: throw TypeException{"$Invalid_type_of_time_optimal_control_synthesis_property"};
         }
         break;
 
@@ -406,7 +406,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         switch (expr[1].get_kind()) {
         case AF: properties.back().type = quant_t::control_opt_Def1_AF; break;
         case A_UNTIL: properties.back().type = quant_t::control_opt_Def1_AUntil; break;
-        default: throw UTAP::TypeException("$Invalid_type_of_time_optimal_control_synthesis_property");
+        default: throw TypeException{"$Invalid_type_of_time_optimal_control_synthesis_property"};
         }
         break;
 
@@ -417,7 +417,7 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
         switch (expr.get_kind()) {
         case AF: properties.back().type = quant_t::control_opt_Def2_AF; break;
         case A_UNTIL: properties.back().type = quant_t::control_opt_Def2_AUntil; break;
-        default: throw UTAP::TypeException("$Invalid_type_of_time_optimal_control_synthesis_property");
+        default: throw TypeException{"$Invalid_type_of_time_optimal_control_synthesis_property"};
         }
         break;
 
@@ -425,41 +425,38 @@ void TigaPropertyBuilder::typeProperty(Expression expr)
     }
 
     if (prob && !document.all_broadcast())
-        throw UTAP::TypeException("All channels must be broadcast");
+        throw TypeException{"All channels must be broadcast"};
 
     if (potigaProp && document.has_strict_lower_bound_on_controllable_edges())
-        throw UTAP::TypeException("$(PO)TIGA_properties_cannot_be_checked_for_systems_with_strict_lower_bounds_in_"
-                                  "guards");
+        throw TypeException{"$(PO)TIGA_properties_cannot_be_checked_for_systems_with_strict_lower_bounds_in_guards"};
     if (titiga && document.has_priority_declaration())  // FIXME: always false
-        throw UTAP::TypeException("$Priorities_are_not_yet_supported_in_TIGA");
+        throw TypeException{"$Priorities_are_not_yet_supported_in_TIGA"};
     if (!prob) {  // FIXME: always true
         if (document.has_strict_invariants())
-            throw UTAP::TypeException("$TIGA_properties_cannot_be_checked_for_systems_with_strict_invariants");
+            throw TypeException{"$TIGA_properties_cannot_be_checked_for_systems_with_strict_invariants"};
         // Stop-watches are now checked on-the-fly for SMC compatibility.
         // if (document->has_stop_watch(())
-        //    throw UTAP::TypeException("$Stop_watches_are_not_yet_supported_in_TIGA");
+        //    throw TypeException{"$Stop_watches_are_not_yet_supported_in_TIGA");
     }
 }
 
 void TigaPropertyBuilder::strategy_declaration(std::string_view id)
 {
-    const std::string name = std::string(id);
-    if (auto it = declarations.find(name); it != declarations.end()) {
-        declarations.erase(it);
-        handle_warning(UTAP::duplicate_definition_error(name));
-    }
-    declarations.emplace(name, &properties.back());
+        if (auto it = declarations.find(id); it != declarations.end()) {
+            declarations.erase(it);
+            handle_warning(duplicate_definition_error(id));
+        }
+        declarations.emplace(std::string(id), &properties.back());
     if (!properties.empty())  // this happens when the model and the query file do not correspond.
-        properties.back().declaration = name;
+        properties.back().declaration = id;
 }
 
 void TigaPropertyBuilder::subjection(std::string_view id)
 {
-    std::string name = std::string(id);
-    if (auto it = declarations.find(name); it != declarations.end())
+    if (auto it = declarations.find(id); it != declarations.end())
         subjections.push_back(it->second);
     else
-        handle_error(UTAP::strategy_not_declared_error(name));
+        handle_error(strategy_not_declared_error(id));
 }
 
 void TigaPropertyBuilder::imitation(std::string_view id)
@@ -467,10 +464,12 @@ void TigaPropertyBuilder::imitation(std::string_view id)
     if (auto it = declarations.find(id); it != declarations.end())
         _imitation = it->second;
     else
-        handle_error(UTAP::strategy_not_declared_error(id));
+        handle_error(strategy_not_declared_error(id));
 }
 
 void TigaPropertyBuilder::expr_optimize(int, int, int, int)
 {
     // nothing for now
 }
+
+} // namespace UTAP

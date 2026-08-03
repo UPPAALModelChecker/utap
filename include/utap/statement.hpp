@@ -39,7 +39,7 @@ class StatementVisitor;
 class Statement
 {
 public:
-    virtual ~Statement() noexcept = default;
+    virtual ~Statement() noexcept;
     virtual int32_t accept(StatementVisitor&) = 0;
     virtual bool returns() const = 0;
     virtual std::ostream& print(std::ostream&, const std::string& indent = {}) const = 0;
@@ -55,7 +55,7 @@ class EmptyStatement final : public Statement
 public:
     EmptyStatement() = default;
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -65,7 +65,7 @@ public:
     Expression expr;
     explicit ExprStatement(Expression expr): expr{std::move(expr)} {}
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -75,7 +75,7 @@ public:
     Expression expr;
     explicit AssertStatement(Expression expr): expr{std::move(expr)} {}
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -87,7 +87,7 @@ public:
     std::unique_ptr<Statement> falseCase;
     IfStatement(Expression cond, std::unique_ptr<Statement> trueCase, std::unique_ptr<Statement> falseCase = nullptr);
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return trueCase->returns() && falseCase != nullptr && falseCase->returns(); }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -100,7 +100,7 @@ public:
     std::unique_ptr<Statement> stat;
     ForStatement(Expression init, Expression cond, Expression step, std::unique_ptr<Statement> statement);
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -118,7 +118,7 @@ public:
     {}
     const Frame& get_frame() const { return frame; }
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -129,7 +129,7 @@ public:
     std::unique_ptr<Statement> stat;
     WhileStatement(Expression condition, std::unique_ptr<Statement> statement);
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -140,7 +140,7 @@ public:
     Expression cond;
     DoWhileStatement(std::unique_ptr<Statement>, Expression);
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return stat->returns(); }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -152,7 +152,7 @@ public:
     using iterator = std::vector<std::unique_ptr<Statement>>::iterator;
     CompositeStatement() = default;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
-    bool returns() const override { return empty() || back().returns(); }
+    bool returns() const override;
     /// pushes the statement to the end of statement list
     void push(std::unique_ptr<Statement> stat);
     /// pops the last statement from the list
@@ -163,7 +163,7 @@ public:
     Statement& back();
     const_iterator begin() const { return stats.begin(); }
     const_iterator end() const { return stats.end(); }
-    bool empty() const { return stats.empty(); }
+    bool empty() const;
     iterator begin() { return stats.begin(); }
     iterator end() { return stats.end(); }
 
@@ -204,7 +204,7 @@ public:
     Expression cond;
     SwitchStatement(Expression expr): CompositeStatement{}, cond{std::move(expr)} {}
     int32_t accept(StatementVisitor& v) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -215,7 +215,7 @@ public:
     std::unique_ptr<Statement> stat;
     CaseStatement(Expression value): cond{std::move(value)} {}
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -225,7 +225,7 @@ public:
     std::unique_ptr<Statement> stat;
     DefaultStatement() = default;
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -234,7 +234,7 @@ class BreakStatement final : public Statement
 public:
     BreakStatement() = default;
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -243,7 +243,7 @@ class ContinueStatement final : public Statement
 public:
     ContinueStatement() = default;
     int32_t accept(StatementVisitor&) override;
-    bool returns() const override { return false; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -251,10 +251,10 @@ class ReturnStatement final : public Statement
 {
 public:
     Expression value;
-    ReturnStatement() = default;
+    ReturnStatement();
     explicit ReturnStatement(Expression expr): value{std::move(expr)} {}
     int32_t accept(StatementVisitor& visitor) override;
-    bool returns() const override { return true; }
+    bool returns() const override;
     std::ostream& print(std::ostream&, const std::string& indent) const override;
 };
 
@@ -278,22 +278,6 @@ public:
     virtual int32_t visit_continue_statement(ContinueStatement& stat) = 0;
     virtual int32_t visit_return_statement(ReturnStatement& stat) = 0;
 };
-
-inline int32_t EmptyStatement::accept(StatementVisitor& v) { return v.visit_empty_statement(*this); }
-inline int32_t ExprStatement::accept(StatementVisitor& v) { return v.visit_expr_statement(*this); }
-inline int32_t AssertStatement::accept(StatementVisitor& v) { return v.visit_assert_statement(*this); }
-inline int32_t ForStatement::accept(StatementVisitor& v) { return v.visit_for_statement(*this); }
-inline int32_t RangeStatement::accept(StatementVisitor& v) { return v.visit_iteration_statement(*this); }
-inline int32_t WhileStatement::accept(StatementVisitor& v) { return v.visit_while_statement(*this); }
-inline int32_t DoWhileStatement::accept(StatementVisitor& v) { return v.visit_do_while_statement(*this); }
-inline int32_t BlockStatement::accept(StatementVisitor& v) { return v.visit_block_statement(*this); }
-inline int32_t SwitchStatement::accept(StatementVisitor& v) { return v.visit_switch_statement(*this); }
-inline int32_t CaseStatement::accept(StatementVisitor& v) { return v.visit_case_statement(*this); }
-inline int32_t DefaultStatement::accept(StatementVisitor& v) { return v.visit_default_statement(*this); }
-inline int32_t IfStatement::accept(StatementVisitor& v) { return v.visit_if_statement(*this); }
-inline int32_t BreakStatement::accept(StatementVisitor& v) { return v.visit_break_statement(*this); }
-inline int32_t ContinueStatement::accept(StatementVisitor& v) { return v.visit_continue_statement(*this); }
-inline int32_t ReturnStatement::accept(StatementVisitor& v) { return v.visit_return_statement(*this); }
 
 /// Calls visit_statement on every statement
 class AbstractStatementVisitor : public StatementVisitor

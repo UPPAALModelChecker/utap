@@ -1,6 +1,6 @@
 /build
-/cmake-build-*
 /build-*
+/cmake-build-*
 /local
 /examples/build
 /examples/build-*
@@ -10,3 +10,4 @@
 /doc/api/html
 .idea
 .vscode
+.claude

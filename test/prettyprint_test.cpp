@@ -6,7 +6,7 @@
 
 #include <doctest/doctest.h>
 
-#include <iostream>
+#include <sstream>
 
 using namespace UTAP;
 
@@ -256,7 +256,7 @@ TEST_CASE("Probability compare pretty print")
 
     auto query = f.parse_query("Pr[<=20] (<> true) >= Pr[<=5]([] false)").intermediate;
     REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
-    REQUIRE(query.get_kind() == UTAP::Constants::PROBA_CMP);
+    REQUIRE(query.get_kind() == Kind::PROBA_CMP);
     CHECK(query.str() == "Pr[<=20] (<> true) >= Pr[<=5] ([] false)");
 }
 
@@ -268,12 +268,12 @@ TEST_CASE("Simulate pretty prints")
 
     auto query1 = f.parse_query("simulate[<=20;1000] {5, true} : 100 : true").intermediate;
     REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
-    REQUIRE(query1.get_kind() == UTAP::Constants::SIMULATEREACH);
+    REQUIRE(query1.get_kind() == Kind::SIMULATEREACH);
     CHECK(query1.str() == "simulate[<=20; 1000] {5, true} : 100 : true");
 
     auto query2 = f.parse_query("simulate[#<=10;500] {25, false}").intermediate;
     REQUIRE_MESSAGE(errs.empty(), errs.front().msg);
-    REQUIRE(query2.get_kind() == UTAP::Constants::SIMULATE);
+    REQUIRE(query2.get_kind() == Kind::SIMULATE);
     CHECK(query2.str() == "simulate[#<=10; 500] {25, false}");
 }
 
@@ -355,9 +355,9 @@ TEST_CASE("Chaining disjunctive conjunctions with outer conjunction")
 TEST_CASE("Post incrementing an identifier should not require parenthesis")
 {
     auto frame = Frame::make();
-    auto test_symbol = frame.add_symbol("foo", Type::create_primitive(Constants::INT), {});
+    auto test_symbol = frame.add_symbol("foo", Type::create_primitive(Kind::INT), {});
     auto id = Expression::create_identifier(test_symbol);
-    auto expr = Expression::create_unary(Constants::POST_INCREMENT, id);
+    auto expr = Expression::create_unary(Kind::POST_INCREMENT, id);
 
     CHECK(expr.str() == "foo++");
 }

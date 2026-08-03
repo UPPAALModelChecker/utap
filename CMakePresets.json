@@ -1,0 +1,230 @@
+{
+  "version": 8,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 28,
+    "patch": 0
+  },
+  "include": ["cmake/CommonPresets.json"],
+  "configurePresets": [
+    {
+      "name": "quick",
+      "inherits": "multi",
+      "binaryDir": "${sourceDir}/build-quick",
+      "cacheVariables": {
+        "UTAP_TESTS": { "type": "BOOL", "value": "OFF" },
+        "UTAP_CLANG_TIDY": { "type": "BOOL", "value": "OFF" }
+      },
+      "displayName": "Configure quick build (no testing) for Debug and Release"
+    },
+    {
+      "name": "quick-san",
+      "inherits": "multi-san",
+      "binaryDir": "${sourceDir}/build-quick-san",
+      "cacheVariables": {
+        "UTAP_TESTS": { "type": "bool", "value": "OFF" },
+        "UTAP_CLANG_TIDY": { "type": "bool", "value": "OFF" }
+      },
+      "displayName": "Configure quick build (no testing) with Sanitizers for Debug and Release"
+    },
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build-coverage-gcov",
+      "cacheVariables": { "UTAP_COVERAGE": "ON" },
+      "displayName": "Configure gcov coverage build"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build-coverage-llvm",
+      "cacheVariables": {
+        "UTAP_COVERAGE": "ON",
+        "UTAP_COVERAGE_TYPE": "llvm"
+      },
+      "displayName": "Configure llvm coverage build"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release-quick",
+      "inherits": "release",
+      "configurePreset": "quick",
+      "displayName": "Build quick (no testing) for Release"
+    },
+    {
+      "name": "debug-quick",
+      "inherits": "debug",
+      "configurePreset": "quick",
+      "displayName": "Build quick (no testing) for Debug"
+    },
+    {
+      "name": "release-quick-san",
+      "inherits": "release-san",
+      "configurePreset": "quick-san",
+      "displayName": "Build quick (no testing) with Sanitizers and Release"
+    },
+    {
+      "name": "debug-quick-san",
+      "inherits": "debug-san",
+      "configurePreset": "quick-san",
+      "displayName": "Build quick (no testing) with Sanitizers and Debug"
+    },
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "configurePreset": "coverage",
+      "displayName": "Build with gcov coverage"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "debug",
+      "configurePreset": "coverage-llvm",
+      "displayName": "Build with llvm coverage"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "coverage",
+      "inherits": "debug",
+      "configurePreset": "coverage",
+      "displayName": "Test the Debug with gcov coverage"
+    },
+    {
+      "name": "coverage-llvm",
+      "inherits": "debug",
+      "configurePreset": "coverage-llvm",
+      "displayName": "Test the Debug with llvm coverage"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "quick",
+      "displayName": "Configure and Build quick (no testing) for Debug and Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick"
+        },
+        {
+          "type": "build",
+          "name": "release-quick"
+        },
+        {
+          "type": "build",
+          "name": "debug-quick"
+        }
+      ]
+    },
+    {
+      "name": "release-quick",
+      "displayName": "Configure and Build quick (no testing) for Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick"
+        },
+        {
+          "type": "build",
+          "name": "release-quick"
+        }
+      ]
+    },
+    {
+      "name": "debug-quick",
+      "displayName": "Configure and Build quick (no testing) for Debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick"
+        },
+        {
+          "type": "build",
+          "name": "debug-quick"
+        }
+      ]
+    },
+    {
+      "name": "quick-san",
+      "displayName": "Configure and Build quick (no testing) with Sanitizers for Debug and Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick-san"
+        },
+        {
+          "type": "build",
+          "name": "release-quick-san"
+        },
+        {
+          "type": "build",
+          "name": "debug-quick-san"
+        }
+      ]
+    },
+    {
+      "name": "release-quick-san",
+      "displayName": "Configure and Build quick (no testing) with Sanitizers for Release",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick-san"
+        },
+        {
+          "type": "build",
+          "name": "release-quick-san"
+        }
+      ]
+    },
+    {
+      "name": "debug-quick-san",
+      "displayName": "Configure and Build quick (no testing) with Sanitizers for Debug",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "quick-san"
+        },
+        {
+          "type": "build",
+          "name": "debug-quick-san"
+        }
+      ]
+    },
+    {
+      "name": "coverage",
+      "displayName": "Configure, Build and Test with gcov Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage"
+        },
+        {
+          "type": "build",
+          "name": "coverage"
+        },
+        {
+          "type": "test",
+          "name": "coverage"
+        }
+      ]
+    },
+    {
+      "name": "coverage-llvm",
+      "displayName": "Configure, Build and Test with llvm Coverage",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "coverage-llvm"
+        },
+        {
+          "type": "build",
+          "name": "coverage-llvm"
+        },
+        {
+          "type": "test",
+          "name": "coverage-llvm"
+        }
+      ]
+    }
+  ]
+}

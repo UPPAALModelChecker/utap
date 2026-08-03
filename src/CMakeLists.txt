@@ -19,6 +19,12 @@ add_custom_command(
   DEPENDS lexer_generate parser.y)
 add_custom_target(parser_generate DEPENDS "${parser_source}")
 
+# Bison's stack-growth cleanup trips a GCC false positive: it can't prove
+# yyss is heap-allocated before YYSTACK_FREE conditionally frees it.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set_source_files_properties("${parser_source}" PROPERTIES COMPILE_OPTIONS "-Wno-free-nonheap-object")
+endif ()
+
 add_library(UTAP
   AbstractBuilder.cpp
   DocumentBuilder.cpp
@@ -47,23 +53,12 @@ if (UTAP_STATIC)
   target_link_options(UTAP PUBLIC -static)
   message(STATUS "Enabled LIBXML_STATIC -static")
 endif (UTAP_STATIC)
+target_coverage(UTAP)
 set_target_properties(UTAP PROPERTIES
                            CXX_STANDARD_REQUIRED ON
                            CXX_STANDARD_EXTENSIONS OFF
                            POSITION_INDEPENDENT_CODE ON)
-if (UTAP_WARNINGS)
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wno-sign-conversion -Wimplicit-fallthrough)
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wconversion -Wno-sign-conversion -Wimplicit-fallthrough)
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    target_compile_options(UTAP PUBLIC -Wpedantic -Wall -Wextra -Wimplicit-fallthrough)
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(UTAP PUBLIC /Wall)
-  else ()
-    message(WARNING "Failed to enable warnings for ${CMAKE_CXX_COMPILER_ID}")
-  endif ()
-endif ()
+target_compile_options(UTAP PUBLIC ${UTAP_WARN})
 target_include_directories(UTAP
         PRIVATE
           # where the library itself will look for its internal headers
@@ -75,6 +70,22 @@ target_include_directories(UTAP
           # where external projects will look for the library's public headers
           $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS}
-                                   ${LIBXML_WINLIBS})
+target_link_libraries(UTAP PRIVATE LibXml2::LibXml2 ${CMAKE_DL_LIBS} ${LIBXML_WINLIBS})
 add_library(UTAP::UTAP ALIAS UTAP) # in case the library is not exported-imported
+
+add_executable(pretty pretty.cpp)
+target_link_libraries(pretty PRIVATE UTAP)
+
+add_executable(syntaxcheck syntaxcheck.cpp)
+target_link_libraries(syntaxcheck PRIVATE UTAP)
+
+add_executable(featurecheck featurecheck.cpp)
+target_link_libraries(featurecheck PRIVATE UTAP)
+
+if (UTAP_STATIC)
+  target_link_options(pretty PRIVATE -static)
+  target_link_options(syntaxcheck PRIVATE -static)
+  target_link_options(featurecheck PRIVATE -static)
+endif (UTAP_STATIC)
+
+install(TARGETS pretty syntaxcheck featurecheck)

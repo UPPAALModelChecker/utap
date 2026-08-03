@@ -27,6 +27,9 @@ TEST_SUITE_BEGIN("parser");
 
 using namespace UTAP;
 
+/// Checks text containment in unit testing
+using doctest::Contains;
+
 TEST_CASE("Double Serialization Test")
 {
     const auto doc = read_document("if_statement.xml");
@@ -48,6 +51,15 @@ TEST_CASE("Power expressions")
 TEST_CASE("External functions")
 {
     using namespace UTAP;
+    auto libpath = std::filesystem::current_path();
+    if constexpr (is(OS::Linux)) {
+        libpath /= "libexternal_fn.so";
+    } else if constexpr (is(OS::Linux)) {
+        libpath /= "libexternal_fn.dylib";
+    } else if constexpr (is(OS::Windows)) {
+        libpath /= "libexternal_fn.dll";
+    }
+    REQUIRE_MESSAGE(exists(libpath), ("expecting library at " + libpath.string()));
     auto doc = read_document("external_fn.xml");
     const auto& errs = doc.get_errors();
     REQUIRE(errs.size() == 3);
@@ -56,10 +68,13 @@ TEST_CASE("External functions")
         CHECK(errs[1].msg == Contains{"libbad.so: cannot open shared object file: No such file or directory"});
         CHECK(errs[2].msg == Contains{"undefined symbol: absent"});
     } else if constexpr (is(OS::Windows)) {
-        CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126: Module not found."});
+        // The OS-supplied text after "error <code>: " differs between real Windows
+        // (e.g. "The specified module could not be found.") and Wine's FormatMessage
+        // emulation (e.g. "Module not found."), so only check the parts we control.
+        CHECK(errs[0].msg == Contains{"Failed to open dynamic library libbad.dll: error 126:"});
         CHECK(errs[1].msg == Contains{"Failed to open dynamic library"});
-        CHECK(errs[1].msg == Contains{"libbad.dll: error 126: Module not found."});
-        CHECK(errs[2].msg == Contains{"Failed to find symbol: error 127: Procedure not found."});
+        CHECK(errs[1].msg == Contains{"libbad.dll: error 126:"});
+        CHECK(errs[2].msg == Contains{"Failed to find symbol: error 127:"});
     } else if constexpr (is(OS::macOS)) {
         CHECK(errs[0].msg == Contains{"no such file"});
         CHECK(errs[1].msg == Contains{"no such file"});
@@ -136,7 +151,6 @@ TEST_CASE("SMC bounds in queries")
 
 TEST_CASE("Parsing implicit goals for learning queries")
 {
-    using Constants::Kind;
     auto doc = read_document("simpleSystem.xml");
     auto builder = QueryBuilder(doc);
     const auto& errs = doc.get_errors();
