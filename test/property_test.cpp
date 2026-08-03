@@ -288,6 +288,23 @@ TEST_CASE("subjection referring to an undeclared strategy is an error")
     CHECK(errs[0].msg == "$strategy_not_declared: NoSuchStrategy");
 }
 
+TEST_CASE("function call in a query with too few arguments reports an error instead of crashing")
+{
+    // Regression test: TypeChecker::checkExpression's FUN_CALL case used to
+    // index one past the last supplied argument before its own bounds check
+    // could catch a too-few-arguments call, tripping an assert (or reading
+    // out of bounds in release builds). This is only reachable from queries:
+    // top-level document parsing skips the TypeChecker entirely once
+    // ExpressionBuilder has already recorded the "too few arguments" error.
+    auto doc = document_fixture{}.add_default_process().add_global_decl("bool f(int a, int b) { return a < b; }").parse();
+    auto pb = TigaPropertyBuilder{doc};
+    parse_property("A[] f(1)", pb);
+    const auto& errs = doc.get_errors();
+    REQUIRE(errs.size() == 2);
+    CHECK(errs[0].msg == "$Too_few_arguments_for_function_call");
+    CHECK(errs[1].msg == "$Too_few_function_arguments");
+}
+
 TEST_CASE("sat: over a non-LSC-template is rejected by PropertyBuilder::scenario()")
 {
     // Unlike most PropertyBuilder checks, scenario() throws a raw

@@ -2208,13 +2208,13 @@ bool TypeChecker::checkExpression(Expression& expr)
         bool result = true;
         const Type& fn_type = expr[0].get_type(); // [ret_type, arg1_type, ..., argn_type]
         const uint32_t param_count = fn_type.size() - 1;
-        for (uint32_t i = 0; i < param_count; ++i) {
+        for (uint32_t i = 1; i <= param_count; ++i) {
             if (i >= expr.get_size()) {
                 handleError(too_few_function_arguments(expr));
-                break;
+                return false;
             }
-            const Type& param_type = fn_type[i + 1];
-            const Expression& argument = expr[i + 1];
+            const Type& param_type = fn_type[i];
+            const Expression& argument = expr[i];
             result &= checkParameterCompatible(param_type, argument);
         }
         return result;
