@@ -23,12 +23,25 @@
 
 #include <doctest/doctest.h>
 
+#include <algorithm>
+
 TEST_SUITE_BEGIN("parser");
 
 using namespace UTAP;
 
 /// Checks text containment in unit testing
 using doctest::Contains;
+
+namespace {
+/// Finds a global variable by name, for tests that need to inspect the
+/// (possibly rewritten by TypeChecker::checkInitialiser) initialiser
+/// expression rather than just the absence of errors/warnings.
+auto find_global(Document& doc, std::string_view name)
+{
+    const auto& vars = doc.get_globals().variables;
+    return std::find_if(vars.begin(), vars.end(), [name](const auto& v) { return v.uid.get_name() == name; });
+}
+}  // namespace
 
 TEST_CASE("Double Serialization Test")
 {
@@ -324,6 +337,15 @@ TEST_CASE("Struct int,int initialization")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    // The initialiser must be rewritten to carry the variable's own (const,
+    // labelled, ranged) type, not the bare type inferred from the literal.
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);  // x
+    CHECK(it->init[1].get_value() == 1);  // y
 }
 
 TEST_CASE("Struct int,double initialization")
@@ -336,6 +358,13 @@ TEST_CASE("Struct int,double initialization")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);         // x
+    CHECK(it->init[1].get_double_value() == 1.0);  // y
 }
 
 TEST_CASE("Struct double,double initialization")
@@ -348,6 +377,13 @@ TEST_CASE("Struct double,double initialization")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_double_value() == 1.0);  // x
+    CHECK(it->init[1].get_value() == 1);            // y (int literal, not coerced)
 }
 
 TEST_CASE("Nested struct int,double initialization")
@@ -361,6 +397,19 @@ TEST_CASE("Nested struct int,double initialization")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    REQUIRE(!it->init[0].empty());
+    REQUIRE(it->init[0].get_size() == 2);
+    CHECK(it->init[0][0].get_value() == 5);         // s1.x
+    CHECK(it->init[0][1].get_double_value() == 5.5);  // s1.y
+    REQUIRE(!it->init[1].empty());
+    REQUIRE(it->init[1].get_size() == 2);
+    CHECK(it->init[1][0].get_value() == 2);          // s2.x
+    CHECK(it->init[1][1].get_double_value() == 2.25);  // s2.y
 }
 
 TEST_CASE("Meta struct")
@@ -373,6 +422,13 @@ TEST_CASE("Meta struct")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);
+    CHECK(it->init[1].get_double_value() == 1.0);
 }
 
 TEST_CASE("Struct meta field")
@@ -385,6 +441,13 @@ TEST_CASE("Struct meta field")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);
+    CHECK(it->init[1].get_double_value() == 1.0);
 }
 
 TEST_CASE("Initializing doubles in struct with ints")
@@ -397,6 +460,13 @@ TEST_CASE("Initializing doubles in struct with ints")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);  // x (int literal, not coerced)
+    CHECK(it->init[1].get_value() == 1);  // y (int literal, not coerced)
 }
 
 TEST_CASE("Initializing ints with double value")
@@ -422,18 +492,13 @@ TEST_CASE("Meta field in non meta struct")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
-}
 
-TEST_CASE("Meta field in non meta struct")
-{
-    auto doc = document_fixture{}
-                   .add_default_process()
-                   .add_global_decl("struct { int x; meta double y; } s = {1, 1.0};")
-                   .parse();
-    const auto& errs = doc.get_errors();
-    CHECK_MESSAGE(errs.empty(), errs.front().msg);
-    const auto& warns = doc.get_warnings();
-    CHECK_MESSAGE(warns.empty(), warns.front().msg);
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);
+    CHECK(it->init[1].get_double_value() == 1.0);
 }
 
 TEST_CASE("Nested structs")
@@ -446,6 +511,16 @@ TEST_CASE("Nested structs")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    CHECK(it->init[0].get_value() == 1);  // x
+    REQUIRE(!it->init[1].empty());
+    REQUIRE(it->init[1].get_size() == 2);
+    CHECK(it->init[1][0].get_value() == 5);         // data.y
+    CHECK(it->init[1][1].get_double_value() == 5.0);  // data.d
 }
 
 TEST_CASE("Structs with arrays")
@@ -458,6 +533,19 @@ TEST_CASE("Structs with arrays")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    REQUIRE(!it->init[0].empty());
+    REQUIRE(it->init[0].get_size() == 2);
+    CHECK(it->init[0][0].get_value() == 1);  // x[0]
+    CHECK(it->init[0][1].get_value() == 1);  // x[1]
+    REQUIRE(!it->init[1].empty());
+    REQUIRE(it->init[1].get_size() == 2);
+    CHECK(it->init[1][0].get_double_value() == 5.0);  // y[0]
+    CHECK(it->init[1][1].get_double_value() == 5.0);  // y[1]
 }
 
 TEST_CASE("Array of structs")
@@ -470,6 +558,19 @@ TEST_CASE("Array of structs")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "s");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 2);
+    REQUIRE(!it->init[0].empty());
+    REQUIRE(it->init[0].get_size() == 2);
+    CHECK(it->init[0][0].get_value() == 1);         // s[0].x
+    CHECK(it->init[0][1].get_double_value() == 5.0);  // s[0].y
+    REQUIRE(!it->init[1].empty());
+    REQUIRE(it->init[1].get_size() == 2);
+    CHECK(it->init[1][0].get_value() == 1);         // s[1].x
+    CHECK(it->init[1][1].get_double_value() == 2.5);  // s[1].y
 }
 
 TEST_CASE("Pre increment precedence bug")
@@ -590,6 +691,10 @@ TEST_CASE("Initializer: int")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "my");
+    REQUIRE(it != doc.get_globals().variables.end());
+    CHECK(it->init.get_value() == 7);
 }
 
 TEST_CASE("Initializer: array")
@@ -603,6 +708,16 @@ TEST_CASE("Initializer: array")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it = find_global(doc, "ia");
+    REQUIRE(it != doc.get_globals().variables.end());
+    // The initialiser must be rewritten to carry the typedef'd array type
+    // (e.g. "label ia3_t:..."), not the bare type inferred from the literal.
+    CHECK(it->init.get_type().str() == it->uid.get_type().str());
+    REQUIRE(it->init.get_size() == 3);
+    CHECK(it->init[0].get_value() == 1);
+    CHECK(it->init[1].get_value() == 2);
+    CHECK(it->init[2].get_value() == 3);
 }
 
 TEST_CASE("Initializer: struct")
@@ -617,6 +732,19 @@ TEST_CASE("Initializer: struct")
     CHECK_MESSAGE(errs.empty(), errs.front().msg);
     const auto& warns = doc.get_warnings();
     CHECK_MESSAGE(warns.empty(), warns.front().msg);
+
+    auto it1 = find_global(doc, "xy1");
+    REQUIRE(it1 != doc.get_globals().variables.end());
+    CHECK(it1->init.get_type().str() == it1->uid.get_type().str());
+    REQUIRE(it1->init.get_size() == 2);
+    CHECK(it1->init[0].get_value() == 1);  // x
+    CHECK(it1->init[1].get_value() == 2);  // y
+
+    auto it2 = find_global(doc, "xy2");
+    REQUIRE(it2 != doc.get_globals().variables.end());
+    REQUIRE(it2->init.get_size() == 2);
+    CHECK(it2->init[0].get_value() == 1);  // x
+    CHECK(it2->init[1].get_value() == 2);  // y
 }
 
 TEST_SUITE_END();
