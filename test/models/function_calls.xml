@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>int v;
+
+bool enabled(int i) {
+    return (i&gt;0);
+}
+</declaration>
+	<template>
+		<name x="5" y="5">P</name>
+		<location id="id0" x="136" y="0">
+			<name x="126" y="-34">Done</name>
+		</location>
+		<location id="id1" x="0" y="0">
+			<urgent/>
+		</location>
+		<init ref="id1"/>
+		<transition id="id2">
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="guard" x="25" y="-25">enabled(1)</label>
+			<label kind="assignment" x="25" y="0">v=1</label>
+		</transition>
+	</template>
+	<system>system P;</system>
+	<queries>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled(1) } : 2 : enabled(1)</formula>
+			<comment>Good call, should pass</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled(1) } : 2 : enabled()</formula>
+			<comment>Call is missing argument, should give meaningful error and not crash.</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled() } : 2 : enabled(1)</formula>
+			<comment>Call is missing argument, should give meaningful error and not crash.</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, enabled() } : 2 : enabled()</formula>
+			<comment>Both calls are missing arguments, should give error message and not crash</comment>
+		</query>
+		<query>
+			<formula>simulate[&lt;=5;3] { v, non_existent() } : 2 : non_existent()</formula>
+			<comment>Chould give meaningfull error message and not crash</comment>
+		</query>
+	</queries>
+</nta>

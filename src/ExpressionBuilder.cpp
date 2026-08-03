@@ -23,13 +23,13 @@
 
 #include "utap/TypeChecker.hpp"
 
-#include <cinttypes>
-#include <cmath>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include <cassert>
+#include <cinttypes>
+#include <cmath>
 
 namespace UTAP {
 
@@ -319,15 +319,19 @@ void ExpressionBuilder::expr_call_end(uint32_t n)
     switch (id.get_type().get_kind()) {
     case Kind::FUNCTION_EXTERNAL:
     case Kind::FUNCTION:
-        if (expr.size() != id.get_type().size())
-            handle_error(TypeException{"$Wrong_number_of_arguments"});
+        if (expr.size() < id.get_type().size())
+            handle_error(TypeException{"$Too_few_arguments_for_function_call"});
+        if (expr.size() > id.get_type().size())
+            handle_error(TypeException{"$Too_many_arguments_for_function_call"});
         e = Expression::create_nary(id.get_type().get_kind() == Kind::FUNCTION ? Kind::FUN_CALL : Kind::FUN_CALL_EXT, expr, position,
                                     id.get_type()[0]);
         break;
 
     case Kind::PROCESS_SET:
-        if (expr.size() - 1 != id.get_type().size())
-            handle_error(TypeException{"$Wrong_number_of_arguments"});
+        if (expr.size() - 1 < id.get_type().size())
+            handle_error(TypeException{"$Too_few_arguments_for_template_instantiation"});
+        if (expr.size() - 1 > id.get_type().size())
+            handle_error(TypeException{"$Too_many_arguments_for_template_instantiation"});
         instance = static_cast<const Instance*>(id.get_symbol().get_data());
 
         /* Process set lookups are represented as expressions indexing

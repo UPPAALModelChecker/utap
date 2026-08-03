@@ -285,6 +285,8 @@ Error incompatible_arguments_to_inline_if(const Expression& expr)
 
 Error incompatible_type_for_comma(const Expression& expr) { return {expr, "$Incompatible_type_for_comma_expression"}; }
 
+Error too_few_function_arguments(const Expression& expr) { return {expr, "$Too_few_function_arguments"}; }
+
 Error channel_expected(const Expression& expr) { return {expr, "$Channel_expected"}; }
 
 Error clock_expected(const Expression& expr) { return {expr, "$Clock_expected"}; }
@@ -1001,7 +1003,7 @@ void TypeChecker::visit_variable(Variable& variable)
         else if (variable.init.changes_any_variable())
             handleError(must_be_side_effect_free(variable.init));
         else
-            checkInitialiser(variable.uid.get_type(), variable.init);
+            variable.init = checkInitialiser(variable.uid.get_type(), variable.init);
     }
 }
 
@@ -1645,7 +1647,7 @@ Expression TypeChecker::checkInitialiser(const Type& type, const Expression& ini
         for (uint32_t i = 0; i < init.get_type().size(); i++) {
             if (!init.get_type().get_label(i).empty())
                 handleError(field_name_not_allowed_in_array_init(init[i]));
-            checkInitialiser(subtype, init[i]);
+            result[i] = checkInitialiser(subtype, init[i]);
         }
         return Expression::create_nary(Kind::LIST, result, init.get_position(), type);
     } else if (type.is_record() && init.get_kind() == Kind::LIST) {
@@ -2204,12 +2206,16 @@ bool TypeChecker::checkExpression(Expression& expr)
         checkExpression(expr[0]);
 
         bool result = true;
-        const Type& t = expr[0].get_type();
-        const uint32_t parameters = t.size() - 1;
-        for (uint32_t i = 0; i < parameters; i++) {
-            const Type& parameter = t[i + 1];
-            const Expression& argument = expr[i + 1];
-            result &= checkParameterCompatible(parameter, argument);
+        const Type& fn_type = expr[0].get_type(); // [ret_type, arg1_type, ..., argn_type]
+        const uint32_t param_count = fn_type.size() - 1;
+        for (uint32_t i = 1; i <= param_count; ++i) {
+            if (i >= expr.get_size()) {
+                handleError(too_few_function_arguments(expr));
+                return false;
+            }
+            const Type& param_type = fn_type[i];
+            const Expression& argument = expr[i];
+            result &= checkParameterCompatible(param_type, argument);
         }
         return result;
     }
