@@ -1,0 +1,109 @@
+---
+name: Ubuntu GCC14
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.h'
+      - '**.c'
+      - '**.hpp'
+      - '**.cpp'
+      - '**.y'
+      - '**.l'
+      - '**CMakeLists.txt'
+      - 'cmake/*.cmake'
+      - 'cmake/toolchain/*linux*.cmake'
+      - 'examples/cmake/*.cmake'
+  pull_request:
+    paths:
+      - '**.h'
+      - '**.c'
+      - '**.hpp'
+      - '**.cpp'
+      - '**.y'
+      - '**.l'
+      - '**CMakeLists.txt'
+      - 'cmake/*.cmake'
+      - 'cmake/toolchain/*linux*.cmake'
+      - 'examples/cmake/*.cmake'
+
+jobs:
+  ubuntu-gcc14:
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/CCACHE
+      CTEST_OUTPUT_ON_FAILURE: 1
+      CMAKE_TOOLCHAIN_FILE: ${{ github.workspace }}/cmake/toolchain/x86_64-linux-gcc14.cmake
+      CMAKE_PREFIX_PATH: ${{ github.workspace }}/local/x86_64-linux-gcc14
+      CMAKE_INSTALL_PREFIX: ${{ github.workspace }}/local/x86_64-linux-gcc14
+      CMAKE_BUILD_TYPE: Debug
+      CC: gcc-14
+      CXX: g++-14
+    steps:
+      - uses: actions/checkout@v6
+      - name: Get Ubuntu dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install clang-format curl wget unzip xz-utils bison flex cmake ninja-build ccache g++-14
+
+      - name: Check Formatting
+        run: |
+          clang-format --version
+          find src include test -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' -exec clang-format -n -Werror {} \;
+
+      - name: Compute CCache keys
+        id: x86_64-linux-gcc14-keys
+        run: |
+          key2=ccache-x86_64-linux-gcc14-
+          key1="${key2}$(date +%W)"
+          echo "key1=${key1}" >> $GITHUB_OUTPUT
+          echo "key2=${key2}" >> $GITHUB_OUTPUT
+
+      - name: Restore CCache
+        id: ccache-restore
+        uses: actions/cache@v5
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ steps.x86_64-linux-gcc14-keys.outputs.key1 }}
+          restore-keys: ${{ steps.x86_64-linux-gcc14-keys.outputs.key2 }}
+      - name: CCache limits and stats
+        run: |
+          ccache -M120M
+          ccache --show-stats
+
+      - name: Restore Libs
+        id: restore-libs
+        uses: actions/cache/restore@v5
+        with:
+          path: local/x86_64-linux-gcc14
+          key: libs-x86_64-linux-gcc14-${{ hashFiles('getlibs.sh') }}
+          restore-keys: libs-x86_64-linux-gcc14-
+      - name: Get library dependencies
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        run: ./getlibs.sh x86_64-linux-gcc14
+      - name: Save Libs
+        if: steps.restore-libs.outputs.cache-hit != 'true'
+        id: save-libs
+        uses: actions/cache/save@v5
+        with:
+          path: local/x86_64-linux-gcc14
+          key: ${{ steps.restore-libs.outputs.cache-primary-key }}
+      - name: Configure UTAP
+        run: cmake -DUTAP_CLANG_TIDY=OFF --preset debug-san
+      - name: Build UTAP
+        run: cmake --build --preset debug-san
+      - name: Test UTAP
+        run: ctest --preset debug-san
+      - name: Quick UTAP Release
+        run: cmake --workflow --preset release-quick
+      - name: Install UTAP
+        run: cmake --install build-quick --config Release --prefix "$CMAKE_INSTALL_PREFIX"
+      - name: CCache Statistics
+        run: ccache --show-stats
+      - name: Configure Examples
+        run: cmake -B "examples/${BUILD_DIR}" -S examples
+      - name: Build Examples
+        run: cmake --build "examples/${BUILD_DIR}" --config "$CMAKE_BUILD_TYPE"
+      - name: Test Examples
+        run: ctest --test-dir "examples/${BUILD_DIR}"
