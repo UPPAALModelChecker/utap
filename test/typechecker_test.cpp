@@ -23,6 +23,7 @@
 
 #include <doctest/doctest.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <cstdio>
@@ -980,6 +981,59 @@ TEST_SUITE("More expression and edge errors")
         const auto& errs = doc.get_errors();
         REQUIRE(errs.size() == 1);
         CHECK(errs[0].msg == "$Field_name_not_allowed_in_array_initialiser");
+    }
+
+    TEST_CASE("global struct initialiser with out-of-order named fields is reordered to match field declaration order")
+    {
+        // Regression test: TypeChecker::visit_variable used to discard the
+        // Expression returned by checkInitialiser() for global/const variables,
+        // so field reordering performed by checkInitialiser (for out-of-order
+        // named initialisers) never made it back into variable.init.
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("struct { int x; int y; } s = {y: 2, x: 1};")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE_MESSAGE(errs.empty(), (errs.empty() ? "" : errs.front().msg));
+        const auto& vars = doc.get_globals().variables;
+        auto it = std::find_if(vars.begin(), vars.end(), [](const auto& v) { return v.uid.get_name() == "s"; });
+        REQUIRE(it != vars.end());
+        REQUIRE(it->init.get_size() == 2);
+        CHECK(it->init[0].get_value() == 1);  // x, declared first
+        CHECK(it->init[1].get_value() == 2);  // y, declared second
+    }
+
+    TEST_CASE("local array-of-struct initialiser with out-of-order named fields is reordered, not corrupted")
+    {
+        // Regression test: checkInitialiser's array branch called
+        // checkInitialiser(subtype, init[i]) recursively but discarded the
+        // result instead of storing it in result[i], leaving the returned
+        // LIST full of empty (default-constructed) sub-expressions whenever
+        // per-element coercion/reordering was needed (e.g. array of structs
+        // with out-of-order named fields). Only reachable for local
+        // variables, since visit_block_statement (unlike visit_variable)
+        // does use checkInitialiser's return value.
+        auto doc = document_fixture{}
+                       .add_default_process()
+                       .add_global_decl("typedef struct { int x; int y; } Point;"
+                                        "void f() { Point arr[2] = {{y: 2, x: 1}, {y: 4, x: 3}}; }")
+                       .parse();
+        const auto& errs = doc.get_errors();
+        REQUIRE_MESSAGE(errs.empty(), (errs.empty() ? "" : errs.front().msg));
+        const auto& functions = doc.get_globals().functions;
+        auto fit = std::find_if(functions.begin(), functions.end(), [](const auto& fn) { return fn.uid.get_name() == "f"; });
+        REQUIRE(fit != functions.end());
+        auto vit = std::find_if(fit->variables.begin(), fit->variables.end(),
+                                [](const auto& v) { return v.uid.get_name() == "arr"; });
+        REQUIRE(vit != fit->variables.end());
+        REQUIRE(vit->init.get_size() == 2);
+        REQUIRE(!vit->init[0].empty());
+        REQUIRE(!vit->init[1].empty());
+        REQUIRE(vit->init[0].get_size() == 2);
+        CHECK(vit->init[0][0].get_value() == 1);  // x, declared first
+        CHECK(vit->init[0][1].get_value() == 2);  // y, declared second
+        CHECK(vit->init[1][0].get_value() == 3);
+        CHECK(vit->init[1][1].get_value() == 4);
     }
 
     TEST_CASE("number expected and unknown type in sum body")

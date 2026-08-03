@@ -1003,7 +1003,7 @@ void TypeChecker::visit_variable(Variable& variable)
         else if (variable.init.changes_any_variable())
             handleError(must_be_side_effect_free(variable.init));
         else
-            checkInitialiser(variable.uid.get_type(), variable.init);
+            variable.init = checkInitialiser(variable.uid.get_type(), variable.init);
     }
 }
 
@@ -1647,7 +1647,7 @@ Expression TypeChecker::checkInitialiser(const Type& type, const Expression& ini
         for (uint32_t i = 0; i < init.get_type().size(); i++) {
             if (!init.get_type().get_label(i).empty())
                 handleError(field_name_not_allowed_in_array_init(init[i]));
-            checkInitialiser(subtype, init[i]);
+            result[i] = checkInitialiser(subtype, init[i]);
         }
         return Expression::create_nary(Kind::LIST, result, init.get_position(), type);
     } else if (type.is_record() && init.get_kind() == Kind::LIST) {
