@@ -532,6 +532,7 @@ public:
     Document& operator=(Document&&) noexcept = default;
 
     /// Returns the global declarations of the document.
+    const Declarations& get_globals() const { return global; }
     Declarations& get_globals() { return global; }
 
     /// Returns the templates of the document.

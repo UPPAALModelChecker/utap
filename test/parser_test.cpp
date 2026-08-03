@@ -36,7 +36,7 @@ namespace {
 /// Finds a global variable by name, for tests that need to inspect the
 /// (possibly rewritten by TypeChecker::checkInitialiser) initialiser
 /// expression rather than just the absence of errors/warnings.
-auto find_global(Document& doc, std::string_view name)
+auto find_global(const Document& doc, std::string_view name)
 {
     const auto& vars = doc.get_globals().variables;
     return std::find_if(vars.begin(), vars.end(), [name](const auto& v) { return v.uid.get_name() == name; });
